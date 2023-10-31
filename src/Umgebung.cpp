@@ -40,6 +40,7 @@ int audio_input_device = DEFAULT_AUDIO_DEVICE;
 int audio_output_device = DEFAULT_AUDIO_DEVICE;
 int monitor = DEFAULT;
 int antialiasing = DEFAULT;
+bool enable_retina_support = true;
 
 /* private */
 
@@ -206,6 +207,10 @@ GLFWwindow *init_graphics(int _width, int _height, const char *title) {
         glfwWindowHint(GLFW_SAMPLES, antialiasing);
     }
 
+    if (enable_retina_support) {
+        glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
+    }
+
     GLFWwindow *window = glfwCreateWindow(width, height, title, desiredMonitor, nullptr);
     if (!window) {
         glfwTerminate();
@@ -217,6 +222,9 @@ GLFWwindow *init_graphics(int _width, int _height, const char *title) {
     glfwSetCursorPosCallback(window, mouse_move_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetKeyCallback(window, key_callback);
+
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     return window;
 }
@@ -257,7 +265,13 @@ void handle_draw(GLFWwindow *window) {
     glScalef(1, -1, 1);
     glTranslatef(0, (float) -height, 0);
 
-    glViewport(0, 0, width, height); // Set the viewport dimensions to match the screen resolution
+    if (enable_retina_support) {
+        int framebufferWidth, framebufferHeight;
+        glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+        glViewport(0, 0, framebufferWidth, framebufferHeight);
+    } else {
+        glViewport(0, 0, width, height); // Set the viewport dimensions to match the screen resolution
+    }
 
     draw();
 
@@ -283,7 +297,7 @@ int run_application() {
         return -1;
     }
 
-    GLFWwindow *window = init_graphics(width, height, DEFAULT_WINDOW_TITLE); // @development
+    GLFWwindow *window = init_graphics(width, height, UMGEBUNG_WINDOW_TITLE); // @development
     if (window == nullptr) {
         return -1;
     }

@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <iostream>
+
 #ifndef WEAK
 #define WEAK __attribute__((weak))
 #endif
@@ -29,9 +31,12 @@
 #define NUMBER_OF_OUTPUT_CHANNELS 2
 #define DEFAULT_AUDIO_DEVICE (-1)
 #define DEFAULT (-1)
-#define DEFAULT_WINDOW_TITLE "Umgebung"
 #define DEFAULT_WINDOW_WIDTH 1024
 #define DEFAULT_WINDOW_HEIGHT 768
+#define DEFAULT_WINDOW_TITLE "Umgebung"
+#ifndef UMGEBUNG_WINDOW_TITLE
+#define UMGEBUNG_WINDOW_TITLE DEFAULT_WINDOW_TITLE
+#endif
 
 extern int audio_input_device;
 extern int audio_output_device;
@@ -51,6 +56,7 @@ extern int mouseButton;
 extern int key;
 extern int frameCount;
 extern float frameRate;
+extern bool enable_retina_support; // @development maybe implement as `HINT(ENABLE_RETINA_SUPPORT, true)`
 
 #include "UmgebungDraw.h"
 #include "UmgebungSketch.h"

@@ -1,10 +1,9 @@
-#include <iostream>
 #include "Umgebung.h"
 
 void settings() {
     size(2048, 1280);
     audio_devices(DEFAULT_AUDIO_DEVICE, DEFAULT_AUDIO_DEVICE);
-    antialiasing = 32;
+    antialiasing = 8;
 }
 
 void setup() {
@@ -49,7 +48,7 @@ void audioblock(const float *input, float *output, unsigned long length) {
 }
 
 void keyPressed() {
-    println("key  : ", (char) key);
+    println("key           : ", (char) key);
 }
 
 void mouseMoved() {
