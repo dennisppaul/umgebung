@@ -31,6 +31,8 @@ WEAK void setup() {}
 
 WEAK void draw() {}
 
+WEAK void finish() {}
+
 WEAK void audioblock(const float *input, float *output, unsigned long length) {}
 
 WEAK void mouseMoved() {}

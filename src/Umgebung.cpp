@@ -17,10 +17,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
 #include <iostream>
 #include <portaudio.h>
+#include <filesystem>
 
 #include "Umgebung.h"
 
@@ -226,12 +227,16 @@ GLFWwindow *init_graphics(int _width, int _height, const char *title) {
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    // initialize GLEW
+    if (glewInit() != GLEW_OK) {
+        glfwTerminate();
+        return nullptr;
+    }
+
     return window;
 }
 
 void shutdown(PaStream *stream, GLFWwindow *window) {
-    std::cout << "+++ shutting down" << std::endl;
-
     /* terminate PortAudio */
     Pa_StopStream(stream);
     Pa_CloseStream(stream);
@@ -289,7 +294,17 @@ void handle_draw(GLFWwindow *window) {
     startTime = std::chrono::high_resolution_clock::now();
 }
 
+void print_sketchpath() {
+    std::filesystem::path currentPath = std::filesystem::current_path();
+    std::cout << "Current working directory: " << currentPath << std::endl;
+}
+
+void exit() {
+    fAppIsRunning = false;
+}
+
 int run_application() {
+    print_sketchpath();
     settings();
 
     PaStream *stream = init_audio(NUMBER_OF_INPUT_CHANNELS, NUMBER_OF_OUTPUT_CHANNELS);
@@ -303,6 +318,7 @@ int run_application() {
     }
 
     handle_setup(window);
+
     std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
 
     while (fAppIsRunning && !glfwWindowShouldClose(window)) {
@@ -316,6 +332,7 @@ int run_application() {
         }
     }
 
+    finish();
     shutdown(stream, window);
 
     return 0;

@@ -1,5 +1,7 @@
 #include "Umgebung.h"
 
+PFont *mFont;
+
 void settings() {
     size(2048, 1280);
     audio_devices(DEFAULT_AUDIO_DEVICE, DEFAULT_AUDIO_DEVICE);
@@ -7,18 +9,25 @@ void settings() {
 }
 
 void setup() {
+    mFont = loadFont("../Roboto-Regular.ttf", 96); // note that font is not included 
+    textFont(mFont);
 }
 
 void draw() {
     background(0, 0, 0);
+    /* rectangle */
     float padding = random(50, 70);
-    noStroke();
     stroke(1, 0, 1);
     fill(1, 1, 1);
     rect(padding, padding, width - 2 * padding, height - 2 * padding);
+    /* line */
     stroke(0.5, 0.5, 0.5);
     noFill();
     line(0, 0, mouseX, mouseY);
+    /* text */
+    fill(1, 0, 0);
+    noStroke();
+    text(to_string(mouseX, ", ", mouseY), mouseX, mouseY);
 }
 
 void audioblock(const float *input, float *output, unsigned long length) {
@@ -57,4 +66,9 @@ void mouseMoved() {
 
 void mousePressed() {
     println("mouse button  : ", mouseButton);
+    exit();
+}
+
+void finish() {
+    println("application shutting down");
 }

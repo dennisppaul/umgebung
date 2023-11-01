@@ -2,13 +2,18 @@
 
 ## Prerequisite ( for MacOS )
 
-in order to compile and run application install the following packages with [Homebrew](https://brew.sh):
+this project relies on the following packages:
+
+- [CMake](https://cmake.org/) 
+- [GLFW](https://www.glfw.org/) 
+- [PortAudio](https://www.portaudio.com) 
+- [FTGL](https://github.com/frankheckenbach/ftgl) 
+- [GLEW](https://glew.sourceforge.net/)
+
+in order to compile and run applications install the following packages with [Homebrew](https://brew.sh):
 
 ```
-$ brew install cmake
-$ brew install glfw
-$ brew install portaudio
-$ brew install ftgl
+$ brew install cmake glfw portaudio ftgl glew
 ```
 
 ## Build Applications with *Umgebung*

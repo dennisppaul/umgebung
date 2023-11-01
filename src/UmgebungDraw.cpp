@@ -20,12 +20,14 @@
 #include <GLFW/glfw3.h>
 #include "UmgebungDraw.h"
 
-static struct {
-    float r;
-    float g;
-    float b;
-    float a;
-    bool active;
+static PFont *fCurrentFont = nullptr;
+
+struct {
+    float r = 0;
+    float g = 0;
+    float b = 0;
+    float a = 1;
+    bool active = false;
 } fill_color, stroke_color;
 
 void stroke(float r, float g, float b, float a) {
@@ -79,11 +81,29 @@ void rect(float x, float y, float width, float height) {
 }
 
 void line(float x1, float y1, float x2, float y2) {
-    if (stroke_color.active) {
-        glColor4f(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
-        glBegin(GL_LINES);
-        glVertex2f(x1, y1);
-        glVertex2f(x2, y2);
-        glEnd();
-    }
+    if (!stroke_color.active) return;
+    glColor4f(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
+    glBegin(GL_LINES);
+    glVertex2f(x1, y1);
+    glVertex2f(x2, y2);
+    glEnd();
+}
+
+/* font */
+
+PFont *loadFont(const char *file, float size) {
+    auto *font = new PFont(file, size);
+    return font;
+}
+
+void textFont(PFont *font) {
+    fCurrentFont = font;
+}
+
+void text(const std::string &text, float x, float y) {
+    if (fCurrentFont == nullptr) return;
+    if (!fill_color.active) return;
+
+    glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+    fCurrentFont->draw(text.c_str(), x, y);
 }

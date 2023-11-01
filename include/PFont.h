@@ -19,24 +19,32 @@
 
 #pragma once
 
-void settings();
+#include <iostream>
+#include <GLFW/glfw3.h>
+#include <FTGL/ftgl.h>
 
-void setup();
+class PFont {
+public:
+    PFont(const char *file, float size) {
+        font = new FTTextureFont(file);
+        if (font->Error()) {
+            std::cerr << "+++ error initializing font" << std::endl;
+            delete font;
+            return;
+        }
+        font->FaceSize((int) size);
+    }
 
-void draw();
+    void draw(const char *text, float x, float y) {
+        if (font == nullptr) return;
+        glPushMatrix();
+        glTranslatef(x, y, 0);
+        glScalef(1, -1, 1);
+        font->Render(text, -1, FTPoint(0, 0));
+        glPopMatrix();
+    }
 
-void finish();
+private:
+    FTTextureFont *font = nullptr;
 
-void audioblock(const float *input, float *output, unsigned long length);
-
-void mouseMoved();
-
-void mouseDragged();
-
-void mousePressed();
-
-void mouseReleased();
-
-void keyPressed();
-
-void keyReleased();
+};

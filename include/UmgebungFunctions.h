@@ -19,7 +19,11 @@
 
 #pragma once
 
+#include <string>
+
 void size(int width, int height);
+
+void exit();
 
 void audio_devices(int input_device, int output_device);
 
@@ -28,4 +32,7 @@ float random(float min, float max);
 template<typename... Args>
 void println(const Args &... args);
 
-#include "UmgebungPrint.cpp" // include print function definition
+template<typename... Args>
+std::string to_string(const Args &... args);
+
+#include "UmgebungPrint.cpp" // include function definitions

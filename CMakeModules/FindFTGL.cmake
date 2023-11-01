@@ -1,0 +1,53 @@
+# - Find ftgl
+# Find the native FTGL includes and library
+#
+#  FTGL_INCLUDE_DIRS - Where to find zlib.h, etc.
+#  FTGL_LIBRARIES    - List of libraries when using zlib.
+#  FTGL_DEFINITIONS  - List of definitions when using zlib.
+#  FTGL_FOUND        - True if zlib found.
+
+IF (FTGL_INCLUDE_DIR)
+    # Already in cache, be silent
+    SET(FTGL_FIND_QUIETLY TRUE)
+ENDIF (FTGL_INCLUDE_DIR)
+
+FIND_PACKAGE(Freetype REQUIRED)
+SET(FREETYPE_PATH ${FREETYPE_INCLUDE_DIRS})
+
+FIND_PATH(FTGL_INCLUDE_DIR FTGL/ftgl.h)
+
+IF (WIN32)
+    FIND_PACKAGE(Freetype)
+ELSE (WIN32)
+    SET(${FREETYPE_LIBRARIES})
+ENDIF (WIN32)
+SET(FTGL_INCLUDE_DIR ${FTGL_INCLUDE_DIR} ${FREETYPE_PATH})
+
+SET(FTGL_NAMES ${FTGL_NAMES} FTGL)
+FIND_LIBRARY(FTGL_LIBRARY NAMES ${FTGL_NAMES})
+
+SET(FTGL_NAMES_DEBUG ${FTGL_NAMES_DEBUG} FTGLd)
+FIND_LIBRARY(FTGL_LIBRARY_DEBUG NAMES ${FTGL_NAMES_DEBUG})
+
+# Per-recommendation
+SET(FTGL_INCLUDE_DIRS ${FTGL_INCLUDE_DIR})
+IF (NOT FTGL_LIBRARY_DEBUG)
+    SET(FTGL_LIBRARIES ${FTGL_LIBRARY} ${FREETYPE_LIBRARIES})
+ELSE (NOT FTGL_LIBRARY_DEBUG)
+    # Very important to use lowercase 'debug' and 'optimized' for this to work
+    SET(FTGL_LIBRARIES
+            debug ${FTGL_LIBRARY_DEBUG}
+            optimized ${FTGL_LIBRARY})
+    SET(FTGL_LIBRARIES ${FTGL_LIBRARIES} ${FREETYPE_LIBRARIES})
+ENDIF (NOT FTGL_LIBRARY_DEBUG)
+
+# I have no way of knowing if a user is linking to the static library
+# or not, I am just assuming this for the mean time.
+SET(FTGL_DEFINITIONS FTGL_LIBRARY_STATIC)
+
+# handle the QUIETLY and REQUIRED arguments and set FTGL_FOUND to TRUE if
+# all listed variables are TRUE
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(FTGL DEFAULT_MSG FTGL_LIBRARY FREETYPE_LIBRARIES FTGL_INCLUDE_DIRS)
+
+MARK_AS_ADVANCED(FTGL_LIBRARY FTGL_LIBRARY_DEBUG FTGL_INCLUDE_DIR)

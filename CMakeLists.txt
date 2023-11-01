@@ -46,7 +46,7 @@ if (APPLE)
 endif ()
 target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
 
-# portaudio
+# portaudio + ftgl + glew
 if (APPLE)
     if (BUILD_STANDALONE)
         list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules")
@@ -56,20 +56,20 @@ if (APPLE)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON)
 endif (APPLE)
 find_package(portaudio REQUIRED)
+find_package(ftgl REQUIRED)
+find_package(glew REQUIRED)
 if (APPLE)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS OFF)
 endif (APPLE)
 
-# link against libraries
-# @development adding portaudio manually as it seems to cause problems on some MacOS machines TODO: fix this
-# replaced `portaudio` with `${PORTAUDIO_LIBRARIES}` as it does not seem to work on some machines
+# @development adding portaudio + ftgl manually as it seems to cause problems on some MacOS machines TODO: fix this
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PORTAUDIO_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${FTGL_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${FTGL_INCLUDE_DIRS})
 #target_link_libraries(${PROJECT_NAME} PUBLIC portaudio)
-
-## ftgl
-#find_package(ftgl REQUIRED)
 #target_link_libraries(${PROJECT_NAME} PUBLIC ftgl)
+target_link_libraries(${PROJECT_NAME} PUBLIC glew)
 
 # includes
 target_include_directories(${PROJECT_NAME} PUBLIC ${HEADER_DIR})

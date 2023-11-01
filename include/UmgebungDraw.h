@@ -19,6 +19,10 @@
 
 #pragma once
 
+#include <string>
+
+#include "PFont.h"
+
 void stroke(float r, float g, float b, float a = 1.0);
 
 void noStroke();
@@ -32,3 +36,9 @@ void background(float a, float b, float c, float d = 1.0);
 void rect(float x, float y, float width, float height);
 
 void line(float x1, float y1, float x2, float y2);
+
+PFont *loadFont(const char *file, float size); // @development maybe use smart pointers here
+
+void textFont(PFont *font);
+
+void text(const std::string &text, float x, float y);
