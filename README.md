@@ -8,6 +8,7 @@ in order to compile and run application install the following packages with [Hom
 $ brew install cmake
 $ brew install glfw
 $ brew install portaudio
+$ brew install ftgl
 ```
 
 ## Build Applications with *Umgebung*
@@ -28,3 +29,8 @@ if changes are made to `umgebung-example-app.cpp‌` ( or any other file in that
 ```
 $ make ; ./umgebung-example-app
 ```
+
+## Known Issues
+
+- only tested on MacOS. although theoretically the external libraries as well as the build system should be cross-platform ( i.e Macos, Linux, Windows )
+- portaudio is manually configured because it does not work on all machines. this *dirty hack* is somewhat buggy and sometimes requires to call `cmake ..` again after `make` fails once 

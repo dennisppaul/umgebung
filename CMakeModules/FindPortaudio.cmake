@@ -48,13 +48,13 @@ else (PORTAUDIO_LIBRARIES AND PORTAUDIO_INCLUDE_DIRS)
        set(PORTAUDIO_INCLUDE_DIRS
                ${PORTAUDIO2_INCLUDE_DIRS}
        )
-       if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+       if (APPLE)
          set(PORTAUDIO_LIBRARIES "${PORTAUDIO2_LIBRARY_DIRS}/lib${PORTAUDIO2_LIBRARIES}.dylib")
-       else (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+       else (APPLE)
          set(PORTAUDIO_LIBRARIES
                  ${PORTAUDIO2_LIBRARIES}
          )
-       endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+       endif (APPLE)
        set(PORTAUDIO_VERSION
                19
        )
@@ -133,13 +133,13 @@ else (PORTAUDIO_LIBRARIES AND PORTAUDIO_INCLUDE_DIRS)
     set(PORTAUDIO_INCLUDE_DIRS
       ${PORTAUDIO2_INCLUDE_DIRS}
     )
-    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    if (APPLE)
       set(PORTAUDIO_LIBRARIES "${PORTAUDIO2_LIBRARY_DIRS}/lib${PORTAUDIO2_LIBRARIES}.dylib")
-    else (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    else (APPLE)
       set(PORTAUDIO_LIBRARIES
         ${PORTAUDIO2_LIBRARIES}
       )
-    endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    endif (APPLE)
     set(PORTAUDIO_VERSION
       19
     )

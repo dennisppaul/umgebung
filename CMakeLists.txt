@@ -29,38 +29,45 @@ include_directories("${UMGEBUNG_PATH}/include")
 
 # create the executable
 if (BUILD_STANDALONE)
-    #    add_executable(${PROJECT_NAME} ${UMGEBUNG_SOURCE_FILES})
-    add_library(${PROJECT_NAME} SHARED ${UMGEBUNG_SOURCE_FILES})
-else ()
+    add_executable(${PROJECT_NAME} ${UMGEBUNG_SOURCE_FILES})
+    #    add_library(${PROJECT_NAME} SHARED ${UMGEBUNG_SOURCE_FILES})
+else (BUILD_STANDALONE)
     target_sources(${PROJECT_NAME}
             PUBLIC
             ${UMGEBUNG_SOURCE_FILES}
     )
-endif ()
+endif (BUILD_STANDALONE)
 
 # glfw
 find_package(glfw3 REQUIRED)
 if (APPLE)
     find_library(OpenGL_LIBRARY OpenGL)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenGL_LIBRARY})
-    #    target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenGL_LIBRARY})
 endif ()
 
 # portaudio
 if (APPLE)
-    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules")
-    list(APPEND CMAKE_MODULE_PATH "${UMGEBUNG_PATH}/CMakeModules")
+    if (BUILD_STANDALONE)
+        list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules")
+    else (BUILD_STANDALONE)
+        list(APPEND CMAKE_MODULE_PATH "${UMGEBUNG_PATH}/CMakeModules")
+    endif (BUILD_STANDALONE)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON)
-endif ()
+endif (APPLE)
 find_package(portaudio REQUIRED)
 if (APPLE)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS OFF)
-endif ()
-
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "lib")
+endif (APPLE)
 
 # link against libraries
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw portaudio)
+target_link_libraries(${PROJECT_NAME} PUBLIC ftgl)
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
+# @development adding portaudio manually as it seems to cause problems on some MacOS machines TODO: fix this
+# replaced `portaudio` with `${PORTAUDIO_LIBRARIES}` as it does not seem to work on some machines
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PORTAUDIO_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
+#target_link_libraries(${PROJECT_NAME} PUBLIC portaudio)
+
 target_include_directories(${PROJECT_NAME} PUBLIC ${HEADER_DIR})
 
 # set C++ standard + compiler flags
