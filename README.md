@@ -1,6 +1,6 @@
 *Umgebung* is a light-weight C++ environment for small audio and graphics based applications. it is somewhat inspired by [Processing.org](https://processing.org) and the like.
 
-## prerequisite ( for MacOS )
+## Prerequisite ( for MacOS )
 
 in order to compile and run application install the following packages with [Homebrew](https://brew.sh):
 
