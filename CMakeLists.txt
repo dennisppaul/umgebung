@@ -44,6 +44,7 @@ if (APPLE)
     find_library(OpenGL_LIBRARY OpenGL)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenGL_LIBRARY})
 endif ()
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
 
 # portaudio
 if (APPLE)
@@ -60,14 +61,17 @@ if (APPLE)
 endif (APPLE)
 
 # link against libraries
-target_link_libraries(${PROJECT_NAME} PUBLIC ftgl)
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
 # @development adding portaudio manually as it seems to cause problems on some MacOS machines TODO: fix this
 # replaced `portaudio` with `${PORTAUDIO_LIBRARIES}` as it does not seem to work on some machines
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PORTAUDIO_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
 #target_link_libraries(${PROJECT_NAME} PUBLIC portaudio)
 
+## ftgl
+#find_package(ftgl REQUIRED)
+#target_link_libraries(${PROJECT_NAME} PUBLIC ftgl)
+
+# includes
 target_include_directories(${PROJECT_NAME} PUBLIC ${HEADER_DIR})
 
 # set C++ standard + compiler flags
