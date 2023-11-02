@@ -4,7 +4,8 @@
 
 this project relies on the following packages:
 
-- [CMake](https://cmake.org/) 
+- [CMake](https://cmake.org/)
+- [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/)
 - [GLFW](https://www.glfw.org/) 
 - [PortAudio](https://www.portaudio.com) 
 - [FTGL](https://github.com/frankheckenbach/ftgl) 
@@ -13,7 +14,7 @@ this project relies on the following packages:
 in order to compile and run applications install the following packages with [Homebrew](https://brew.sh):
 
 ```
-$ brew install cmake glfw portaudio ftgl glew
+$ brew install cmake pkgconfig glfw portaudio ftgl glew
 ```
 
 ## Build Applications with *Umgebung*
@@ -38,4 +39,5 @@ $ make ; ./umgebung-example-app
 ## Known Issues
 
 - only tested on MacOS. although theoretically the external libraries as well as the build system should be cross-platform ( i.e Macos, Linux, Windows )
-- portaudio is manually configured because it does not work on all machines. this *dirty hack* is somewhat buggy and sometimes requires to call `cmake ..` again after `make` fails once 
+- portaudio is manually configured because it does not work on all machines. this *dirty hack* is somewhat buggy and sometimes requires to call `cmake ..` again after `make` fails once
+- on some clean homebrew installation `‌LIBRARY_PATH` is not set. if so make sure it is set or add the line `export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib` to your profile ( e.g in to `~/.zshrc` )
