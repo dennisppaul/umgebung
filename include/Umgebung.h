@@ -21,6 +21,9 @@
 
 #include <iostream>
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 #ifndef WEAK
 #define WEAK __attribute__((weak))
 #endif
@@ -58,7 +61,9 @@ extern int frameCount;
 extern float frameRate;
 extern bool enable_retina_support; // @development maybe implement as `HINT(ENABLE_RETINA_SUPPORT, true)`
 
+#include "PFont.h"
+#include "PImage.h"
+
 #include "UmgebungDraw.h"
 #include "UmgebungSketch.h"
 #include "UmgebungFunctions.h"
-#include "PFont.h"

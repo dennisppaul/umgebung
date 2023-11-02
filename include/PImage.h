@@ -19,31 +19,20 @@
 
 #pragma once
 
-#include <FTGL/ftgl.h>
+#include <iostream>
+#include <string>
 
-#include "Umgebung.h"
-
-class PFont {
+class PImage {
 public:
-    PFont(const char *file, float size) {
-        font = new FTTextureFont(file);
-        if (font->Error()) {
-            std::cerr << "+++ error initializing font" << std::endl;
-            delete font;
-            return;
-        }
-        font->FaceSize((int) size);
-    }
+    PImage(const std::string &filename);
 
-    void draw(const char *text, float x, float y) {
-        if (font == nullptr) return;
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(1, -1, 1);
-        font->Render(text, -1, FTPoint(0, 0));
-        glPopMatrix();
-    }
+    void bind();
+
+    float width;
+    float height;
 
 private:
-    FTTextureFont *font = nullptr;
+    unsigned int textureID;
+    unsigned char *data;
+    int channels;
 };

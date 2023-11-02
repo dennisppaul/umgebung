@@ -17,8 +17,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <GLFW/glfw3.h>
 #include "UmgebungDraw.h"
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 static PFont *fCurrentFont = nullptr;
 
@@ -106,4 +108,34 @@ void text(const std::string &text, float x, float y) {
 
     glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
     fCurrentFont->draw(text.c_str(), x, y);
+}
+
+PImage *loadImage(const std::string &filename) {
+    auto *img = new PImage(filename);
+    return img;
+}
+
+void image(PImage *img, float x, float y, float w, float h) {
+    glEnable(GL_TEXTURE_2D);
+    glColor4f(1, 1, 1, 1);
+    img->bind();
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
+    glVertex2f(x, y);
+
+    glTexCoord2f(1, 0);
+    glVertex2f(x + w, y);
+
+    glTexCoord2f(1, 1);
+    glVertex2f(x + w, y + h);
+
+    glTexCoord2f(0, 1);
+    glVertex2f(x, y + h);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+}
+
+void image(PImage *img, float x, float y) {
+    image(img, x, y, img->width, img->height);
 }

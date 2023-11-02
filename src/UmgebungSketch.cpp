@@ -18,7 +18,6 @@
  */
 
 #include "Umgebung.h"
-#include "UmgebungSketch.h"
 
 WEAK void settings() {
     size(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);

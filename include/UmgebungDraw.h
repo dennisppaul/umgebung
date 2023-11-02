@@ -20,8 +20,7 @@
 #pragma once
 
 #include <string>
-
-#include "PFont.h"
+#include "Umgebung.h"
 
 void stroke(float r, float g, float b, float a = 1.0);
 
@@ -42,3 +41,9 @@ PFont *loadFont(const char *file, float size); // @development maybe use smart p
 void textFont(PFont *font);
 
 void text(const std::string &text, float x, float y);
+
+PImage *loadImage(const std::string &filename);
+
+void image(PImage *img, float x, float y, float w, float h);
+
+void image(PImage *img, float x, float y);

@@ -1,6 +1,7 @@
 #include "Umgebung.h"
 
 PFont *mFont;
+PImage *mImage;
 
 void settings() {
     size(2048, 1280);
@@ -9,7 +10,8 @@ void settings() {
 }
 
 void setup() {
-    mFont = loadFont("../Roboto-Regular.ttf", 96); // note that font is not included 
+    mFont = loadFont("../Roboto-Regular.ttf", 96); // note that font is not included
+    mImage = loadImage("../KLST--ICON--128x128.png"); // note that image is not included
     textFont(mFont);
 }
 
@@ -28,6 +30,8 @@ void draw() {
     fill(1, 0, 0);
     noStroke();
     text(to_string(mouseX, ", ", mouseY), mouseX, mouseY);
+    image(mImage, mouseX, mouseY);
+    image(mImage, mouseX + mImage->width, mouseY + mImage->height, 64, 64);
 }
 
 void audioblock(const float *input, float *output, unsigned long length) {
