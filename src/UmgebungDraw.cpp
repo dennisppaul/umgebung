@@ -23,6 +23,7 @@
 #include <GLFW/glfw3.h>
 
 static PFont *fCurrentFont = nullptr;
+static float fPointSize = 1;
 
 struct {
     float r = 0;
@@ -103,6 +104,74 @@ void line(float x1, float y1, float x2, float y2) {
     glEnd();
 }
 
+
+void pointSize(float point_size) {
+    fPointSize = point_size;
+}
+
+void point(float x, float y, float z) {
+    if (!stroke_color.active) return;
+    glColor4f(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
+
+//    glPushMatrix();
+//    translate(x - fPointSize * 0.5, y - fPointSize * 0.5, z);
+//    rect(0, 0, fPointSize, fPointSize);
+//    glPopMatrix();
+
+    glPointSize(fPointSize); // @development when using antialiasing a point size of 1 produces a semitransparent point
+    glBegin(GL_POINTS);
+    glVertex3f(x, y, z);
+    glEnd();
+}
+
+void beginShape(int shape) {
+    if (!fill_color.active) return;
+    glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+
+    int mShape;
+    switch (shape) {
+        case TRIANGLES:
+            mShape = GL_TRIANGLES;
+            break;
+        case TRIANGLE_STRIP:
+            mShape = GL_TRIANGLE_STRIP;
+            break;
+        case TRIANGLE_FAN:
+            mShape = GL_TRIANGLE_FAN;
+            break;
+        case QUADS:
+            mShape = GL_QUADS;
+            break;
+        case QUAD_STRIP:
+            mShape = GL_QUAD_STRIP;
+            break;
+        case POLYGON:
+            mShape = GL_POLYGON;
+            break;
+        case POINTS:
+            mShape = GL_POINTS;
+            break;
+        case LINES:
+            mShape = GL_LINES;
+            break;
+        case LINE_STRIP:
+            mShape = GL_LINE_STRIP;
+            break;
+        default:
+            mShape = GL_TRIANGLES;
+    }
+    glBegin(mShape);
+}
+
+void endShape() {
+    glEnd();
+}
+
+void vertex(float x, float y, float z) {
+    glVertex3f(x, y, z);
+}
+
+
 /* font */
 
 PFont *loadFont(const char *file, float size) {
@@ -112,6 +181,11 @@ PFont *loadFont(const char *file, float size) {
 
 void textFont(PFont *font) {
     fCurrentFont = font;
+}
+
+void textSize(float size) {
+    if (fCurrentFont == nullptr) return;
+    fCurrentFont->size(size);
 }
 
 void text(const std::string &text, float x, float y) {
@@ -150,4 +224,48 @@ void image(PImage *img, float x, float y, float w, float h) {
 
 void image(PImage *img, float x, float y) {
     image(img, x, y, img->width, img->height);
+}
+
+void popMatrix() {
+    glPopMatrix();
+}
+
+void pushMatrix() {
+    glPushMatrix();
+}
+
+void translate(float x, float y, float z) {
+    glTranslatef(x, y, z);
+}
+
+void rotateX(float angle) {
+    glRotatef(degrees(angle), 1.0f, 0.0f, 0.0f);
+}
+
+void rotateY(float angle) {
+    glRotatef(degrees(angle), 0.0f, 1.0f, 0.0f);
+}
+
+void rotateZ(float angle) {
+    glRotatef(degrees(angle), 0.0f, 0.0f, 1.0f);
+}
+
+void rotate(float angle) {
+    glRotatef(degrees(angle), 0.0f, 0.0f, 1.0f);
+}
+
+void rotate(float angle, float x, float y, float z) {
+    glRotatef(degrees(angle), x, y, z);
+}
+
+void scale(float x) {
+    glScalef(x, x, x);
+}
+
+void scale(float x, float y) {
+    glScalef(x, y, 1.0f);
+}
+
+void scale(float x, float y, float z) {
+    glScalef(x, y, z);
 }

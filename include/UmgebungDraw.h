@@ -42,9 +42,21 @@ void rect(float x, float y, float width, float height);
 
 void line(float x1, float y1, float x2, float y2);
 
+void pointSize(float point_size);
+
+void point(float x, float y, float z = 0.0);
+
+void beginShape(int shape = POLYGON);
+
+void endShape();
+
+void vertex(float x, float y, float z = 0.0);
+
 PFont *loadFont(const char *file, float size); // @development maybe use smart pointers here
 
 void textFont(PFont *font);
+
+void textSize(float size);
 
 void text(const std::string &text, float x, float y);
 
@@ -53,3 +65,25 @@ PImage *loadImage(const std::string &filename);
 void image(PImage *img, float x, float y, float w, float h);
 
 void image(PImage *img, float x, float y);
+
+void popMatrix();
+
+void pushMatrix();
+
+void translate(float x, float y, float z = 0);
+
+void rotateX(float angle);
+
+void rotateY(float angle);
+
+void rotateZ(float angle);
+
+void rotate(float angle);
+
+void rotate(float angle, float x, float y, float z);
+
+void scale(float x);
+
+void scale(float x, float y);
+
+void scale(float x, float y, float z);

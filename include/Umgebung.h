@@ -61,6 +61,9 @@ extern int frameCount;
 extern float frameRate;
 extern bool enable_retina_support; // @development maybe implement as `HINT(ENABLE_RETINA_SUPPORT, true)`
 
+#include "UmgebungConstants.h"
+
+#include "PVector.h"
 #include "PFont.h"
 #include "PImage.h"
 

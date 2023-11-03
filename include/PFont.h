@@ -35,6 +35,11 @@ public:
         font->FaceSize((int) size);
     }
 
+    void size(float size) {
+        if (font == nullptr) return;
+        font->FaceSize((int) size);
+    }
+
     void draw(const char *text, float x, float y) {
         if (font == nullptr) return;
         glPushMatrix();

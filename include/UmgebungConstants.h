@@ -19,34 +19,20 @@
 
 #pragma once
 
-#include <string>
+static const float PI = 3.14159265358979323846f;
 
-void size(int width, int height);
+static const float HALF_PI = PI / 2;
+static const float QUARTER_PI = PI / 4;
+static const float TWO_PI = PI * 2;
+static const float TAU = TWO_PI;
 
-void exit();
+static const int TRIANGLES = 0;
+static const int TRIANGLE_STRIP = 1;
+static const int TRIANGLE_FAN = 2;
+static const int QUADS = 3;
+static const int QUAD_STRIP = 4;
+static const int POLYGON = 5;
+static const int POINTS = 6;
+static const int LINES = 7;
+static const int LINE_STRIP = 8;
 
-void audio_devices(int input_device, int output_device);
-
-float random(float min, float max);
-
-std::string nf(int number, int width);
-
-float noise(float x);
-
-float noise(float x, float y);
-
-float noise(float x, float y, float z);
-
-float radians(float degrees);
-
-float degrees(float radians);
-
-/* --------------------------------------------------------------------------------------------------------------------- */
-
-template<typename... Args>
-void println(const Args &... args);
-
-template<typename... Args>
-std::string to_string(const Args &... args);
-
-#include "UmgebungPrint.cpp" // include function definitions

@@ -2,17 +2,18 @@
 
 PFont *mFont;
 PImage *mImage;
+PVector mVector;
 int mouseMoveCounter = 0;
 
 void settings() {
     size(1024, 768);
     audio_devices(DEFAULT_AUDIO_DEVICE, DEFAULT_AUDIO_DEVICE);
-    antialiasing = 8;
+    antialiasing = DEFAULT;
 }
 
 void setup() {
     // note that font + image are not included
-    mFont = loadFont("../Roboto-Regular.ttf", 48);
+    mFont = loadFont("../RobotoMono-Regular.ttf", 48);
     mImage = loadImage("../image.png");
     textFont(mFont);
 
@@ -46,24 +47,50 @@ void draw() {
     line(padding + 3 * spacing, padding, padding + 3 * spacing + grid, padding + grid);
     line(padding + 3 * spacing, padding + grid, padding + 3 * spacing + grid, padding);
 
-    /* text */
+    /* text + nf + push/popMatrix */
     fill(0);
     noStroke();
+    textSize(48);
     text("23", padding + 4 * spacing, padding + grid);
-    text(to_string((int) mouseX, ", ", (int) mouseY, " > ", nf(mouseMoveCounter, 4)), mouseX, mouseY);
+
+    pushMatrix();
+    translate(mouseX, mouseY);
+    rotate(PI * 0.25);
+    textSize(11);
+    text(to_string((int) mouseX, ", ", (int) mouseY, " > ", nf(mouseMoveCounter, 4)), 0, 0);
+    popMatrix();
 
     /* image */
     fill(1);
     image(mImage, padding, padding + spacing, grid, grid);
     image(mImage, padding + spacing, padding + spacing);
+
+    /* noise + point */
+    pushMatrix();
+    translate(padding, padding + 2 * spacing);
+    for (int i = 0; i < grid * grid; ++i) {
+        float x = i % (int) grid;
+        float y = i / grid;
+        float grey = noise(x / (float) grid, y / (float) grid);
+        stroke(grey);
+        point(x, y, 1);
+    }
+    popMatrix();
+
+    fill(1, 0, 0);
+    beginShape();
+    vertex(padding, padding + 3 * spacing);
+    vertex(padding, padding + 3 * spacing + grid);
+    vertex(padding + grid, padding + 3 * spacing + grid);
+    vertex(padding + grid, padding + 3 * spacing);
+    endShape();
 }
 
 void audioblock(const float *input, float *output, unsigned long length) {
     // NOTE length is the number of samples per channel
     // TODO change to `void audioblock(float** input_signal, float** output_signal) {}`
-    const float TWO_PI = 6.283185307179586;
     static float phase = 0.0;
-    float frequency = 440.0;
+    float frequency = 220.0 + sin(frameCount * 0.1) * 110.0;
     float amplitude = 0.5;
 
     for (int i = 0; i < length; i++) {
