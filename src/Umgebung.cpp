@@ -195,7 +195,8 @@ GLFWwindow *init_graphics(int _width, int _height, const char *title) {
         GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
         for (int i = 0; i < monitorCount; ++i) {
             const GLFWvidmode *mode = glfwGetVideoMode(monitors[i]);
-            std::cout << "+++ monitor " << i << ": " << mode->width << "x" << mode->height << " (" << mode->refreshRate << "Hz)"
+            std::cout << "+++ monitor " << i << ": " << mode->width << "x" << mode->height << " (" << mode->refreshRate
+                      << "Hz)"
                       << std::endl;
         }
         if (monitor < monitorCount) {
@@ -226,6 +227,9 @@ GLFWwindow *init_graphics(int _width, int _height, const char *title) {
 
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // initialize GLEW
     if (glewInit() != GLEW_OK) {
@@ -287,7 +291,8 @@ void handle_draw(GLFWwindow *window) {
 
     /* timer */
     endTime = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(endTime - startTime);
+    std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
+            endTime - startTime);
     double frameTime = frameDuration.count();
     frameRate = (float) (1.0 / frameTime);
     frameCount++;

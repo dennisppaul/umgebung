@@ -24,13 +24,19 @@
 
 void stroke(float r, float g, float b, float a = 1.0);
 
+void stroke(float a);
+
 void noStroke();
 
 void fill(float r, float g, float b, float a = 1.0);
 
+void fill(float a);
+
 void noFill();
 
 void background(float a, float b, float c, float d = 1.0);
+
+void background(float a);
 
 void rect(float x, float y, float width, float height);
 

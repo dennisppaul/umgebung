@@ -29,6 +29,8 @@ void audio_devices(int input_device, int output_device);
 
 float random(float min, float max);
 
+std::string nf(int number, int width);
+
 template<typename... Args>
 void println(const Args &... args);
 

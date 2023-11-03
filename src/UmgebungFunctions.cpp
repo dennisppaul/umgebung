@@ -17,6 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iomanip>
+#include <string>
 #include <random>
 #include "Umgebung.h"
 
@@ -36,4 +38,10 @@ static std::mt19937 gen(seed); // Create a Mersenne Twister pseudo-random number
 float random(float min, float max) {
     std::uniform_real_distribution<float> distribution(min, max);
     return distribution(gen);
+}
+
+std::string nf(int number, int width) {
+    std::ostringstream oss;
+    oss << std::setw(width) << std::setfill('0') << number;
+    return oss.str();
 }

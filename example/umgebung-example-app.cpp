@@ -2,36 +2,60 @@
 
 PFont *mFont;
 PImage *mImage;
+int mouseMoveCounter = 0;
 
 void settings() {
-    size(2048, 1280);
+    size(1024, 768);
     audio_devices(DEFAULT_AUDIO_DEVICE, DEFAULT_AUDIO_DEVICE);
     antialiasing = 8;
 }
 
 void setup() {
-    mFont = loadFont("../Roboto-Regular.ttf", 96); // note that font is not included
-    mImage = loadImage("../KLST--ICON--128x128.png"); // note that image is not included
+    // note that font + image are not included
+    mFont = loadFont("../Roboto-Regular.ttf", 48);
+    mImage = loadImage("../image.png");
     textFont(mFont);
+
+    println("width : ", width);
+    println("height: ", height);
 }
 
 void draw() {
-    background(0, 0, 0);
+    background(1, 1, 1);
+    background(1);
+
     /* rectangle */
-    float padding = random(50, 70);
-    stroke(1, 0, 1);
-    fill(1, 1, 1);
-    rect(padding, padding, width - 2 * padding, height - 2 * padding);
-    /* line */
-    stroke(0.5, 0.5, 0.5);
+    const float padding = width / 16.0;
+    const float grid = width / 16.0;
+    const float spacing = grid + width / 32.0;
+
+    stroke(1, 0, 0);
     noFill();
-    line(0, 0, mouseX, mouseY);
-    /* text */
-    fill(1, 0, 0);
+    rect(padding, padding, grid, grid);
+
     noStroke();
-    text(to_string(mouseX, ", ", mouseY), mouseX, mouseY);
-    image(mImage, mouseX, mouseY);
-    image(mImage, mouseX + mImage->width, mouseY + mImage->height, 64, 64);
+    fill(0, 1, 0);
+    rect(padding + spacing, padding, grid, grid);
+
+    stroke(0.75);
+    fill(0, 0, 1);
+    rect(padding + 2 * spacing, padding, grid, grid);
+
+    /* line */
+    stroke(0);
+    line(padding + 3 * spacing, padding, padding + 3 * spacing + grid, padding + grid);
+    line(padding + 3 * spacing, padding + grid, padding + 3 * spacing + grid, padding);
+
+    /* text */
+    fill(0);
+    noStroke();
+    text("23", padding + 4 * spacing, padding + grid);
+    text(to_string((int) mouseX, ", ", (int) mouseY, " > ", nf(mouseMoveCounter, 4)), mouseX, mouseY);
+
+    /* image */
+    fill(1);
+    image(mImage, padding, padding + spacing, grid, grid);
+    image(mImage, padding + spacing, padding + spacing);
 }
 
 void audioblock(const float *input, float *output, unsigned long length) {
@@ -65,7 +89,7 @@ void keyPressed() {
 }
 
 void mouseMoved() {
-    println("mouse move    : ", mouseX, ", ", mouseY);
+    mouseMoveCounter++;
 }
 
 void mousePressed() {

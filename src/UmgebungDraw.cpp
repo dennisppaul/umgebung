@@ -40,6 +40,10 @@ void stroke(float r, float g, float b, float a) {
     stroke_color.active = true;
 }
 
+void stroke(float a) {
+    stroke(a, a, a);
+}
+
 void noStroke() {
     stroke_color.active = false;
 }
@@ -52,6 +56,10 @@ void fill(float r, float g, float b, float a) {
     fill_color.active = true;
 }
 
+void fill(float a) {
+    fill(a, a, a);
+}
+
 void noFill() {
     fill_color.active = false;
 }
@@ -59,6 +67,10 @@ void noFill() {
 void background(float a, float b, float c, float d) {
     glClearColor(a, b, c, d);
     glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void background(float a) {
+    background(a, a, a);
 }
 
 void rect(float x, float y, float width, float height) {
