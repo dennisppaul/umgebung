@@ -36,3 +36,6 @@ static const int POINTS = 6;
 static const int LINES = 7;
 static const int LINE_STRIP = 8;
 
+static const int LEFT = 0;
+static const int RIGHT = 1;
+static const int MIDDLE = 2;

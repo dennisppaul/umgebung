@@ -43,4 +43,4 @@ $ make ; ./umgebung-example-app
 - elements in `println()` need to be concatenated with `,` and not `+` e.g `println("hello ", 23, " world");`
 - only tested on MacOS. although theoretically the external libraries as well as the build system should be cross-platform ( i.e Macos, Linux, Windows )
 - portaudio is manually configured because it does not work on all machines. this *dirty hack* is somewhat buggy and sometimes requires to call `cmake ..` again after `make` fails once
-- on some clean homebrew installation `‌LIBRARY_PATH` is not set. if so make sure it is set or add the line `export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib` to your profile ( e.g in to `~/.zshrc` )
+- on some clean homebrew installations `$LIBRARY_PATH` is not set or at least does not include the homebrew libraries. if so you may add the line `export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib` to your profile ( e.g in `~/.zshrc` )

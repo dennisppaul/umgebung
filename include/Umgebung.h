@@ -20,6 +20,7 @@
 #pragma once
 
 #include <iostream>
+#include <math.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -52,9 +53,6 @@ extern float mouseX;
 extern float mouseY;
 extern float pmouseX;
 extern float pmouseY;
-#define LEFT 0;
-#define RIGHT 1;
-#define MIDDLE 2;
 extern int mouseButton;
 extern int key;
 extern int frameCount;
