@@ -26,11 +26,6 @@
 
 static SimplexNoise fSimplexNoise;
 
-void size(int _width, int _height) {
-    width = _width;
-    height = _height;
-}
-
 void audio_devices(int input_device, int output_device) {
     audio_input_device = input_device;
     audio_output_device = output_device;

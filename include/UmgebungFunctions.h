@@ -20,12 +20,16 @@
 #pragma once
 
 #include <string>
+#include <iostream>
+#include <sstream>
 
-void size(int width, int height);
+// TODO check if these functions should be moved to PApplet?
 
 void exit();
 
 void audio_devices(int input_device, int output_device);
+
+/* static functions for PApplet */
 
 float random(float min, float max);
 
@@ -41,12 +45,16 @@ float radians(float degrees);
 
 float degrees(float radians);
 
-/* --------------------------------------------------------------------------------------------------------------------- */
+template<typename... Args>
+void println(const Args &... args) {
+    std::ostringstream os;
+    (os << ... << args);
+    std::cout << os.str() << std::endl;
+}
 
 template<typename... Args>
-void println(const Args &... args);
-
-template<typename... Args>
-std::string to_string(const Args &... args);
-
-#include "UmgebungPrint.cpp" // include function definitions
+std::string to_string(const Args &... args) {
+    std::ostringstream oss;
+    (oss << ... << args);
+    return oss.str();
+}

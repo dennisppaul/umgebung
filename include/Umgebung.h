@@ -29,10 +29,10 @@
 #define WEAK __attribute__((weak))
 #endif
 
-#define SAMPLE_RATE 48000
+#define AUDIO_SAMPLE_RATE 48000
 #define FRAMES_PER_BUFFER 2048
-#define NUMBER_OF_INPUT_CHANNELS 1
-#define NUMBER_OF_OUTPUT_CHANNELS 2
+#define DEFAULT_NUMBER_OF_INPUT_CHANNELS 1
+#define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2
 #define DEFAULT_AUDIO_DEVICE (-1)
 #define DEFAULT (-1)
 #define DEFAULT_WINDOW_WIDTH 1024
@@ -44,19 +44,10 @@
 
 extern int audio_input_device;
 extern int audio_output_device;
+extern int audio_input_channels;
+extern int audio_output_channels;
 extern int monitor; // @development TOOD this always switches to fullscreen
 extern int antialiasing;
-
-extern int width;
-extern int height;
-extern float mouseX;
-extern float mouseY;
-extern float pmouseX;
-extern float pmouseY;
-extern int mouseButton;
-extern int key;
-extern int frameCount;
-extern float frameRate;
 extern bool enable_retina_support; // @development maybe implement as `HINT(ENABLE_RETINA_SUPPORT, true)`
 
 #include "UmgebungConstants.h"
@@ -64,7 +55,9 @@ extern bool enable_retina_support; // @development maybe implement as `HINT(ENAB
 #include "PVector.h"
 #include "PFont.h"
 #include "PImage.h"
+#include "PGraphics.h"
 
 #include "UmgebungDraw.h"
-#include "UmgebungSketch.h"
 #include "UmgebungFunctions.h"
+
+#include "PApplet.h"

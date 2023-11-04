@@ -19,24 +19,7 @@
 
 #pragma once
 
-void settings();
-
-void setup();
-
-void draw();
-
-void finish();
-
-void audioblock(const float *input, float *output, unsigned long length);
-
-void mouseMoved();
-
-void mouseDragged();
-
-void mousePressed();
-
-void mouseReleased();
-
-void keyPressed();
-
-void keyReleased();
+class PGraphics {
+    int width;
+    int height;
+};

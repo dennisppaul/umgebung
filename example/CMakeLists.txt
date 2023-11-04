@@ -22,3 +22,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wno-c++17-extensions")
 
 set(UMGEBUNG_APP ${PROJECT_NAME})
 include("${UMGEBUNG_PATH}/CMakeLists.txt")
+
+# create application bundle
+# 
+# set(CPACK_GENERATOR "Bundle")
+# set(CPACK_BUNDLE_NAME Umgebung)
+# set(CPACK_BUNDLE_ICON Umgebung.icns)
+# set(CPACK_BUNDLE_PLIST Info.plist)
+# set(CPACK_BUNDLE_STARTUP_COMMAND umgebung-example-app)
+# include(CPack)

@@ -23,6 +23,8 @@
 
 #include "stb_image.h"
 
+// @add constructors
+
 PImage::PImage(const std::string &filename) {
     int _width = 0;
     int _height = 0;

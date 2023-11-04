@@ -27,43 +27,39 @@
 
 /* public */
 
-int width = DEFAULT_WINDOW_WIDTH;
-int height = DEFAULT_WINDOW_HEIGHT;
-float mouseX = 0;
-float mouseY = 0;
-float pmouseX = 0;
-float pmouseY = 0;
-int mouseButton = 0;
-int key = 0;
-int frameCount = 0;
-float frameRate = 0;
 int audio_input_device = DEFAULT_AUDIO_DEVICE;
 int audio_output_device = DEFAULT_AUDIO_DEVICE;
+int audio_input_channels = DEFAULT_NUMBER_OF_INPUT_CHANNELS;
+int audio_output_channels = DEFAULT_NUMBER_OF_OUTPUT_CHANNELS;
 int monitor = DEFAULT;
 int antialiasing = DEFAULT;
 bool enable_retina_support = true;
 
 /* private */
 
+static PApplet *fApplet = nullptr;
 static bool fAppIsRunning = true;
-static const double fTargetFrameTime = 1.0 / 60.0; // @development
+static const double fTargetFrameTime = 1.0 / 60.0; // @development make this adjustable
 static bool fAppIsInitialized = false;
 static bool fMouseIsPressed = false;
 
-int audioCallback(const void *inputBuffer,
-                  void *outputBuffer,
-                  unsigned long audioFrameCount,
-                  const PaStreamCallbackTimeInfo *timeInfo,
-                  PaStreamCallbackFlags statusFlags,
-                  void *userData) {
+static void release_HID_callbacks(GLFWwindow *window);
+
+static void setup_HID_callbacks(GLFWwindow *window);
+
+static int audioCallback(const void *inputBuffer,
+                         void *outputBuffer,
+                         unsigned long audioFrameCount,
+                         const PaStreamCallbackTimeInfo *timeInfo,
+                         PaStreamCallbackFlags statusFlags,
+                         void *userData) {
     auto *out = (float *) outputBuffer;
     auto *in = (const float *) inputBuffer;
-
-    audioblock(in, out, audioFrameCount);
+    fApplet->audioblock(in, out, audioFrameCount);
     return paContinue;
 }
 
-int print_audio_devices() {
+static int print_audio_devices() {
     int numDevices = Pa_GetDeviceCount();
     if (numDevices < 0) {
         printf("PortAudio error: %s\n", Pa_GetErrorText(numDevices));
@@ -83,7 +79,7 @@ int print_audio_devices() {
     return paNoError;
 }
 
-PaStream *init_audio(int input_channels, int output_channels) {
+static PaStream *init_audio(int input_channels, int output_channels) {
     PaError err;
 
     err = Pa_Initialize();
@@ -99,7 +95,7 @@ PaStream *init_audio(int input_channels, int output_channels) {
                                    input_channels,
                                    output_channels,
                                    paFloat32,
-                                   SAMPLE_RATE,
+                                   AUDIO_SAMPLE_RATE,
                                    FRAMES_PER_BUFFER,
                                    audioCallback,
                                    nullptr);
@@ -120,7 +116,7 @@ PaStream *init_audio(int input_channels, int output_channels) {
         err = Pa_OpenStream(&stream,
                             &inputParameters,
                             &outputParameters,
-                            SAMPLE_RATE,
+                            AUDIO_SAMPLE_RATE,
                             FRAMES_PER_BUFFER,
                             paClipOff,
                             audioCallback,
@@ -141,48 +137,72 @@ PaStream *init_audio(int input_channels, int output_channels) {
 }
 
 
-void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
-    mouseX = (float) xpos;
-    mouseY = (float) ypos;
+static void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
+    fApplet->mouseX = (float) xpos;
+    fApplet->mouseY = (float) ypos;
     if (fMouseIsPressed) {
-        mouseDragged();
+        fApplet->mouseDragged();
     } else {
-        mouseMoved();
+        fApplet->mouseMoved();
     }
-    pmouseX = mouseX;
-    pmouseY = mouseY;
+    fApplet->pmouseX = fApplet->mouseX;
+    fApplet->pmouseY = fApplet->mouseY;
 }
 
-void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
-    mouseButton = button;
+static void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+    fApplet->mouseButton = button;
     if (action == GLFW_PRESS) {
         fMouseIsPressed = true;
-        mousePressed();
+        fApplet->mousePressed();
     } else if (action == GLFW_RELEASE) {
         fMouseIsPressed = false;
-        mouseReleased();
+        fApplet->mouseReleased();
     }
 }
 
-void key_callback(GLFWwindow *window, int _key, int scancode, int action, int mods) {
+static void key_callback(GLFWwindow *window, int _key, int scancode, int action, int mods) {
+    // @TODO key is not set properly
     if (action == GLFW_PRESS) {
-        key = _key;
-        if (key == GLFW_KEY_ESCAPE) {
+        fApplet->key = _key;
+        if (fApplet->key == GLFW_KEY_ESCAPE) {
             fAppIsRunning = false;
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         } else {
-            keyPressed();
+            fApplet->keyPressed();
         }
     }
     if (action == GLFW_RELEASE) {
-        key = _key;
-        keyReleased();
+        fApplet->key = _key;
+        fApplet->keyReleased();
     }
 }
 
-GLFWwindow *init_graphics(int _width, int _height, const char *title) {
-    width = _width;
-    height = _height;
+void character_callback(GLFWwindow *window, unsigned int codepoint) {
+    fApplet->key = static_cast<char>(codepoint);
+    std::cout << "Character entered: " << static_cast<char>(codepoint) << " (Unicode: " << codepoint << ")" << std::endl;
+}
+
+static void set_default_graphics_state() {
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+    fApplet->width = width;
+    fApplet->height = height;
+
+    int framebufferWidth, framebufferHeight;
+    glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+    fApplet->framebuffer_width = framebufferWidth;
+    fApplet->framebuffer_height = framebufferHeight;
+}
+
+static GLFWwindow *init_graphics(int width, int height, const char *title) {
+    fApplet->width = width;
+    fApplet->height = height;
 
     if (!glfwInit()) {
         return nullptr;
@@ -213,25 +233,30 @@ GLFWwindow *init_graphics(int _width, int _height, const char *title) {
         glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
     }
 
-    GLFWwindow *window = glfwCreateWindow(width, height, title, desiredMonitor, nullptr);
+    GLFWwindow *window = glfwCreateWindow(fApplet->width, fApplet->height, title, desiredMonitor, nullptr);
     if (!window) {
         glfwTerminate();
         return nullptr;
     }
 
+    int framebufferWidth, framebufferHeight;
+    glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+    if (fApplet->width != framebufferWidth || fApplet->height != framebufferHeight) {
+        std::cout << "+++ retina display detected" << std::endl;
+    }
+    fApplet->framebuffer_width = framebufferWidth;
+    fApplet->framebuffer_height = framebufferHeight;
+
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
     glfwMakeContextCurrent(window);
 
-    glfwSetCursorPosCallback(window, mouse_move_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetKeyCallback(window, key_callback);
+    /* setup callbacks */
+    setup_HID_callbacks(window);
 
-    glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    set_default_graphics_state();
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // initialize GLEW
+    /* initialize GLEW */
     if (glewInit() != GLEW_OK) {
         glfwTerminate();
         return nullptr;
@@ -240,84 +265,104 @@ GLFWwindow *init_graphics(int _width, int _height, const char *title) {
     return window;
 }
 
-void shutdown(PaStream *stream, GLFWwindow *window) {
+/* implement scroll_callback */
+
+static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+    // TODO add `void mouseWheel(MouseEvent event) { ... }`
+    std::cout << "Scroll: " << xoffset << ", " << yoffset << std::endl;
+}
+
+static void setup_HID_callbacks(GLFWwindow *window) {
+    glfwSetCursorPosCallback(window, mouse_move_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetCharCallback(window, character_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+}
+
+static void release_HID_callbacks(GLFWwindow *window) {
+    glfwSetCursorPosCallback(window, nullptr);
+    glfwSetMouseButtonCallback(window, nullptr);
+    glfwSetKeyCallback(window, nullptr);
+    glfwSetCharCallback(window, nullptr);
+    glfwSetScrollCallback(window, nullptr);
+}
+
+static void shutdown(PaStream *stream, GLFWwindow *window) {
     /* terminate PortAudio */
     Pa_StopStream(stream);
     Pa_CloseStream(stream);
     Pa_Terminate();
 
     /* terminate GLFW */
-    glfwSetCursorPosCallback(window, nullptr);
-    glfwSetMouseButtonCallback(window, nullptr);
-    glfwSetKeyCallback(window, nullptr);
+
+    /* release callbacks */
+    release_HID_callbacks(window);
+
     glfwDestroyWindow(window);
     glfwTerminate();
 }
 
-void handle_setup(GLFWwindow *window) {
+static void handle_setup(GLFWwindow *window) {
     glfwSwapInterval(1); // Enable vsync (1 means on, 0 means off)
     fAppIsInitialized = true;
-    setup();
+    fApplet->setup();
 }
 
-void handle_draw(GLFWwindow *window) {
-    /* timer */
+static void handle_draw(GLFWwindow *window) {
+    /* timer begin  */
     static std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now(), endTime;
 
-    // set up your projection matrix
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, width, 0, height, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    /* draw */
+    fApplet->pre_draw();
+    fApplet->draw();
+    fApplet->post_draw();
 
-    glScalef(1, -1, 1);
-    glTranslatef(0, (float) -height, 0);
-
-    if (enable_retina_support) {
-        int framebufferWidth, framebufferHeight;
-        glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
-        glViewport(0, 0, framebufferWidth, framebufferHeight);
-    } else {
-        glViewport(0, 0, width, height); // Set the viewport dimensions to match the screen resolution
-    }
-
-    draw();
-
-    // swap the front and back buffers
+    /* swap front and back buffers */
     glfwSwapBuffers(window);
-    // poll for and process events
+
+    /* poll events */
     glfwPollEvents();
 
-    /* timer */
+    /* timer end */
     endTime = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
             endTime - startTime);
     double frameTime = frameDuration.count();
-    frameRate = (float) (1.0 / frameTime);
-    frameCount++;
+    fApplet->frameRate = (float) (1.0 / frameTime);
+    fApplet->frameCount++;
     startTime = std::chrono::high_resolution_clock::now();
 }
 
-void print_sketchpath() {
+static void print_sketchpath() {
     std::filesystem::path currentPath = std::filesystem::current_path();
     std::cout << "Current working directory: " << currentPath << std::endl;
 }
 
-void exit() {
-    fAppIsRunning = false;
-}
-
-int run_application() {
+static int run_application() {
     print_sketchpath();
-    settings();
 
-    PaStream *stream = init_audio(NUMBER_OF_INPUT_CHANNELS, NUMBER_OF_OUTPUT_CHANNELS);
+    fApplet = instance();
+    if (fApplet == nullptr) {
+        std::cerr << "+++ error: no instance created make sure to include\n"
+                  << "\n"
+                  << "    PApplet *instance() {\n"
+                  << "        return new ApplicationInstance()\n"
+                  << "    }\n"
+                  << "\n"
+                  << "+++ in application file,"
+                  << std::endl;
+        return -1;
+    }
+
+    fApplet->settings();
+
+    PaStream *stream = init_audio(audio_input_channels, audio_output_channels);
     if (stream == nullptr) {
         return -1;
     }
 
-    GLFWwindow *window = init_graphics(width, height, UMGEBUNG_WINDOW_TITLE); // @development
+    GLFWwindow *window = init_graphics(fApplet->width, fApplet->height, UMGEBUNG_WINDOW_TITLE); // @development
     if (window == nullptr) {
         return -1;
     }
@@ -337,10 +382,14 @@ int run_application() {
         }
     }
 
-    finish();
+    fApplet->finish();
     shutdown(stream, window);
 
     return 0;
+}
+
+void exit() {
+    fAppIsRunning = false;
 }
 
 int main() {
