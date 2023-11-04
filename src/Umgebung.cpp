@@ -33,6 +33,7 @@ int audio_input_channels = DEFAULT_NUMBER_OF_INPUT_CHANNELS;
 int audio_output_channels = DEFAULT_NUMBER_OF_OUTPUT_CHANNELS;
 int monitor = DEFAULT;
 int antialiasing = DEFAULT;
+bool resizable = true;
 bool enable_retina_support = true;
 
 /* private */
@@ -178,8 +179,8 @@ static void key_callback(GLFWwindow *window, int _key, int scancode, int action,
 }
 
 void character_callback(GLFWwindow *window, unsigned int codepoint) {
-    fApplet->key = static_cast<char>(codepoint);
-    std::cout << "Character entered: " << static_cast<char>(codepoint) << " (Unicode: " << codepoint << ")" << std::endl;
+//    fApplet->key = static_cast<char>(codepoint);
+//    std::cout << "Character entered: " << static_cast<char>(codepoint) << " (Unicode: " << codepoint << ")" << std::endl;
 }
 
 static void set_default_graphics_state() {
@@ -200,7 +201,34 @@ static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
     fApplet->framebuffer_height = framebufferHeight;
 }
 
+static void error_callback(int error, const char *description) {
+    std::cerr << "GLFW Error: " << description << std::endl;
+}
+
+static int _wndPos[2];
+static int _wndSize[2];
+
+static void SetFullScreen(GLFWwindow *_wnd, GLFWmonitor *_monitor, bool fullscreen) {
+    // see https://stackoverflow.com/questions/47402766/switching-between-windowed-and-full-screen-in-opengl-glfw-3-2
+    if (fullscreen) {
+        // backup window position and window size
+        glfwGetWindowPos(_wnd, &_wndPos[0], &_wndPos[1]);
+        glfwGetWindowSize(_wnd, &_wndSize[0], &_wndSize[1]);
+
+        // get resolution of monitor
+        const GLFWvidmode *mode = glfwGetVideoMode(_monitor);
+
+        // switch to full screen
+        glfwSetWindowMonitor(_wnd, _monitor, 0, 0, mode->width, mode->height, 0);
+    } else {
+        // restore last window size and position
+        glfwSetWindowMonitor(_wnd, nullptr, _wndPos[0], _wndPos[1], _wndSize[0], _wndSize[1], 0);
+    }
+}
+
 static GLFWwindow *init_graphics(int width, int height, const char *title) {
+    glfwSetErrorCallback(error_callback);
+
     fApplet->width = width;
     fApplet->height = height;
 
@@ -233,9 +261,23 @@ static GLFWwindow *init_graphics(int width, int height, const char *title) {
         glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
     }
 
+    int major, minor, revision;
+    glfwGetVersion(&major, &minor, &revision);
+    std::cout << "+++ OpenGL version: " << major << "." << minor << "." << revision << std::endl;
+
+//    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+//    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+//    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
+//    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    glfwWindowHint(GLFW_FOCUSED, true);
+    glfwWindowHint(GLFW_DECORATED, true);
+    glfwWindowHint(GLFW_RESIZABLE, resizable);
+
     GLFWwindow *window = glfwCreateWindow(fApplet->width, fApplet->height, title, desiredMonitor, nullptr);
     if (!window) {
         glfwTerminate();
+        std::cerr << "+++ error: could not create window" << std::endl;
         return nullptr;
     }
 
@@ -357,13 +399,13 @@ static int run_application() {
 
     fApplet->settings();
 
-    PaStream *stream = init_audio(audio_input_channels, audio_output_channels);
-    if (stream == nullptr) {
+    GLFWwindow *window = init_graphics(fApplet->width, fApplet->height, UMGEBUNG_WINDOW_TITLE); // @development
+    if (window == nullptr) {
         return -1;
     }
 
-    GLFWwindow *window = init_graphics(fApplet->width, fApplet->height, UMGEBUNG_WINDOW_TITLE); // @development
-    if (window == nullptr) {
+    PaStream *stream = init_audio(audio_input_channels, audio_output_channels);
+    if (stream == nullptr) {
         return -1;
     }
 

@@ -24,8 +24,6 @@
 class PApplet : public PGraphics {
 public:
 
-    int width;
-    int height;
     int framebuffer_width;
     int framebuffer_height;
     float mouseX;
@@ -53,8 +51,8 @@ public:
     void size(int _width, int _height) {
         this->width = _width;
         this->height = _height;
-        this->framebuffer_width = width;
-        this->framebuffer_height = height;
+        this->framebuffer_width = _width;
+        this->framebuffer_height = _height;
     }
 
     virtual void settings() {

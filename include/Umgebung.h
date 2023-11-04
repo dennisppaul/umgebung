@@ -49,6 +49,7 @@ extern int audio_output_channels;
 extern int monitor; // @development TOOD this always switches to fullscreen
 extern int antialiasing;
 extern bool enable_retina_support; // @development maybe implement as `HINT(ENABLE_RETINA_SUPPORT, true)`
+extern bool resizable;
 
 #include "UmgebungConstants.h"
 
@@ -56,8 +57,7 @@ extern bool enable_retina_support; // @development maybe implement as `HINT(ENAB
 #include "PFont.h"
 #include "PImage.h"
 #include "PGraphics.h"
+#include "PShape.h"
 
-#include "UmgebungDraw.h"
 #include "UmgebungFunctions.h"
-
 #include "PApplet.h"

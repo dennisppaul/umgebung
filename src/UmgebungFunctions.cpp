@@ -39,6 +39,10 @@ float random(float min, float max) {
     return distribution(gen);
 }
 
+float random(float max) {
+    return random(0, max);
+}
+
 std::string nf(int number, int _width) {
     std::ostringstream oss;
     oss << std::setw(_width) << std::setfill('0') << number;

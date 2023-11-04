@@ -33,6 +33,8 @@ void audio_devices(int input_device, int output_device);
 
 float random(float min, float max);
 
+float random(float max);
+
 std::string nf(int number, int width);
 
 float noise(float x);

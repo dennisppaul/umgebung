@@ -1,18 +1,19 @@
 #include "Umgebung.h"
 
-class UmgebungExampleAppNew : public PApplet {
-public:
+class UmgebungExampleApp : public PApplet {
 
     PFont *mFont;
     PImage *mImage;
-    PVector mVector;
+    PVector mVector{16, 16};
+//    PShape mShape;
     int mouseMoveCounter = 0;
 
     void settings() {
         size(1024, 768);
         audio_devices(DEFAULT_AUDIO_DEVICE, DEFAULT_AUDIO_DEVICE);
-        antialiasing = DEFAULT;
+        antialiasing = 8;
         enable_retina_support = true;
+        monitor = 0;
     }
 
     void setup() {
@@ -21,6 +22,13 @@ public:
         mImage = loadImage("../image.png");
         textFont(mFont);
 
+//        /* fill PShape with triangles */
+//        for (int i = 0; i < 10; ++i) {
+//            mShape.beginShape(TRIANGLES);
+//            mShape.vertex(random(width), random(height), 0, random(1), random(1), random(1));
+//            mShape.endShape();
+//        }
+
         println("width : ", width);
         println("height: ", height);
     }
@@ -28,6 +36,8 @@ public:
     void draw() {
         background(1, 1, 1);
         background(1);
+
+//        mShape.draw();
 
         /* rectangle */
         const float padding = width / 16.0;
@@ -116,8 +126,6 @@ public:
     }
 
     void keyPressed() {
-        println("key: ", (char) key);
-        println("key: ", key);
         if (key == 'Q') {
             exit();
         }
@@ -137,5 +145,5 @@ public:
 };
 
 PApplet *instance() {
-    return new UmgebungExampleAppNew();
+    return new UmgebungExampleApp();
 }

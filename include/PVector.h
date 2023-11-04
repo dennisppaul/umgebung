@@ -53,9 +53,7 @@ public:
     // Constructors
     PVector() : x(0), y(0), z(0) {}
 
-    PVector(float x, float y, float z) : x(x), y(y), z(z) {}
-
-    PVector(float x, float y) : x(x), y(y), z(0) {}
+    PVector(float x, float y, float z=0) : x(x), y(y), z(z) {}
 
     // Set the components of the vector
     void set(float _x, float _y, float _z = 0) {
