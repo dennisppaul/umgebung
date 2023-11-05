@@ -19,6 +19,8 @@
 
 #pragma once
 
+// TODO implement properly with VBOs + *modern* OpenGL
+
 #include <vector>
 #include <GL/glew.h>
 #include "UmgebungConstants.h"

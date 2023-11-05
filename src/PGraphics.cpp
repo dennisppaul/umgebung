@@ -22,6 +22,8 @@
 #include "PGraphics.h"
 #include "PFont.h"
 
+// TODO look into OpenGL 3 e.g https://github.com/opengl-tutorials/ogl/
+
 void PGraphics::stroke(float r, float g, float b, float a) {
     stroke_color.r = r;
     stroke_color.g = g;

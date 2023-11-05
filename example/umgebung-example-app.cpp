@@ -5,7 +5,7 @@ class UmgebungExampleApp : public PApplet {
     PFont *mFont;
     PImage *mImage;
     PVector mVector{16, 16};
-//    PShape mShape;
+    PShape mShape;
     int mouseMoveCounter = 0;
 
     void settings() {
@@ -13,7 +13,6 @@ class UmgebungExampleApp : public PApplet {
         audio_devices(DEFAULT_AUDIO_DEVICE, DEFAULT_AUDIO_DEVICE);
         antialiasing = 8;
         enable_retina_support = true;
-        monitor = 0;
     }
 
     void setup() {
@@ -22,12 +21,12 @@ class UmgebungExampleApp : public PApplet {
         mImage = loadImage("../image.png");
         textFont(mFont);
 
-//        /* fill PShape with triangles */
-//        for (int i = 0; i < 10; ++i) {
-//            mShape.beginShape(TRIANGLES);
-//            mShape.vertex(random(width), random(height), 0, random(1), random(1), random(1));
-//            mShape.endShape();
-//        }
+        /* fill PShape with triangles */
+        for (int i = 0; i < 81; ++i) {
+            mShape.beginShape(TRIANGLES);
+            mShape.vertex(random(width / 16.0), random(width / 16.0), 0, random(1), random(1), random(1));
+            mShape.endShape();
+        }
 
         println("width : ", width);
         println("height: ", height);
@@ -36,8 +35,6 @@ class UmgebungExampleApp : public PApplet {
     void draw() {
         background(1, 1, 1);
         background(1);
-
-//        mShape.draw();
 
         /* rectangle */
         const float padding = width / 16.0;
@@ -98,6 +95,11 @@ class UmgebungExampleApp : public PApplet {
         vertex(padding + grid, padding + 3 * spacing + grid);
         vertex(padding + grid, padding + 3 * spacing);
         endShape();
+
+        pushMatrix();
+        translate(padding + spacing, padding + 3 * spacing);
+        mShape.draw();
+        popMatrix();
     }
 
     void audioblock(const float *input, float *output, unsigned long length) {
