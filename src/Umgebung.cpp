@@ -21,7 +21,6 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <portaudio.h>
-#include <filesystem>
 
 #include "Umgebung.h"
 
@@ -35,6 +34,8 @@ int monitor = DEFAULT;
 int antialiasing = DEFAULT;
 bool resizable = true;
 bool enable_retina_support = true;
+bool headless = false;
+bool no_audio = false;
 
 /* private */
 
@@ -331,22 +332,27 @@ static void release_HID_callbacks(GLFWwindow *window) {
 }
 
 static void shutdown(PaStream *stream, GLFWwindow *window) {
-    /* terminate PortAudio */
-    Pa_StopStream(stream);
-    Pa_CloseStream(stream);
-    Pa_Terminate();
-
-    /* terminate GLFW */
-
-    /* release callbacks */
-    release_HID_callbacks(window);
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    if (no_audio) {
+        /* terminate PortAudio */
+        Pa_StopStream(stream);
+        Pa_CloseStream(stream);
+        Pa_Terminate();
+    }
+    if (!headless) {
+        /* release callbacks */
+        release_HID_callbacks(window);
+        /* terminate GLFW */
+        glfwDestroyWindow(window);
+        glfwTerminate();
+    }
 }
 
 static void handle_setup(GLFWwindow *window) {
-    glfwSwapInterval(1); // Enable vsync (1 means on, 0 means off)
+    if (!headless) {
+        if (window != nullptr) {
+            glfwSwapInterval(1); // Enable vsync (1 means on, 0 means off)
+        }
+    }
     fAppIsInitialized = true;
     fApplet->setup();
 }
@@ -355,16 +361,20 @@ static void handle_draw(GLFWwindow *window) {
     /* timer begin  */
     static std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now(), endTime;
 
-    /* draw */
-    fApplet->pre_draw();
-    fApplet->draw();
-    fApplet->post_draw();
+    if (headless) {
+        fApplet->draw();
+    } else {
+        /* draw */
+        fApplet->pre_draw();
+        fApplet->draw();
+        fApplet->post_draw();
 
-    /* swap front and back buffers */
-    glfwSwapBuffers(window);
+        /* swap front and back buffers */
+        glfwSwapBuffers(window);
 
-    /* poll events */
-    glfwPollEvents();
+        /* poll events */
+        glfwPollEvents();
+    }
 
     /* timer end */
     endTime = std::chrono::high_resolution_clock::now();
@@ -376,13 +386,8 @@ static void handle_draw(GLFWwindow *window) {
     startTime = std::chrono::high_resolution_clock::now();
 }
 
-static void print_sketchpath() {
-    std::filesystem::path currentPath = std::filesystem::current_path();
-    std::cout << "Current working directory: " << currentPath << std::endl;
-}
-
 static int run_application() {
-    print_sketchpath();
+    std::cout << "+++ current working directory: " << sketchpath() << std::endl;
 
     fApplet = instance();
     if (fApplet == nullptr) {
@@ -399,21 +404,33 @@ static int run_application() {
 
     fApplet->settings();
 
-    GLFWwindow *window = init_graphics(fApplet->width, fApplet->height, UMGEBUNG_WINDOW_TITLE); // @development
-    if (window == nullptr) {
-        return -1;
+    GLFWwindow *window;
+    if (headless) {
+        window = nullptr;
+        std::cout << "+++ running headless application" << std::endl;
+    } else {
+        window = init_graphics(fApplet->width, fApplet->height, UMGEBUNG_WINDOW_TITLE); // @development
+        if (window == nullptr) {
+            return -1;
+        }
     }
 
-    PaStream *stream = init_audio(audio_input_channels, audio_output_channels);
-    if (stream == nullptr) {
-        return -1;
+    PaStream *stream;
+    if (no_audio) {
+        std::cout << "+++ running application with no audio" << std::endl;
+        stream = nullptr;
+    } else {
+        stream = init_audio(audio_input_channels, audio_output_channels);
+        if (stream == nullptr) {
+            return -1;
+        }
     }
 
     handle_setup(window);
 
+    /* loop */
     std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
-
-    while (fAppIsRunning && !glfwWindowShouldClose(window)) {
+    while (fAppIsRunning && (headless || !glfwWindowShouldClose(window))) {
         std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
                 currentTime - lastFrameTime);

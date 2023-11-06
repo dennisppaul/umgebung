@@ -19,9 +19,10 @@
 
 #pragma once
 
-#include <string>
+#include <filesystem>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 // TODO check if these functions should be moved to PApplet?
 
@@ -46,6 +47,10 @@ float noise(float x, float y, float z);
 float radians(float degrees);
 
 float degrees(float radians);
+
+bool exists(const std::string &file_path);
+
+std::string sketchpath();
 
 template<typename... Args>
 void println(const Args &... args) {

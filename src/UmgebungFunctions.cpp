@@ -74,3 +74,13 @@ float radians(float degrees) {
 float degrees(float radians) {
     return radians * 180.0f / M_PI;
 }
+
+bool exists(const std::string &file_path) {
+    std::filesystem::path path(file_path);
+    return std::filesystem::exists(path);
+}
+
+std::string sketchpath() {
+    std::filesystem::path currentPath = std::filesystem::current_path();
+    return currentPath.string();
+}

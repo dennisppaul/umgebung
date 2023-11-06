@@ -13,13 +13,21 @@ class UmgebungExampleApp : public PApplet {
         audio_devices(DEFAULT_AUDIO_DEVICE, DEFAULT_AUDIO_DEVICE);
         antialiasing = 8;
         enable_retina_support = true;
+        headless = false;
+        no_audio = true;
+        monitor = DEFAULT;
     }
 
     void setup() {
-        // note that font + image are not included
-        mFont = loadFont("../RobotoMono-Regular.ttf", 48);
-        mImage = loadImage("../image.png");
-        textFont(mFont);
+        if (!exists("../RobotoMono-Regular.ttf") || !exists("../image.png")) {
+            println("cannot find required files … exiting");
+            exit();
+        }
+        if (!headless) {
+            mImage = loadImage("../image.png"); // note that image is not included
+            mFont = loadFont("../RobotoMono-Regular.ttf", 48); // note that font is not included
+            textFont(mFont);
+        }
 
         /* fill PShape with triangles */
         for (int i = 0; i < 81; ++i) {
@@ -33,6 +41,7 @@ class UmgebungExampleApp : public PApplet {
     }
 
     void draw() {
+        if (headless) return;
         background(1, 1, 1);
         background(1);
 
