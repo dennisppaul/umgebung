@@ -1,12 +1,25 @@
 #include "Umgebung.h"
+#include "OSC.h"
 
-class UmgebungExampleApp : public PApplet {
+class UmgebungExampleApp : public PApplet, OSCListener {
 
     PFont *mFont;
     PImage *mImage;
     PVector mVector{16, 16};
     PShape mShape;
+    OSC mOSC{"127.0.0.1", 8000, 8001};
     int mouseMoveCounter = 0;
+
+    void receive(const osc::ReceivedMessage &msg) {
+        std::cout << "received address pattern: " << msg.AddressPattern() << std::endl;
+        if (msg.ArgumentCount() > 0) {
+            osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
+            while (arg != msg.ArgumentsEnd()) {
+                std::cout << "value: " << arg->AsFloat() << std::endl;
+                ++arg;
+            }
+        }
+    }
 
     void settings() {
         size(1024, 768);
@@ -38,6 +51,8 @@ class UmgebungExampleApp : public PApplet {
 
         println("width : ", width);
         println("height: ", height);
+
+        mOSC.callback(this);
     }
 
     void draw() {
@@ -148,6 +163,7 @@ class UmgebungExampleApp : public PApplet {
 
     void mousePressed() {
         println("mouse button  : ", mouseButton);
+        mOSC.send("test_send", 23, "hello", 42);
     }
 
     void finish() {

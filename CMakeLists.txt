@@ -23,9 +23,16 @@ message("")
 # SOURCE FILES
 set(HEADER_DIR "include" "${UMGEBUNG_PATH}/src")
 set(SOURCE_DIR "src")
-file(GLOB UMGEBUNG_SOURCE_FILES "${UMGEBUNG_PATH}/${SOURCE_DIR}/*.cpp")
+file(GLOB UMGEBUNG_SOURCE_FILES
+        "${UMGEBUNG_PATH}/${SOURCE_DIR}/*.cpp"
+        "${UMGEBUNG_PATH}/${SOURCE_DIR}/ip/*.cpp"
+        "${UMGEBUNG_PATH}/${SOURCE_DIR}/ip/posix/*.cpp"
+        "${UMGEBUNG_PATH}/${SOURCE_DIR}/osc/*.cpp"
+)
 #file(GLOB UMGEBUNG_SOURCE_FILES "${SOURCE_DIR}/*.cpp")
 include_directories("${UMGEBUNG_PATH}/include")
+include_directories("${UMGEBUNG_PATH}/include/ip")
+include_directories("${UMGEBUNG_PATH}/include/osc")
 
 # create the executable
 if (BUILD_STANDALONE)
@@ -78,6 +85,17 @@ else (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
     target_include_directories(${PROJECT_NAME} PRIVATE ${FTGL_INCLUDE_DIRS})
 endif (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
 target_link_libraries(${PROJECT_NAME} PUBLIC glew)
+
+## ncurses
+# TODO implement curses for headless mode
+#if (UNIX)
+#    find_package(Curses REQUIRED)
+#    include_directories(${CURSES_INCLUDE_DIR})
+#    target_link_libraries(${PROJECT_NAME} PUBLIC ${CURSES_LIBRARIES})
+#endif (UNIX)
+#if (WIN32)
+#    target_link_libraries(${PROJECT_NAME} PUBLIC pdcurses)
+#endif (WIN32)
 
 # includes
 target_include_directories(${PROJECT_NAME} PUBLIC ${HEADER_DIR})

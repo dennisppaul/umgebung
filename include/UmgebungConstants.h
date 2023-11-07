@@ -19,6 +19,8 @@
 
 #pragma once
 
+// TODO consider using namespace here namespace umgebung {}
+
 static const float PI = 3.14159265358979323846f;
 
 static const float HALF_PI = PI / 2;
