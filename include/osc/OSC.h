@@ -216,8 +216,8 @@ public:
             // TODO add more types
             ++arg;
         }
-        (fInstance->*callback_)(msg_);
         msg_.set_type_tag(msg.TypeTags());
+        (fInstance->*callback_)(msg_);
 
         /* also send native message … for debugging */
         (fInstance->*callback_native)(msg);

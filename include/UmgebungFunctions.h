@@ -53,6 +53,13 @@ bool exists(const std::string &file_path);
 std::string sketchpath();
 
 template<typename... Args>
+void print(const Args &... args) {
+    std::ostringstream os;
+    (os << ... << args);
+    std::cout << os.str();
+}
+
+template<typename... Args>
 void println(const Args &... args) {
     std::ostringstream os;
     (os << ... << args);

@@ -6,19 +6,22 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
     OSC mOSC{"127.0.0.1", 8000, 8001};
 
     void receive(const OscMessage &msg) {
-        std::cout
-                << "(NEW) received address pattern: "
-                << msg.addrPattern()
-                << " : "
-                << msg.typetag()
-                << "("
-                << msg.get(0).intValue()
-                << ", "
-                << msg.get(1).floatValue()
-                << ", "
-                << msg.get(2).stringValue()
-                << ")"
-                << std::endl;
+        if (msg.typetag() == "ifs") {
+            println("received address pattern: ",
+                    println(msg.addrPattern(),
+                    " : ",
+                    msg.typetag(),
+                    "(",
+                    msg.get(0).intValue(),
+                    ", ",
+                    msg.get(1).floatValue(),
+                    ", ",
+                    msg.get(2).stringValue(),
+                    ")"
+            );
+        } else {
+            println("could not parse OSC message: ", msg.typetag());
+        }
     }
 
     void settings() {
