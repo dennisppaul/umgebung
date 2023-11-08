@@ -26,6 +26,8 @@
 #include <cstring>
 #include <thread>
 #include <vector>
+#include <any>
+#include <iostream>
 
 #include "ip/UdpSocket.h"
 #include "osc/OscOutboundPacketStream.h"
@@ -38,106 +40,127 @@ class NetAddress {
 public:
     NetAddress(std::string ip_address, int port) {
         IpEndpointName mEndpointName = IpEndpointName(ip_address.c_str(), port);
-        mTransmitSocket = new UdpTransmitSocket(mEndpointName);
+        fTransmitSocket = new UdpTransmitSocket(mEndpointName);
     }
 
     ~NetAddress() {
-        delete mTransmitSocket;
+        delete fTransmitSocket;
     }
 
     UdpTransmitSocket *socket() {
-        return mTransmitSocket;
+        return fTransmitSocket;
     }
 
 private:
-    UdpTransmitSocket *mTransmitSocket = nullptr;
+    UdpTransmitSocket *fTransmitSocket = nullptr;
+};
+
+class OscPayloadFragment {
+public:
+    OscPayloadFragment(std::any value) : value(std::move(value)) {}
+
+    int intValue() const {
+        return std::any_cast<int>(value);
+    }
+
+    float floatValue() const {
+        return std::any_cast<float>(value);
+    }
+
+    std::string stringValue() const {
+        return std::any_cast<const char *>(value);
+    }
+
+    bool boolValue() const {
+        return std::any_cast<bool>(value);
+    }
+
+    // TODO add more types
+    const std::any value;
 };
 
 class OscMessage {
+    // NOTE in oscP5 `OscMessage` is used for both sending and receiving while in oscpack this is handled by two different classes.
 public:
-    // TODO in oscP5 `OscMessage` is used for both sending and receiving while in oscpack this is handled by two different classes.
-    OscMessage(std::string address_pattern, bool begin_message = true) : mAddrPattern(std::move(address_pattern)) {
+    OscMessage(std::string address_pattern, bool begin_message = true) : fAddrPattern(std::move(address_pattern)) {
         if (begin_message) {
             begin();
         }
-        mTypeTag = "";
+        fTypeTag = "";
     }
 
     std::string addrPattern() const {
-        return mAddrPattern;
+        return fAddrPattern;
     }
 
-    std::string typetag() {
-        return mTypeTag;
+    std::string typetag() const {
+        return fTypeTag;
     }
 
     void set_type_tag(std::string type_tag) {
-        mTypeTag = std::move(type_tag);
+        fTypeTag = std::move(type_tag);
     }
 
     std::size_t size() const {
-        return p.Size();
+        return fPacket.Size();
     }
 
     const char *data() const {
-        return p.Data();
+        return fPacket.Data();
     }
 
     void begin() {
-        p << osc::BeginBundleImmediate
-          << osc::BeginMessage(mAddrPattern.c_str());
+        fIsRecording = true;
+        fPacket << osc::BeginBundleImmediate
+                << osc::BeginMessage(fAddrPattern.c_str());
     }
 
     void end() {
-        // TODO compile current typetag into `mTypeTag`
-        p << osc::EndMessage
-          << osc::EndBundle;
+        // TODO maybe compile current typetag into `mTypeTag`
+        fPacket << osc::EndMessage
+                << osc::EndBundle;
+        fIsRecording = false;
     }
 
     void add(float value) {
-        p << value;
+        if (!fIsRecording) { begin(); }
+        fPacket << value;
     }
 
     void add(int value) {
-        p << value;
+        if (!fIsRecording) { begin(); }
+        fPacket << value;
     }
 
     void add(std::string value) {
-        p << value.c_str();
+        if (!fIsRecording) { begin(); }
+        fPacket << value.c_str();
     }
 
+    void add(bool value) {
+        if (!fIsRecording) { begin(); }
+        fPacket << value;
+    }
+
+    OscPayloadFragment get(int index) const {
+        return container[index];
+    }
+
+    std::vector<OscPayloadFragment> container;
+
 private:
-    const std::string mAddrPattern;
-    std::string mTypeTag;
-    char buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
-    osc::OutboundPacketStream p{buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE};
+    const std::string         fAddrPattern;
+    std::string               fTypeTag;
+    char                      fBuffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+    osc::OutboundPacketStream fPacket{fBuffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE};
+    bool                      fIsRecording = false;
 };
 
 class OSCListener {
 public:
-    virtual void receive(const osc::ReceivedMessage &msg) = 0;
+    virtual void receive_native(const osc::ReceivedMessage &msg) {};
 
-    // TODO replace `osc::ReceivedMessage` with `OscMessage`
-    virtual void receive_TODO(const OscMessage &msg) {};
-
-//    void receive_TODO(const OscMessage &msg) {
-//        // TODO not properly implemented yet. will soon replace `receive(const osc::ReceivedMessage &msg)`
-//        std::cout << "received address pattern: " << msg.addrPattern() << std::endl;
-//        /* // from oscP5 example
-//         if(theOscMessage.checkAddrPattern("/test")==true) {
-//            if(theOscMessage.checkTypetag("ifs")) {
-//                // parse theOscMessage and extract the values from the osc message arguments.
-//                int firstValue = theOscMessage.get(0).intValue();
-//                float secondValue = theOscMessage.get(1).floatValue();
-//                String thirdValue = theOscMessage.get(2).stringValue();
-//                print("### received an osc message /test with typetag ifs.");
-//                println(" values: "+firstValue+", "+secondValue+", "+thirdValue);
-//                return;
-//            }
-//        }
-//        */
-//    }
-
+    virtual void receive(const OscMessage &msg) {};
 };
 
 class OSC {
@@ -158,7 +181,7 @@ public:
             fTransmitPort(-1),
             fReceivePort(receive_port),
             fUseUDPMulticast(use_UDP_multicast) {
-        mOSCThread = std::thread(&OSC::osc_thread, this);
+        mOSCThread      = std::thread(&OSC::osc_thread, this);
         mTransmitSocket = nullptr;
     }
 
@@ -169,30 +192,35 @@ public:
         }
     }
 
-    /* callback */
-
-    void (OSCListener::*callback_)(const osc::ReceivedMessage &);
-
-    void (OSCListener::*callback_TODO)(const OscMessage &msg);
-
-    OSCListener *instance_;
-
-//    void register_callback(void (OSCListener::*callback)(const osc::ReceivedMessage &), OSCListener *instance) {
-//        callback_ = callback;
-//        instance_ = instance;
-//    }
-
     void callback(OSCListener *instance) {
-        callback_ = &OSCListener::receive;
-        callback_TODO = &OSCListener::receive_TODO;
-        instance_ = instance;
+        callback_native = &OSCListener::receive_native;
+        callback_       = &OSCListener::receive;
+        fInstance       = instance;
     }
 
     void invoke_callback(const osc::ReceivedMessage &msg) {
-        // TODO transfer payload from osc::ReceivedMessage to OscMessage
-        OscMessage msg_TODO(msg.AddressPattern());
-        (instance_->*callback_TODO)(msg_TODO);
-        (instance_->*callback_)(msg);
+        OscMessage                           msg_(msg.AddressPattern());
+        osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
+        while (arg != msg.ArgumentsEnd()) {
+            if (arg->IsFloat()) {
+                msg_.container.push_back(OscPayloadFragment(arg->AsFloat()));
+            } else if (arg->IsInt32()) {
+                msg_.container.push_back(OscPayloadFragment(arg->AsInt32()));
+            } else if (arg->IsString()) {
+                msg_.container.push_back(OscPayloadFragment(arg->AsString()));
+            } else if (arg->IsBool()) {
+                msg_.container.push_back(OscPayloadFragment(arg->AsBool()));
+            } else {
+                std::cerr << "+++ OSC error: unsupported type '" << arg->TypeTag() << "'" << std::endl;
+            }
+            // TODO add more types
+            ++arg;
+        }
+        (fInstance->*callback_)(msg_);
+        msg_.set_type_tag(msg.TypeTags());
+
+        /* also send native message … for debugging */
+        (fInstance->*callback_native)(msg);
     }
 
     /* send */
@@ -204,7 +232,7 @@ public:
 
     template<typename... Args>
     void send(const std::string &addr_pattern, Args... args) {
-        char buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
+        char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
         osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
         p << osc::BeginBundleImmediate
           << osc::BeginMessage(addr_pattern.c_str());
@@ -279,12 +307,22 @@ public:
 //    }
 
 private:
+    OSCListener       *fInstance;
     const std::string fTransmitAddress;
-    const int fTransmitPort;
-    const int fReceivePort;
-    const bool fUseUDPMulticast;
-    std::thread mOSCThread;
+    const int         fTransmitPort;
+    const int         fReceivePort;
+    const bool        fUseUDPMulticast;
+    std::thread       mOSCThread;
     UdpTransmitSocket *mTransmitSocket = nullptr;
+
+//    void register_callback(void (OSCListener::*callback)(const osc::ReceivedMessage &), OSCListener *instance) {
+//        callback_ = callback;
+//        instance_ = instance;
+//    }
+
+    void (OSCListener::*callback_native)(const osc::ReceivedMessage &);
+
+    void (OSCListener::*callback_)(const OscMessage &msg);
 
     template<typename T, typename... Rest>
     [[maybe_unused]] void addArgsToPacketStream(osc::OutboundPacketStream &p, T first, Rest... rest) {
@@ -296,30 +334,10 @@ private:
 
     class MOscPacketListener : public osc::OscPacketListener {
     public:
-        MOscPacketListener(OSC *parent) : mParent(parent) {}
+        [[maybe_unused]] MOscPacketListener(OSC *parent) : mParent(parent) {}
 
         void process(const osc::ReceivedMessage &msg) {
             mParent->invoke_callback(msg);
-
-//            // TODO maybe parse this into OscMessage
-//            OscMessage m{std::string(msg.AddressPattern())};
-//            // copy message types from osc::ReceivedMessage to OscMessage
-//            osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
-//            while (arg != msg.ArgumentsEnd()) {
-//            }
-
-//        if (msg.ArgumentCount() > 0) {
-//            osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
-//            int mMidiInEvent = arg->AsInt32();
-            // (msg.ArgumentCount() > 1) {
-//            float mData[msg.ArgumentCount()];
-//            uint8_t i = 0;
-//            for (osc::ReceivedMessage::const_iterator args = msg.ArgumentsBegin();
-//                 args != msg.ArgumentsEnd(); ++args) {
-//                mData[i] = (float) args->AsInt32();
-//                i++;
-//            }
-//        }
         }
 
     private:
@@ -345,7 +363,7 @@ private:
         try {
             if (fUseUDPMulticast) {
                 MOscPacketListener mOscListener(this);
-                PacketListener *listener_ = &mOscListener;
+                PacketListener *listener_      = &mOscListener;
                 IpEndpointName mIpEndpointName = IpEndpointName(fTransmitAddress.c_str(), fReceivePort);
                 if (mIpEndpointName.IsMulticastAddress()) {
                     UdpSocket mUdpSocket;

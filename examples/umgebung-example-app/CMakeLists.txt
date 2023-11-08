@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(umgebung-example-app)                       # set application name
-set(UMGEBUNG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/..") # set absolut path to umgebung library
+set(UMGEBUNG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../..") # set absolut path to umgebung library
 #set(UMGEBUNG_PATH "<absolute/path/to/library>")
 
 # grab all .cpp files from this directory
