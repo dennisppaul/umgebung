@@ -163,7 +163,11 @@ class UmgebungExampleApp : public PApplet, OSCListener {
 
     void mousePressed() {
         println("mouse button  : ", mouseButton);
-        mOSC.send("test_send", 23, "hello", 42);
+        mOSC.send("test_send", 23, "hello", mouseX);
+
+        OscMessage msg("/test_send");
+        msg.add(mouseY);
+        mOSC.send(msg, NetAddress("localhost", 8000));
     }
 
     void finish() {
