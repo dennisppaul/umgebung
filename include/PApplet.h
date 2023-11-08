@@ -65,6 +65,7 @@ public:
     virtual void setup() {}
 
     virtual void pre_draw() {
+#ifndef DISABLE_GRAPHICS
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(0, width, 0, height, -1, 1);
@@ -75,6 +76,7 @@ public:
         glTranslatef(0, (float) -height, 0);
 
         glViewport(0, 0, framebuffer_width, framebuffer_height);
+#endif
     }
 
     virtual void draw() {}

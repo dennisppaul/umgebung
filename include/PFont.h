@@ -19,13 +19,18 @@
 
 #pragma once
 
+#ifndef DISABLE_GRAPHICS
+
 #include <FTGL/ftgl.h>
+
+#endif
 
 #include "Umgebung.h"
 
 class PFont {
 public:
     PFont(const char *file, float size) {
+#ifndef DISABLE_GRAPHICS
         font = new FTTextureFont(file);
         if (font->Error()) {
             std::cerr << "+++ error initializing font" << std::endl;
@@ -33,22 +38,29 @@ public:
             return;
         }
         font->FaceSize((int) size);
+#endif // DISABLE_GRAPHICS
     }
 
     void size(float size) {
+#ifndef DISABLE_GRAPHICS
         if (font == nullptr) return;
         font->FaceSize((int) size);
+#endif
     }
 
     void draw(const char *text, float x, float y) {
+#ifndef DISABLE_GRAPHICS
         if (font == nullptr) return;
         glPushMatrix();
         glTranslatef(x, y, 0);
         glScalef(1, -1, 1);
         font->Render(text, -1, FTPoint(0, 0));
         glPopMatrix();
+#endif
     }
 
 private:
+#ifndef DISABLE_GRAPHICS
     FTTextureFont *font = nullptr;
+#endif
 };

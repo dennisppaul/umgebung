@@ -14,7 +14,7 @@ class UmgebungExampleApp : public PApplet {
         antialiasing = 8;
         enable_retina_support = true;
         headless = false;
-        no_audio = true;
+        no_audio = false;
         monitor = DEFAULT;
     }
 
@@ -41,6 +41,7 @@ class UmgebungExampleApp : public PApplet {
     }
 
     void draw() {
+        print(".");
         if (headless) return;
         background(1, 1, 1);
         background(1);

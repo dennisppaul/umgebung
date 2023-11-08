@@ -19,15 +19,20 @@
 
 #include "Umgebung.h"
 
+#ifndef DISABLE_GRAPHICS
+
 #define STB_IMAGE_IMPLEMENTATION
 
 #include "stb_image.h"
+
+#endif // DISABLE_GRAPHICS
 
 // @add constructors
 
 PImage::PImage(const std::string &filename) {
     int _width = 0;
     int _height = 0;
+#ifndef DISABLE_GRAPHICS
 
     data = stbi_load(filename.c_str(), &_width, &_height, &channels, 0);
 
@@ -53,9 +58,12 @@ PImage::PImage(const std::string &filename) {
     }
 
     stbi_image_free(data);
+#endif // DISABLE_GRAPHICS
 }
 
 void PImage::bind() {
+#ifndef DISABLE_GRAPHICS
     glBindTexture(GL_TEXTURE_2D, textureID);
+#endif // DISABLE_GRAPHICS
 }
 

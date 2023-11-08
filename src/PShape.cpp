@@ -20,6 +20,8 @@
 #include <iostream>
 #include "PShape.h"
 
+#ifndef DISABLE_GRAPHICS
+
 void PShape::beginShape(int shape) {
     isRecording = true;
     fShape = shape; // TODO implement
@@ -132,3 +134,22 @@ void PShape::draw() {
     }
     glEnd();
 }
+
+#else // DISABLE_GRAPHICS
+
+void PShape::beginShape(int shape) {
+}
+
+void PShape::endShape() {
+}
+
+void PShape::vertex(float x, float y, float z, float r, float g, float b) {
+}
+
+void PShape::release() {
+}
+
+void PShape::draw() {
+}
+
+#endif // DISABLE_GRAPHICS

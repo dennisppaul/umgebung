@@ -28,8 +28,8 @@ class PFont;
 
 class PGraphics {
 public:
-    int width;
-    int height;
+    int width = 0;
+    int height = 0;
 
     void stroke(float r, float g, float b, float a = 1.0);
 

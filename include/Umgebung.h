@@ -20,10 +20,14 @@
 #pragma once
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
+
+#ifndef DISABLE_GRAPHICS
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#endif
 
 #ifndef WEAK
 #define WEAK __attribute__((weak))

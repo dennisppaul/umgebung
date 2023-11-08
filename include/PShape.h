@@ -22,7 +22,13 @@
 // TODO implement properly with VBOs + *modern* OpenGL
 
 #include <vector>
+
+#ifndef DISABLE_GRAPHICS
+
 #include <GL/glew.h>
+
+#endif
+
 #include "UmgebungConstants.h"
 
 class PShape {
@@ -39,11 +45,12 @@ public:
 
 private:
     bool isRecording = false;
-    std::vector<GLfloat> vertices;
+    int fShape = POLYGON;
     int fVerticesSize = 0;
+#ifndef DISABLE_GRAPHICS
+    std::vector<GLfloat> vertices;
     GLuint vertexArray, vertexBuffer;
     GLuint vertexShader, fragmentShader, shaderProgram;
-    int fShape = POLYGON;
 
     const char *vertexShaderSource = R"(
     #version 330 core
@@ -64,6 +71,7 @@ private:
         FragColor = vec4(color, 1.0);
     }
 )";
+#endif // DISABLE_GRAPHICS
 };
 
 PShape *createShape();

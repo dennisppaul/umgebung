@@ -17,10 +17,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
+
+#ifndef DISABLE_GRAPHICS
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <iostream>
+
+#endif
+
+#ifndef DISABLE_AUDIO
+
 #include <portaudio.h>
+
+#endif
 
 #include "Umgebung.h"
 
@@ -45,9 +55,16 @@ static const double fTargetFrameTime = 1.0 / 60.0; // @development make this adj
 static bool fAppIsInitialized = false;
 static bool fMouseIsPressed = false;
 
+
+#ifndef DISABLE_GRAPHICS
+
 static void release_HID_callbacks(GLFWwindow *window);
 
 static void setup_HID_callbacks(GLFWwindow *window);
+
+#endif // DISABLE_GRAPHICS
+
+#ifndef DISABLE_AUDIO
 
 static int audioCallback(const void *inputBuffer,
                          void *outputBuffer,
@@ -138,6 +155,9 @@ static PaStream *init_audio(int input_channels, int output_channels) {
     return stream;
 }
 
+#endif // DISABLE_AUDIO
+
+#ifndef DISABLE_GRAPHICS
 
 static void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
     fApplet->mouseX = (float) xpos;
@@ -206,15 +226,15 @@ static void error_callback(int error, const char *description) {
     std::cerr << "GLFW Error: " << description << std::endl;
 }
 
-static int _wndPos[2];
-static int _wndSize[2];
+static int wndPos[2];
+static int wndSize[2];
 
 static void SetFullScreen(GLFWwindow *_wnd, GLFWmonitor *_monitor, bool fullscreen) {
     // see https://stackoverflow.com/questions/47402766/switching-between-windowed-and-full-screen-in-opengl-glfw-3-2
     if (fullscreen) {
         // backup window position and window size
-        glfwGetWindowPos(_wnd, &_wndPos[0], &_wndPos[1]);
-        glfwGetWindowSize(_wnd, &_wndSize[0], &_wndSize[1]);
+        glfwGetWindowPos(_wnd, &wndPos[0], &wndPos[1]);
+        glfwGetWindowSize(_wnd, &wndSize[0], &wndSize[1]);
 
         // get resolution of monitor
         const GLFWvidmode *mode = glfwGetVideoMode(_monitor);
@@ -223,7 +243,7 @@ static void SetFullScreen(GLFWwindow *_wnd, GLFWmonitor *_monitor, bool fullscre
         glfwSetWindowMonitor(_wnd, _monitor, 0, 0, mode->width, mode->height, 0);
     } else {
         // restore last window size and position
-        glfwSetWindowMonitor(_wnd, nullptr, _wndPos[0], _wndPos[1], _wndSize[0], _wndSize[1], 0);
+        glfwSetWindowMonitor(_wnd, nullptr, wndPos[0], wndPos[1], wndSize[0], wndSize[1], 0);
     }
 }
 
@@ -315,6 +335,7 @@ static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) 
     std::cout << "Scroll: " << xoffset << ", " << yoffset << std::endl;
 }
 
+
 static void setup_HID_callbacks(GLFWwindow *window) {
     glfwSetCursorPosCallback(window, mouse_move_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -331,13 +352,22 @@ static void release_HID_callbacks(GLFWwindow *window) {
     glfwSetScrollCallback(window, nullptr);
 }
 
-static void shutdown(PaStream *stream, GLFWwindow *window) {
-    if (no_audio) {
+#endif // DISABLE_GRAPHICS
+
+#ifndef DISABLE_AUDIO
+static void shutdown(PaStream *stream) {
+    if (!no_audio) {
         /* terminate PortAudio */
         Pa_StopStream(stream);
         Pa_CloseStream(stream);
         Pa_Terminate();
     }
+}
+#endif // DISABLE_AUDIO
+
+#ifndef DISABLE_GRAPHICS
+
+static void shutdown(GLFWwindow *window) {
     if (!headless) {
         /* release callbacks */
         release_HID_callbacks(window);
@@ -350,7 +380,9 @@ static void shutdown(PaStream *stream, GLFWwindow *window) {
 static void handle_setup(GLFWwindow *window) {
     if (!headless) {
         if (window != nullptr) {
+#ifndef DISABLE_GRAPHICS
             glfwSwapInterval(1); // Enable vsync (1 means on, 0 means off)
+#endif // DISABLE_GRAPHICS
         }
     }
     fAppIsInitialized = true;
@@ -385,6 +417,25 @@ static void handle_draw(GLFWwindow *window) {
     fApplet->frameCount++;
     startTime = std::chrono::high_resolution_clock::now();
 }
+#else // DISABLE_GRAPHICS
+
+static void handle_draw() {
+    /* timer begin  */
+    static std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now(), endTime;
+
+    fApplet->draw();
+
+    /* timer end */
+    endTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
+            endTime - startTime);
+    double frameTime = frameDuration.count();
+    fApplet->frameRate = (float) (1.0 / frameTime);
+    fApplet->frameCount++;
+    startTime = std::chrono::high_resolution_clock::now();
+}
+
+#endif // DISABLE_GRAPHICS
 
 static int run_application() {
     std::cout << "+++ current working directory: " << sketchpath() << std::endl;
@@ -404,6 +455,7 @@ static int run_application() {
 
     fApplet->settings();
 
+#ifndef DISABLE_GRAPHICS
     GLFWwindow *window;
     if (headless) {
         window = nullptr;
@@ -414,7 +466,9 @@ static int run_application() {
             return -1;
         }
     }
+#endif // DISABLE_GRAPHICS
 
+#ifndef DISABLE_AUDIO
     PaStream *stream;
     if (no_audio) {
         std::cout << "+++ running application with no audio" << std::endl;
@@ -425,7 +479,9 @@ static int run_application() {
             return -1;
         }
     }
+#endif // DISABLE_AUDIO
 
+#ifndef DISABLE_GRAPHICS
     handle_setup(window);
 
     /* loop */
@@ -442,7 +498,30 @@ static int run_application() {
     }
 
     fApplet->finish();
-    shutdown(stream, window);
+    shutdown(window);
+#else
+    fAppIsInitialized = true;
+    fApplet->setup();
+
+    /* loop */
+    std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
+    while (fAppIsRunning) {
+        std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
+                currentTime - lastFrameTime);
+        double frameTime = frameDuration.count();
+        if (frameTime >= fTargetFrameTime) {
+            handle_draw();
+            lastFrameTime = currentTime;
+        }
+    }
+
+    fApplet->finish();
+#endif // DISABLE_GRAPHICS
+
+#ifndef DISABLE_AUDIO
+    shutdown(stream);
+#endif // DISABLE_AUDIO
 
     return 0;
 }

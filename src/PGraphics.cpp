@@ -56,6 +56,8 @@ void PGraphics::noFill() {
     fill_color.active = false;
 }
 
+#ifndef DISABLE_GRAPHICS
+
 void PGraphics::background(float a, float b, float c, float d) {
     glClearColor(a, b, c, d);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -162,6 +164,7 @@ void PGraphics::vertex(float x, float y, float z) {
     glVertex3f(x, y, z);
 }
 
+#endif // DISABLE_GRAPHICS
 
 /* font */
 
@@ -183,8 +186,10 @@ void PGraphics::text(const std::string &text, float x, float y) {
     if (fCurrentFont == nullptr) return;
     if (!fill_color.active) return;
 
+#ifndef DISABLE_GRAPHICS
     glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
     fCurrentFont->draw(text.c_str(), x, y);
+#endif // DISABLE_GRAPHICS
 }
 
 PImage *PGraphics::loadImage(const std::string &filename) {
@@ -193,6 +198,7 @@ PImage *PGraphics::loadImage(const std::string &filename) {
 }
 
 void PGraphics::image(PImage *img, float x, float y, float w, float h) {
+#ifndef DISABLE_GRAPHICS
     glEnable(GL_TEXTURE_2D);
     glColor4f(1, 1, 1, 1);
     img->bind();
@@ -211,11 +217,14 @@ void PGraphics::image(PImage *img, float x, float y, float w, float h) {
     glVertex2f(x, y + h);
     glEnd();
     glDisable(GL_TEXTURE_2D);
+#endif // DISABLE_GRAPHICS
 }
 
 void PGraphics::image(PImage *img, float x, float y) {
     image(img, x, y, img->width, img->height);
 }
+
+#ifndef DISABLE_GRAPHICS
 
 void PGraphics::popMatrix() {
     glPopMatrix();
@@ -260,3 +269,66 @@ void PGraphics::scale(float x, float y) {
 void PGraphics::scale(float x, float y, float z) {
     glScalef(x, y, z);
 }
+
+#else // DISABLE_GRAPHICS
+void PGraphics::popMatrix() {
+}
+
+void PGraphics::pushMatrix() {
+}
+
+void PGraphics::translate(float x, float y, float z) {
+}
+
+void PGraphics::rotateX(float angle) {
+}
+
+void PGraphics::rotateY(float angle) {
+}
+
+void PGraphics::rotateZ(float angle) {
+}
+
+void PGraphics::rotate(float angle) {
+}
+
+void PGraphics::rotate(float angle, float x, float y, float z) {
+}
+
+void PGraphics::scale(float x) {
+}
+
+void PGraphics::scale(float x, float y) {
+}
+
+void PGraphics::scale(float x, float y, float z) {
+}
+
+void PGraphics::background(float a, float b, float c, float d) {
+}
+
+void PGraphics::background(float a) {
+}
+
+void PGraphics::rect(float x, float y, float _width, float _height) {
+}
+
+void PGraphics::line(float x1, float y1, float x2, float y2) {
+}
+
+
+void PGraphics::pointSize(float point_size) {
+}
+
+void PGraphics::point(float x, float y, float z) {
+}
+
+void PGraphics::beginShape(int shape) {
+}
+
+void PGraphics::endShape() {
+}
+
+void PGraphics::vertex(float x, float y, float z) {
+}
+#endif // DISABLE_GRAPHICS

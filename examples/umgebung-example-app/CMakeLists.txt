@@ -4,6 +4,9 @@ project(umgebung-example-app)                       # set application name
 set(UMGEBUNG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../..") # set absolut path to umgebung library
 #set(UMGEBUNG_PATH "<absolute/path/to/library>")
 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDISABLE_GRAPHICS")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDISABLE_AUDIO")
+
 # grab all .cpp files from this directory
 file(GLOB SOURCE_FILES "*.cpp")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
