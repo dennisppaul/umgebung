@@ -1,5 +1,22 @@
 cmake_minimum_required(VERSION 3.12)
 
+message("")
+message("+++ UMGEBUNG_APP  : ${UMGEBUNG_APP}")
+message("+++ UMGEBUNG_PATH : ${UMGEBUNG_PATH}")
+message("")
+
+if (DISABLE_GRAPHICS)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DISABLE_GRAPHICS)
+    message("+++ DISABLE_GRAPHICS")
+else (DISABLE_GRAPHICS)
+    message("+++ NOT DISABLE_GRAPHICS")
+endif (DISABLE_GRAPHICS)
+
+if (DISABLE_AUDIO)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DISABLE_AUDIO)
+    message("+++ DISABLE_AUDIO")
+endif (DISABLE_AUDIO)
+
 if (NOT DEFINED UMGEBUNG_APP OR "${UMGEBUNG_APP}" STREQUAL "")
     message("UMGEBUNG_APP not set")
     project(umgebung-lib)
@@ -15,12 +32,7 @@ if (NOT DEFINED UMGEBUNG_PATH OR "${UMGEBUNG_PATH}" STREQUAL "")
     set(UMGEBUNG_PATH ".")
 endif ()
 
-message("")
-message("+++ UMGEBUNG_APP  : ${UMGEBUNG_APP}")
-message("+++ UMGEBUNG_PATH : ${UMGEBUNG_PATH}")
-message("")
-
-# SOURCE FILES
+# add source + header files
 set(HEADER_DIR "include" "${UMGEBUNG_PATH}/src")
 set(SOURCE_DIR "src")
 file(GLOB UMGEBUNG_SOURCE_FILES
@@ -29,7 +41,6 @@ file(GLOB UMGEBUNG_SOURCE_FILES
         "${UMGEBUNG_PATH}/${SOURCE_DIR}/ip/posix/*.cpp"
         "${UMGEBUNG_PATH}/${SOURCE_DIR}/osc/*.cpp"
 )
-#file(GLOB UMGEBUNG_SOURCE_FILES "${SOURCE_DIR}/*.cpp")
 include_directories("${UMGEBUNG_PATH}/include")
 include_directories("${UMGEBUNG_PATH}/include/ip")
 include_directories("${UMGEBUNG_PATH}/include/osc")
@@ -46,12 +57,14 @@ else (BUILD_STANDALONE)
 endif (BUILD_STANDALONE)
 
 # glfw
-find_package(glfw3 REQUIRED)
-if (APPLE)
-    find_library(OpenGL_LIBRARY OpenGL)
-    target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenGL_LIBRARY})
-endif ()
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
+if (NOT DISABLE_GRAPHICS)
+    find_package(glfw3 REQUIRED)
+    if (APPLE)
+        find_library(OpenGL_LIBRARY OpenGL)
+        target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenGL_LIBRARY})
+    endif ()
+    target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
+endif (NOT DISABLE_GRAPHICS)
 
 # portaudio + ftgl + glew
 if (APPLE)
@@ -62,29 +75,40 @@ if (APPLE)
     endif (BUILD_STANDALONE)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON)
 endif (APPLE)
-find_package(portaudio REQUIRED)
-find_package(ftgl REQUIRED)
-find_package(glew REQUIRED)
+
+if (NOT DISABLE_AUDIO)
+    find_package(portaudio REQUIRED)
+endif (NOT DISABLE_AUDIO)
+
+if (NOT DISABLE_GRAPHICS)
+    find_package(ftgl REQUIRED)
+    find_package(glew REQUIRED)
+endif (NOT DISABLE_GRAPHICS)
+
 if (APPLE)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS OFF)
 endif (APPLE)
 
-# @development adding portaudio + ftgl manually as it seems to cause problems on some MacOS machines TODO: fix this
-set(USE_MANUAL_CONFIGURATION_FOR_LIBRARIES false)
-if (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
-    message("USE_MANUAL_CONFIGURATION_FOR_LIBRARIES")
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${PORTAUDIO_LIBRARIES})
-    target_include_directories(${PROJECT_NAME} PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${FTGL_LIBRARIES})
-    target_include_directories(${PROJECT_NAME} PRIVATE ${FTGL_INCLUDE_DIRS})
-else (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
-    message("not using USE_MANUAL_CONFIGURATION_FOR_LIBRARIES")
+## @development adding portaudio + ftgl manually as it seems to cause problems on some MacOS machines TODO: fix this
+#set(USE_MANUAL_CONFIGURATION_FOR_LIBRARIES false)
+#if (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
+#    message("USE_MANUAL_CONFIGURATION_FOR_LIBRARIES")
+#    target_link_libraries(${PROJECT_NAME} PRIVATE ${PORTAUDIO_LIBRARIES})
+#    target_include_directories(${PROJECT_NAME} PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
+#    target_link_libraries(${PROJECT_NAME} PRIVATE ${FTGL_LIBRARIES})
+#    target_include_directories(${PROJECT_NAME} PRIVATE ${FTGL_INCLUDE_DIRS})
+#else (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
+#message("not using USE_MANUAL_CONFIGURATION_FOR_LIBRARIES")
+if (NOT DISABLE_AUDIO)
     target_link_libraries(${PROJECT_NAME} PUBLIC portaudio)
     target_include_directories(${PROJECT_NAME} PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
+endif (NOT DISABLE_AUDIO)
+if (NOT DISABLE_GRAPHICS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ftgl)
     target_include_directories(${PROJECT_NAME} PRIVATE ${FTGL_INCLUDE_DIRS})
-endif (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
-target_link_libraries(${PROJECT_NAME} PUBLIC glew)
+    #endif (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
+    target_link_libraries(${PROJECT_NAME} PUBLIC glew)
+endif (NOT DISABLE_GRAPHICS)
 
 ## ncurses
 # TODO implement curses for headless mode

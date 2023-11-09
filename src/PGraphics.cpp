@@ -18,17 +18,22 @@
  */
 
 
+#ifndef DISABLE_GRAPHICS
+
 #include <GL/glew.h>
+
+#endif // DISABLE_GRAPHICS
+
 #include "PGraphics.h"
 #include "PFont.h"
 
 // TODO look into OpenGL 3 e.g https://github.com/opengl-tutorials/ogl/
 
 void PGraphics::stroke(float r, float g, float b, float a) {
-    stroke_color.r = r;
-    stroke_color.g = g;
-    stroke_color.b = b;
-    stroke_color.a = a;
+    stroke_color.r      = r;
+    stroke_color.g      = g;
+    stroke_color.b      = b;
+    stroke_color.a      = a;
     stroke_color.active = true;
 }
 
@@ -41,10 +46,10 @@ void PGraphics::noStroke() {
 }
 
 void PGraphics::fill(float r, float g, float b, float a) {
-    fill_color.r = r;
-    fill_color.g = g;
-    fill_color.b = b;
-    fill_color.a = a;
+    fill_color.r      = r;
+    fill_color.g      = g;
+    fill_color.b      = b;
+    fill_color.a      = a;
     fill_color.active = true;
 }
 

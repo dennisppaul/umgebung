@@ -52,11 +52,16 @@ bool exists(const std::string &file_path);
 
 std::string sketchpath();
 
+#define FLUSH_PRINT
+
 template<typename... Args>
 void print(const Args &... args) {
     std::ostringstream os;
     (os << ... << args);
     std::cout << os.str();
+#ifdef FLUSH_PRINT
+    std::flush(std::cout);
+#endif
 }
 
 template<typename... Args>
@@ -64,6 +69,9 @@ void println(const Args &... args) {
     std::ostringstream os;
     (os << ... << args);
     std::cout << os.str() << std::endl;
+#ifdef FLUSH_PRINT
+    std::flush(std::cout);
+#endif
 }
 
 template<typename... Args>

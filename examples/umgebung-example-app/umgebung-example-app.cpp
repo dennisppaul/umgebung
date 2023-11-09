@@ -2,20 +2,20 @@
 
 class UmgebungExampleApp : public PApplet {
 
-    PFont *mFont;
-    PImage *mImage;
+    PFont   *mFont;
+    PImage  *mImage;
     PVector mVector{16, 16};
-    PShape mShape;
-    int mouseMoveCounter = 0;
+    PShape  mShape;
+    int     mouseMoveCounter = 0;
 
     void settings() {
         size(1024, 768);
         audio_devices(DEFAULT_AUDIO_DEVICE, DEFAULT_AUDIO_DEVICE);
-        antialiasing = 8;
+        antialiasing          = 8;
         enable_retina_support = true;
-        headless = false;
-        no_audio = false;
-        monitor = DEFAULT;
+        headless              = false;
+        no_audio              = false;
+        monitor               = DEFAULT;
     }
 
     void setup() {
@@ -25,7 +25,7 @@ class UmgebungExampleApp : public PApplet {
         }
         if (!headless) {
             mImage = loadImage("../image.png"); // note that image is not included
-            mFont = loadFont("../RobotoMono-Regular.ttf", 48); // note that font is not included
+            mFont  = loadFont("../RobotoMono-Regular.ttf", 48); // note that font is not included
             textFont(mFont);
         }
 
@@ -41,14 +41,13 @@ class UmgebungExampleApp : public PApplet {
     }
 
     void draw() {
-        print(".");
         if (headless) return;
         background(1, 1, 1);
         background(1);
 
         /* rectangle */
         const float padding = width / 16.0;
-        const float grid = width / 16.0;
+        const float grid    = width / 16.0;
         const float spacing = grid + width / 32.0;
 
         stroke(1, 0, 0);
@@ -90,8 +89,8 @@ class UmgebungExampleApp : public PApplet {
         pushMatrix();
         translate(padding, padding + 2 * spacing);
         for (int i = 0; i < grid * grid; ++i) {
-            float x = i % (int) grid;
-            float y = i / grid;
+            float x    = i % (int) grid;
+            float y    = i / grid;
             float grey = noise(x / (float) grid, y / (float) grid);
             stroke(grey);
             point(x, y, 1);
@@ -115,9 +114,9 @@ class UmgebungExampleApp : public PApplet {
     void audioblock(const float *input, float *output, unsigned long length) {
         // NOTE length is the number of samples per channel
         // TODO change to `void audioblock(float** input_signal, float** output_signal) {}`
-        static float phase = 0.0;
-        float frequency = 220.0 + sin(frameCount * 0.1) * 110.0;
-        float amplitude = 0.5;
+        static float phase     = 0.0;
+        float        frequency = 220.0 + sin(frameCount * 0.1) * 110.0;
+        float        amplitude = 0.5;
 
         for (int i = 0; i < length; i++) {
             float sample = amplitude * sin(phase);
@@ -127,11 +126,11 @@ class UmgebungExampleApp : public PApplet {
                 phase -= TWO_PI;
             }
 
-            float mInput = 0;
-            for (int j = 0; j < audio_input_channels; ++j) {
+            float    mInput = 0;
+            for (int j      = 0; j < audio_input_channels; ++j) {
                 mInput += input[i * audio_input_channels + j];
             }
-            for (int j = 0; j < audio_output_channels; ++j) {
+            for (int j      = 0; j < audio_output_channels; ++j) {
                 output[i * audio_output_channels + j] = sample + mInput * 0.5f;
             }
         }

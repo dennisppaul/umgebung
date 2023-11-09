@@ -3,12 +3,14 @@
 
 class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
 
-    OSC mOSC{"127.0.0.1", 8000, 8001};
+    OSC  mOSC{"127.0.0.1", 8000, 8001};
+    bool message_received = false;
+    int  message_counter  = 0;
 
     void receive(const OscMessage &msg) {
         if (msg.typetag() == "ifs") {
             println("received address pattern: ",
-                    println(msg.addrPattern(),
+                    msg.addrPattern(),
                     " : ",
                     msg.typetag(),
                     "(",
@@ -19,6 +21,7 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
                     msg.get(2).stringValue(),
                     ")"
             );
+            message_received = true;
         } else {
             println("could not parse OSC message: ", msg.typetag());
         }
@@ -26,19 +29,31 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
 
     void settings() {
         size(1024, 768);
-        headless = false;
         no_audio = true;
     }
 
     void setup() {
         mOSC.callback(this);
-    }
-
-    void draw() {
         background(0);
     }
 
-    void audioblock(const float *input, float *output, unsigned long length) {}
+    void draw() {
+        if (message_received) {
+            message_received      = false;
+            fill(1);
+            const int   num_rects = 20;
+            const float size_rect = width / num_rects;
+            float       x         = (message_counter % num_rects) * size_rect;
+            float       y         = (message_counter / num_rects) * size_rect;
+            rect(x, y, size_rect, size_rect);
+            message_counter++;
+            if (message_counter > num_rects * num_rects) {
+                message_counter = 0;
+                // TODO this does not yet ... screen flickers
+                background(0);
+            }
+        }
+    }
 
     void keyPressed() {
         if (key == 'Q') {
