@@ -81,6 +81,7 @@ endif (NOT DISABLE_AUDIO)
 if (NOT DISABLE_GRAPHICS)
     find_package(ftgl REQUIRED)
     find_package(glew REQUIRED)
+#     find_package(ffmpeg REQUIRED)
 endif (NOT DISABLE_GRAPHICS)
 
 if (APPLE)
@@ -104,9 +105,11 @@ endif (NOT DISABLE_AUDIO)
 if (NOT DISABLE_GRAPHICS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ftgl)
     target_include_directories(${PROJECT_NAME} PRIVATE ${FTGL_INCLUDE_DIRS})
-    #endif (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
     target_link_libraries(${PROJECT_NAME} PUBLIC glew)
+#     target_link_libraries(${PROJECT_NAME} PUBLIC ${FFMPEG_LIBRARIES})
+#     target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS})
 endif (NOT DISABLE_GRAPHICS)
+#endif (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
 
 ## ncurses
 # TODO implement curses for headless mode
