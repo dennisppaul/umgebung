@@ -24,8 +24,13 @@ class UmgebungExampleApp : public PApplet {
             exit();
         }
         if (!headless) {
-            mImage = loadImage("../image.png"); // note that image is not included
-            mFont  = loadFont("../RobotoMono-Regular.ttf", 48); // note that font is not included
+            mImage     = loadImage("../image.png"); // note that image is not included
+            float pixels[100 * 100 * mImage->channels];
+            for (int i = 0; i < 100 * 100 * mImage->channels; ++i) {
+                pixels[i] = random(1);
+            }
+            mImage->update(pixels, 100, 100, 10, 10);
+            mFont = loadFont("../RobotoMono-Regular.ttf", 48); // note that font is not included
             textFont(mFont);
         }
 
@@ -45,9 +50,9 @@ class UmgebungExampleApp : public PApplet {
         background(1);
 
         /* rectangle */
-        const float padding = width / 16.0;
-        const float grid    = width / 16.0;
-        const float spacing = grid + width / 32.0;
+        const float padding = width / mVector.x;
+        const float grid    = width / mVector.x;
+        const float spacing = grid + width / mVector.x * 2;
 
         stroke(1, 0, 0);
         noFill();

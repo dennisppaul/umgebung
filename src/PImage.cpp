@@ -30,7 +30,7 @@
 // @add constructors
 
 PImage::PImage(const std::string &filename) {
-    int _width = 0;
+    int _width  = 0;
     int _height = 0;
 #ifndef DISABLE_GRAPHICS
 
@@ -47,7 +47,7 @@ PImage::PImage(const std::string &filename) {
         } else {
             std::cerr << "Unsupported image format" << std::endl;
         }
-        width = (float) _width;
+        width  = (float) _width;
         height = (float) _height;
 
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -67,3 +67,29 @@ void PImage::bind() {
 #endif // DISABLE_GRAPHICS
 }
 
+void PImage::update(float *_data, int _width, int _height, int offset_x, int offset_y) {
+    const int     length = _width * _height * channels;
+    unsigned char mData[length];
+    for (int      i      = 0; i < _width * _height * channels; ++i) {
+        mData[i] = _data[i] * 255;
+    }
+    int           mFormat;
+    if (channels == 3) {
+        mFormat = GL_RGB;
+    } else if (channels == 4) {
+        mFormat = GL_RGBA;
+    } else {
+        std::cerr << "Unsupported image format" << std::endl;
+        mFormat = GL_RGB;
+    }
+    glTexSubImage2D(GL_TEXTURE_2D,
+                    0, offset_x, offset_y,
+                    _width, _height,
+                    mFormat,
+                    GL_UNSIGNED_BYTE,
+                    mData);
+}
+
+void PImage::update(float *_data) {
+    update(_data, width, height, 0, 0);
+}

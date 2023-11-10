@@ -28,11 +28,14 @@ public:
 
     void bind();
 
+    void update(float *data);
+    void update(float *_data, int _width, int _height, int offset_x, int offset_y);
+
     float width;
     float height;
+    int   channels;
 
 private:
-    unsigned int textureID;
+    unsigned int  textureID;
     unsigned char *data;
-    int channels;
 };
