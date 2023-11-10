@@ -29,29 +29,40 @@
 
 #endif
 
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
+#endif
 #ifndef WEAK
 #define WEAK __attribute__((weak))
 #endif
 
-#define AUDIO_SAMPLE_RATE 48000
-#define FRAMES_PER_BUFFER 2048
-#define DEFAULT_NUMBER_OF_INPUT_CHANNELS 1
-#define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2
-#define DEFAULT_AUDIO_DEVICE (-1)
-#define DEFAULT (-1)
-#define DEFAULT_WINDOW_WIDTH 1024
-#define DEFAULT_WINDOW_HEIGHT 768
-#define DEFAULT_WINDOW_TITLE "Umgebung"
-#ifndef UMGEBUNG_WINDOW_TITLE
-#define UMGEBUNG_WINDOW_TITLE DEFAULT_WINDOW_TITLE
+#define USE_CURRENT_OPENGL                FALSE // on macOS currently VERSION 3.3 // TODO does not work currently
+#ifndef RENDER_INTO_FRAMEBUFFER
+#define RENDER_INTO_FRAMEBUFFER           TRUE  // this is required when not clearing the framebuffer each frame
+#endif // RENDER_INTO_FRAMEBUFFER
+
+#define DEFAULT_AUDIO_SAMPLE_RATE         48000 // TODO make this configurable
+#define DEFAULT_FRAMES_PER_BUFFER         2048  // TODO make this configurable
+#define DEFAULT_NUMBER_OF_INPUT_CHANNELS  1     // TODO make this configurable
+#define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2     // TODO make this configurable
+#define DEFAULT_AUDIO_DEVICE              (-1)
+#define DEFAULT                           (-1)
+#define DEFAULT_WINDOW_WIDTH              1024
+#define DEFAULT_WINDOW_HEIGHT             768
+#define DEFAULT_WINDOW_TITLE              "Umgebung"
+#ifndef UMGEBUNG_WINDOW_TITLE             // can be set in `CMakeLists.txt`
+#define UMGEBUNG_WINDOW_TITLE             DEFAULT_WINDOW_TITLE
 #endif
 
-extern int audio_input_device;
-extern int audio_output_device;
-extern int audio_input_channels;
-extern int audio_output_channels;
-extern int monitor; // @development TOOD this always switches to fullscreen
-extern int antialiasing;
+extern int  audio_input_device;
+extern int  audio_output_device;
+extern int  audio_input_channels;
+extern int  audio_output_channels;
+extern int  monitor; // @development TOOD this always switches to fullscreen
+extern int  antialiasing;
 extern bool resizable;
 extern bool enable_retina_support; // @development maybe implement as `HINT(ENABLE_RETINA_SUPPORT, true)`
 extern bool headless;

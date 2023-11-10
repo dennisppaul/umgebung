@@ -36,24 +36,24 @@
 
 /* public */
 
-int audio_input_device = DEFAULT_AUDIO_DEVICE;
-int audio_output_device = DEFAULT_AUDIO_DEVICE;
-int audio_input_channels = DEFAULT_NUMBER_OF_INPUT_CHANNELS;
-int audio_output_channels = DEFAULT_NUMBER_OF_OUTPUT_CHANNELS;
-int monitor = DEFAULT;
-int antialiasing = DEFAULT;
-bool resizable = true;
+int  audio_input_device    = DEFAULT_AUDIO_DEVICE;
+int  audio_output_device   = DEFAULT_AUDIO_DEVICE;
+int  audio_input_channels  = DEFAULT_NUMBER_OF_INPUT_CHANNELS;
+int  audio_output_channels = DEFAULT_NUMBER_OF_OUTPUT_CHANNELS;
+int  monitor               = DEFAULT;
+int  antialiasing          = DEFAULT;
+bool resizable             = true;
 bool enable_retina_support = true;
-bool headless = false;
-bool no_audio = false;
+bool headless              = false;
+bool no_audio              = false;
 
 /* private */
 
-static PApplet *fApplet = nullptr;
-static bool fAppIsRunning = true;
-static const double fTargetFrameTime = 1.0 / 60.0; // @development make this adjustable
-static bool fAppIsInitialized = false;
-static bool fMouseIsPressed = false;
+static PApplet      *fApplet          = nullptr;
+static bool         fAppIsRunning     = true;
+static const double fTargetFrameTime  = 1.0 / 60.0; // @development make this adjustable
+static bool         fAppIsInitialized = false;
+static bool         fMouseIsPressed   = false;
 
 
 #ifndef DISABLE_GRAPHICS
@@ -73,7 +73,7 @@ static int audioCallback(const void *inputBuffer,
                          PaStreamCallbackFlags statusFlags,
                          void *userData) {
     auto *out = (float *) outputBuffer;
-    auto *in = (const float *) inputBuffer;
+    auto *in  = (const float *) inputBuffer;
     fApplet->audioblock(in, out, audioFrameCount);
     return paContinue;
 }
@@ -114,29 +114,29 @@ static PaStream *init_audio(int input_channels, int output_channels) {
                                    input_channels,
                                    output_channels,
                                    paFloat32,
-                                   AUDIO_SAMPLE_RATE,
-                                   FRAMES_PER_BUFFER,
+                                   DEFAULT_AUDIO_SAMPLE_RATE,
+                                   DEFAULT_FRAMES_PER_BUFFER,
                                    audioCallback,
                                    nullptr);
     } else {
         print_audio_devices();
 
         PaStreamParameters inputParameters, outputParameters;
-        inputParameters.device = audio_input_device;
-        inputParameters.channelCount = input_channels;
-        inputParameters.sampleFormat = paFloat32;
-        inputParameters.suggestedLatency = Pa_GetDeviceInfo(audio_input_device)->defaultLowInputLatency;
-        inputParameters.hostApiSpecificStreamInfo = nullptr;
-        outputParameters.device = audio_output_device;
-        outputParameters.channelCount = output_channels;
-        outputParameters.sampleFormat = paFloat32;
-        outputParameters.suggestedLatency = Pa_GetDeviceInfo(audio_output_device)->defaultLowOutputLatency;
+        inputParameters.device                     = audio_input_device;
+        inputParameters.channelCount               = input_channels;
+        inputParameters.sampleFormat               = paFloat32;
+        inputParameters.suggestedLatency           = Pa_GetDeviceInfo(audio_input_device)->defaultLowInputLatency;
+        inputParameters.hostApiSpecificStreamInfo  = nullptr;
+        outputParameters.device                    = audio_output_device;
+        outputParameters.channelCount              = output_channels;
+        outputParameters.sampleFormat              = paFloat32;
+        outputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_output_device)->defaultLowOutputLatency;
         outputParameters.hostApiSpecificStreamInfo = nullptr;
         err = Pa_OpenStream(&stream,
                             &inputParameters,
                             &outputParameters,
-                            AUDIO_SAMPLE_RATE,
-                            FRAMES_PER_BUFFER,
+                            DEFAULT_AUDIO_SAMPLE_RATE,
+                            DEFAULT_FRAMES_PER_BUFFER,
                             paClipOff,
                             audioCallback,
                             nullptr);
@@ -206,19 +206,19 @@ void character_callback(GLFWwindow *window, unsigned int codepoint) {
 
 static void set_default_graphics_state() {
     glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    fApplet->width = width;
+    fApplet->width  = width;
     fApplet->height = height;
 
     int framebufferWidth, framebufferHeight;
     glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
-    fApplet->framebuffer_width = framebufferWidth;
+    fApplet->framebuffer_width  = framebufferWidth;
     fApplet->framebuffer_height = framebufferHeight;
 }
 
@@ -250,7 +250,7 @@ static void SetFullScreen(GLFWwindow *_wnd, GLFWmonitor *_monitor, bool fullscre
 static GLFWwindow *init_graphics(int width, int height, const char *title) {
     glfwSetErrorCallback(error_callback);
 
-    fApplet->width = width;
+    fApplet->width  = width;
     fApplet->height = height;
 
     if (!glfwInit()) {
@@ -260,9 +260,9 @@ static GLFWwindow *init_graphics(int width, int height, const char *title) {
     /* monitors */
     GLFWmonitor *desiredMonitor = nullptr;
     if (monitor != DEFAULT) {
-        int monitorCount;
+        int         monitorCount;
         GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
-        for (int i = 0; i < monitorCount; ++i) {
+        for (int    i          = 0; i < monitorCount; ++i) {
             const GLFWvidmode *mode = glfwGetVideoMode(monitors[i]);
             std::cout << "+++ monitor " << i << ": " << mode->width << "x" << mode->height << " (" << mode->refreshRate
                       << "Hz)"
@@ -286,11 +286,12 @@ static GLFWwindow *init_graphics(int width, int height, const char *title) {
     glfwGetVersion(&major, &minor, &revision);
     std::cout << "+++ OpenGL version: " << major << "." << minor << "." << revision << std::endl;
 
-//    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-//    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-//    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
-//    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+#if USE_CURRENT_OPENGL
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif // USE_CURRENT_OPENGL
     glfwWindowHint(GLFW_FOCUSED, true);
     glfwWindowHint(GLFW_DECORATED, true);
     glfwWindowHint(GLFW_RESIZABLE, resizable);
@@ -307,7 +308,7 @@ static GLFWwindow *init_graphics(int width, int height, const char *title) {
     if (fApplet->width != framebufferWidth || fApplet->height != framebufferHeight) {
         std::cout << "+++ retina display detected" << std::endl;
     }
-    fApplet->framebuffer_width = framebufferWidth;
+    fApplet->framebuffer_width  = framebufferWidth;
     fApplet->framebuffer_height = framebufferHeight;
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -355,6 +356,7 @@ static void release_HID_callbacks(GLFWwindow *window) {
 #endif // DISABLE_GRAPHICS
 
 #ifndef DISABLE_AUDIO
+
 static void shutdown(PaStream *stream) {
     if (!no_audio) {
         /* terminate PortAudio */
@@ -363,6 +365,7 @@ static void shutdown(PaStream *stream) {
         Pa_Terminate();
     }
 }
+
 #endif // DISABLE_AUDIO
 
 #ifndef DISABLE_GRAPHICS
@@ -386,7 +389,15 @@ static void handle_setup(GLFWwindow *window) {
         }
     }
     fAppIsInitialized = true;
+    fApplet->init();
+    if (!headless) {
+        fApplet->pre_draw();
+        set_default_graphics_state();
+    }
     fApplet->setup();
+    if (!headless) {
+        fApplet->post_draw();
+    }
 }
 
 static void handle_draw(GLFWwindow *window) {
@@ -412,11 +423,12 @@ static void handle_draw(GLFWwindow *window) {
     endTime = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
             endTime - startTime);
-    double frameTime = frameDuration.count();
+    double                        frameTime     = frameDuration.count();
     fApplet->frameRate = (float) (1.0 / frameTime);
     fApplet->frameCount++;
     startTime = std::chrono::high_resolution_clock::now();
 }
+
 #else // DISABLE_GRAPHICS
 
 static void handle_draw() {
@@ -487,10 +499,10 @@ static int run_application() {
     /* loop */
     std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
     while (fAppIsRunning && (headless || !glfwWindowShouldClose(window))) {
-        std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
+        std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double>                  frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
                 currentTime - lastFrameTime);
-        double frameTime = frameDuration.count();
+        double                                         frameTime     = frameDuration.count();
         if (frameTime >= fTargetFrameTime) {
             handle_draw(window);
             lastFrameTime = currentTime;

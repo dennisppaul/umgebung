@@ -65,7 +65,7 @@ void PGraphics::noFill() {
 
 void PGraphics::background(float a, float b, float c, float d) {
     glClearColor(a, b, c, d);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void PGraphics::background(float a) {

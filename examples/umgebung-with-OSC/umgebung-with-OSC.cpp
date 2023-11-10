@@ -4,8 +4,8 @@
 class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
 
     OSC  mOSC{"127.0.0.1", 8000, 8001};
-    bool message_received = false;
-    int  message_counter  = 0;
+    bool message_event   = false;
+    int  message_counter = 0;
 
     void receive(const OscMessage &msg) {
         if (msg.typetag() == "ifs") {
@@ -21,7 +21,7 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
                     msg.get(2).stringValue(),
                     ")"
             );
-            message_received = true;
+            message_event = true;
         } else {
             println("could not parse OSC message: ", msg.typetag());
         }
@@ -38,8 +38,8 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
     }
 
     void draw() {
-        if (message_received) {
-            message_received      = false;
+        if (message_event) {
+            message_event         = false;
             fill(1);
             const int   num_rects = 20;
             const float size_rect = width / num_rects;
@@ -49,7 +49,6 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
             message_counter++;
             if (message_counter > num_rects * num_rects) {
                 message_counter = 0;
-                // TODO this does not yet ... screen flickers
                 background(0);
             }
         }
@@ -66,6 +65,8 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
             OscMessage msg("/test_send_2");
             msg.add(mouseY);
             mOSC.send(msg, NetAddress("localhost", 8000));
+
+            message_event = true;
         }
     }
 };

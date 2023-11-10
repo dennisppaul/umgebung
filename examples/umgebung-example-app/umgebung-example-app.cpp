@@ -42,7 +42,6 @@ class UmgebungExampleApp : public PApplet {
 
     void draw() {
         if (headless) return;
-        background(1, 1, 1);
         background(1);
 
         /* rectangle */
@@ -66,7 +65,6 @@ class UmgebungExampleApp : public PApplet {
         stroke(0);
         line(padding + 3 * spacing, padding, padding + 3 * spacing + grid, padding + grid);
         line(padding + 3 * spacing, padding + grid, padding + 3 * spacing + grid, padding);
-
         /* text + nf + push/popMatrix */
         fill(0);
         noStroke();
@@ -120,7 +118,7 @@ class UmgebungExampleApp : public PApplet {
 
         for (int i = 0; i < length; i++) {
             float sample = amplitude * sin(phase);
-            phase += (TWO_PI * frequency) / AUDIO_SAMPLE_RATE;
+            phase += (TWO_PI * frequency) / DEFAULT_AUDIO_SAMPLE_RATE;
 
             if (phase >= TWO_PI) {
                 phase -= TWO_PI;

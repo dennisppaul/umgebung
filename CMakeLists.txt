@@ -8,8 +8,6 @@ message("")
 if (DISABLE_GRAPHICS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE DISABLE_GRAPHICS)
     message("+++ DISABLE_GRAPHICS")
-else (DISABLE_GRAPHICS)
-    message("+++ NOT DISABLE_GRAPHICS")
 endif (DISABLE_GRAPHICS)
 
 if (DISABLE_AUDIO)
