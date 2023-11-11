@@ -17,6 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// TODO add `glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);`
+
 #include "Umgebung.h"
 
 #ifndef DISABLE_GRAPHICS
@@ -27,39 +29,48 @@
 
 #endif // DISABLE_GRAPHICS
 
-// @add constructors
+PImage::PImage() {
+    width    = 0;
+    height   = 0;
+    channels = 0;
+}
 
 PImage::PImage(const std::string &filename) {
     int _width  = 0;
     int _height = 0;
+    int _channels = 0;
 #ifndef DISABLE_GRAPHICS
-
-    data = stbi_load(filename.c_str(), &_width, &_height, &channels, 0);
-
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
+    data = stbi_load(filename.c_str(), &_width, &_height, &_channels, 0);
     if (data) {
-        if (channels == 3) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        } else if (channels == 4) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        } else {
-            std::cerr << "Unsupported image format" << std::endl;
-        }
-        width  = (float) _width;
-        height = (float) _height;
-
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        init(_width, _height, _channels, data);
     } else {
         std::cerr << "Failed to load image: " << filename << std::endl;
     }
-
-    stbi_image_free(data);
+    stbi_image_free(data); // @TODO maybe not release the data for later use?
 #endif // DISABLE_GRAPHICS
 }
+
+void PImage::init(int _width, int _height, int _channels, unsigned char *_data) {
+#ifndef DISABLE_GRAPHICS
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    if (_channels == 3) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, GL_RGB, GL_UNSIGNED_BYTE, _data);
+    } else if (_channels == 4) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, _data);
+    } else {
+        std::cerr << "Unsupported image format" << std::endl;
+    }
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#endif // DISABLE_GRAPHICS
+    width    = (float) _width;
+    height   = (float) _height;
+    channels = _channels;
+}
+
 
 void PImage::bind() {
 #ifndef DISABLE_GRAPHICS

@@ -26,16 +26,20 @@ class PImage {
 public:
     PImage(const std::string &filename);
 
+    PImage();
+
+    void init(int width, int height, int channels, unsigned char *_data);
+
     void bind();
 
-    void update(float *data);
+    void update(float *data); // maybe change to 32bit int format
     void update(float *_data, int _width, int _height, int offset_x, int offset_y);
 
     float width;
     float height;
     int   channels;
 
-private:
+protected:
     unsigned int  textureID;
     unsigned char *data;
 };

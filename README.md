@@ -12,11 +12,12 @@ this project relies on the following packages:
 - [FTGL](https://github.com/frankheckenbach/ftgl)
 - [GLEW](https://glew.sourceforge.net/)
 - [oscpack](http://www.rossbencina.com/code/oscpack) ( included as source files )
+- [ffmpeg](https://ffmpeg.org)
 
 in order to compile and run applications install the following packages with [Homebrew](https://brew.sh):
 
 ```
-$ brew install cmake pkgconfig glfw portaudio ftgl glew
+$ brew install cmake pkgconfig glfw portaudio ftgl glew ffmpeg
 ```
 
 ## Build Applications with *Umgebung*

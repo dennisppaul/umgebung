@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(umgebung-with-OSC)                             # set application name
+project(umgebung-with-movie)                             # set application name
 set(UMGEBUNG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../..") # set absolut path to umgebung library
 #set(UMGEBUNG_PATH "<absolute/path/to/library>")
 set(DISABLE_GRAPHICS FALSE)
 set(DISABLE_AUDIO FALSE)
-set(DISABLE_VIDEO TRUE)
+set(DISABLE_VIDEO FALSE)
 
 # add source + header files from this directory
 
