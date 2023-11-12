@@ -49,6 +49,7 @@ public:
 private:
 #ifndef DISABLE_GRAPHICS
 #ifndef DISABLE_VIDEO
+    uint8_t         *buffer;
     AVFrame         *frame;
     AVFrame         *convertedFrame;
     AVCodecContext  *codecContext;

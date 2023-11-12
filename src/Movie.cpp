@@ -19,8 +19,6 @@
 
 #include "Movie.h"
 
-// TODO where is `-lavdevice -lswscale`?!?
-
 #if !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
 
 #include "Umgebung.h"
@@ -79,6 +77,12 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
         return -1;
     }
 
+    // retrieve movie framerate
+    AVRational frame_rate     = formatContext->streams[videoStream]->avg_frame_rate;
+    double     frame_duration = 1.0 / (frame_rate.num / (double) frame_rate.den);
+    fprintf(stdout, "+++ Movie: framerate     : %i\n", frame_rate.num / frame_rate.den);
+    fprintf(stdout, "+++ Movie: frame duration: %f\n", frame_duration);
+
     // Determine the pixel format and number of channels based on input file
     AVPixelFormat            src_pix_fmt = codecContext->pix_fmt;
     AVPixelFormat            dst_pix_fmt;
@@ -124,11 +128,11 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
         return -1;
     }
 
-    int     numBytes = av_image_get_buffer_size(dst_pix_fmt,
-                                                codecContext->width,
-                                                codecContext->height,
-                                                1);
-    uint8_t *buffer  = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
+    int numBytes = av_image_get_buffer_size(dst_pix_fmt,
+                                            codecContext->width,
+                                            codecContext->height,
+                                            1);
+    buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
     av_image_fill_arrays(convertedFrame->data,
                          convertedFrame->linesize,
                          buffer,
@@ -143,8 +147,9 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
 }
 
 Movie::~Movie() {
+    av_freep(&buffer);
     av_frame_free(&frame);
-    av_frame_free(&convertedFrame); // TODO does this also free `uint8_t *buffer`?
+    av_frame_free(&convertedFrame);
     avcodec_close(codecContext);
     avcodec_free_context(&codecContext);
     avformat_close_input(&formatContext);
@@ -168,11 +173,11 @@ bool Movie::available() {
                 sws_scale(swsContext, frame->data, frame->linesize, 0, frame->height, convertedFrame->data, convertedFrame->linesize);
                 // SDL_UpdateTexture(texture, NULL, convertedFrame->data[0], convertedFrame->linesize[0]);
             } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-                fprintf(stdout, "No more frames : %i\n", ret);
+                fprintf(stdout, "No more frames : %i\n", ret); // TODO remove this at some point
                 // No more frames
                 mAvailable = false;
             } else {
-                fprintf(stderr, "Error receiving frame: %s\n", av_err2str(ret));
+                fprintf(stderr, "Error receiving frame: %s\n", av_err2str(ret));  // TODO remove this at some point
                 mAvailable = false;
             }
         }
@@ -201,10 +206,17 @@ void Movie::read() {
 }
 
 #else
-Movie::Movie(const std::string &filename) : PImage() {
+
+Movie::Movie(const std::string &filename, int _channels) : PImage() {
     std::cerr << "Movie - ERROR: video is disabled" << std::endl;
 }
+
 Movie::~Movie() {}
+
 bool Movie::available() { return false; }
+
 void Movie::read() {}
+
+int Movie::init_from_file(const std::string &filename, int _channels) { return -1; }
+
 #endif // DISABLE_GRAPHICS && DISABLE_VIDEO
