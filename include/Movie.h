@@ -78,12 +78,12 @@ private:
     uint8_t         *buffer;
     AVFrame         *frame;
     AVFrame         *convertedFrame;
-    AVCodecContext  *codecContext;
+    AVCodecContext  *videoCodecContext;
     AVFormatContext *formatContext;
     AVPacket        *packet;
-    SwsContext      *swsContext;
-    int             videoStream;
-    int             mFrameCounter = 0;
+    SwsContext *swsContext;
+    int        videoStreamIndex;
+    int        mFrameCounter = 0;
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
 

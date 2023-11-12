@@ -58,37 +58,37 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
     }
 
     // Find the first video stream
-    videoStream = -1;
+    videoStreamIndex = -1;
     for (unsigned int i = 0; i < formatContext->nb_streams; i++) {
         if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-            videoStream = i;
+            videoStreamIndex = i;
             break;
         }
     }
 
-    if (videoStream == -1) {
+    if (videoStreamIndex == -1) {
         fprintf(stderr, "Could not find a video stream\n");
         return -1;
     }
 
     // Get a pointer to the codec context for the video stream
-    AVCodecParameters *codecParameters = formatContext->streams[videoStream]->codecpar;
+    AVCodecParameters *codecParameters = formatContext->streams[videoStreamIndex]->codecpar;
     const AVCodec     *codec           = avcodec_find_decoder(codecParameters->codec_id);
-    codecContext = avcodec_alloc_context3(codec);
-    avcodec_parameters_to_context(codecContext, codecParameters);
-    if (avcodec_open2(codecContext, codec, NULL) < 0) {
+    videoCodecContext = avcodec_alloc_context3(codec);
+    avcodec_parameters_to_context(videoCodecContext, codecParameters);
+    if (avcodec_open2(videoCodecContext, codec, NULL) < 0) {
         fprintf(stderr, "Could not open codec\n");
         return -1;
     }
 
     // retrieve movie framerate
-    AVRational frame_rate     = formatContext->streams[videoStream]->avg_frame_rate;
+    AVRational frame_rate     = formatContext->streams[videoStreamIndex]->avg_frame_rate;
     double     frame_duration = 1.0 / (frame_rate.num / (double) frame_rate.den);
     fprintf(stdout, "+++ Movie: framerate     : %i\n", frame_rate.num / frame_rate.den);
     fprintf(stdout, "+++ Movie: frame duration: %f\n", frame_duration);
 
     // Determine the pixel format and number of channels based on input file
-    AVPixelFormat            src_pix_fmt = codecContext->pix_fmt;
+    AVPixelFormat            src_pix_fmt = videoCodecContext->pix_fmt;
     AVPixelFormat            dst_pix_fmt;
     const AVPixFmtDescriptor *desc       = av_pix_fmt_desc_get(src_pix_fmt);
     if (_channels < 0) {
@@ -107,8 +107,8 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
 
     // Create a sws context for the conversion
     swsContext = sws_getContext(
-            codecContext->width, codecContext->height, src_pix_fmt,
-            codecContext->width, codecContext->height, dst_pix_fmt,
+            videoCodecContext->width, videoCodecContext->height, src_pix_fmt,
+            videoCodecContext->width, videoCodecContext->height, dst_pix_fmt,
             SWS_FAST_BILINEAR,
 //            SWS_BICUBIC,
             NULL, NULL, NULL);
@@ -133,20 +133,20 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
     }
 
     int numBytes = av_image_get_buffer_size(dst_pix_fmt,
-                                            codecContext->width,
-                                            codecContext->height,
+                                            videoCodecContext->width,
+                                            videoCodecContext->height,
                                             1);
     buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
     av_image_fill_arrays(convertedFrame->data,
                          convertedFrame->linesize,
                          buffer,
                          dst_pix_fmt,
-                         codecContext->width,
-                         codecContext->height,
+                         videoCodecContext->width,
+                         videoCodecContext->height,
                          1);
     packet = av_packet_alloc();
 
-    init(codecContext->width, codecContext->height, _channels, convertedFrame->data[0]);
+    init(videoCodecContext->width, videoCodecContext->height, _channels, convertedFrame->data[0]);
     return 1;
 }
 
@@ -158,8 +158,8 @@ Movie::~Movie() {
     av_freep(&buffer);
     av_frame_free(&frame);
     av_frame_free(&convertedFrame);
-    avcodec_close(codecContext);
-    avcodec_free_context(&codecContext);
+    avcodec_close(videoCodecContext);
+    avcodec_free_context(&videoCodecContext);
     avformat_close_input(&formatContext);
     avformat_free_context(formatContext);
     av_packet_free(&packet);
@@ -167,7 +167,7 @@ Movie::~Movie() {
 }
 
 void Movie::calculateFrameDuration() {
-    AVRational frame_rate = formatContext->streams[videoStream]->avg_frame_rate;
+    AVRational frame_rate = formatContext->streams[videoStreamIndex]->avg_frame_rate;
     frameDuration = 1.0 / (frame_rate.num / (double) frame_rate.den);
 }
 
@@ -222,16 +222,16 @@ void Movie::pause() {
 bool Movie::available() {
     int ret = av_read_frame(formatContext, packet);
     if (ret >= 0) {
-        if (packet->stream_index == videoStream) {
+        if (packet->stream_index == videoStreamIndex) {
             mAvailable = true;
-            avcodec_send_packet(codecContext, packet);
+            avcodec_send_packet(videoCodecContext, packet);
         }
         av_packet_unref(packet);
     } else if (ret == AVERROR_EOF) {
 //        std::cout << "AVERROR_EOF" << std::endl;
         if (isLooping) {
             // Seek back to the start of the video
-            av_seek_frame(formatContext, videoStream, 0, AVSEEK_FLAG_BACKWARD);
+            av_seek_frame(formatContext, videoStreamIndex, 0, AVSEEK_FLAG_BACKWARD);
             mFrameCounter = 0; // Reset frame counter
         } else {
             // Stop playback if not looping
@@ -247,7 +247,7 @@ bool Movie::available() {
 
 bool Movie::processFrame() {
     if (mAvailable) {
-        int ret = avcodec_receive_frame(codecContext, frame);
+        int ret = avcodec_receive_frame(videoCodecContext, frame);
         if (ret == 0) {
             // Successfully received a frame
             mFrameCounter++;
@@ -291,7 +291,7 @@ bool Movie::read() {
 
 // Example of frameRate() method
 float Movie::frameRate() const {
-    AVRational frame_rate = formatContext->streams[videoStream]->avg_frame_rate;
+    AVRational frame_rate = formatContext->streams[videoStreamIndex]->avg_frame_rate;
     return frame_rate.num / static_cast<float>(frame_rate.den);
 }
 
@@ -309,7 +309,7 @@ float Movie::duration() const {
 // Example of jump() method
 void Movie::jump(float seconds) {
     int64_t timestamp = seconds * AV_TIME_BASE;
-    av_seek_frame(formatContext, videoStream, timestamp, AVSEEK_FLAG_ANY);
+    av_seek_frame(formatContext, videoStreamIndex, timestamp, AVSEEK_FLAG_ANY);
     // Reset any buffers or states as needed
 }
 
