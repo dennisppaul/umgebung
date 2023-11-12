@@ -21,6 +21,11 @@
 
 #include <iostream>
 #include <string>
+
+#include <thread>
+#include <chrono>
+#include <atomic>
+
 #include "PImage.h"
 
 #ifndef DISABLE_GRAPHICS
@@ -44,9 +49,20 @@ public:
 
     bool available();
 
-    void read();
+    bool read();
+
+    void play();
+
+    void pause();
+
+    void reload();
 
 private:
+    bool              mAvailable = false;
+    std::thread       playbackThread;
+    std::atomic<bool> keepRunning;
+    std::atomic<bool> isPlaying;
+    double            frameDuration; // Duration of each frame in seconds
 #ifndef DISABLE_GRAPHICS
 #ifndef DISABLE_VIDEO
     uint8_t         *buffer;
@@ -62,5 +78,11 @@ private:
 #endif // DISABLE_GRAPHICS
 
     int init_from_file(const std::string &filename, int _channels = -1);
+
+    void playbackLoop();
+
+    void calculateFrameDuration();
+
+    bool processFrame();
 };
 

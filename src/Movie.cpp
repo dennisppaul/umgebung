@@ -34,6 +34,10 @@ extern "C" {
 Movie::Movie(const std::string &filename, int _channels) : PImage() {
     if (init_from_file(filename, _channels) >= 0) {
         std::cout << "+++ Movie: width: " << width << ", height: " << height << ", channels: " << channels << std::endl;
+        calculateFrameDuration();
+        keepRunning    = true;
+        isPlaying      = false;
+        playbackThread = std::thread(&Movie::playbackLoop, this);
     } else {
         std::cerr << "+++ Movie - ERROR: could not initialize from file" << std::endl;
     }
@@ -147,6 +151,10 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
 }
 
 Movie::~Movie() {
+    keepRunning = false;
+    if (playbackThread.joinable()) {
+        playbackThread.join();
+    }
     av_freep(&buffer);
     av_frame_free(&frame);
     av_frame_free(&convertedFrame);
@@ -158,51 +166,95 @@ Movie::~Movie() {
     sws_freeContext(swsContext);
 }
 
-bool Movie::available() {
-    bool mAvailable = false;
-    if (av_read_frame(formatContext, packet) >= 0) {
-        if (packet->stream_index == videoStream) {
-            avcodec_send_packet(codecContext, packet);
-            int ret = avcodec_receive_frame(codecContext, frame);
-            if (ret == 0) {
-                // Successfully received a frame
-                mFrameCounter++;
-                mAvailable = true;
-                // TODO update texture ... move this to `read()`?
-                // convert data to RGBA
-                sws_scale(swsContext, frame->data, frame->linesize, 0, frame->height, convertedFrame->data, convertedFrame->linesize);
-                // SDL_UpdateTexture(texture, NULL, convertedFrame->data[0], convertedFrame->linesize[0]);
-            } else if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-                fprintf(stdout, "No more frames : %i\n", ret); // TODO remove this at some point
-                // No more frames
-                mAvailable = false;
-            } else {
-                fprintf(stderr, "Error receiving frame: %s\n", av_err2str(ret));  // TODO remove this at some point
-                mAvailable = false;
+void Movie::calculateFrameDuration() {
+    AVRational frame_rate = formatContext->streams[videoStream]->avg_frame_rate;
+    frameDuration = 1.0 / (frame_rate.num / (double) frame_rate.den);
+}
+
+void Movie::playbackLoop() {
+    while (keepRunning) {
+        if (isPlaying) {
+            auto frame_start = std::chrono::steady_clock::now();
+
+            // TODO add callback with `MovieListener`
+            if (available()) {
+                if (processFrame()) {
+                    // TODO flag that a texture reload is required
+                    // TODO callback with `MovieListener`
+                }
             }
+
+            auto                          frame_end = std::chrono::steady_clock::now();
+            std::chrono::duration<double> elapsed   = frame_end - frame_start;
+
+            if (elapsed.count() < frameDuration) {
+                std::this_thread::sleep_for(std::chrono::duration<double>(frameDuration - elapsed.count()));
+            }
+        } else {
+            // If not playing, sleep for a short duration to prevent busy waiting
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
-        av_frame_unref(frame);
-//        av_frame_unref(convertedFrame); // TODO this creates `bad dst image pointers`
+    }
+}
+
+void Movie::play() {
+    isPlaying = true;
+}
+
+void Movie::pause() {
+    isPlaying = false;
+}
+
+bool Movie::available() {
+    int ret = av_read_frame(formatContext, packet);
+    if (ret >= 0) {
+        if (packet->stream_index == videoStream) {
+            mAvailable = true;
+            avcodec_send_packet(codecContext, packet);
+        }
         av_packet_unref(packet);
     }
     return mAvailable;
 }
 
-void Movie::read() {
-    GLint mFormat;
-    if (channels == 4) {
-        mFormat = GL_RGBA;
-    } else {
-        mFormat = GL_RGB;
+bool Movie::processFrame() {
+    if (mAvailable) {
+        int ret = avcodec_receive_frame(codecContext, frame);
+        if (ret == 0) {
+            // Successfully received a frame
+            mFrameCounter++;
+
+            // Convert data to RGBA or RGB
+            sws_scale(swsContext, frame->data, frame->linesize, 0, frame->height, convertedFrame->data, convertedFrame->linesize);
+
+            av_frame_unref(frame);
+            mAvailable = false;
+            return true;
+        } else {
+            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+                // Handle end of stream or need more data
+            } else {
+                fprintf(stderr, "Error receiving frame: %s\n", av_err2str(ret));
+            }
+            av_frame_unref(frame);
+            return false;
+        }
     }
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 mFormat,
-                 width, height,
-                 0,
-                 mFormat,
-                 GL_UNSIGNED_BYTE,
-                 convertedFrame->data[0]);
+    return false;
+}
+
+void Movie::reload() {
+    GLint mFormat = (channels == 4) ? GL_RGBA : GL_RGB;
+    glTexImage2D(GL_TEXTURE_2D, 0, mFormat, width, height, 0, mFormat, GL_UNSIGNED_BYTE, convertedFrame->data[0]);
+}
+
+bool Movie::read() {
+    if (!processFrame()) {
+        return false; // No frame available or error processing frame
+    }
+    GLint mFormat = (channels == 4) ? GL_RGBA : GL_RGB;
+    glTexImage2D(GL_TEXTURE_2D, 0, mFormat, width, height, 0, mFormat, GL_UNSIGNED_BYTE, convertedFrame->data[0]);
+    return true;
 }
 
 #else
@@ -215,8 +267,18 @@ Movie::~Movie() {}
 
 bool Movie::available() { return false; }
 
-void Movie::read() {}
+bool Movie::read() { return false; }
 
 int Movie::init_from_file(const std::string &filename, int _channels) { return -1; }
+
+void Movie::playbackLoop() {}
+
+void Movie::calculateFrameDuration() {}
+
+void Movie::play() {}
+
+void Movie::pause() {}
+
+bool Movie::processFrame() { return false; }
 
 #endif // DISABLE_GRAPHICS && DISABLE_VIDEO
