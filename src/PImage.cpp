@@ -36,8 +36,8 @@ PImage::PImage() {
 }
 
 PImage::PImage(const std::string &filename) {
-    int _width  = 0;
-    int _height = 0;
+    int _width    = 0;
+    int _height   = 0;
     int _channels = 0;
 #ifndef DISABLE_GRAPHICS
     data = stbi_load(filename.c_str(), &_width, &_height, &_channels, 0);
@@ -54,13 +54,17 @@ void PImage::init(int _width, int _height, int _channels, unsigned char *_data) 
 #ifndef DISABLE_GRAPHICS
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
-    if (_channels == 3) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _width, _height, 0, GL_RGB, GL_UNSIGNED_BYTE, _data);
-    } else if (_channels == 4) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, _data);
+    GLint mFormat;
+    if (_channels == 4) {
+        mFormat = GL_RGBA;
+    } else if (_channels == 3) {
+        mFormat = GL_RGB;
     } else {
-        std::cerr << "Unsupported image format" << std::endl;
+        std::cerr << "Unsupported image format, defaulting to RGBA forcing 4 color channels." << std::endl;
+        mFormat   = GL_RGBA;
+        _channels = 4;
     }
+    glTexImage2D(GL_TEXTURE_2D, 0, mFormat, _width, _height, 0, mFormat, GL_UNSIGNED_BYTE, _data);
 
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -79,6 +83,7 @@ void PImage::bind() {
 }
 
 void PImage::update(float *_data, int _width, int _height, int offset_x, int offset_y) {
+#ifndef DISABLE_GRAPHICS
     const int     length = _width * _height * channels;
     unsigned char mData[length];
     for (int      i      = 0; i < _width * _height * channels; ++i) {
@@ -99,6 +104,7 @@ void PImage::update(float *_data, int _width, int _height, int offset_x, int off
                     mFormat,
                     GL_UNSIGNED_BYTE,
                     mData);
+#endif // DISABLE_GRAPHICS
 }
 
 void PImage::update(float *_data) {

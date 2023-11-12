@@ -3,7 +3,7 @@
 
 class UmgebungExampleAppWithMovie : public PApplet {
 
-    Movie* myMovie;
+    Movie *myMovie;
 
     void settings() {
         size(1024, 768);

@@ -38,7 +38,7 @@ extern "C" {
 
 class Movie : public PImage {
 public:
-    Movie(const std::string &filename);
+    Movie(const std::string &filename, int _channels = -1);
 
     ~Movie();
 
@@ -59,5 +59,7 @@ private:
     int             mFrameCounter = 0;
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
+
+    int init_from_file(const std::string &filename, int _channels = -1);
 };
 

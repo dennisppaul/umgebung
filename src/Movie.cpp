@@ -30,30 +30,29 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
 #include <libavutil/imgutils.h>
+#include <libavutil/pixdesc.h>
 }
 
-Movie::Movie(const std::string &filename) : PImage() {
-#define USE_32BIT_FORMAT
-    int _channels;
-#ifdef USE_32BIT_FORMAT
-    _channels = 4;
-    AVPixelFormat dst_pix_fmt = AV_PIX_FMT_RGBA;
-#else
-    _channels = 3;
-    AVPixelFormat dst_pix_fmt = AV_PIX_FMT_RGB24;
-#endif
+Movie::Movie(const std::string &filename, int _channels) : PImage() {
+    if (init_from_file(filename, _channels) >= 0) {
+        std::cout << "+++ Movie: width: " << width << ", height: " << height << ", channels: " << channels << std::endl;
+    } else {
+        std::cerr << "+++ Movie - ERROR: could not initialize from file" << std::endl;
+    }
+}
 
+int Movie::init_from_file(const std::string &filename, int _channels) {
     // Open the input file
     formatContext = avformat_alloc_context();
     if (avformat_open_input(&formatContext, filename.c_str(), NULL, NULL) != 0) {
         fprintf(stderr, "Could not open file %s\n", filename.c_str());
-//        return -1;
+        return -1;
     }
 
     // Retrieve stream information
     if (avformat_find_stream_info(formatContext, NULL) < 0) {
         fprintf(stderr, "Could not find stream information\n");
-//        return -1;
+        return -1;
     }
 
     // Find the first video stream
@@ -67,7 +66,7 @@ Movie::Movie(const std::string &filename) : PImage() {
 
     if (videoStream == -1) {
         fprintf(stderr, "Could not find a video stream\n");
-//        return -1;
+        return -1;
     }
 
     // Get a pointer to the codec context for the video stream
@@ -77,46 +76,70 @@ Movie::Movie(const std::string &filename) : PImage() {
     avcodec_parameters_to_context(codecContext, codecParameters);
     if (avcodec_open2(codecContext, codec, NULL) < 0) {
         fprintf(stderr, "Could not open codec\n");
-//        return -1;
+        return -1;
+    }
+
+    // Determine the pixel format and number of channels based on input file
+    AVPixelFormat            src_pix_fmt = codecContext->pix_fmt;
+    AVPixelFormat            dst_pix_fmt;
+    const AVPixFmtDescriptor *desc       = av_pix_fmt_desc_get(src_pix_fmt);
+    if (_channels < 0) {
+        _channels   = 4;
+        dst_pix_fmt = AV_PIX_FMT_RGBA;
+//        std::cout << "not looking for format. defaulting to RGBA ( 4 channels )" << std::endl;
+    } else if (desc && desc->nb_components == 4) {
+        _channels   = 4;
+        dst_pix_fmt = AV_PIX_FMT_RGBA;
+//        std::cout << "found RGBA video" << std::endl;
+    } else {
+        _channels   = 3;
+        dst_pix_fmt = AV_PIX_FMT_RGB24;
+//        std::cout << "found RGB video" << std::endl;
     }
 
     // Create a sws context for the conversion
-    AVPixelFormat src_pix_fmt = codecContext->pix_fmt;
     swsContext = sws_getContext(
             codecContext->width, codecContext->height, src_pix_fmt,
             codecContext->width, codecContext->height, dst_pix_fmt,
-            SWS_BICUBIC, NULL, NULL, NULL);
+            SWS_FAST_BILINEAR,
+//            SWS_BICUBIC,
+            NULL, NULL, NULL);
 
     if (!swsContext) {
         fprintf(stderr, "Failed to create SwScale context\n");
-//        return -1;
+        return -1;
     }
 
     // Allocate an AVFrame structure
     frame = av_frame_alloc();
     if (!frame) {
         fprintf(stderr, "Failed to allocate frame\n");
-//        return -1;
+        return -1;
     }
 
     // Allocate an AVFrame structure for the converted frame
     convertedFrame = av_frame_alloc();
     if (!convertedFrame) {
         fprintf(stderr, "Failed to allocate converted frame\n");
-//        return -1;
+        return -1;
     }
 
     int     numBytes = av_image_get_buffer_size(dst_pix_fmt,
-                                                codecContext->width, codecContext->height, 1);
+                                                codecContext->width,
+                                                codecContext->height,
+                                                1);
     uint8_t *buffer  = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
-    av_image_fill_arrays(convertedFrame->data, convertedFrame->linesize, buffer,
+    av_image_fill_arrays(convertedFrame->data,
+                         convertedFrame->linesize,
+                         buffer,
                          dst_pix_fmt,
-                         codecContext->width, codecContext->height, 1);
+                         codecContext->width,
+                         codecContext->height,
+                         1);
     packet = av_packet_alloc();
 
     init(codecContext->width, codecContext->height, _channels, convertedFrame->data[0]);
-
-    std::cout << "Movie: width: " << width << ", height: " << height << ", channels: " << channels << std::endl;
+    return 1;
 }
 
 Movie::~Movie() {
@@ -138,7 +161,6 @@ bool Movie::available() {
             int ret = avcodec_receive_frame(codecContext, frame);
             if (ret == 0) {
                 // Successfully received a frame
-//                fprintf(stdout, "Successfully received a frame: %i\n", mFrameCounter);
                 mFrameCounter++;
                 mAvailable = true;
                 // TODO update texture ... move this to `read()`?
@@ -162,9 +184,20 @@ bool Movie::available() {
 }
 
 void Movie::read() {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+    GLint mFormat;
+    if (channels == 4) {
+        mFormat = GL_RGBA;
+    } else {
+        mFormat = GL_RGB;
+    }
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 mFormat,
                  width, height,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, convertedFrame->data[0]);
+                 0,
+                 mFormat,
+                 GL_UNSIGNED_BYTE,
+                 convertedFrame->data[0]);
 }
 
 #else

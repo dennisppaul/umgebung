@@ -28,8 +28,6 @@ public:
 
     PImage();
 
-    void init(int width, int height, int channels, unsigned char *_data);
-
     void bind();
 
     void update(float *data); // maybe change to 32bit int format
@@ -42,4 +40,6 @@ public:
 protected:
     unsigned int  textureID;
     unsigned char *data;
+
+    void init(int width, int height, int channels, unsigned char *_data);
 };
