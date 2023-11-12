@@ -11,6 +11,8 @@ class UmgebungExampleAppWithMovie : public PApplet {
 
     void setup() {
         myMovie = new Movie("../video.mp4");
+        myMovie->play();
+        myMovie->loop();
     }
 
     void draw() {

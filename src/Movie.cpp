@@ -181,6 +181,20 @@ void Movie::playbackLoop() {
                 if (processFrame()) {
                     // TODO flag that a texture reload is required
                     // TODO callback with `MovieListener`
+//                } else {
+//                    // Check if the end of the video is reached
+//                    bool isEndOfVideo = false;
+//                    if (isEndOfVideo) {
+//                        std::cout << "+++ end of video reached" << std::endl;
+//                        if (isLooping) {
+//                            // Seek back to the start of the video
+//                            av_seek_frame(formatContext, videoStream, 0, AVSEEK_FLAG_BACKWARD);
+//                            mFrameCounter = 0; // Reset frame counter
+//                        } else {
+//                            // Stop playback if not looping
+//                            pause();
+//                        }
+//                    }
                 }
             }
 
@@ -213,6 +227,20 @@ bool Movie::available() {
             avcodec_send_packet(codecContext, packet);
         }
         av_packet_unref(packet);
+    } else if (ret == AVERROR_EOF) {
+//        std::cout << "AVERROR_EOF" << std::endl;
+        if (isLooping) {
+            // Seek back to the start of the video
+            av_seek_frame(formatContext, videoStream, 0, AVSEEK_FLAG_BACKWARD);
+            mFrameCounter = 0; // Reset frame counter
+        } else {
+            // Stop playback if not looping
+            pause();
+        }
+    } else {
+        char err_buf[AV_ERROR_MAX_STRING_SIZE];
+        av_strerror(ret, err_buf, AV_ERROR_MAX_STRING_SIZE);
+        printf("Error occurred: %s\n", err_buf);
     }
     return mAvailable;
 }
@@ -231,8 +259,12 @@ bool Movie::processFrame() {
             mAvailable = false;
             return true;
         } else {
-            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-                // Handle end of stream or need more data
+            if (ret == AVERROR_EOF) {
+                // Handle end of stream
+                std::cout << "+++ AVERROR_EOF" << std::endl;
+            } else if (ret == AVERROR(EAGAIN)) {
+                // No frame available right now, try again later
+//                std::cout << "+++ AVERROR(EAGAIN)" << std::endl;
             } else {
                 fprintf(stderr, "Error receiving frame: %s\n", av_err2str(ret));
             }
@@ -255,6 +287,43 @@ bool Movie::read() {
     GLint mFormat = (channels == 4) ? GL_RGBA : GL_RGB;
     glTexImage2D(GL_TEXTURE_2D, 0, mFormat, width, height, 0, mFormat, GL_UNSIGNED_BYTE, convertedFrame->data[0]);
     return true;
+}
+
+// Example of frameRate() method
+float Movie::frameRate() const {
+    AVRational frame_rate = formatContext->streams[videoStream]->avg_frame_rate;
+    return frame_rate.num / static_cast<float>(frame_rate.den);
+}
+
+// Example of setting playback speed
+void Movie::speed(float factor) {
+//    std::lock_guard<std::mutex> lock(mutex);
+    frameDuration /= factor; // Adjust frame duration based on speed factor
+}
+
+// Example of duration() method
+float Movie::duration() const {
+    return static_cast<float>(formatContext->duration) / AV_TIME_BASE;
+}
+
+// Example of jump() method
+void Movie::jump(float seconds) {
+    int64_t timestamp = seconds * AV_TIME_BASE;
+    av_seek_frame(formatContext, videoStream, timestamp, AVSEEK_FLAG_ANY);
+    // Reset any buffers or states as needed
+}
+
+float Movie::time() const {
+//    std::lock_guard<std::mutex> lock(mutex);
+    return mFrameCounter / frameRate();
+}
+
+void Movie::loop() {
+    isLooping = true;
+}
+
+void Movie::noLoop() {
+    isLooping = false;
 }
 
 #else
