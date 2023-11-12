@@ -67,8 +67,8 @@ public:
 
 
 private:
-    std::atomic<bool> isLooping  = false;
-    bool              mAvailable = false;
+    std::atomic<bool> isLooping            = false;
+    bool              mVideoFrameAvailable = false;
     std::thread       playbackThread;
     std::atomic<bool> keepRunning;
     std::atomic<bool> isPlaying;
@@ -79,10 +79,12 @@ private:
     AVFrame         *frame;
     AVFrame         *convertedFrame;
     AVCodecContext  *videoCodecContext;
+    AVCodecContext  *audioCodecContext;
     AVFormatContext *formatContext;
     AVPacket        *packet;
     SwsContext *swsContext;
     int        videoStreamIndex;
+    int        audioStreamIndex;
     int        mFrameCounter = 0;
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS

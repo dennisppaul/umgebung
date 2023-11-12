@@ -59,14 +59,25 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
 
     // Find the first video stream
     videoStreamIndex = -1;
+    audioStreamIndex = -1;
     for (unsigned int i = 0; i < formatContext->nb_streams; i++) {
-        if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+//        if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+//            videoStreamIndex = i;
+//            break;
+//        }
+        if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && videoStreamIndex < 0) {
             videoStreamIndex = i;
-            break;
+        } else if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && audioStreamIndex < 0) {
+            audioStreamIndex = i;
         }
     }
 
     if (videoStreamIndex == -1) {
+        fprintf(stderr, "Could not find a video stream\n");
+        return -1;
+    }
+
+    if (audioStreamIndex == -1) {
         fprintf(stderr, "Could not find a video stream\n");
         return -1;
     }
@@ -80,6 +91,12 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
         fprintf(stderr, "Could not open codec\n");
         return -1;
     }
+
+    // Initialize audio codec
+    const AVCodec *audioCodec = avcodec_find_decoder(formatContext->streams[audioStreamIndex]->codecpar->codec_id);
+    audioCodecContext = avcodec_alloc_context3(audioCodec);
+    avcodec_parameters_to_context(audioCodecContext, formatContext->streams[audioStreamIndex]->codecpar);
+    avcodec_open2(audioCodecContext, audioCodec, NULL);
 
     // retrieve movie framerate
     AVRational frame_rate     = formatContext->streams[videoStreamIndex]->avg_frame_rate;
@@ -223,8 +240,15 @@ bool Movie::available() {
     int ret = av_read_frame(formatContext, packet);
     if (ret >= 0) {
         if (packet->stream_index == videoStreamIndex) {
-            mAvailable = true;
+            mVideoFrameAvailable = true;
             avcodec_send_packet(videoCodecContext, packet);
+        } else if (packet->stream_index == audioStreamIndex) {
+            // Decode audio frame
+            avcodec_send_packet(audioCodecContext, packet);
+//            while (avcodec_receive_frame(audioCodecContext, frame) == 0) {
+//                process_audio_frame(frame);
+//                av_frame_unref(frame);
+//            }
         }
         av_packet_unref(packet);
     } else if (ret == AVERROR_EOF) {
@@ -242,11 +266,11 @@ bool Movie::available() {
         av_strerror(ret, err_buf, AV_ERROR_MAX_STRING_SIZE);
         printf("Error occurred: %s\n", err_buf);
     }
-    return mAvailable;
+    return mVideoFrameAvailable;
 }
 
 bool Movie::processFrame() {
-    if (mAvailable) {
+    if (mVideoFrameAvailable) {
         int ret = avcodec_receive_frame(videoCodecContext, frame);
         if (ret == 0) {
             // Successfully received a frame
@@ -256,7 +280,7 @@ bool Movie::processFrame() {
             sws_scale(swsContext, frame->data, frame->linesize, 0, frame->height, convertedFrame->data, convertedFrame->linesize);
 
             av_frame_unref(frame);
-            mAvailable = false;
+            mVideoFrameAvailable = false;
             return true;
         } else {
             if (ret == AVERROR_EOF) {
