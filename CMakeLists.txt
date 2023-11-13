@@ -64,8 +64,6 @@ else ()
     message(STATUS "Not compiling on RPI")
 endif ()
 
-set(RPI true)
-
 ##########################################################################################################
 ### CREATE EXECUTABLE                                                                                  ###
 ##########################################################################################################
@@ -113,6 +111,7 @@ if (NOT DISABLE_GRAPHICS)
         find_package(glew REQUIRED)
         find_package(ftgl REQUIRED)
     elseif (RPI)
+        find_package(OpenGL REQUIRED)
         pkg_search_module(GLFW REQUIRED glfw3)
         find_package(GLEW REQUIRED)
         pkg_search_module(FTGL REQUIRED ftgl)
@@ -170,6 +169,7 @@ if (NOT DISABLE_GRAPHICS)
         target_include_directories(${PROJECT_NAME} PUBLIC ${FTGL_INCLUDE_DIRS})
     elseif (RPI)
         target_link_libraries(${PROJECT_NAME} ${GLFW_LIBRARIES})
+        target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
         target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
         target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES})
         target_include_directories(${PROJECT_NAME} PUBLIC ${GLEW_INCLUDE_DIRS})
