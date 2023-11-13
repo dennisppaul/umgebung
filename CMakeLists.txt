@@ -48,10 +48,28 @@ include_directories("${UMGEBUNG_PATH}/include")
 include_directories("${UMGEBUNG_PATH}/include/ip")
 include_directories("${UMGEBUNG_PATH}/include/osc")
 
-# create the executable
+##########################################################################################################
+### DETECT RPI                                                                                         ###
+##########################################################################################################
+
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm" AND UNIX)
+    set(RPI true)
+else ()
+    set(RPI false)
+endif ()
+
+if (RPI)
+    message(STATUS "Compiling on RPI")
+else ()
+    message(STATUS "Not compiling on RPI")
+endif ()
+
+##########################################################################################################
+### CREATE EXECUTABLE                                                                                  ###
+##########################################################################################################
+
 if (BUILD_STANDALONE)
     add_executable(${PROJECT_NAME} ${UMGEBUNG_SOURCE_FILES})
-    #    add_library(${PROJECT_NAME} SHARED ${UMGEBUNG_SOURCE_FILES})
 else (BUILD_STANDALONE)
     target_sources(${PROJECT_NAME}
             PUBLIC
@@ -59,17 +77,10 @@ else (BUILD_STANDALONE)
     )
 endif (BUILD_STANDALONE)
 
-# glfw
-if (NOT DISABLE_GRAPHICS)
-    find_package(glfw3 REQUIRED)
-    if (APPLE)
-        find_library(OpenGL_LIBRARY OpenGL)
-        target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenGL_LIBRARY})
-    endif ()
-    target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
-endif (NOT DISABLE_GRAPHICS)
+##########################################################################################################
+### SUPRESS WARNINGS FOR APPLE                                                                         ###
+##########################################################################################################
 
-# portaudio + ftgl + glew
 if (APPLE)
     if (BUILD_STANDALONE)
         list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules")
@@ -79,46 +90,118 @@ if (APPLE)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON)
 endif (APPLE)
 
-if (NOT DISABLE_AUDIO)
-    find_package(portaudio REQUIRED)
-endif (NOT DISABLE_AUDIO)
+##########################################################################################################
+### FIND PACKAGES + LIBRARIES                                                                          ###
+##########################################################################################################
 
+
+if (APPLE)
+elseif (RPI)
+    find_package(PkgConfig REQUIRED)
+else ()
+    warning("plattform not supported")
+endif ()
+
+# GRAPHICS + VIDEO
 if (NOT DISABLE_GRAPHICS)
-    find_package(ftgl REQUIRED)
-    find_package(glew REQUIRED)
+    # GLFW + OpenGL + GLEW + FTGL
+    if (APPLE)
+        find_package(glfw3 REQUIRED)
+        find_library(OpenGL_LIBRARY OpenGL)
+        find_package(glew REQUIRED)
+        find_package(ftgl REQUIRED)
+    elseif (RPI)
+        pkg_search_module(GLFW REQUIRED glfw3)
+        find_package(glew REQUIRED)
+        pkg_search_module(FTGL REQUIRED ftgl)
+    else ()
+        warning("plattform not supported")
+    endif ()
+    # FFMPEG
     if (NOT DISABLE_VIDEO)
-        find_package(ffmpeg REQUIRED)
+        if (APPLE)
+            find_package(ffmpeg REQUIRED)
+        elseif (RPI)
+            pkg_search_module(AVCODEC REQUIRED libavcodec)
+            pkg_search_module(AVFORMAT REQUIRED libavformat)
+            pkg_search_module(AVUTIL REQUIRED libavutil)
+        else ()
+            warning("plattform not supported")
+        endif ()
     endif (NOT DISABLE_VIDEO)
 endif (NOT DISABLE_GRAPHICS)
+
+# AUDIO
+if (NOT DISABLE_AUDIO)
+    # PORTAUDIO
+    if (APPLE)
+        find_package(PORTAUDIO REQUIRED)
+    elseif (RPI)
+        pkg_search_module(PORTAUDIO REQUIRED portaudio-2.0)
+    else ()
+        warning("plattform not supported")
+    endif (APPLE)
+endif (NOT DISABLE_AUDIO)
+
+##########################################################################################################
+### SUPRESS WARNINGS FOR APPLE                                                                         ###
+##########################################################################################################
 
 if (APPLE)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS OFF)
 endif (APPLE)
 
-## @development adding portaudio + ftgl manually as it seems to cause problems on some MacOS machines TODO: fix this
-#set(USE_MANUAL_CONFIGURATION_FOR_LIBRARIES false)
-#if (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
-#    message("USE_MANUAL_CONFIGURATION_FOR_LIBRARIES")
-#    target_link_libraries(${PROJECT_NAME} PRIVATE ${PORTAUDIO_LIBRARIES})
-#    target_include_directories(${PROJECT_NAME} PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
-#    target_link_libraries(${PROJECT_NAME} PRIVATE ${FTGL_LIBRARIES})
-#    target_include_directories(${PROJECT_NAME} PRIVATE ${FTGL_INCLUDE_DIRS})
-#else (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
-#message("not using USE_MANUAL_CONFIGURATION_FOR_LIBRARIES")
-if (NOT DISABLE_AUDIO)
-    target_link_libraries(${PROJECT_NAME} PUBLIC portaudio)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
-endif (NOT DISABLE_AUDIO)
+##########################################################################################################
+### INCLUDE + LINK LIBRARIES                                                                           ###
+##########################################################################################################
+
+# GRAPHICS + VIDEO
 if (NOT DISABLE_GRAPHICS)
-    target_link_libraries(${PROJECT_NAME} PUBLIC ftgl)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${FTGL_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} PUBLIC glew)
+    # GLFW + OpenGL + GLEW + FTGL
+    if (APPLE)
+        target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
+        target_link_libraries(${PROJECT_NAME} PUBLIC ${OpenGL_LIBRARY})
+        target_link_libraries(${PROJECT_NAME} PUBLIC glew)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${GLEW_INCLUDE_DIRS})
+        target_link_libraries(${PROJECT_NAME} PUBLIC ftgl)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${FTGL_INCLUDE_DIRS})
+    elseif (RPI)
+        target_link_libraries(${PROJECT_NAME} ${GLFW_LIBRARIES})
+        target_include_directories(${PROJECT_NAME} ${GLFW_INCLUDE_DIRS})
+        target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES})
+        target_include_directories(${PROJECT_NAME} ${GLEW_INCLUDE_DIRS})
+        target_link_libraries(${PROJECT_NAME} ${FTGL_LIBRARIES})
+        target_include_directories(${PROJECT_NAME} ${FTGL_INCLUDE_DIRS})
+    else ()
+        warning("plattform not supported")
+    endif ()
+    # FFMPEG
     if (NOT DISABLE_VIDEO)
-        target_link_libraries(${PROJECT_NAME} PUBLIC ${FFMPEG_LIBRARIES} ${SWSCALE_LIBRARIES})
-        target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS})
+        if (APPLE)
+            target_link_libraries(${PROJECT_NAME} PUBLIC ${FFMPEG_LIBRARIES} ${SWSCALE_LIBRARIES})
+            target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS})
+        elseif (RPI)
+            target_link_libraries(${PROJECT_NAME} PUBLIC ${AVCODEC_LIBRARIES} ${AVFORMAT_LIBRARIES} ${AVUTIL_LIBRARIES} ${SWSCALE_LIBRARIES})
+            target_include_directories(${PROJECT_NAME} PRIVATE ${AVCODEC_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVUTIL_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS})
+        else ()
+            warning("plattform not supported")
+        endif ()
     endif (NOT DISABLE_VIDEO)
 endif (NOT DISABLE_GRAPHICS)
-#endif (USE_MANUAL_CONFIGURATION_FOR_LIBRARIES)
+
+# AUDIO
+if (NOT DISABLE_AUDIO)
+    # PORTAUDIO
+    if (APPLE)
+        target_link_libraries(${PROJECT_NAME} PUBLIC portaudio)
+        target_include_directories(${PROJECT_NAME} PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
+    elseif (RPI)
+        target_link_libraries(${PROJECT_NAME} ${PORTAUDIO_LIBRARIES})
+        target_include_directories(${PROJECT_NAME} ${PORTAUDIO_INCLUDE_DIRS})
+    else ()
+        warning("plattform not supported")
+    endif ()
+endif (NOT DISABLE_AUDIO)
 
 ## ncurses
 # TODO implement curses for headless mode
