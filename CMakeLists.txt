@@ -5,6 +5,39 @@ message("+++ UMGEBUNG_APP  : ${UMGEBUNG_APP}")
 message("+++ UMGEBUNG_PATH : ${UMGEBUNG_PATH}")
 message("")
 
+##########################################################################################################
+### CHECK SYSTEM TYPE                                                                                  ###
+##########################################################################################################
+
+try_run(RUN_RESULT_VAR COMPILE_RESULT_VAR 
+        ${UMGEBUNG_PATH}/tools/system_check 
+        ${UMGEBUNG_PATH}/tools/system_check.cpp
+        RUN_OUTPUT_VARIABLE SYSTEM_CHECK_OUTPUT)
+
+# TODO clean this up
+if(RUN_RESULT_VAR EQUAL 1)
+    set(IS_WINDOWS ON)
+    message(STATUS "Running on Windows")
+elseif(RUN_RESULT_VAR EQUAL 2)
+    set(IS_MACOS ON)
+    # set(APPLE ON) # this is set by CMake
+    message(STATUS "Running on macOS")
+elseif(RUN_RESULT_VAR EQUAL 3)
+    set(IS_RASPBERRY_PI ON)
+    set(RPI ON)
+    message(STATUS "Running on Raspberry Pi")
+elseif(RUN_RESULT_VAR EQUAL 4)
+    set(IS_LINUX ON)
+    message(STATUS "Running on Linux (non-Raspberry Pi)")
+else()
+    set(IS_UNKNOWN_SYSTEM ON)
+    message(STATUS "Running on an unknown system")
+endif()
+
+##########################################################################################################
+### EN/DISABLE LIBRARIES                                                                               ###
+##########################################################################################################
+
 if (DISABLE_GRAPHICS)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DISABLE_GRAPHICS)
     message("+++ DISABLE_GRAPHICS")
@@ -47,22 +80,6 @@ file(GLOB UMGEBUNG_SOURCE_FILES
 include_directories("${UMGEBUNG_PATH}/include")
 include_directories("${UMGEBUNG_PATH}/include/ip")
 include_directories("${UMGEBUNG_PATH}/include/osc")
-
-##########################################################################################################
-### DETECT RPI                                                                                         ###
-##########################################################################################################
-
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm" AND UNIX)
-    set(RPI true)
-else ()
-    set(RPI false)
-endif ()
-
-if (RPI)
-    message(STATUS "Compiling on RPI")
-else ()
-    message(STATUS "Not compiling on RPI")
-endif ()
 
 ##########################################################################################################
 ### CREATE EXECUTABLE                                                                                  ###

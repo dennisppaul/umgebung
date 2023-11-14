@@ -290,7 +290,7 @@ bool Movie::processFrame() {
                 // No frame available right now, try again later
 //                std::cout << "+++ AVERROR(EAGAIN)" << std::endl;
             } else {
-                fprintf(stderr, "Error receiving frame: %s\n", av_err2str(ret));
+                // fprintf(stderr, "Error receiving frame: %s\n", av_err2str(ret));
             }
             av_frame_unref(frame);
             return false;
