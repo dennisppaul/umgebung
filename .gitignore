@@ -1,5 +1,3 @@
 build/
 cmake-build-debug/
 .idea/
-examples/umgebung-example-app/image.png
-examples/umgebung-example-app/RobotoMono-Regular.ttf

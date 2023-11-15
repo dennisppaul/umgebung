@@ -4,7 +4,7 @@ project(umgebung-with-OSC)                             # set application name
 set(UMGEBUNG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../..") # set absolut path to umgebung library
 #set(UMGEBUNG_PATH "<absolute/path/to/library>")
 set(DISABLE_GRAPHICS FALSE)
-set(DISABLE_AUDIO FALSE)
+set(DISABLE_AUDIO TRUE)
 set(DISABLE_VIDEO TRUE)
 
 # add source + header files from this directory

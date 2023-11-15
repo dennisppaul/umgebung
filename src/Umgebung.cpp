@@ -545,3 +545,9 @@ void exit() {
 int main() {
     return run_application();
 }
+
+#ifdef UMGEBUNG_STANDALONE
+PApplet* instance() {
+    return nullptr;
+}
+#endif

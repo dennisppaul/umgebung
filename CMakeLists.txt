@@ -19,7 +19,6 @@ else ()
     message(STATUS "SYSTEM        : (unknown system)")
     message(WARNING "Warning: System is not supported")
 endif ()
-message(STATUS)
 
 # NOTE removed specific system check for now ( because it fails with ninja build system ). it may not be necessary to have such a specific check for RPI.
 #try_run(RUN_RESULT_VAR COMPILE_RESULT_VAR
@@ -45,40 +44,52 @@ message(STATUS)
 #endif()
 
 ##########################################################################################################
+### SUPPLEMENT LIBRARY SEARCH PATH                                                                     ###
+##########################################################################################################
+
+if (APPLE)
+    # NOTE add default search path for libraries on macOS e.g for default Homebrew installation
+    link_directories("/usr/local/lib")
+elseif (UNIX)
+elseif (WIN32)
+else ()
+endif ()
+
+##########################################################################################################
 ### EN/DISABLE LIBRARIES                                                                               ###
 ##########################################################################################################
 
 if (DISABLE_GRAPHICS)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DISABLE_GRAPHICS)
-    message("+++ DISABLE_GRAPHICS")
+    message(STATUS "DISABLING     : graphics")
 endif (DISABLE_GRAPHICS)
 
 if (DISABLE_AUDIO)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DISABLE_AUDIO)
-    message("+++ DISABLE_AUDIO")
+    message(STATUS "DISABLING     : audio")
 endif (DISABLE_AUDIO)
 
 if (DISABLE_VIDEO)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DISABLE_VIDEO)
-    message("+++ DISABLE_VIDEO")
+    message(STATUS "DISABLING     : video")
 endif (DISABLE_VIDEO)
 
 if (NOT DEFINED UMGEBUNG_APP OR "${UMGEBUNG_APP}" STREQUAL "")
-    message("UMGEBUNG_APP not set")
+    message(STATUS "CHARACTER     : using umgebung standalone ( UMGEBUNG_APP not set )")
     project(umgebung-lib)
     set(UMGEBUNG_APP ${PROJECT_NAME})
-    set(BUILD_STANDALONE true)
-else ()
-    project(${UMGEBUNG_APP})
-    set(BUILD_STANDALONE false)
-endif ()
-
-if (NOT DEFINED UMGEBUNG_PATH OR "${UMGEBUNG_PATH}" STREQUAL "")
-    message("UMGEBUNG_PATH not set")
     set(UMGEBUNG_PATH ".")
+    set(BUILD_STANDALONE ON)
+else ()
+    message(STATUS "CHARACTER     : using umgebung as library")
+    project(${UMGEBUNG_APP})
+    set(BUILD_STANDALONE OFF)
 endif ()
 
-# add source + header files
+##########################################################################################################
+### ADD SOURCE + HEADER FILES                                                                          ###
+##########################################################################################################
+
 set(HEADER_DIR "include" "${UMGEBUNG_PATH}/src")
 set(SOURCE_DIR "src")
 file(GLOB UMGEBUNG_SOURCE_FILES
@@ -97,6 +108,7 @@ include_directories("${UMGEBUNG_PATH}/include/osc")
 
 if (BUILD_STANDALONE)
     add_executable(${PROJECT_NAME} ${UMGEBUNG_SOURCE_FILES})
+    target_compile_definitions(${PROJECT_NAME} PUBLIC UMGEBUNG_STANDALONE)
 else (BUILD_STANDALONE)
     target_sources(${PROJECT_NAME}
             PUBLIC
@@ -165,10 +177,12 @@ endif (NOT DISABLE_GRAPHICS)
 # AUDIO
 if (NOT DISABLE_AUDIO)
     # PORTAUDIO
+    message(STATUS "PORTAUDIO     : searching")
+    pkg_search_module(PORTAUDIO REQUIRED portaudio-2.0)
     if (APPLE)
-        find_package(PORTAUDIO REQUIRED)
+#        find_package(PORTAUDIO REQUIRED)
     elseif (UNIX)
-        pkg_search_module(PORTAUDIO REQUIRED portaudio-2.0)
+#        pkg_search_module(PORTAUDIO REQUIRED portaudio-2.0)
     elseif (WIN32)
         warning("plattform not supported")
     else ()
