@@ -136,6 +136,12 @@ endif (APPLE)
 ##########################################################################################################
 
 find_package(PkgConfig REQUIRED)
+if (WIN32)
+elseif (APPLE)
+elseif (UNIX)
+    find_package(Threads REQUIRED)
+else ()
+endif ()
 
 # GRAPHICS + VIDEO
 if (NOT DISABLE_GRAPHICS)
@@ -209,6 +215,13 @@ endif ()
 ##########################################################################################################
 ### INCLUDE + LINK LIBRARIES                                                                           ###
 ##########################################################################################################
+
+if (WIN32)
+elseif (APPLE)
+elseif (UNIX)
+    target_link_libraries(${PROJECT_NAME} Threads::Threads)
+else ()
+endif ()
 
 # GRAPHICS + VIDEO
 if (NOT DISABLE_GRAPHICS)
