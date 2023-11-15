@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(umgebung-example-app)                          # set application name
+project(umgebung-app)                                  # set application name
 set(UMGEBUNG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../..") # set absolut path to umgebung library
 #set(UMGEBUNG_PATH "<absolute/path/to/library>")
 set(DISABLE_GRAPHICS FALSE)
@@ -25,5 +25,5 @@ include("${UMGEBUNG_PATH}/CMakeLists.txt")
 # set(CPACK_BUNDLE_NAME Umgebung)
 # set(CPACK_BUNDLE_ICON Umgebung.icns)
 # set(CPACK_BUNDLE_PLIST Info.plist)
-# set(CPACK_BUNDLE_STARTUP_COMMAND umgebung-example-app)
+# set(CPACK_BUNDLE_STARTUP_COMMAND umgebung-app)
 # include(CPack)
