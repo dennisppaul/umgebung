@@ -1,7 +1,9 @@
 *Umgebung* is a light-weight C++ environment for small audio and graphics based applications. it is somewhat inspired
 by [Processing.org](https://processing.org) and the like.
 
-## Prerequisite 
+see [DOCUMENTATION](./DOCUMENTATION.md) for usage information.
+
+## Prerequisite
 
 this project relies on the following packages:
 

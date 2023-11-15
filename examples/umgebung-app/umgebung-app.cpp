@@ -1,6 +1,6 @@
 #include "Umgebung.h"
 
-class UmgebungExampleApp : public PApplet {
+class UmgebungApp : public PApplet {
 
     PFont   *mFont;
     PImage  *mImage;
@@ -159,5 +159,5 @@ class UmgebungExampleApp : public PApplet {
 };
 
 PApplet *instance() {
-    return new UmgebungExampleApp();
+    return new UmgebungApp();
 }
