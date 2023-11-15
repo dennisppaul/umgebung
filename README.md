@@ -1,5 +1,10 @@
-*Umgebung* is a light-weight C++ environment for small audio and graphics based applications. it is somewhat inspired
-by [Processing.org](https://processing.org) and the like.
+*Umgebung* is a light-weight C++ environment for small audio and graphics based applications. it is somewhat inspired by [Processing.org](https://processing.org) and the like. 
+
+well, *Umgebung* is actually imitating the [Processing.org](https://processing.org) quite bluntly ( e.g the main application class is called `PApplet` ).
+
+this project tries to supply a framework that allow to write applications that more or less look like original [Processing.org](https://processing.org) sketches. note the character of this project is that features will be added as they are needed. it might partlu replicate but not fully emulate the original [Processing.org](https://processing.org) environment.
+
+*Umgebung* may also function as a statement on what is good and valueable about the [Processing.org](https://processing.org) *idiom* while at the same time suggesting to disconnecting it from one specific group, application or project … maybe a bit like markdown in that sense.
 
 see [DOCUMENTATION](./DOCUMENTATION.md) for usage information.
 
@@ -63,7 +68,7 @@ $ make ; ./umgebung-app
 ### Setting up Homebrew on macOS
 
 on some *clean* homebrew installations on macOS the environment variable `$LIBRARY_PATH` is not set or at least does not include the
-homebrew libraries. if so you may add the line `export LIBRARY_PATH=/usr/local/lib:"$LIBRARY_PATH` to your profile ( e.g in `~/.zshrc` note that other shell environments use other profile files and mechanisms e.g *bash* uses `~/.bashrc` ).
+homebrew libraries. if so you may add the line `export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib` to your profile e.g in `~/.zshrc` in *zsh* shell. note, that other shell environments use other profile files and mechanisms e.g *bash* uses `~/.bashrc`. find out which shell you are using by typing `echo $0`.
 
 if you have NO idea what this all means you might just try the following lines ( as always without the `$` ) for *zsh*:
 
