@@ -19,6 +19,10 @@
 
 #include "Movie.h"
 
+// TODO look into audio processing
+// TODO look into camera access
+// TODO implement `MovieListener` including callback
+
 #if !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
 
 #include "Umgebung.h"
@@ -39,7 +43,7 @@ Movie::Movie(const std::string &filename, int _channels) : PImage() {
         isPlaying      = false;
         playbackThread = std::thread(&Movie::playbackLoop, this);
     } else {
-        std::cerr << "+++ Movie - ERROR: could not initialize from file" << std::endl;
+        std::cerr << "+++ Movie: ERROR: could not initialize from file" << std::endl;
     }
 }
 
@@ -47,13 +51,13 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
     // Open the input file
     formatContext = avformat_alloc_context();
     if (avformat_open_input(&formatContext, filename.c_str(), NULL, NULL) != 0) {
-        fprintf(stderr, "Could not open file %s\n", filename.c_str());
+        std::cerr << "+++ Movie: ERROR: Could not open file: " << filename.c_str() << std::endl;
         return -1;
     }
 
     // Retrieve stream information
     if (avformat_find_stream_info(formatContext, NULL) < 0) {
-        fprintf(stderr, "Could not find stream information\n");
+        std::cerr << "+++ Movie: ERROR: Could not find stream information" << std::endl;
         return -1;
     }
 
@@ -73,12 +77,12 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
     }
 
     if (videoStreamIndex == -1) {
-        fprintf(stderr, "Could not find a video stream\n");
+        std::cerr << "+++ Movie: ERROR: Could not find a video stream" << std::endl;
         return -1;
     }
 
     if (audioStreamIndex == -1) {
-        fprintf(stderr, "Could not find a video stream\n");
+        std::cerr << "+++ Movie: ERROR: Could not find a video stream" << std::endl;
         return -1;
     }
 
@@ -88,7 +92,7 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
     videoCodecContext = avcodec_alloc_context3(codec);
     avcodec_parameters_to_context(videoCodecContext, codecParameters);
     if (avcodec_open2(videoCodecContext, codec, NULL) < 0) {
-        fprintf(stderr, "Could not open codec\n");
+        std::cerr << "+++ Movie: ERROR: Could not open codec" << std::endl;
         return -1;
     }
 
@@ -101,8 +105,8 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
     // retrieve movie framerate
     AVRational frame_rate     = formatContext->streams[videoStreamIndex]->avg_frame_rate;
     double     frame_duration = 1.0 / (frame_rate.num / (double) frame_rate.den);
-    fprintf(stdout, "+++ Movie: framerate     : %i\n", frame_rate.num / frame_rate.den);
-    fprintf(stdout, "+++ Movie: frame duration: %f\n", frame_duration);
+    std::cout << "+++ Movie: framerate     : " << (frame_rate.num / frame_rate.den) << std::endl;
+    std::cout << "+++ Movie: frame duration: " << frame_duration << std::endl;
 
     // Determine the pixel format and number of channels based on input file
     AVPixelFormat            src_pix_fmt = videoCodecContext->pix_fmt;
@@ -131,21 +135,21 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
             NULL, NULL, NULL);
 
     if (!swsContext) {
-        fprintf(stderr, "Failed to create SwScale context\n");
+        std::cerr << "+++ Movie: ERROR: Failed to create SwScale context" << std::endl;
         return -1;
     }
 
     // Allocate an AVFrame structure
     frame = av_frame_alloc();
     if (!frame) {
-        fprintf(stderr, "Failed to allocate frame\n");
+        std::cerr << "+++ Movie: ERROR: Failed to allocate frame" << std::endl;
         return -1;
     }
 
     // Allocate an AVFrame structure for the converted frame
     convertedFrame = av_frame_alloc();
     if (!convertedFrame) {
-        fprintf(stderr, "Failed to allocate converted frame\n");
+        std::cerr << "+++ Movie: ERROR: Failed to allocate converted frame" << std::endl;
         return -1;
     }
 
@@ -192,8 +196,6 @@ void Movie::playbackLoop() {
     while (keepRunning) {
         if (isPlaying) {
             auto frame_start = std::chrono::steady_clock::now();
-
-            // TODO add callback with `MovieListener`
             if (available()) {
                 if (processFrame()) {
                     // TODO flag that a texture reload is required
@@ -245,6 +247,7 @@ bool Movie::available() {
         } else if (packet->stream_index == audioStreamIndex) {
             // Decode audio frame
             avcodec_send_packet(audioCodecContext, packet);
+            // TODO implement audio processing
 //            while (avcodec_receive_frame(audioCodecContext, frame) == 0) {
 //                process_audio_frame(frame);
 //                av_frame_unref(frame);
@@ -290,7 +293,7 @@ bool Movie::processFrame() {
                 // No frame available right now, try again later
 //                std::cout << "+++ AVERROR(EAGAIN)" << std::endl;
             } else {
-                // fprintf(stderr, "Error receiving frame: %s\n", av_err2str(ret));
+                // std::cerr << "+++ Movie: ERROR: Error receiving frame: " << av_err2str(ret));
             }
             av_frame_unref(frame);
             return false;

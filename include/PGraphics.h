@@ -19,6 +19,26 @@
 
 #pragma once
 
+// TODO implement color modes and ranges i.e 0–255 or 0–1 and HSB or RGB ...
+
+/*
+// TODO implement 2D Primitives
+arc() Draws an arc in the display window
+circle() Draws a circle to the screen
+ellipse() Draws an ellipse (oval) in the display window
+line() Draws a line (a direct path between two points) to the screen  // 3D
+point() Draws a point, a coordinate in space at the dimension of one pixel // 3D
+quad() A quad is a quadrilateral, a four sided polygon
+rect() Draws a rectangle to the screen
+square() Draws a square to the screen
+triangle() A triangle is a plane created by connecting three points
+// TODO implement 3D Primitives
+box() A box is an extruded rectangle
+sphereDetail() Controls the detail used to render a sphere by adjusting the number of vertices of the sphere mesh
+sphere() A sphere is a hollow ball made from tessellated triangles
+*/
+
+
 #include <string>
 #include "UmgebungConstants.h"
 
@@ -28,7 +48,7 @@ class PFont;
 
 class PGraphics {
 public:
-    int width = 0;
+    int width  = 0;
     int height = 0;
 
     void stroke(float r, float g, float b, float a = 1.0);
@@ -67,7 +87,10 @@ public:
 
     void textSize(float size);
 
-    void text(const std::string &text, float x, float y);
+    void text(const std::string &text, float x, float y, float z = 0.0);
+
+    template<typename T>
+    void text(const T &value, float x, float y, float z);
 
     PImage *loadImage(const std::string &filename);
 
@@ -99,13 +122,13 @@ public:
 
 private:
     PFont *fCurrentFont = nullptr;
-    float fPointSize = 1;
+    float fPointSize    = 1;
 
     struct {
-        float r = 0;
-        float g = 0;
-        float b = 0;
-        float a = 1;
-        bool active = false;
-    } fill_color, stroke_color;
+        float r      = 0;
+        float g      = 0;
+        float b      = 0;
+        float a      = 1;
+        bool  active = false;
+    }     fill_color, stroke_color;
 };

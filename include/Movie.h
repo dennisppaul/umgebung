@@ -41,6 +41,13 @@ extern "C" {
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
 
+class Movie;
+
+class MovieListener {
+public:
+    virtual void movieEvent(Movie m) = 0;
+};
+
 class Movie : public PImage {
 public:
     Movie(const std::string &filename, int _channels = -1);
@@ -65,7 +72,6 @@ public:
     void loop(); //	Plays a movie continuously, restarting it when it's over.
     void noLoop(); //	If a movie is looping, this will cause it to play until the end and then stop on the last
 
-
 private:
     std::atomic<bool> isLooping            = false;
     bool              mVideoFrameAvailable = false;
@@ -82,10 +88,10 @@ private:
     AVCodecContext  *audioCodecContext;
     AVFormatContext *formatContext;
     AVPacket        *packet;
-    SwsContext *swsContext;
-    int        videoStreamIndex;
-    int        audioStreamIndex;
-    int        mFrameCounter = 0;
+    SwsContext      *swsContext;
+    int             videoStreamIndex;
+    int             audioStreamIndex;
+    int             mFrameCounter = 0;
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
 

@@ -19,7 +19,7 @@
 
 #pragma once
 
-// TODO consider using namespace here namespace umgebung {}
+// TODO consider using namespace here `namespace umgebung {}`
 
 static const float PI = 3.14159265358979323846f;
 

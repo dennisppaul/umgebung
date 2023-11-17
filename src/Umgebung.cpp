@@ -547,7 +547,10 @@ int main() {
 }
 
 #ifdef UMGEBUNG_STANDALONE
-PApplet* instance() {
+
+PApplet *instance() {
+    std::cerr << "+++ this is just a test. not creating an application instance!" << std::endl;
     return nullptr;
 }
+
 #endif

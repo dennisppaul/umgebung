@@ -187,14 +187,21 @@ void PGraphics::textSize(float size) {
     fCurrentFont->size(size);
 }
 
-void PGraphics::text(const std::string &text, float x, float y) {
+void PGraphics::text(const std::string &text, float x, float y, float z) {
     if (fCurrentFont == nullptr) return;
     if (!fill_color.active) return;
 
 #ifndef DISABLE_GRAPHICS
     glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
-    fCurrentFont->draw(text.c_str(), x, y);
+    fCurrentFont->draw(text.c_str(), x, y, z);
 #endif // DISABLE_GRAPHICS
+}
+
+template<typename T>
+void PGraphics::text(const T &value, float x, float y, float z) {
+    std::ostringstream ss;
+    ss << value;
+    text(ss.str(), x, y, z);
 }
 
 PImage *PGraphics::loadImage(const std::string &filename) {

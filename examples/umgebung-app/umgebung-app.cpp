@@ -24,13 +24,13 @@ class UmgebungApp : public PApplet {
             exit();
         }
         if (!headless) {
-            mImage     = loadImage("../image.png"); // note that image is not included
-            float pixels[100 * 100 * mImage->channels];
+            mImage     = loadImage("../image.png");
+            float    pixels[100 * 100 * mImage->channels];
             for (int i = 0; i < 100 * 100 * mImage->channels; ++i) {
                 pixels[i] = random(1);
             }
             mImage->update(pixels, 100, 100, 10, 10);
-            mFont = loadFont("../RobotoMono-Regular.ttf", 48); // note that font is not included
+            mFont = loadFont("../RobotoMono-Regular.ttf", 48);
             textFont(mFont);
         }
 

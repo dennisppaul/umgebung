@@ -19,6 +19,11 @@
 
 #pragma once
 
+// TODO make audio settings configurable
+// TODO what if `audio_input_channels` equals `0`? is microphone access still requested?
+// TODO fix warnings on RPI
+// TODO consider using namespace here `namespace umgebung {}` for entire project
+
 #include <iostream>
 #include <cmath>
 
@@ -48,7 +53,8 @@
 #define DEFAULT_FRAMES_PER_BUFFER         2048  // TODO make this configurable
 #define DEFAULT_NUMBER_OF_INPUT_CHANNELS  1     // TODO make this configurable
 #define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2     // TODO make this configurable
-#define DEFAULT_AUDIO_DEVICE              (-1)
+//#define DEFAULT_AUDIO_DEVICE              (-1)
+static const int DEFAULT_AUDIO_DEVICE = -1;
 #define DEFAULT                           (-1)
 #define DEFAULT_WINDOW_WIDTH              1024
 #define DEFAULT_WINDOW_HEIGHT             768

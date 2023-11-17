@@ -1,0 +1,3 @@
+[submodule "examples/umgebung-with-klangwellen/klangwellen"]
+	path = examples/umgebung-with-klangwellen/klangwellen
+	url = https://github.com/dennisppaul/klangwellen.git

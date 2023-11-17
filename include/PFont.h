@@ -19,6 +19,22 @@
 
 #pragma once
 
+// TODO implement
+//    ## Loading & Displaying
+//    createFont() :: Dynamically converts a font to the format used by Processing
+//    //loadFont() :: Loads a font into a variable of type PFont
+//    //textFont() :: Sets the current font that will be drawn with the text() function
+//    //text() :: Draws text to the screen
+//    ## Metrics
+//    textAscent() :: Returns ascent of the current font at its current size
+//    textDescent() :: Returns descent of the current font at its current size
+//    ## Attributes
+//    textAlign() :: Sets the current alignment for drawing text
+//    textLeading() :: Sets the spacing between lines of text in units of pixels
+//    textMode() :: Sets the way text draws to the screen
+//    //textSize() :: Sets the current font size
+//    textWidth() :: Calculates and returns the width of any character or text string
+
 #ifndef DISABLE_GRAPHICS
 
 #include <FTGL/ftgl.h>
@@ -48,11 +64,11 @@ public:
 #endif
     }
 
-    void draw(const char *text, float x, float y) {
+    void draw(const char *text, float x, float y, float z) {
 #ifndef DISABLE_GRAPHICS
         if (font == nullptr) return;
         glPushMatrix();
-        glTranslatef(x, y, 0);
+        glTranslatef(x, y, z);
         glScalef(1, -1, 1);
         font->Render(text, -1, FTPoint(0, 0));
         glPopMatrix();

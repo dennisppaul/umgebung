@@ -21,8 +21,168 @@
 
 #include "Umgebung.h"
 
+#include <string>
+#include <sstream>
+#include <iomanip>
+#include <regex>
+
 class PApplet : public PGraphics {
 public:
+    /**
+     * Combines an array of Strings into one String, each separated by the character(s) used for the separator parameter
+     * @param strings
+     * @param separator
+     * @return
+     */
+    std::string join(const std::vector<std::string> &strings, const std::string &separator) {
+        std::string result;
+        for (size_t i = 0; i < strings.size(); ++i) {
+            result += strings[i];
+            if (i < strings.size() - 1) {
+                result += separator;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * This function is used to apply a regular expression to a piece of text
+     * @param text
+     * @param re
+     * @return
+     */
+    std::vector<std::string> matchAll(const std::string &text, const std::regex &re) {
+        std::vector<std::string> matches;
+        std::sregex_iterator     begin(text.begin(), text.end(), re), end;
+        for (auto                i = begin; i != end; ++i) {
+            matches.push_back((*i).str());
+        }
+        return matches;
+    }
+
+    /**
+     * The function is used to apply a regular expression to a piece of text, and return matching groups (elements found inside parentheses) as a String array
+     * @param text
+     * @param re
+     * @return
+     */
+    std::vector<std::string> match(const std::string &text, const std::regex &re) {
+        std::vector<std::string> groups;
+        std::smatch              match;
+        if (std::regex_search(text, match, re)) {
+            for (size_t i = 1; i < match.size(); ++i) { // Start from 1 to skip the full match
+                groups.push_back(match[i]);
+            }
+        }
+        return groups;
+    }
+
+    /**
+     * Utility function for formatting numbers into strings and placing appropriate commas to mark units of 1000
+     * @param number
+     * @return
+     */
+    std::string nfc(float number) {
+        std::stringstream ss;
+        ss.imbue(std::locale(""));
+        ss << std::fixed << number;
+        return ss.str();
+    }
+
+    /**
+     * Utility function for formatting numbers into strings
+     * @param number
+     * @param decimalPlaces
+     * @return
+     */
+    std::string nf(float number, int decimalPlaces = 2) {
+        std::ostringstream out;
+        out << std::fixed << std::setprecision(decimalPlaces) << number;
+        return out.str();
+    }
+
+    /**
+     * Utility function for formatting numbers into strings
+     * @param number
+     * @param decimalPlaces
+     * @return
+     */
+    std::string nfp(float number, int decimalPlaces = 2) {
+        std::ostringstream out;
+        if (number >= 0) {
+            out << "+";
+        }
+        out << std::fixed << std::setprecision(decimalPlaces) << number;
+        return out.str();
+    }
+
+    /**
+     * Utility function for formatting numbers into strings
+     * @param number
+     * @param decimalPlaces
+     * @return
+     */
+    std::string nfs(float number, int decimalPlaces = 2) {
+        std::ostringstream out;
+        if (number >= 0) {
+            out << " ";
+        }
+        out << std::fixed << std::setprecision(decimalPlaces) << number;
+        return out.str();
+    }
+
+    /**
+     * The splitTokens() function splits a String at one or many character "tokens"
+     * @param str
+     * @param tokens
+     * @return
+     */
+    std::vector<std::string> splitTokens(const std::string &str, const std::string &tokens) {
+        std::vector<std::string> result;
+        size_t                   start = 0, end = 0;
+        while ((end = str.find_first_of(tokens, start)) != std::string::npos) {
+            if (end != start) {
+                result.push_back(str.substr(start, end - start));
+            }
+            start = end + 1;
+        }
+        if (start < str.length()) {
+            result.push_back(str.substr(start));
+        }
+        return result;
+    }
+
+    /**
+     * The split() function breaks a string into pieces using a character or string as the divider
+     * @param str
+     * @param delimiter
+     * @return
+     */
+    std::vector<std::string> split(const std::string &str, const std::string &delimiter) {
+        std::vector<std::string> result;
+        size_t                   start = 0, end = 0;
+        while ((end = str.find(delimiter, start)) != std::string::npos) {
+            result.push_back(str.substr(start, end - start));
+            start = end + delimiter.length();
+        }
+        if (start < str.length()) {
+            result.push_back(str.substr(start));
+        }
+        return result;
+    }
+
+    /**
+     * Removes whitespace characters from the beginning and end of a String
+     * @param str
+     * @return
+     */
+    std::string trim(const std::string &str) {
+        size_t first = str.find_first_not_of(" \t\n\r\f\v");
+        if (first == std::string::npos)
+            return "";
+        size_t last = str.find_last_not_of(" \t\n\r\f\v");
+        return str.substr(first, (last - first + 1));
+    }
 
     int   framebuffer_width;
     int   framebuffer_height;
