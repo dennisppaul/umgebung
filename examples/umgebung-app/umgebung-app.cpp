@@ -114,7 +114,7 @@ class UmgebungApp : public PApplet {
         popMatrix();
     }
 
-    void audioblock(const float *input, float *output, unsigned long length) {
+    void audioblock(const float *input, float *output, int length) {
         // NOTE length is the number of samples per channel
         // TODO change to `void audioblock(float** input_signal, float** output_signal) {}`
         static float phase     = 0.0;

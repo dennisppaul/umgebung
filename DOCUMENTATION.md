@@ -24,7 +24,7 @@ class UmgebungApp : public PApplet {
 
     void draw() {}
 
-    void audioblock(const float *input, float *output, unsigned long length) {}
+    void audioblock(const float *input, float *output, int length) {}
 };
 
 PApplet *instance() {

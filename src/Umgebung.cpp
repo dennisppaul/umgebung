@@ -74,7 +74,7 @@ static int audioCallback(const void *inputBuffer,
                          void *userData) {
     auto *out = (float *) outputBuffer;
     auto *in  = (const float *) inputBuffer;
-    fApplet->audioblock(in, out, audioFrameCount);
+    fApplet->audioblock(in, out, static_cast<int>(audioFrameCount));
     return paContinue;
 }
 

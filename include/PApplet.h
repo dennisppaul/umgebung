@@ -351,7 +351,7 @@ public:
 
     virtual void finish() {}
 
-    virtual void audioblock(const float *input, float *output, unsigned long length) {};
+    virtual void audioblock(const float *input, float *output, int length) {};
 
     virtual void mouseMoved() {}
 

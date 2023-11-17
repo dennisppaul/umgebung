@@ -1,6 +1,6 @@
 #include "Umgebung.h"
 
-#define KLANG_SAMPLES_PER_AUDIO_BLOCK 2048
+#define KLANG_SAMPLES_PER_AUDIO_BLOCK DEFAULT_FRAMES_PER_BUFFER
 #define KLANG_SAMPLING_RATE DEFAULT_AUDIO_SAMPLE_RATE
 
 #include "ADSR.h"
@@ -33,7 +33,7 @@ class UmgebungApp : public PApplet {
         text("23", mouseX, mouseY);
     }
 
-    void audioblock(const float *input, float *output, unsigned long length) {
+    void audioblock(const float *input, float *output, int length) {
         // TODO change to `void audioblock(float** input_signal, float** output_signal) {}`
         for (int i = 0; i < length; i++) {
             float mSample = fWavetable.process();
