@@ -8,6 +8,14 @@ this project tries to supply a framework that allow to write applications that m
 
 see [DOCUMENTATION](./DOCUMENTATION.md) for usage information.
 
+## Cloning with submodules
+
+in order to clone the project with submodules ( e.g in example `umgebung-with-klangwellen` which uses the [klangwellen](https://github.com/dennisppaul/klangwellen) library ) use the following command:
+
+```
+$ git clone --recurse-submodules https://github.com/dennisppaul/umgebung.git
+```
+
 ## Prerequisite
 
 this project relies on the following packages:
