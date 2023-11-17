@@ -31,28 +31,30 @@
 
 #include "UmgebungConstants.h"
 
-class PShape {
-public:
-    void beginShape(int shape = POLYGON);
+namespace umgebung {
 
-    void endShape();
+    class PShape {
+    public:
+        void beginShape(int shape = POLYGON);
 
-    void vertex(float x, float y, float z, float r, float g, float b);
+        void endShape();
 
-    void release();
+        void vertex(float x, float y, float z, float r, float g, float b);
 
-    void draw();
+        void release();
 
-private:
-    bool isRecording = false;
-    int fShape = POLYGON;
-    int fVerticesSize = 0;
+        void draw();
+
+    private:
+        bool isRecording   = false;
+        int  fShape        = POLYGON;
+        int  fVerticesSize = 0;
 #ifndef DISABLE_GRAPHICS
-    std::vector<GLfloat> vertices;
-    GLuint vertexArray, vertexBuffer;
-    GLuint vertexShader, fragmentShader, shaderProgram;
+        std::vector<GLfloat> vertices;
+        GLuint               vertexArray, vertexBuffer;
+        GLuint               vertexShader, fragmentShader, shaderProgram;
 
-    const char *vertexShaderSource = R"(
+        const char *vertexShaderSource = R"(
     #version 330 core
     layout(location = 0) in vec3 aPos;
     layout(location = 1) in vec3 aColor;
@@ -63,7 +65,7 @@ private:
     }
 )";
 
-    const char *fragmentShaderSource = R"(
+        const char *fragmentShaderSource = R"(
     #version 330 core
     in vec3 color;
     out vec4 FragColor;
@@ -72,6 +74,8 @@ private:
     }
 )";
 #endif // DISABLE_GRAPHICS
-};
+    };
 
-PShape *createShape();
+    PShape *createShape();
+
+} // namespace umgebung

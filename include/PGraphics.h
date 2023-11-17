@@ -42,93 +42,96 @@ sphere() A sphere is a hollow ball made from tessellated triangles
 #include <string>
 #include "UmgebungConstants.h"
 
-class PImage;
+namespace umgebung {
 
-class PFont;
+    class PImage;
 
-class PGraphics {
-public:
-    int width  = 0;
-    int height = 0;
+    class PFont;
 
-    void stroke(float r, float g, float b, float a = 1.0);
+    class PGraphics {
+    public:
+        int width  = 0;
+        int height = 0;
 
-    void stroke(float a);
+        void stroke(float r, float g, float b, float a = 1.0);
 
-    void noStroke();
+        void stroke(float a);
 
-    void fill(float r, float g, float b, float a = 1.0);
+        void noStroke();
 
-    void fill(float a);
+        void fill(float r, float g, float b, float a = 1.0);
 
-    void noFill();
+        void fill(float a);
 
-    void background(float a, float b, float c, float d = 1.0);
+        void noFill();
 
-    void background(float a);
+        void background(float a, float b, float c, float d = 1.0);
 
-    void rect(float x, float y, float _width, float _height);
+        void background(float a);
 
-    void line(float x1, float y1, float x2, float y2);
+        void rect(float x, float y, float _width, float _height);
 
-    void pointSize(float point_size);
+        void line(float x1, float y1, float x2, float y2);
 
-    void point(float x, float y, float z = 0.0);
+        void pointSize(float point_size);
 
-    void beginShape(int shape = POLYGON);
+        void point(float x, float y, float z = 0.0);
 
-    void endShape();
+        void beginShape(int shape = POLYGON);
 
-    void vertex(float x, float y, float z = 0.0);
+        void endShape();
 
-    PFont *loadFont(const char *file, float size); // @development maybe use smart pointers here
+        void vertex(float x, float y, float z = 0.0);
 
-    void textFont(PFont *font);
+        PFont *loadFont(const char *file, float size); // @development maybe use smart pointers here
 
-    void textSize(float size);
+        void textFont(PFont *font);
 
-    void text(const std::string &text, float x, float y, float z = 0.0);
+        void textSize(float size);
 
-    template<typename T>
-    void text(const T &value, float x, float y, float z);
+        void text(const std::string &text, float x, float y, float z = 0.0);
 
-    PImage *loadImage(const std::string &filename);
+        template<typename T>
+        void text(const T &value, float x, float y, float z);
 
-    void image(PImage *img, float x, float y, float w, float h);
+        PImage *loadImage(const std::string &filename);
 
-    void image(PImage *img, float x, float y);
+        void image(PImage *img, float x, float y, float w, float h);
 
-    void popMatrix();
+        void image(PImage *img, float x, float y);
 
-    void pushMatrix();
+        void popMatrix();
 
-    void translate(float x, float y, float z = 0);
+        void pushMatrix();
 
-    void rotateX(float angle);
+        void translate(float x, float y, float z = 0);
 
-    void rotateY(float angle);
+        void rotateX(float angle);
 
-    void rotateZ(float angle);
+        void rotateY(float angle);
 
-    void rotate(float angle);
+        void rotateZ(float angle);
 
-    void rotate(float angle, float x, float y, float z);
+        void rotate(float angle);
 
-    void scale(float x);
+        void rotate(float angle, float x, float y, float z);
 
-    void scale(float x, float y);
+        void scale(float x);
 
-    void scale(float x, float y, float z);
+        void scale(float x, float y);
 
-private:
-    PFont *fCurrentFont = nullptr;
-    float fPointSize    = 1;
+        void scale(float x, float y, float z);
 
-    struct {
-        float r      = 0;
-        float g      = 0;
-        float b      = 0;
-        float a      = 1;
-        bool  active = false;
-    }     fill_color, stroke_color;
-};
+    private:
+        PFont *fCurrentFont = nullptr;
+        float fPointSize    = 1;
+
+        struct {
+            float r      = 0;
+            float g      = 0;
+            float b      = 0;
+            float a      = 1;
+            bool  active = false;
+        }     fill_color, stroke_color;
+    };
+} // namespace umgebung

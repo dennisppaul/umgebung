@@ -28,6 +28,8 @@
 
 #include <cstdint>  // int32_t/uint8_t
 
+using namespace umgebung;
+
 /**
  * Computes the largest integer value not greater than the float one
  *

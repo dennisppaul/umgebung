@@ -23,6 +23,8 @@
 // TODO look into camera access
 // TODO implement `MovieListener` including callback
 
+using namespace umgebung;
+
 #if !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
 
 #include "Umgebung.h"

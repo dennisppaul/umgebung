@@ -26,57 +26,60 @@
 
 // TODO check if these functions should be moved to PApplet?
 
-void exit();
+namespace umgebung {
 
-void audio_devices(int input_device, int output_device);
+    void exit();
 
-/* static functions for PApplet */
+    void audio_devices(int input_device, int output_device);
 
-float random(float min, float max);
+    /* static functions for PApplet */
 
-float random(float max);
+    float random(float min, float max);
 
-std::string nf(int number, int width);
+    float random(float max);
 
-float noise(float x);
+    std::string nf(int number, int width);
 
-float noise(float x, float y);
+    float noise(float x);
 
-float noise(float x, float y, float z);
+    float noise(float x, float y);
 
-float radians(float degrees);
+    float noise(float x, float y, float z);
 
-float degrees(float radians);
+    float radians(float degrees);
 
-bool exists(const std::string &file_path);
+    float degrees(float radians);
 
-std::string sketchpath();
+    bool exists(const std::string &file_path);
+
+    std::string sketchpath();
 
 #define FLUSH_PRINT
 
-template<typename... Args>
-void print(const Args &... args) {
-    std::ostringstream os;
-    (os << ... << args);
-    std::cout << os.str();
+    template<typename... Args>
+    void print(const Args &... args) {
+        std::ostringstream os;
+        (os << ... << args);
+        std::cout << os.str();
 #ifdef FLUSH_PRINT
-    std::flush(std::cout);
+        std::flush(std::cout);
 #endif
-}
+    }
 
-template<typename... Args>
-void println(const Args &... args) {
-    std::ostringstream os;
-    (os << ... << args);
-    std::cout << os.str() << std::endl;
+    template<typename... Args>
+    void println(const Args &... args) {
+        std::ostringstream os;
+        (os << ... << args);
+        std::cout << os.str() << std::endl;
 #ifdef FLUSH_PRINT
-    std::flush(std::cout);
+        std::flush(std::cout);
 #endif
-}
+    }
 
-template<typename... Args>
-std::string to_string(const Args &... args) {
-    std::ostringstream oss;
-    (oss << ... << args);
-    return oss.str();
-}
+    template<typename... Args>
+    std::string to_string(const Args &... args) {
+        std::ostringstream oss;
+        (oss << ... << args);
+        return oss.str();
+    }
+} // namespace umgebung

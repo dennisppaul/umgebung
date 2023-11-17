@@ -1,6 +1,8 @@
 #include "Umgebung.h"
 #include "osc/OSC.h"
 
+using namespace umgebung;
+
 class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
 
     OSC  mOSC{"127.0.0.1", 8000, 8001};
@@ -71,6 +73,6 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
     }
 };
 
-PApplet *instance() {
+PApplet *umgebung::instance() {
     return new UmgebungExampleAppWithOSC();
 }

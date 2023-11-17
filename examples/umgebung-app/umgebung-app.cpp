@@ -1,5 +1,7 @@
 #include "Umgebung.h"
 
+using namespace umgebung;
+
 class UmgebungApp : public PApplet {
 
     PFont   *mFont;
@@ -158,6 +160,6 @@ class UmgebungApp : public PApplet {
     }
 };
 
-PApplet *instance() {
+PApplet *umgebung::instance() {
     return new UmgebungApp();
 }

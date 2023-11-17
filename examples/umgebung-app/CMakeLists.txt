@@ -10,7 +10,7 @@ set(DISABLE_VIDEO FALSE)
 
 # add source + header files from this directory
 
-file(GLOB_RECURSE SOURCE_FILES "*.cpp")
+file(GLOB SOURCE_FILES "*.cpp")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 include_directories(".")
 target_compile_definitions(${PROJECT_NAME} PRIVATE UMGEBUNG_WINDOW_TITLE="${PROJECT_NAME}") # set window title

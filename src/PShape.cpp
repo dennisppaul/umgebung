@@ -20,6 +20,8 @@
 #include <iostream>
 #include "PShape.h"
 
+using namespace umgebung;
+
 #ifndef DISABLE_GRAPHICS
 
 void PShape::beginShape(int shape) {

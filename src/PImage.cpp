@@ -29,6 +29,8 @@
 
 #endif // DISABLE_GRAPHICS
 
+using namespace umgebung;
+
 PImage::PImage() {
     width    = 0;
     height   = 0;

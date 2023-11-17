@@ -1,5 +1,7 @@
 #include "Umgebung.h"
 
+using namespace umgebung;
+
 #define KLANG_SAMPLES_PER_AUDIO_BLOCK DEFAULT_FRAMES_PER_BUFFER
 #define KLANG_SAMPLING_RATE DEFAULT_AUDIO_SAMPLE_RATE
 
@@ -54,6 +56,6 @@ class UmgebungApp : public PApplet {
     }
 };
 
-PApplet *instance() {
+PApplet *umgebung::instance() {
     return new UmgebungApp();
 }

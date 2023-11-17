@@ -1,6 +1,8 @@
 #include "Umgebung.h"
 #include "Movie.h"
 
+using namespace umgebung;
+
 class UmgebungExampleAppWithMovie : public PApplet {
 
     Movie *myMovie;
@@ -37,6 +39,6 @@ class UmgebungExampleAppWithMovie : public PApplet {
     }
 };
 
-PApplet *instance() {
+PApplet *umgebung::instance() {
     return new UmgebungExampleAppWithMovie();
 }

@@ -27,6 +27,8 @@
 #include "PGraphics.h"
 #include "PFont.h"
 
+using namespace umgebung;
+
 // TODO look into OpenGL 3 e.g https://github.com/opengl-tutorials/ogl/
 
 void PGraphics::stroke(float r, float g, float b, float a) {

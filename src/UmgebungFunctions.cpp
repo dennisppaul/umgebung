@@ -24,63 +24,66 @@
 #include "Umgebung.h"
 #include "SimplexNoise.h"
 
-static SimplexNoise fSimplexNoise;
+namespace umgebung {
 
-void audio_devices(int input_device, int output_device) {
-    audio_input_device = input_device;
-    audio_output_device = output_device;
-}
+    static SimplexNoise fSimplexNoise;
 
-static unsigned int fRandomSeed = static_cast<unsigned int>(std::time(nullptr));
-static std::mt19937 gen(fRandomSeed); // Create a Mersenne Twister pseudo-random number generator with the specified seed
+    void audio_devices(int input_device, int output_device) {
+        audio_input_device  = input_device;
+        audio_output_device = output_device;
+    }
 
-float random(float min, float max) {
-    std::uniform_real_distribution<float> distribution(min, max);
-    return distribution(gen);
-}
+    static unsigned int fRandomSeed = static_cast<unsigned int>(std::time(nullptr));
+    static std::mt19937 gen(fRandomSeed); // Create a Mersenne Twister pseudo-random number generator with the specified seed
 
-float random(float max) {
-    return random(0, max);
-}
+    float random(float min, float max) {
+        std::uniform_real_distribution<float> distribution(min, max);
+        return distribution(gen);
+    }
 
-std::string nf(int number, int _width) {
-    std::ostringstream oss;
-    oss << std::setw(_width) << std::setfill('0') << number;
-    return oss.str();
-}
+    float random(float max) {
+        return random(0, max);
+    }
 
-static int fNoiseSeed = static_cast<unsigned int>(std::time(nullptr));
+    std::string nf(int number, int _width) {
+        std::ostringstream oss;
+        oss << std::setw(_width) << std::setfill('0') << number;
+        return oss.str();
+    }
 
-void noiseSeed(int seed) {
-    fNoiseSeed = seed;
-}
+    static int fNoiseSeed = static_cast<unsigned int>(std::time(nullptr));
 
-float noise(float x) {
-    return fSimplexNoise.noise(x);
-}
+    void noiseSeed(int seed) {
+        fNoiseSeed = seed;
+    }
 
-float noise(float x, float y) {
-    return fSimplexNoise.noise(x, y);
-}
+    float noise(float x) {
+        return fSimplexNoise.noise(x);
+    }
 
-float noise(float x, float y, float z) {
-    return fSimplexNoise.noise(x, y, z);
-}
+    float noise(float x, float y) {
+        return fSimplexNoise.noise(x, y);
+    }
 
-float radians(float degrees) {
-    return degrees * M_PI / 180.0f;
-}
+    float noise(float x, float y, float z) {
+        return fSimplexNoise.noise(x, y, z);
+    }
 
-float degrees(float radians) {
-    return radians * 180.0f / M_PI;
-}
+    float radians(float degrees) {
+        return degrees * M_PI / 180.0f;
+    }
 
-bool exists(const std::string &file_path) {
-    std::filesystem::path path(file_path);
-    return std::filesystem::exists(path);
-}
+    float degrees(float radians) {
+        return radians * 180.0f / M_PI;
+    }
 
-std::string sketchpath() {
-    std::filesystem::path currentPath = std::filesystem::current_path();
-    return currentPath.string();
-}
+    bool exists(const std::string &file_path) {
+        std::filesystem::path path(file_path);
+        return std::filesystem::exists(path);
+    }
+
+    std::string sketchpath() {
+        std::filesystem::path currentPath = std::filesystem::current_path();
+        return currentPath.string();
+    }
+} // namespace umgebung
