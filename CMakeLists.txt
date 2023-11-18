@@ -1,8 +1,16 @@
 cmake_minimum_required(VERSION 3.12)
 
+project(umgebung-lib VERSION 1.0 LANGUAGES CXX)
+
 message(STATUS "")
 message(STATUS "UMGEBUNG_APP  : ${UMGEBUNG_APP}")
-message(STATUS "UMGEBUNG_PATH : ${UMGEBUNG_PATH}")
+
+#if (NOT DEFINED UMGEBUNG_APP OR "${UMGEBUNG_APP}" STREQUAL "")
+#    message(STATUS "CHARACTER     : using umgebung standalone ( UMGEBUNG_APP not set )")
+#    set(BUILD_STANDALONE ON)
+#else ()
+#    set(BUILD_STANDALONE OFF)
+#endif ()
 
 ##########################################################################################################
 ### CHECK SYSTEM TYPE                                                                                  ###
@@ -58,62 +66,63 @@ endif ()
 # endif ()
 
 ##########################################################################################################
+### ADD SOURCE + HEADER FILES                                                                          ###
+##########################################################################################################
+
+# Add the library target
+file(GLOB_RECURSE UMGEBUNG_SOURCE_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+        #    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp>
+)
+add_library(umgebung-lib ${UMGEBUNG_SOURCE_FILES})
+
+# Specify include directories for the library
+target_include_directories(umgebung-lib PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/ip
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/osc
+        #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/ip>
+        #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/osc>
+)
+
+##########################################################################################################
 ### EN/DISABLE LIBRARIES                                                                               ###
 ##########################################################################################################
 
+add_library(umgebung-lib-interface INTERFACE)
+
 if (DISABLE_GRAPHICS)
+    target_compile_definitions(umgebung-lib-interface INTERFACE DISABLE_GRAPHICS)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DISABLE_GRAPHICS)
     message(STATUS "DISABLING     : graphics")
 endif (DISABLE_GRAPHICS)
 
 if (DISABLE_AUDIO)
+    target_compile_definitions(umgebung-lib-interface INTERFACE DISABLE_AUDIO)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DISABLE_AUDIO)
     message(STATUS "DISABLING     : audio")
 endif (DISABLE_AUDIO)
 
 if (DISABLE_VIDEO)
+    target_compile_definitions(umgebung-lib-interface INTERFACE DISABLE_VIDEO)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DISABLE_VIDEO)
     message(STATUS "DISABLING     : video")
 endif (DISABLE_VIDEO)
-
-if (NOT DEFINED UMGEBUNG_APP OR "${UMGEBUNG_APP}" STREQUAL "")
-    message(STATUS "CHARACTER     : using umgebung standalone ( UMGEBUNG_APP not set )")
-    project(umgebung-lib)
-    set(UMGEBUNG_APP ${PROJECT_NAME})
-    set(UMGEBUNG_PATH ".")
-    set(BUILD_STANDALONE ON)
-else ()
-    message(STATUS "CHARACTER     : using umgebung as library")
-    project(${UMGEBUNG_APP})
-    set(BUILD_STANDALONE OFF)
-endif ()
-
-##########################################################################################################
-### ADD SOURCE + HEADER FILES                                                                          ###
-##########################################################################################################
-
-set(HEADER_DIR "include" "${UMGEBUNG_PATH}/src")
-set(SOURCE_DIR "src")
-file(GLOB_RECURSE UMGEBUNG_SOURCE_FILES
-        "${UMGEBUNG_PATH}/${SOURCE_DIR}/*.cpp"
-)
-include_directories("${UMGEBUNG_PATH}/include")
-include_directories("${UMGEBUNG_PATH}/include/ip")
-include_directories("${UMGEBUNG_PATH}/include/osc")
 
 ##########################################################################################################
 ### CREATE EXECUTABLE                                                                                  ###
 ##########################################################################################################
 
-if (BUILD_STANDALONE)
-    add_executable(${PROJECT_NAME} ${UMGEBUNG_SOURCE_FILES})
-    target_compile_definitions(${PROJECT_NAME} PUBLIC UMGEBUNG_STANDALONE)
-else (BUILD_STANDALONE)
-    target_sources(${PROJECT_NAME}
-            PUBLIC
-            ${UMGEBUNG_SOURCE_FILES}
-    )
-endif (BUILD_STANDALONE)
+#if (BUILD_STANDALONE)
+#    add_executable(${PROJECT_NAME} ${UMGEBUNG_SOURCE_FILES})
+#    target_compile_definitions(${PROJECT_NAME} PUBLIC UMGEBUNG_STANDALONE)
+#else (BUILD_STANDALONE)
+target_sources(${PROJECT_NAME}
+        PUBLIC
+        ${UMGEBUNG_SOURCE_FILES}
+)
+#endif (BUILD_STANDALONE)
 
 ##########################################################################################################
 ### SUPRESS WARNINGS FOR APPLE                                                                         ###
@@ -170,7 +179,6 @@ endif (NOT DISABLE_GRAPHICS)
 # AUDIO
 if (NOT DISABLE_AUDIO)
     # PORTAUDIO
-    message(STATUS "PORTAUDIO     : searching")
     pkg_search_module(PORTAUDIO REQUIRED portaudio-2.0)
     if (APPLE)
     elseif (UNIX)
@@ -255,11 +263,12 @@ endif (NOT DISABLE_AUDIO)
 ### COMPILER FLAGS                                                                                     ###
 ##########################################################################################################
 
+# TODO check if this is necessary or if they can be inherited from the parent project
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++17-extensions")
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
 
 # TODO implement curses for headless mode

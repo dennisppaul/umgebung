@@ -543,16 +543,6 @@ namespace umgebung {
     void exit() {
         fAppIsRunning = false;
     }
-
-#ifdef UMGEBUNG_STANDALONE
-
-    PApplet *umgebung::instance() {
-        std::cerr << "+++ this is just a test. not creating an application instance!" << std::endl;
-        return nullptr;
-    }
-
-#endif
-
 } // namespace umgebung
 
 int main() {

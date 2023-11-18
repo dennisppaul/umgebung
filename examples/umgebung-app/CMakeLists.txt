@@ -4,9 +4,9 @@ project(umgebung-app)                                  # set application name
 set(UMGEBUNG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../..") # set absolut path to umgebung library e.g `set(UMGEBUNG_PATH "<absolute/path/to/library>")`
 link_directories("/usr/local/lib")                     # optional, can help to fix issues with Homebrew on macOS
 
-set(DISABLE_GRAPHICS FALSE)
-set(DISABLE_AUDIO FALSE)
-set(DISABLE_VIDEO FALSE)
+option(DISABLE_GRAPHICS "Disable graphic output" OFF)
+option(DISABLE_VIDEO "Disable video output" OFF)
+option(DISABLE_AUDIO "Disable audio output + inpu" OFF)
 
 # add source + header files from this directory
 
@@ -18,7 +18,15 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE UMGEBUNG_WINDOW_TITLE="${PROJ
 # add umgebung
 
 set(UMGEBUNG_APP ${PROJECT_NAME})
-include("${UMGEBUNG_PATH}/CMakeLists.txt")
+add_subdirectory(${UMGEBUNG_PATH} ${CMAKE_BINARY_DIR}/umgebung-lib)
+target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib-interface)
+target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib)
+
+# set compiler flags to C++17 ( minimum required by umgebung )
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 # create application bundle
 # 
