@@ -6,7 +6,7 @@ link_directories("/usr/local/lib")                     # optional, can help to f
 
 option(DISABLE_GRAPHICS "Disable graphic output" OFF)
 option(DISABLE_VIDEO "Disable video output" OFF)
-option(DISABLE_AUDIO "Disable audio output + inpu" OFF)
+option(DISABLE_AUDIO "Disable audio output + input" OFF)
 
 # add source + header files from this directory
 
