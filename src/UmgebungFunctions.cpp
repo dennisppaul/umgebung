@@ -82,8 +82,69 @@ namespace umgebung {
         return std::filesystem::exists(path);
     }
 
-    std::string sketchpath() {
+#if defined(SYSTEM_WIN32)
+#include <windows.h>
+#include <iostream>
+
+    std::string sketchPath_impl() {
+        char path[MAX_PATH];
+        if (GetModuleFileName(NULL, path, MAX_PATH)) {
+            std::filesystem::path exePath(path);
+            std::filesystem::path dirPath = exePath.parent_path();
+            return std::string(dirPath) + std::string("/");
+        } else {
+            std::cerr << "Error retrieving path" << std::endl;
+            return std::string();
+        }
+    }
+#elif defined(SYSTEM_UNIX)
+#include <unistd.h>
+#include <iostream>
+#include <vector>
+#include <filesystem>
+
+    std::string sketchPath_impl() {
+        std::vector<char> buf(1024);
+        ssize_t len = readlink("/proc/self/exe", buf.data(), buf.size());
+        if (len != -1) {
+            buf[len] = '\0'; // Null-terminate the string
+            std::filesystem::path exePath(buf.data());
+            std::filesystem::path dirPath = exePath.parent_path();
+            return dirPath.string() + std::string("/");
+        } else {
+            std::cerr << "Error retrieving path" << std::endl;
+            return std::string(); // Return an empty string in case of error
+        }
+    }
+
+#elif  defined(SYSTEM_MACOS)
+#include <mach-o/dyld.h>
+#include <iostream>
+#include <vector>
+#include <filesystem>
+
+    const std::string sketchPath_impl() {
+        uint32_t size = 1024;
+        std::vector<char> buf(size);
+        if (_NSGetExecutablePath(buf.data(), &size) == 0) {
+            std::filesystem::path exePath(buf.data());
+            std::filesystem::path dirPath = exePath.parent_path();
+            return dirPath.string() + std::string("/");
+        } else {
+            std::cerr << "Error retrieving path" << std::endl;
+            return std::string(); // Return an empty string in case of error
+        }
+    }
+#else
+
+    std::string sketchPath_impl() {
         std::filesystem::path currentPath = std::filesystem::current_path();
-        return currentPath.string();
+        return currentPath.string() + std::string("/");
+    }
+
+#endif
+
+    std::string sketchPath() {
+        return sketchPath_impl();
     }
 } // namespace umgebung

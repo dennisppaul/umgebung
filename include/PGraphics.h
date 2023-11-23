@@ -83,7 +83,7 @@ namespace umgebung {
 
         void vertex(float x, float y, float z = 0.0);
 
-        PFont *loadFont(const char *file, float size); // @development maybe use smart pointers here
+        PFont *loadFont(std::string file, float size); // @development maybe use smart pointers here
 
         void textFont(PFont *font);
 

@@ -175,8 +175,8 @@ void PGraphics::vertex(float x, float y, float z) {
 
 /* font */
 
-PFont *PGraphics::loadFont(const char *file, float size) {
-    auto *font = new PFont(file, size);
+PFont *PGraphics::loadFont(std::string file, float size) {
+    auto *font = new PFont(file.c_str(), size);
     return font;
 }
 

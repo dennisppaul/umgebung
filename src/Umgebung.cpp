@@ -452,7 +452,7 @@ namespace umgebung {
 #endif // DISABLE_GRAPHICS
 
     static int run_application() {
-        std::cout << "+++ current working directory: " << sketchpath() << std::endl;
+        std::cout << "+++ current working directory: " << sketchPath() << std::endl;
 
         fApplet = instance();
         if (fApplet == nullptr) {

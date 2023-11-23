@@ -52,7 +52,7 @@ namespace umgebung {
 
     bool exists(const std::string &file_path);
 
-    std::string sketchpath();
+    std::string sketchPath();
 
 #define FLUSH_PRINT
 

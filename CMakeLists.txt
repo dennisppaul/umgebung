@@ -13,43 +13,18 @@ message(STATUS "UMGEBUNG_APP  : ${UMGEBUNG_APP}")
 #endif ()
 
 ##########################################################################################################
-### CHECK SYSTEM TYPE                                                                                  ###
+### CHECK FOR HOMEBREW                                                                                 ###
 ##########################################################################################################
-
-if (APPLE)
-    message(STATUS "SYSTEM        : macOS")
-elseif (UNIX)
-    message(STATUS "SYSTEM        : UNIX ( including RPI )")
-elseif (WIN32)
-    message(STATUS "SYSTEM        : Windows")
-    message(WARNING "Warning: System is not supported")
-else ()
-    message(STATUS "SYSTEM        : (unknown system)")
-    message(WARNING "Warning: System is not supported")
-endif ()
-
-# NOTE removed specific system check for now ( because it fails with ninja build system ). it may not be necessary to have such a specific check for RPI.
-#try_run(RUN_RESULT_VAR COMPILE_RESULT_VAR
-#        ${UMGEBUNG_PATH}/tools/system_check
-#        ${UMGEBUNG_PATH}/tools/system_check.cpp
-#        RUN_OUTPUT_VARIABLE SYSTEM_CHECK_OUTPUT)
-#
-#if(RUN_RESULT_VAR EQUAL 1)
-#    set(IS_WINDOWS ON)
-#    message(STATUS "Running on Windows")
-#elseif(RUN_RESULT_VAR EQUAL 2)
-#    set(IS_MACOS ON)
-#    message(STATUS "Running on macOS")
-#elseif(RUN_RESULT_VAR EQUAL 3)
-#    set(IS_RASPBERRY_PI ON)
-#    message(STATUS "Running on Raspberry Pi")
-#elseif(RUN_RESULT_VAR EQUAL 4)
-#    set(IS_LINUX ON)
-#    message(STATUS "Running on Linux (non-Raspberry Pi)")
-#else()
-#    set(IS_UNKNOWN_SYSTEM ON)
-#    message(STATUS "Running on an unknown system")
-#endif()
+find_program(BREW_FOUND brew)
+if(BREW_FOUND)
+  execute_process(COMMAND brew --prefix 
+                  OUTPUT_VARIABLE HOMEBREW_PREFIX 
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+  set(HOMEBREW_LIB_PATH "${HOMEBREW_PREFIX}/lib")
+  message(STATUS "HOMEBREW LIBS : ${HOMEBREW_LIB_PATH}")
+else()
+  message(WARNING "HOMEBREW not found.")
+endif()
 
 ##########################################################################################################
 ### SUPPLEMENT LIBRARY SEARCH PATH                                                                     ###
@@ -59,7 +34,8 @@ endif ()
 # if (APPLE)
 #     # NOTE add default search path for libraries on macOS e.g for default Homebrew installation
 #     link_directories("/usr/local/lib")
-#     message(STATUS "GLOBAL LIB    : adding `/usr/local/lib` to library search path")
+#     link_directories("/opt/homebrew/lib")
+#     message(STATUS "GLOBAL LIB    : adding `/usr/local/lib` + `/opt/homebrew/lib` to library search path")
 # elseif (UNIX)
 # elseif (WIN32)
 # else ()
@@ -123,6 +99,51 @@ target_sources(${PROJECT_NAME}
         ${UMGEBUNG_SOURCE_FILES}
 )
 #endif (BUILD_STANDALONE)
+
+##########################################################################################################
+### CHECK SYSTEM TYPE                                                                                  ###
+##########################################################################################################
+
+if (APPLE)
+    message(STATUS "SYSTEM        : macOS")
+    target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_MACOS)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_MACOS)
+elseif (UNIX)
+    message(STATUS "SYSTEM        : UNIX ( including RPI )")
+    target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_UNIX)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_UNIX)
+elseif (WIN32)
+    message(STATUS "SYSTEM        : Windows")
+    message(WARNING "Warning: System is not supported")
+    target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_WIN32)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_WIN32)
+else ()
+    message(STATUS "SYSTEM        : (unknown system)")
+    message(WARNING "Warning: System is not supported")
+endif ()
+
+# NOTE removed specific system check for now ( because it fails with ninja build system ). it may not be necessary to have such a specific check for RPI.
+#try_run(RUN_RESULT_VAR COMPILE_RESULT_VAR
+#        ${UMGEBUNG_PATH}/tools/system_check
+#        ${UMGEBUNG_PATH}/tools/system_check.cpp
+#        RUN_OUTPUT_VARIABLE SYSTEM_CHECK_OUTPUT)
+#
+#if(RUN_RESULT_VAR EQUAL 1)
+#    set(IS_WINDOWS ON)
+#    message(STATUS "Running on Windows")
+#elseif(RUN_RESULT_VAR EQUAL 2)
+#    set(IS_MACOS ON)
+#    message(STATUS "Running on macOS")
+#elseif(RUN_RESULT_VAR EQUAL 3)
+#    set(IS_RASPBERRY_PI ON)
+#    message(STATUS "Running on Raspberry Pi")
+#elseif(RUN_RESULT_VAR EQUAL 4)
+#    set(IS_LINUX ON)
+#    message(STATUS "Running on Linux (non-Raspberry Pi)")
+#else()
+#    set(IS_UNKNOWN_SYSTEM ON)
+#    message(STATUS "Running on an unknown system")
+#endif()
 
 ##########################################################################################################
 ### SUPRESS WARNINGS FOR APPLE                                                                         ###
@@ -203,6 +224,10 @@ endif ()
 ##########################################################################################################
 ### INCLUDE + LINK LIBRARIES                                                                           ###
 ##########################################################################################################
+
+if(HOMEBREW_LIB_PATH)
+    target_link_directories(${PROJECT_NAME} PUBLIC ${HOMEBREW_LIB_PATH})
+endif()
 
 if (WIN32)
 elseif (APPLE)

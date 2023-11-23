@@ -21,18 +21,19 @@ class UmgebungApp : public PApplet {
     }
 
     void setup() {
-        if (!exists("../RobotoMono-Regular.ttf") || !exists("../image.png")) {
-            println("cannot find required files … exiting");
+        if (!exists(sketchPath() + "../RobotoMono-Regular.ttf") || !exists(sketchPath() + "../image.png")) {
+            println("cannot find required files at:", sketchPath());
+            println("... exiting");
             exit();
         }
         if (!headless) {
-            mImage     = loadImage("../image.png");
+            mImage     = loadImage(sketchPath() + "../image.png");
             float    pixels[100 * 100 * mImage->channels];
             for (int i = 0; i < 100 * 100 * mImage->channels; ++i) {
                 pixels[i] = random(1);
             }
             mImage->update(pixels, 100, 100, 10, 10);
-            mFont = loadFont("../RobotoMono-Regular.ttf", 48);
+            mFont = loadFont(sketchPath() + "../RobotoMono-Regular.ttf", 48);
             textFont(mFont);
         }
 
