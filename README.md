@@ -37,6 +37,8 @@ in order to compile and run applications install the following packages with [Ho
 $ brew install cmake pkgconfig glfw portaudio ftgl glew ffmpeg
 ```
 
+( or run `brew bundle` in project directory. )
+
 ### on Linux
 
 on linux ( including Raspberry Pi OS ) install the required packages with [APT](https://en.wikipedia.org/wiki/APT_(software)):

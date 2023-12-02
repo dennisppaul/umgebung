@@ -1,0 +1,7 @@
+brew 'cmake'
+brew 'pkgconfig'
+brew 'glfw'
+brew 'portaudio'
+brew 'ftgl'
+brew 'glew'
+brew 'ffmpeg'
