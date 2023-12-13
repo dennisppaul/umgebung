@@ -17,6 +17,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef USE_PORTAUDIO_GLFW
+
+#warning "--------------- USE PORTAUDIO GLFW ---------------"
+
 #include <iostream>
 
 #ifndef DISABLE_GRAPHICS
@@ -331,7 +335,7 @@ namespace umgebung {
         return window;
     }
 
-/* implement scroll_callback */
+    /* implement scroll_callback */
 
     static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
         // TODO add `void mouseWheel(MouseEvent event) { ... }`
@@ -384,11 +388,11 @@ namespace umgebung {
 
     static void handle_setup(GLFWwindow *window) {
         if (!headless) {
-            if (window != nullptr) {
 #ifndef DISABLE_GRAPHICS
+            if (window != nullptr) {
                 glfwSwapInterval(1); // Enable vsync (1 means on, 0 means off)
-#endif // DISABLE_GRAPHICS
             }
+#endif // DISABLE_GRAPHICS
         }
         fAppIsInitialized = true;
         fApplet->init();
@@ -548,3 +552,5 @@ namespace umgebung {
 int main() {
     return umgebung::run_application();
 }
+
+#endif // USE_PORTAUDIO_GLFW

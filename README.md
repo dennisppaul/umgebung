@@ -28,13 +28,14 @@ this project relies on the following packages:
 - [GLEW](https://glew.sourceforge.net/)
 - [oscpack](http://www.rossbencina.com/code/oscpack) ( included as source files )
 - [ffmpeg](https://ffmpeg.org)
+- [rtmidi](https://github.com/thestk/rtmidi)
 
 ### macOS
 
 in order to compile and run applications install the following packages with [Homebrew](https://brew.sh):
 
 ```
-$ brew install cmake pkgconfig glfw portaudio ftgl glew ffmpeg
+$ brew install cmake pkgconfig glfw portaudio ftgl glew ffmpeg rtmidi
 ```
 
 ( or run `brew bundle` in project directory. )

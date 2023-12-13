@@ -5,6 +5,9 @@ project(umgebung-lib VERSION 1.0 LANGUAGES CXX)
 message(STATUS "")
 message(STATUS "UMGEBUNG_APP  : ${UMGEBUNG_APP}")
 
+#option(NOT USE_PORTAUDIO_GLFW "Use SDL for graphics + audio instead of GLFW + PortAudio" ON)
+set(USE_PORTAUDIO_GLFW OFF)
+
 #if (NOT DEFINED UMGEBUNG_APP OR "${UMGEBUNG_APP}" STREQUAL "")
 #    message(STATUS "CHARACTER     : using umgebung standalone ( UMGEBUNG_APP not set )")
 #    set(BUILD_STANDALONE ON)
@@ -16,15 +19,15 @@ message(STATUS "UMGEBUNG_APP  : ${UMGEBUNG_APP}")
 ### CHECK FOR HOMEBREW                                                                                 ###
 ##########################################################################################################
 find_program(BREW_FOUND brew)
-if(BREW_FOUND)
-  execute_process(COMMAND brew --prefix 
-                  OUTPUT_VARIABLE HOMEBREW_PREFIX 
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  set(HOMEBREW_LIB_PATH "${HOMEBREW_PREFIX}/lib")
-  message(STATUS "HOMEBREW LIBS : ${HOMEBREW_LIB_PATH}")
-else()
-  message(WARNING "HOMEBREW not found.")
-endif()
+if (BREW_FOUND)
+    execute_process(COMMAND brew --prefix
+            OUTPUT_VARIABLE HOMEBREW_PREFIX
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(HOMEBREW_LIB_PATH "${HOMEBREW_PREFIX}/lib")
+    message(STATUS "HOMEBREW LIBS : ${HOMEBREW_LIB_PATH}")
+else ()
+    message(WARNING "HOMEBREW not found.")
+endif ()
 
 ##########################################################################################################
 ### SUPPLEMENT LIBRARY SEARCH PATH                                                                     ###
@@ -57,6 +60,7 @@ target_include_directories(umgebung-lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/include/ip
         ${CMAKE_CURRENT_SOURCE_DIR}/include/osc
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/midi
         #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/ip>
         #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/osc>
@@ -67,6 +71,14 @@ target_include_directories(umgebung-lib PUBLIC
 ##########################################################################################################
 
 add_library(umgebung-lib-interface INTERFACE)
+
+if (USE_PORTAUDIO_GLFW)
+    message(STATUS "FRAMEWORKS    : using GLFW + PortAudio")
+    target_compile_definitions(umgebung-lib-interface INTERFACE USE_PORTAUDIO_GLFW)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC USE_PORTAUDIO_GLFW)
+else (USE_PORTAUDIO_GLFW)
+    message(STATUS "FRAMEWORKS    : using SDL ( graphics + audio )")
+endif ()
 
 if (DISABLE_GRAPHICS)
     target_compile_definitions(umgebung-lib-interface INTERFACE DISABLE_GRAPHICS)
@@ -167,19 +179,31 @@ endif ()
 
 # GRAPHICS + VIDEO
 if (NOT DISABLE_GRAPHICS)
-    # GLFW + OpenGL + GLEW + FTGL
-    # TODO learn more about case-sensitive packae and library names in CMake on different systems
-    pkg_search_module(GLFW REQUIRED glfw3)
-    pkg_search_module(FTGL REQUIRED ftgl)
+    # OpenGL + GLEW + FTGL
     pkg_search_module(GLEW REQUIRED glew)
-    find_package(OpenGL REQUIRED)
-    if (APPLE)
-    elseif (UNIX)
-    elseif (WIN32)
-        warning("plattform may not be supported")
-    else ()
-        warning("plattform may not be supported")
-    endif ()
+    find_package(OpenGL REQUIRED) # or `OPENGL`
+    pkg_search_module(FTGL REQUIRED ftgl)
+    if (NOT USE_PORTAUDIO_GLFW)
+        pkg_search_module(SDL2 REQUIRED sdl2)
+        if (APPLE)
+        elseif (UNIX)
+        elseif (WIN32)
+            message(STATUS "plattform may not be supported")
+        else ()
+            message(STATUS "plattform may not be supported")
+        endif ()
+    else (NOT USE_PORTAUDIO_GLFW)
+        # GLFW
+        # TODO learn more about case-sensitive packae and library names in CMake on different systems
+        pkg_search_module(GLFW REQUIRED glfw3)
+        if (APPLE)
+        elseif (UNIX)
+        elseif (WIN32)
+            message(STATUS "plattform may not be supported")
+        else ()
+            message(STATUS "plattform may not be supported")
+        endif ()
+    endif (NOT USE_PORTAUDIO_GLFW)
 
     # FFMPEG
     if (NOT DISABLE_VIDEO)
@@ -190,25 +214,34 @@ if (NOT DISABLE_GRAPHICS)
         if (APPLE)
         elseif (UNIX)
         elseif (WIN32)
-            warning("plattform may not be supported")
+            message(STATUS "plattform may not be supported")
         else ()
-            warning("plattform may not be supported")
+            message(STATUS "plattform may not be supported")
         endif ()
     endif (NOT DISABLE_VIDEO)
 endif (NOT DISABLE_GRAPHICS)
 
 # AUDIO
 if (NOT DISABLE_AUDIO)
-    # PORTAUDIO
-    pkg_search_module(PORTAUDIO REQUIRED portaudio-2.0)
-    if (APPLE)
-    elseif (UNIX)
-    elseif (WIN32)
-        warning("plattform may not be supported")
-    else ()
-        warning("plattform may not be supported")
-    endif ()
+    if (NOT USE_PORTAUDIO_GLFW)
+        pkg_search_module(SDL2 REQUIRED sdl2)
+    else (NOT USE_PORTAUDIO_GLFW)
+        # PORTAUDIO
+        pkg_search_module(PORTAUDIO REQUIRED portaudio-2.0)
+        if (APPLE)
+        elseif (UNIX)
+        elseif (WIN32)
+            message(STATUS "plattform may not be supported")
+        else ()
+            message(STATUS "plattform may not be supported")
+        endif ()
+    endif (NOT USE_PORTAUDIO_GLFW)
 endif (NOT DISABLE_AUDIO)
+
+# MIDI
+if (NOT DISABLE_MIDI)
+    pkg_search_module(RTMIDI REQUIRED rtmidi)
+endif (NOT DISABLE_MIDI)
 
 ##########################################################################################################
 ### SUPRESS WARNINGS FOR APPLE                                                                         ###
@@ -225,9 +258,9 @@ endif ()
 ### INCLUDE + LINK LIBRARIES                                                                           ###
 ##########################################################################################################
 
-if(HOMEBREW_LIB_PATH)
+if (HOMEBREW_LIB_PATH)
     target_link_directories(${PROJECT_NAME} PUBLIC ${HOMEBREW_LIB_PATH})
-endif()
+endif ()
 
 if (WIN32)
 elseif (APPLE)
@@ -237,22 +270,35 @@ else ()
 endif ()
 
 # GRAPHICS + VIDEO
+if (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
+    if (NOT USE_PORTAUDIO_GLFW)
+        target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES})
+        target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
+    endif (NOT USE_PORTAUDIO_GLFW)
+endif (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
+
 if (NOT DISABLE_GRAPHICS)
-    # GLFW + OpenGL + GLEW + FTGL
+    # OpenGL + FTGL + GLEW
     target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
-    target_link_libraries(${PROJECT_NAME} ${GLFW_LIBRARIES})
-    target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} ${FTGL_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${FTGL_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${GLEW_INCLUDE_DIRS})
-    if (APPLE)
-    elseif (UNIX)
-    elseif (WIN32)
-        warning("plattform may not be supported")
-    else ()
-        warning("plattform may not be supported")
-    endif ()
+
+    if (NOT USE_PORTAUDIO_GLFW)
+    else (NOT USE_PORTAUDIO_GLFW)
+        # GLFW
+        target_link_libraries(${PROJECT_NAME} ${GLFW_LIBRARIES})
+        target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
+        if (APPLE)
+        elseif (UNIX)
+        elseif (WIN32)
+            message(STATUS "plattform may not be supported")
+        else ()
+            message(STATUS "plattform may not be supported")
+        endif ()
+    endif (NOT USE_PORTAUDIO_GLFW)
 
     # FFMPEG
     if (NOT DISABLE_VIDEO)
@@ -261,28 +307,39 @@ if (NOT DISABLE_GRAPHICS)
         if (APPLE)
         elseif (UNIX)
         elseif (WIN32)
-            warning("plattform may not be supported")
+            message(STATUS "plattform may not be supported")
         else ()
-            warning("plattform may not be supported")
+            message(STATUS "plattform may not be supported")
         endif ()
     endif (NOT DISABLE_VIDEO)
 endif (NOT DISABLE_GRAPHICS)
 
 # AUDIO
 if (NOT DISABLE_AUDIO)
-    # PORTAUDIO
-    if (APPLE)
-        target_link_libraries(${PROJECT_NAME} portaudio)
-        target_include_directories(${PROJECT_NAME} PUBLIC ${PORTAUDIO_INCLUDE_DIRS})
-    elseif (UNIX)
-        target_link_libraries(${PROJECT_NAME} ${PORTAUDIO_LIBRARIES})
-        target_include_directories(${PROJECT_NAME} PUBLIC ${PORTAUDIO_INCLUDE_DIRS})
-    elseif (WIN32)
-        warning("plattform may not be supported")
-    else ()
-        warning("plattform may not be supported")
-    endif ()
+    if (NOT USE_PORTAUDIO_GLFW)
+    else (NOT USE_PORTAUDIO_GLFW)
+        # PORTAUDIO
+        if (APPLE)
+            target_link_libraries(${PROJECT_NAME} portaudio)
+            target_include_directories(${PROJECT_NAME} PUBLIC ${PORTAUDIO_INCLUDE_DIRS})
+        elseif (UNIX)
+            target_link_libraries(${PROJECT_NAME} ${PORTAUDIO_LIBRARIES})
+            target_include_directories(${PROJECT_NAME} PUBLIC ${PORTAUDIO_INCLUDE_DIRS})
+        elseif (WIN32)
+            message(STATUS "plattform may not be supported")
+        else ()
+            message(STATUS "plattform may not be supported")
+        endif ()
+    endif (NOT USE_PORTAUDIO_GLFW)
 endif (NOT DISABLE_AUDIO)
+
+# MIDI
+if (NOT DISABLE_MIDI)
+    target_link_libraries(${PROJECT_NAME} ${RTMIDI_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${RTMIDI_INCLUDE_DIRS})
+    add_definitions(${RTMIDI_CFLAGS_OTHER})
+    #    target_compile_definitions(${PROJECT_NAME} PUBLIC ${RTMIDI_CFLAGS_OTHER})
+endif (NOT DISABLE_MIDI)
 
 ##########################################################################################################
 ### COMPILER FLAGS                                                                                     ###
