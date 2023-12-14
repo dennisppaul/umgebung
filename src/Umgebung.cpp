@@ -17,8 +17,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef USE_PORTAUDIO_GLFW
-
 #include <iostream>
 
 #ifndef DISABLE_GRAPHICS
@@ -776,5 +774,3 @@ namespace umgebung {
 int main() {
     return umgebung::run_application();
 }
-
-#endif // USE_PORTAUDIO_GLFW
