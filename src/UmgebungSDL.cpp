@@ -33,6 +33,9 @@
 #ifndef DISABLE_AUDIO
 
 //#include <portaudio.h>
+#include <SDL2/SDL.h>
+#include <chrono>
+#include <thread>
 
 #endif
 
@@ -76,12 +79,42 @@ namespace umgebung {
 //
 #ifndef DISABLE_AUDIO
 
-    void audioCallback(void *userdata, Uint8 *stream, int len) {
+    float *input_buffer     = nullptr;
+    bool  audio_input_ready = false;
+
+    void audioOutputCallback(void *userdata, Uint8 *stream, int len) {
         // Cast stream to a float pointer (assuming AUDIO_F32 format)
-        float *buffer = reinterpret_cast<float *>(stream);
-        int   samples = len / sizeof(float); // Number of samples to fill
-        float in[samples / audio_input_channels];
-        fApplet->audioblock(in, buffer, samples / audio_output_channels);
+        int   samples         = len / sizeof(float); // Number of samples to fill
+        float *output_buffer  = reinterpret_cast<float *>(stream);
+        if (input_buffer == nullptr && audio_input_channels > 0) {
+            for (int i = 0; i < samples; ++i) {
+                output_buffer[i] = 0;
+            }
+            return;
+        }
+        int   mIterationGuard = DEFAULT_AUDIO_SAMPLE_RATE / DEFAULT_FRAMES_PER_BUFFER;
+        while (!audio_input_ready && mIterationGuard-- > 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        if (mIterationGuard <= 1) {
+            return;
+        }
+        fApplet->audioblock(input_buffer, output_buffer, samples / audio_output_channels);
+    }
+
+    void audioInputCallback(void *userdata, Uint8 *stream, int len) {
+        audio_input_ready = false;
+        float *samples    = reinterpret_cast<float *>(stream); // Assuming AUDIO_F32 format
+        int   sampleCount = len / sizeof(float);
+
+        if (input_buffer == nullptr) {
+            return;
+        }
+
+        for (int i = 0; i < sampleCount; ++i) {
+            input_buffer[i] = samples[i];
+        }
+        audio_input_ready = true;
     }
 
 //    static int audioCallback(const void *inputBuffer,
@@ -95,7 +128,25 @@ namespace umgebung {
 //        fApplet->audioblock(in, out, static_cast<int>(audioFrameCount));
 //        return paContinue;
 //    }
-//
+
+    static int print_audio_devices() {
+        std::cout << "Available audio devices:\n";
+
+        int      numInputDevices = SDL_GetNumAudioDevices(SDL_TRUE);
+        for (int i               = 0; i < numInputDevices; i++) {
+            const char *deviceName = SDL_GetAudioDeviceName(i, SDL_TRUE);
+            std::cout << "- Input Device  : " << i << " : " << deviceName << std::endl;
+        }
+
+        int      numOutputDevices = SDL_GetNumAudioDevices(SDL_FALSE);
+        for (int i                = 0; i < numOutputDevices; i++) {
+            const char *deviceName = SDL_GetAudioDeviceName(i, SDL_FALSE);
+            std::cout << "- Output Device : " << i << " : " << deviceName << std::endl;
+        }
+
+        return 0;
+    }
+
 //    static int print_audio_devices() {
 //        int numDevices = Pa_GetDeviceCount();
 //        if (numDevices < 0) {
@@ -117,27 +168,6 @@ namespace umgebung {
 //    }
 
     static void init_audio(int input_channels, int output_channels) {
-        SDL_AudioSpec audio_output_spec, audio_output_obtained_spec;
-        SDL_zero(audio_output_spec);
-        audio_output_spec.freq     = DEFAULT_AUDIO_SAMPLE_RATE; // frequency: 48000Hz
-        audio_output_spec.format   = AUDIO_F32; // format: 32-bit floating point
-        audio_output_spec.channels = output_channels; // channels: Stereo
-        audio_output_spec.samples  = 4096; // buffer size: 4096 samples
-        audio_output_spec.callback = audioCallback;
-
-        // Open audio device
-        audio_output_stream = SDL_OpenAudioDevice(NULL, 0,
-                                                  &audio_output_spec,
-                                                  &audio_output_obtained_spec,
-                                                  SDL_AUDIO_ALLOW_FORMAT_CHANGE);
-        if (audio_output_stream == 0) {
-            std::cerr << "error: Failed to open audio: " << SDL_GetError() << std::endl;
-            return;
-        }
-
-        // Start playing audio
-        SDL_PauseAudioDevice(audio_output_stream, 0);
-
 //        PaError err;
 //
 //        err = Pa_Initialize();
@@ -147,7 +177,53 @@ namespace umgebung {
 //        }
 //
 //        PaStream *stream;
-//        if (audio_input_device == DEFAULT_AUDIO_DEVICE || audio_output_device == DEFAULT_AUDIO_DEVICE) {
+        if (audio_input_device != DEFAULT_AUDIO_DEVICE || audio_output_device != DEFAULT_AUDIO_DEVICE) {
+            print_audio_devices();
+        }
+        if (output_channels > 0) {
+            SDL_AudioSpec audio_output_spec, audio_output_obtained_spec;
+            SDL_zero(audio_output_spec);
+            audio_output_spec.freq     = DEFAULT_AUDIO_SAMPLE_RATE; // @TODO make this adjustable
+            audio_output_spec.format   = AUDIO_F32;                 // @TODO make this adjustable
+            audio_output_spec.channels = output_channels;
+            audio_output_spec.samples  = DEFAULT_FRAMES_PER_BUFFER; // @TODO make this adjustable
+            audio_output_spec.callback = audioOutputCallback;
+            audio_output_stream = SDL_OpenAudioDevice(
+                    audio_output_device == DEFAULT_AUDIO_DEVICE ? NULL : SDL_GetAudioDeviceName(audio_output_device, 0),
+                    0,
+                    &audio_output_spec,
+                    &audio_output_obtained_spec,
+                    SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+            if (audio_output_stream == 0) {
+                std::cerr << "error: failed to open audio output: " << SDL_GetError() << std::endl;
+                return;
+            }
+            SDL_PauseAudioDevice(audio_output_stream, 0);
+        }
+
+        if (input_channels > 0) {
+            SDL_AudioSpec audio_input_spec, audio_input_obtained_spec;
+            SDL_zero(audio_input_spec);
+            audio_input_spec.freq     = DEFAULT_AUDIO_SAMPLE_RATE; // @TODO make this adjustable
+            audio_input_spec.format   = AUDIO_F32;                 // @TODO make this adjustable
+            audio_input_spec.channels = input_channels;
+            audio_input_spec.samples  = DEFAULT_FRAMES_PER_BUFFER; // @TODO make this adjustable
+            audio_input_spec.callback = audioInputCallback;
+            audio_input_stream = SDL_OpenAudioDevice(
+                    audio_input_device == DEFAULT_AUDIO_DEVICE ? NULL : SDL_GetAudioDeviceName(audio_input_device, 1),
+                    1,
+                    &audio_input_spec,
+                    &audio_input_obtained_spec,
+                    SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+            if (audio_input_stream == 0) {
+                std::cerr << "error: failed to open audio input: " << SDL_GetError() << std::endl;
+                return;
+            }
+
+            input_buffer = new float[DEFAULT_FRAMES_PER_BUFFER * input_channels];
+            SDL_PauseAudioDevice(audio_input_stream, 0);
+        }
+
 //            std::cout << "+++ using default audio input and output devices" << std::endl;
 //            err = Pa_OpenDefaultStream(&stream,
 //                                       input_channels,
@@ -159,7 +235,7 @@ namespace umgebung {
 //                                       nullptr);
 //        } else {
 //            print_audio_devices();
-//
+
 //            PaStreamParameters inputParameters, outputParameters;
 //            inputParameters.device                     = audio_input_device;
 //            inputParameters.channelCount               = input_channels;
@@ -192,12 +268,21 @@ namespace umgebung {
 //            return nullptr;
 //        }
 //        return stream;
+//        }
     }
 
 #endif // DISABLE_AUDIO
 
-//#ifndef DISABLE_GRAPHICS
-//
+#ifndef DISABLE_GRAPHICS
+
+    static void set_default_graphics_state() {
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
 //    static void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
 //        fApplet->mouseX = (float) xpos;
 //        fApplet->mouseY = (float) ypos;
@@ -242,14 +327,6 @@ namespace umgebung {
 ////    fApplet->key = static_cast<char>(codepoint);
 ////    std::cout << "Character entered: " << static_cast<char>(codepoint) << " (Unicode: " << codepoint << ")" << std::endl;
 //    }
-
-    static void set_default_graphics_state() {
-        glClearColor(0, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
 
 //    static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 //        fApplet->width  = width;
@@ -413,8 +490,8 @@ namespace umgebung {
 //        glfwSetCharCallback(window, nullptr);
 //        glfwSetScrollCallback(window, nullptr);
 //    }
-//
-//#endif // DISABLE_GRAPHICS
+
+#endif // DISABLE_GRAPHICS
 
 #ifndef DISABLE_AUDIO
 
@@ -504,6 +581,46 @@ namespace umgebung {
         startTime = std::chrono::high_resolution_clock::now();
     }
 
+    static void handle_event(SDL_Event event) {
+        switch (event.type) {
+            case SDL_QUIT:
+                fAppIsRunning = false;
+                break;
+            case SDL_KEYDOWN:
+                fApplet->key = event.key.keysym.sym;
+                if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+                    fAppIsRunning = false;
+                } else {
+                    fApplet->keyPressed();
+                }
+                break;
+            case SDL_KEYUP:
+                fApplet->key = event.key.keysym.sym;
+                fApplet->keyReleased();
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                fApplet->mouseButton = event.button.button;
+                fMouseIsPressed = true;
+                fApplet->mousePressed();
+                break;
+            case SDL_MOUSEBUTTONUP:
+                fMouseIsPressed = false;
+                fApplet->mouseReleased();
+                break;
+            case SDL_MOUSEMOTION:
+                fApplet->mouseX = (float) event.motion.x;
+                fApplet->mouseY = (float) event.motion.y;
+                if (fMouseIsPressed) {
+                    fApplet->mouseDragged();
+                } else {
+                    fApplet->mouseMoved();
+                }
+                fApplet->pmouseX = fApplet->mouseX;
+                fApplet->pmouseY = fApplet->mouseY;
+                break;
+        }
+    }
+
 #else // DISABLE_GRAPHICS
 
     static void handle_draw() {
@@ -581,15 +698,14 @@ namespace umgebung {
 //            stream = nullptr;
         } else {
             init_audio(audio_input_channels, audio_output_channels);
-            // TODO check only if channels > 0
-//            if (!audio_output_stream) {
-//                std::cerr << "+++ error: no audio output stream" << std::endl;
-//                return -1;
-//            }
-//            if (!audio_input_stream) {
-//                std::cerr << "+++ error: no audio input stream" << std::endl;
-//                return -1;
-//            }
+            if (!audio_output_stream && audio_output_channels > 0) {
+                std::cerr << "+++ error: no audio output stream" << std::endl;
+                return -1;
+            }
+            if (!audio_input_stream && audio_input_channels > 0) {
+                std::cerr << "+++ error: no audio input stream" << std::endl;
+                return -1;
+            }
 
 //            stream = init_audio(audio_input_channels, audio_output_channels);
 //            if (stream == nullptr) {
@@ -607,9 +723,7 @@ namespace umgebung {
 //        while (fAppIsRunning && (headless || !glfwWindowShouldClose(window))) {
             SDL_Event e;
             while (SDL_PollEvent(&e) != 0) {
-                if (e.type == SDL_QUIT) {
-                    fAppIsRunning = false;
-                }
+                handle_event(e);
             }
             std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double>                  frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(

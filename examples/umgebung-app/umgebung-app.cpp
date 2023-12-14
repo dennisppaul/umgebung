@@ -143,9 +143,10 @@ class UmgebungApp : public PApplet {
     }
 
     void keyPressed() {
-        if (key == 'Q') {
+        if (key == 'q') {
             exit();
         }
+        println((char)key, " pressed");
     }
 
     void mouseMoved() {
