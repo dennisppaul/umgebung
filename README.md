@@ -22,8 +22,7 @@ this project relies on the following packages:
 
 - [CMake](https://cmake.org/)
 - [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/)
-- [GLFW](https://www.glfw.org/)
-- [PortAudio](https://www.portaudio.com)
+- [SDL2](https://www.libsdl.org)
 - [FTGL](https://github.com/frankheckenbach/ftgl)
 - [GLEW](https://glew.sourceforge.net/)
 - [oscpack](http://www.rossbencina.com/code/oscpack) ( included as source files )
@@ -35,7 +34,7 @@ this project relies on the following packages:
 in order to compile and run applications install the following packages with [Homebrew](https://brew.sh):
 
 ```
-$ brew install cmake pkgconfig glfw portaudio ftgl glew ffmpeg rtmidi
+$ brew install cmake pkgconfig sdl2 ftgl glew ffmpeg rtmidi sdl
 ```
 
 ( or run `brew bundle` in project directory. )
@@ -47,7 +46,7 @@ on linux ( including Raspberry Pi OS ) install the required packages with [APT](
 ```
 $ sudo apt-get update -y
 $ sudo apt-get upgrade -y
-$ sudo apt-get install cmake pkg-config libglfw3 libglfw3-dev portaudio19-dev libftgl-dev libglew-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev -y
+$ sudo apt-get install cmake pkg-config libsdl2-dev libglfw3-dev libftgl-dev libglew-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev -y
 ```
 
 ## Build Applications with *Umgebung*

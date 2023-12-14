@@ -5,9 +5,6 @@ project(umgebung-lib VERSION 1.0 LANGUAGES CXX)
 message(STATUS "")
 message(STATUS "UMGEBUNG_APP  : ${UMGEBUNG_APP}")
 
-#option(NOT USE_PORTAUDIO_GLFW "Use SDL for graphics + audio instead of GLFW + PortAudio" ON)
-set(USE_PORTAUDIO_GLFW OFF)
-
 #if (NOT DEFINED UMGEBUNG_APP OR "${UMGEBUNG_APP}" STREQUAL "")
 #    message(STATUS "CHARACTER     : using umgebung standalone ( UMGEBUNG_APP not set )")
 #    set(BUILD_STANDALONE ON)
@@ -71,14 +68,6 @@ target_include_directories(umgebung-lib PUBLIC
 ##########################################################################################################
 
 add_library(umgebung-lib-interface INTERFACE)
-
-if (USE_PORTAUDIO_GLFW)
-    message(STATUS "FRAMEWORKS    : using GLFW + PortAudio")
-    target_compile_definitions(umgebung-lib-interface INTERFACE USE_PORTAUDIO_GLFW)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC USE_PORTAUDIO_GLFW)
-else (USE_PORTAUDIO_GLFW)
-    message(STATUS "FRAMEWORKS    : using SDL ( graphics + audio )")
-endif ()
 
 if (DISABLE_GRAPHICS)
     target_compile_definitions(umgebung-lib-interface INTERFACE DISABLE_GRAPHICS)
@@ -183,27 +172,14 @@ if (NOT DISABLE_GRAPHICS)
     pkg_search_module(GLEW REQUIRED glew)
     find_package(OpenGL REQUIRED) # or `OPENGL`
     pkg_search_module(FTGL REQUIRED ftgl)
-    if (NOT USE_PORTAUDIO_GLFW)
-        pkg_search_module(SDL2 REQUIRED sdl2)
-        if (APPLE)
-        elseif (UNIX)
-        elseif (WIN32)
-            message(STATUS "plattform may not be supported")
-        else ()
-            message(STATUS "plattform may not be supported")
-        endif ()
-    else (NOT USE_PORTAUDIO_GLFW)
-        # GLFW
-        # TODO learn more about case-sensitive packae and library names in CMake on different systems
-        pkg_search_module(GLFW REQUIRED glfw3)
-        if (APPLE)
-        elseif (UNIX)
-        elseif (WIN32)
-            message(STATUS "plattform may not be supported")
-        else ()
-            message(STATUS "plattform may not be supported")
-        endif ()
-    endif (NOT USE_PORTAUDIO_GLFW)
+    pkg_search_module(SDL2 REQUIRED sdl2)
+    if (APPLE)
+    elseif (UNIX)
+    elseif (WIN32)
+        message(STATUS "plattform may not be supported")
+    else ()
+        message(STATUS "plattform may not be supported")
+    endif ()
 
     # FFMPEG
     if (NOT DISABLE_VIDEO)
@@ -223,19 +199,7 @@ endif (NOT DISABLE_GRAPHICS)
 
 # AUDIO
 if (NOT DISABLE_AUDIO)
-    if (NOT USE_PORTAUDIO_GLFW)
-        pkg_search_module(SDL2 REQUIRED sdl2)
-    else (NOT USE_PORTAUDIO_GLFW)
-        # PORTAUDIO
-        pkg_search_module(PORTAUDIO REQUIRED portaudio-2.0)
-        if (APPLE)
-        elseif (UNIX)
-        elseif (WIN32)
-            message(STATUS "plattform may not be supported")
-        else ()
-            message(STATUS "plattform may not be supported")
-        endif ()
-    endif (NOT USE_PORTAUDIO_GLFW)
+    pkg_search_module(SDL2 REQUIRED sdl2)
 endif (NOT DISABLE_AUDIO)
 
 # MIDI
@@ -269,12 +233,10 @@ elseif (UNIX)
 else ()
 endif ()
 
-# GRAPHICS + VIDEO
+# GRAPHICS + VIDEO + AUDIO
 if (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
-    if (NOT USE_PORTAUDIO_GLFW)
-        target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES})
-        target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
-    endif (NOT USE_PORTAUDIO_GLFW)
+    target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
 endif (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
 
 if (NOT DISABLE_GRAPHICS)
@@ -285,20 +247,6 @@ if (NOT DISABLE_GRAPHICS)
     target_include_directories(${PROJECT_NAME} PUBLIC ${FTGL_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${GLEW_INCLUDE_DIRS})
-
-    if (NOT USE_PORTAUDIO_GLFW)
-    else (NOT USE_PORTAUDIO_GLFW)
-        # GLFW
-        target_link_libraries(${PROJECT_NAME} ${GLFW_LIBRARIES})
-        target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
-        if (APPLE)
-        elseif (UNIX)
-        elseif (WIN32)
-            message(STATUS "plattform may not be supported")
-        else ()
-            message(STATUS "plattform may not be supported")
-        endif ()
-    endif (NOT USE_PORTAUDIO_GLFW)
 
     # FFMPEG
     if (NOT DISABLE_VIDEO)
@@ -313,25 +261,6 @@ if (NOT DISABLE_GRAPHICS)
         endif ()
     endif (NOT DISABLE_VIDEO)
 endif (NOT DISABLE_GRAPHICS)
-
-# AUDIO
-if (NOT DISABLE_AUDIO)
-    if (NOT USE_PORTAUDIO_GLFW)
-    else (NOT USE_PORTAUDIO_GLFW)
-        # PORTAUDIO
-        if (APPLE)
-            target_link_libraries(${PROJECT_NAME} portaudio)
-            target_include_directories(${PROJECT_NAME} PUBLIC ${PORTAUDIO_INCLUDE_DIRS})
-        elseif (UNIX)
-            target_link_libraries(${PROJECT_NAME} ${PORTAUDIO_LIBRARIES})
-            target_include_directories(${PROJECT_NAME} PUBLIC ${PORTAUDIO_INCLUDE_DIRS})
-        elseif (WIN32)
-            message(STATUS "plattform may not be supported")
-        else ()
-            message(STATUS "plattform may not be supported")
-        endif ()
-    endif (NOT USE_PORTAUDIO_GLFW)
-endif (NOT DISABLE_AUDIO)
 
 # MIDI
 if (NOT DISABLE_MIDI)

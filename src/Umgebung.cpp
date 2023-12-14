@@ -19,10 +19,15 @@
 
 #include <iostream>
 
+#if !defined(DISABLE_GRAPHICS) || !defined(DISABLE_AUDIO)
+
+#include <SDL2/SDL.h>
+
+#endif
+
 #ifndef DISABLE_GRAPHICS
 
 #include <GL/glew.h>
-#include <SDL2/SDL.h>
 
 #define APP_WINDOW SDL_Window
 
@@ -30,8 +35,6 @@
 
 #ifndef DISABLE_AUDIO
 
-//#include <portaudio.h>
-#include <SDL2/SDL.h>
 #include <chrono>
 #include <thread>
 
@@ -66,24 +69,14 @@ namespace umgebung {
     static SDL_AudioDeviceID audio_output_stream = 0;
     static SDL_AudioDeviceID audio_input_stream  = 0;
 
-//#ifndef DISABLE_GRAPHICS
-//
-//
-////    static void release_HID_callbacks(GLFWwindow *window);
-////
-////    static void setup_HID_callbacks(GLFWwindow *window);
-//
-//#endif // DISABLE_GRAPHICS
-//
 #ifndef DISABLE_AUDIO
 
     float *input_buffer     = nullptr;
     bool  audio_input_ready = false;
 
     void audioOutputCallback(void *userdata, Uint8 *stream, int len) {
-        // Cast stream to a float pointer (assuming AUDIO_F32 format)
         int   samples         = len / sizeof(float); // Number of samples to fill
-        float *output_buffer  = reinterpret_cast<float *>(stream);
+        float *output_buffer  = reinterpret_cast<float *>(stream); // (assuming AUDIO_F32 format)
         if (input_buffer == nullptr && audio_input_channels > 0) {
             for (int i = 0; i < samples; ++i) {
                 output_buffer[i] = 0;
@@ -115,18 +108,6 @@ namespace umgebung {
         audio_input_ready = true;
     }
 
-//    static int audioCallback(const void *inputBuffer,
-//                             void *outputBuffer,
-//                             unsigned long audioFrameCount,
-//                             const PaStreamCallbackTimeInfo *timeInfo,
-//                             PaStreamCallbackFlags statusFlags,
-//                             void *userData) {
-//        auto *out = (float *) outputBuffer;
-//        auto *in  = (const float *) inputBuffer;
-//        fApplet->audioblock(in, out, static_cast<int>(audioFrameCount));
-//        return paContinue;
-//    }
-
     static int print_audio_devices() {
         std::cout << "Available audio devices:\n";
 
@@ -145,36 +126,7 @@ namespace umgebung {
         return 0;
     }
 
-//    static int print_audio_devices() {
-//        int numDevices = Pa_GetDeviceCount();
-//        if (numDevices < 0) {
-//            printf("PortAudio error: %s\n", Pa_GetErrorText(numDevices));
-//            return numDevices;
-//        }
-//
-//        printf("Available audio devices:\n");
-//
-//        for (int i = 0; i < numDevices; i++) {
-//            const PaDeviceInfo *deviceInfo = Pa_GetDeviceInfo(i);
-//            printf("- Device %d: %s\n", i, deviceInfo->name);
-//            printf("  - Max Input Channels .... : %d\n", deviceInfo->maxInputChannels);
-//            printf("  - Max Output Channels ... : %d\n", deviceInfo->maxOutputChannels);
-//            printf("  - Default Sample Rate ... : %8.2f\n", deviceInfo->defaultSampleRate);
-//        }
-//
-//        return paNoError;
-//    }
-
     static void init_audio(int input_channels, int output_channels) {
-//        PaError err;
-//
-//        err = Pa_Initialize();
-//        if (err != paNoError) {
-//            std::cerr << "PortAudio error (@init): " << Pa_GetErrorText(err) << std::endl;
-//            return nullptr;
-//        }
-//
-//        PaStream *stream;
         if (audio_input_device != DEFAULT_AUDIO_DEVICE || audio_output_device != DEFAULT_AUDIO_DEVICE) {
             print_audio_devices();
         }
@@ -281,51 +233,6 @@ namespace umgebung {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
-//    static void mouse_move_callback(GLFWwindow *window, double xpos, double ypos) {
-//        fApplet->mouseX = (float) xpos;
-//        fApplet->mouseY = (float) ypos;
-//        if (fMouseIsPressed) {
-//            fApplet->mouseDragged();
-//        } else {
-//            fApplet->mouseMoved();
-//        }
-//        fApplet->pmouseX = fApplet->mouseX;
-//        fApplet->pmouseY = fApplet->mouseY;
-//    }
-//
-//    static void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
-//        fApplet->mouseButton = button;
-//        if (action == GLFW_PRESS) {
-//            fMouseIsPressed = true;
-//            fApplet->mousePressed();
-//        } else if (action == GLFW_RELEASE) {
-//            fMouseIsPressed = false;
-//            fApplet->mouseReleased();
-//        }
-//    }
-//
-//    static void key_callback(GLFWwindow *window, int _key, int scancode, int action, int mods) {
-//        // @TODO key is not set properly
-//        if (action == GLFW_PRESS) {
-//            fApplet->key = _key;
-//            if (fApplet->key == GLFW_KEY_ESCAPE) {
-//                fAppIsRunning = false;
-//                glfwSetWindowShouldClose(window, GLFW_TRUE);
-//            } else {
-//                fApplet->keyPressed();
-//            }
-//        }
-//        if (action == GLFW_RELEASE) {
-//            fApplet->key = _key;
-//            fApplet->keyReleased();
-//        }
-//    }
-//
-//    void character_callback(GLFWwindow *window, unsigned int codepoint) {
-////    fApplet->key = static_cast<char>(codepoint);
-////    std::cout << "Character entered: " << static_cast<char>(codepoint) << " (Unicode: " << codepoint << ")" << std::endl;
-//    }
-
 //    static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 //        fApplet->width  = width;
 //        fApplet->height = height;
@@ -360,16 +267,10 @@ namespace umgebung {
 //            glfwSetWindowMonitor(_wnd, nullptr, wndPos[0], wndPos[1], wndSize[0], wndSize[1], 0);
 //        }
 //    }
-//
-    static APP_WINDOW *init_graphics(int width, int height, const char *title) {
-//        glfwSetErrorCallback(error_callback);
 
+    static APP_WINDOW *init_graphics(int width, int height, const char *title) {
         fApplet->width  = width;
         fApplet->height = height;
-
-//        if (!glfwInit()) {
-//            return nullptr;
-//        }
 
 //        /* monitors */
 //        GLFWmonitor *desiredMonitor = nullptr;
@@ -386,24 +287,22 @@ namespace umgebung {
 //                desiredMonitor = monitors[monitor];
 //            }
 //        }
-//
-//        /* anti aliasing */
+
+        /* anti aliasing */
         if (antialiasing > 0) {
-//            glfwWindowHint(GLFW_SAMPLES, antialiasing);
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); // @TODO check number of buffers
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, antialiasing);
         }
 
         int mWindowFlags = SDL_WINDOW_OPENGL;
         if (enable_retina_support) {
-//            glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
             mWindowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
         }
 
 //        int major, minor, revision;
 //        glfwGetVersion(&major, &minor, &revision);
 //        std::cout << "+++ OpenGL version: " << major << "." << minor << "." << revision << std::endl;
-//
+
 //#if USE_CURRENT_OPENGL
 //        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 //        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -414,7 +313,6 @@ namespace umgebung {
 //        glfwWindowHint(GLFW_DECORATED, true);
 //        glfwWindowHint(GLFW_RESIZABLE, resizable);
 
-//        GLFWwindow *window = glfwCreateWindow(fApplet->width, fApplet->height, title, desiredMonitor, nullptr);
         APP_WINDOW *window = SDL_CreateWindow(
                 title,
                 SDL_WINDOWPOS_UNDEFINED,
@@ -425,12 +323,10 @@ namespace umgebung {
         );
 
         if (!window) {
-//            glfwTerminate();
             std::cerr << "+++ error: could not create window" << SDL_GetError() << std::endl;
             return nullptr;
         }
 
-        // Create OpenGL context
         glContext = SDL_GL_CreateContext(window);
         if (glContext == NULL) {
             std::cerr << "+++ error: could not create OpenGL context: " << SDL_GetError() << std::endl;
@@ -440,73 +336,41 @@ namespace umgebung {
 
         int framebufferWidth, framebufferHeight;
         SDL_GL_GetDrawableSize(window, &framebufferWidth, &framebufferHeight);
-//        glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
         if (fApplet->width != framebufferWidth || fApplet->height != framebufferHeight) {
             std::cout << "+++ retina display detected" << std::endl;
         }
         fApplet->framebuffer_width  = framebufferWidth;
         fApplet->framebuffer_height = framebufferHeight;
 
-//        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-//
-//        glfwMakeContextCurrent(window);
-//
-//        /* setup callbacks */
-//        setup_HID_callbacks(window);
-
         set_default_graphics_state();
 
         /* initialize GLEW */
         if (glewInit() != GLEW_OK) {
-//            glfwTerminate();
             return nullptr;
         }
 
         return window;
     }
-//
+
 //    /* implement scroll_callback */
 //
 //    static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 //        // TODO add `void mouseWheel(MouseEvent event) { ... }`
 //        std::cout << "Scroll: " << xoffset << ", " << yoffset << std::endl;
 //    }
-//
-//
-//    static void setup_HID_callbacks(GLFWwindow *window) {
-//        glfwSetCursorPosCallback(window, mouse_move_callback);
-//        glfwSetMouseButtonCallback(window, mouse_button_callback);
-//        glfwSetKeyCallback(window, key_callback);
-//        glfwSetCharCallback(window, character_callback);
-//        glfwSetScrollCallback(window, scroll_callback);
-//    }
-//
-//    static void release_HID_callbacks(GLFWwindow *window) {
-//        glfwSetCursorPosCallback(window, nullptr);
-//        glfwSetMouseButtonCallback(window, nullptr);
-//        glfwSetKeyCallback(window, nullptr);
-//        glfwSetCharCallback(window, nullptr);
-//        glfwSetScrollCallback(window, nullptr);
-//    }
+
 
 #endif // DISABLE_GRAPHICS
 
 #ifndef DISABLE_AUDIO
 
     static void shutdown() {
-//    static void shutdown(PaStream *stream) {
         if (!audio_output_stream) {
             SDL_CloseAudioDevice(audio_output_stream);
         }
         if (!audio_input_stream) {
             SDL_CloseAudioDevice(audio_input_stream);
         }
-//        if (!no_audio) {
-//            /* terminate PortAudio */
-//            Pa_StopStream(stream);
-//            Pa_CloseStream(stream);
-//            Pa_Terminate();
-//        }
     }
 
 #endif // DISABLE_AUDIO
@@ -517,12 +381,6 @@ namespace umgebung {
         if (!headless) {
             SDL_GL_DeleteContext(glContext);
             SDL_DestroyWindow(window);
-
-//            /* release callbacks */
-//            release_HID_callbacks(window);
-//            /* terminate GLFW */
-//            glfwDestroyWindow(window);
-//            glfwTerminate();
         }
     }
 
@@ -531,7 +389,6 @@ namespace umgebung {
 #ifndef DISABLE_GRAPHICS
             if (window != nullptr) {
                 SDL_GL_SetSwapInterval(1); // Enable vsync (1 means on, 0 means off)
-//                glfwSwapInterval(1); // Enable vsync (1 means on, 0 means off)
             }
 #endif // DISABLE_GRAPHICS
         }
@@ -561,12 +418,6 @@ namespace umgebung {
 
             /* swap front and back buffers */
             SDL_GL_SwapWindow(window);
-
-//            /* swap front and back buffers */
-//            glfwSwapBuffers(window);
-//
-//            /* poll events */
-//            glfwPollEvents();
         }
 
         /* timer end */
@@ -690,10 +541,8 @@ namespace umgebung {
 #endif // DISABLE_GRAPHICS
 
 #ifndef DISABLE_AUDIO
-//        PaStream *stream;
         if (no_audio) {
             std::cout << "+++ running application with no audio" << std::endl;
-//            stream = nullptr;
         } else {
             init_audio(audio_input_channels, audio_output_channels);
             if (!audio_output_stream && audio_output_channels > 0) {
@@ -704,11 +553,6 @@ namespace umgebung {
                 std::cerr << "+++ error: no audio input stream" << std::endl;
                 return -1;
             }
-
-//            stream = init_audio(audio_input_channels, audio_output_channels);
-//            if (stream == nullptr) {
-//                return -1;
-//            }
         }
 #endif // DISABLE_AUDIO
 
@@ -718,7 +562,6 @@ namespace umgebung {
         /* loop */
         std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
         while (fAppIsRunning) {
-//        while (fAppIsRunning && (headless || !glfwWindowShouldClose(window))) {
             SDL_Event e;
             while (SDL_PollEvent(&e) != 0) {
                 handle_event(e);
