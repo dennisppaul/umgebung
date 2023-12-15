@@ -6,20 +6,19 @@
 
 using namespace umgebung;
 
-class UmgebungExampleAppWithOSC : public PApplet {
+class UmgebungExampleAppWithOSC : public PApplet, MIDIListener {
+    MIDI midiHandler;
+
     void settings() {
         size(1024, 768);
         no_audio = true;
     }
 
     void setup() {
-        MIDI midiHandler;
-        midiHandler.openInputPort(); // Open first available input port
-        midiHandler.openOutputPort(); // Open first available output port
-
-        midiHandler.sendNoteOn(60, 112); // Send a middle C note on
-        std::this_thread::sleep_for(std::chrono::seconds(1)); // Wait for 1 second
-        midiHandler.sendNoteOff(60); // Send a middle C note off
+        midiHandler.print_available_ports();
+        midiHandler.open_input_port("IAC Driver Bus 1");
+        midiHandler.open_output_port(0);
+        midiHandler.callback(this);
 
         background(0);
     }
@@ -28,13 +27,41 @@ class UmgebungExampleAppWithOSC : public PApplet {
         background(0);
     }
 
+    void mousePressed() {
+        println("send note_on");
+        midiHandler.note_on(0, 60, 112);
+    }
+
+    void mouseReleased() {
+        println("send note_off");
+        midiHandler.note_off(0, 60);
+    }
+
+    void note_on(int, int, int) {
+        println("received note_on");
+    }
+
+    void note_off(int, int) {
+        println("received note_off");
+    }
+
     void keyPressed() {
         if (key == 'Q') {
             exit();
         }
     }
+
+    void receive_native(const std::vector<unsigned char> &message) {
+        if (message.size() > 0) {
+            std::cout << "Received MIDI message: ";
+            for (size_t i = 0; i < message.size(); ++i) {
+                std::cout << static_cast<int>(message[i]) << " ";
+            }
+            std::cout << std::endl;
+        }
+    };
 };
 
-PApplet* umgebung::instance() {
+PApplet *umgebung::instance() {
     return new UmgebungExampleAppWithOSC();
 }

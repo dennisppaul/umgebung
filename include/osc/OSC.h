@@ -216,6 +216,12 @@ public:
             // TODO add more types
             ++arg;
         }
+
+        if (fInstance == nullptr) {
+            std::cerr << "+++ OSC error: no callback instance" << std::endl;
+            return;
+        }
+
         msg_.set_type_tag(msg.TypeTags());
         (fInstance->*callback_)(msg_);
 
