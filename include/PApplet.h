@@ -367,6 +367,8 @@ namespace umgebung {
 
         virtual void keyReleased() {}
 
+        virtual void dropped(std::string file_name) {}
+
     };
 
     extern PApplet *instance();

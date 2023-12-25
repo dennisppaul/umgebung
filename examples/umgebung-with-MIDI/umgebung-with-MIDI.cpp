@@ -6,7 +6,7 @@
 
 using namespace umgebung;
 
-class UmgebungExampleAppWithOSC : public PApplet, MIDIListener {
+class UmgebungExampleAppWithMIDI : public PApplet, MIDIListener {
     MIDI midiHandler;
 
     void settings() {
@@ -63,5 +63,5 @@ class UmgebungExampleAppWithOSC : public PApplet, MIDIListener {
 };
 
 PApplet *umgebung::instance() {
-    return new UmgebungExampleAppWithOSC();
+    return new UmgebungExampleAppWithMIDI();
 }

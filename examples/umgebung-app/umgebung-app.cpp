@@ -146,7 +146,7 @@ class UmgebungApp : public PApplet {
         if (key == 'q') {
             exit();
         }
-        println((char)key, " pressed");
+        println((char) key, " pressed");
     }
 
     void mouseMoved() {
@@ -159,6 +159,10 @@ class UmgebungApp : public PApplet {
 
     void finish() {
         println("application shutting down");
+    }
+
+    void dropped(std::string file_name) {
+        println("dropped file: ", file_name);
     }
 };
 

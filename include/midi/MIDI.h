@@ -41,7 +41,7 @@ public:
 
 //    virtual void poly_aftertouch(int channel, int note, int pressure) {};
 
-    virtual void sys_ex(const std::vector<unsigned char> &message);
+    virtual void sys_ex(const std::vector<unsigned char> &message) {};
 
 };
 

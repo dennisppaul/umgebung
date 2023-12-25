@@ -467,6 +467,12 @@ namespace umgebung {
                 fApplet->pmouseX = fApplet->mouseX;
                 fApplet->pmouseY = fApplet->mouseY;
                 break;
+            case SDL_DROPFILE: {
+                char *dropped_filedir = event.drop.file;
+                fApplet->dropped(dropped_filedir);
+                SDL_free(dropped_filedir);
+                break;
+            }
         }
     }
 
