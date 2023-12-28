@@ -323,7 +323,7 @@ namespace umgebung {
         );
 
         if (!window) {
-            std::cerr << "+++ error: could not create window" << SDL_GetError() << std::endl;
+            std::cerr << "+++ error: could not create window: " << SDL_GetError() << std::endl;
             return nullptr;
         }
 

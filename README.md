@@ -34,7 +34,7 @@ this project relies on the following packages:
 in order to compile and run applications install the following packages with [Homebrew](https://brew.sh):
 
 ```
-$ brew install cmake pkgconfig sdl2 ftgl glew ffmpeg rtmidi sdl
+$ brew install cmake pkgconfig sdl2 ftgl glew ffmpeg rtmidi
 ```
 
 ( or run `brew bundle` in project directory. )
@@ -46,8 +46,14 @@ on linux ( including Raspberry Pi OS ) install the required packages with [APT](
 ```
 $ sudo apt-get update -y
 $ sudo apt-get upgrade -y
-$ sudo apt-get install cmake pkg-config libsdl2-dev libglfw3-dev libftgl-dev libglew-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev -y
+$ sudo apt-get install cmake pkg-config libsdl2-dev libglfw3-dev libftgl-dev libglew-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev -y
+$ sudo apt-get install git clang # optional
 ```
+
+### on Windows
+
+- install [MSYS2](https://www.msys2.org/)
+- install `MinGW` from `MSYS2` terminal with `‌pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain`
 
 ## Build Applications with *Umgebung*
 

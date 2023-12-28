@@ -69,7 +69,7 @@ namespace umgebung {
             static std::default_random_engine            generator;
             static std::uniform_real_distribution<float> distribution(0.0, 1.0);
             float                                        angle = distribution(generator) * 2 * M_PI;
-            return {cos(angle), sin(angle)};
+            return {(float) cos(angle), (float) sin(angle)};
         }
 
         // Make a new 3D unit vector with a random direction
@@ -78,12 +78,13 @@ namespace umgebung {
             static std::uniform_real_distribution<float> distribution(0.0, 1.0);
             auto                                         angle1 = (float) (distribution(generator) * 2 * M_PI);
             auto                                         angle2 = (float) (distribution(generator) * 2 * M_PI);
-            return {cos(angle1) * sin(angle2), sin(angle1) * sin(angle2), cos(angle2)};
+            return {(float) cos(angle1) * (float) sin(angle2), (float) sin(angle1) * (float) sin(angle2),
+                    (float) cos(angle2)};
         }
 
         // Make a new 2D unit vector from an angle
         static PVector fromAngle(float angle) {
-            return {cos(angle), sin(angle)};
+            return {(float) cos(angle), (float) sin(angle)};
         }
 
         // Get a copy of the vector
@@ -209,8 +210,8 @@ namespace umgebung {
 
         // Rotate the vector by an angle (2D only)
         void rotate(float angle) {
-            float new_x = x * cos(angle) - y * sin(angle);
-            float new_y = x * sin(angle) + y * cos(angle);
+            float new_x = x * (float) cos(angle) - y * (float) sin(angle);
+            float new_y = x * (float) sin(angle) + y * (float) cos(angle);
             x = new_x;
             y = new_y;
         }
