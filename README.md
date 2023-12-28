@@ -47,13 +47,14 @@ on linux ( including Raspberry Pi OS ) install the required packages with [APT](
 $ sudo apt-get update -y
 $ sudo apt-get upgrade -y
 $ sudo apt-get install cmake pkg-config libsdl2-dev libglfw3-dev libftgl-dev libglew-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev -y
-$ sudo apt-get install git clang # optional
+$ sudo apt-get install git clang mesa-utils # optional
 ```
 
 ### on Windows
 
 - install [MSYS2](https://www.msys2.org/)
 - install `MinGW` from `MSYS2` terminal with `‌pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain`
+- e.g use this instruction https://code.visualstudio.com/docs/cpp/config-mingw
 
 ## Build Applications with *Umgebung*
 
