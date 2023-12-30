@@ -27,13 +27,13 @@ class UmgebungExampleAppWithMovie : public PApplet {
     }
 
     void keyPressed() {
-        if (key == 'Q') {
+        if (key == 'q') {
             exit();
         }
-        if (key == 'P') {
+        if (key == 'p') {
             myMovie->play();
         }
-        if (key == 'S') {
+        if (key == 's') {
             myMovie->pause();
         }
     }

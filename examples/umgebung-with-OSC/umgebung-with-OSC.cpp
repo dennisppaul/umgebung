@@ -5,7 +5,7 @@ using namespace umgebung;
 
 class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
 
-    OSC  mOSC{"127.0.0.1", 8000, 8001};
+    OSC  mOSC{"127.0.0.1", 7001, 7000};
     bool message_event   = false;
     int  message_counter = 0;
 
@@ -37,6 +37,8 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
     void setup() {
         mOSC.callback(this);
         background(0);
+
+        println("sizeof(int): ", sizeof(int));
     }
 
     void draw() {
@@ -57,10 +59,10 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
     }
 
     void keyPressed() {
-        if (key == 'Q') {
+        if (key == 'q') {
             exit();
         }
-        if (key == 'S') {
+        if (key == 's') {
             std::cout << "send OSC message" << std::endl;
             mOSC.send("/test_send_1", 23, "hello", 42);
 

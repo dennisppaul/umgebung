@@ -46,7 +46,7 @@ class UmgebungExampleAppWithMIDI : public PApplet, MIDIListener {
     }
 
     void keyPressed() {
-        if (key == 'Q') {
+        if (key == 'q') {
             exit();
         }
     }
