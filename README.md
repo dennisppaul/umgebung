@@ -54,8 +54,19 @@ $ sudo apt-get install git clang mesa-utils # optional
 
 - install [MSYS2](https://www.msys2.org/)
 - install `MinGW` from `MSYS2` terminal with `pacman -S mingw-w64-ucrt-x86_64-gcc` ( or `‌pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain` )
-- install CMake with `pacman -S cmake`
-- install Make with `pacman -S make`
+- install CMake with the following packages with `pacman`:
+
+```
+$ pacman -S mingw-w64-ucrt-x86_64-gcc
+$ pacman -S cmake
+$ pacman -S make
+$ pacman -S mingw-w64-x86_64-glew
+$ pacman -S mingw-w64-x86_64-mesa
+$ pacman -S mingw-w64-x86_64-ftgl
+$ pacman -S mingw-w64-x86_64-SDL2
+$ pacman -S mingw-w64-x86_64-ffmpeg
+$ pacman -S mingw-w64-x86_64-rtmidi
+```
   
 ( see e.g these instruction https://code.visualstudio.com/docs/cpp/config-mingw )
 
