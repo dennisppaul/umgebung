@@ -57,6 +57,7 @@ $ sudo apt-get install git clang mesa-utils # optional
 - install CMake with the following packages with `pacman`:
 
 ```
+$ pacman -S base-devel msys2-devel
 $ pacman -S mingw-w64-ucrt-x86_64-gcc
 $ pacman -S cmake
 $ pacman -S make
