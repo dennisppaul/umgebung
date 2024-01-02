@@ -68,7 +68,7 @@ $ pacman -S mingw-w64-x86_64-SDL2
 $ pacman -S mingw-w64-x86_64-ffmpeg
 $ pacman -S mingw-w64-x86_64-rtmidi
 ```
-  
+
 ( see e.g these instruction https://code.visualstudio.com/docs/cpp/config-mingw )
 
 ## Build Applications with *Umgebung*
