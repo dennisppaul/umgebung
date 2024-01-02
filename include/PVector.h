@@ -45,8 +45,12 @@ namespace umgebung {
     }
   */
 
-#include <cmath>
-#include <random>
+//#include <cmath>
+//#include <random>
+
+#ifndef M_PI
+#define M_PI 3.141592653589
+#endif
 
     class PVector {
     public:

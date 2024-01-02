@@ -16,15 +16,17 @@ message(STATUS "UMGEBUNG_APP  : ${UMGEBUNG_APP}")
 ### CHECK FOR HOMEBREW                                                                                 ###
 ##########################################################################################################
 find_program(BREW_FOUND brew)
-if (BREW_FOUND)
-    execute_process(COMMAND brew --prefix
-            OUTPUT_VARIABLE HOMEBREW_PREFIX
-            OUTPUT_STRIP_TRAILING_WHITESPACE)
-    set(HOMEBREW_LIB_PATH "${HOMEBREW_PREFIX}/lib")
-    message(STATUS "HOMEBREW LIBS : ${HOMEBREW_LIB_PATH}")
-else ()
-    message(WARNING "HOMEBREW not found.")
-endif ()
+if (APPLE)
+    if (BREW_FOUND)
+        execute_process(COMMAND brew --prefix
+                OUTPUT_VARIABLE HOMEBREW_PREFIX
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+        set(HOMEBREW_LIB_PATH "${HOMEBREW_PREFIX}/lib")
+        message(STATUS "HOMEBREW LIBS : ${HOMEBREW_LIB_PATH}")
+    else ()
+        message(WARNING "HOMEBREW not found.")
+    endif ()
+endif (APPLE) 
 
 ##########################################################################################################
 ### SUPPLEMENT LIBRARY SEARCH PATH                                                                     ###
@@ -46,10 +48,23 @@ endif ()
 ##########################################################################################################
 
 # Add the library target
-file(GLOB_RECURSE UMGEBUNG_SOURCE_FILES
+if (APPLE OR UNIX)
+    file(GLOB UMGEBUNG_SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-        #    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp>
-)
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
+    )
+#elseif (WIN32)
+else ()
+    file(GLOB UMGEBUNG_SOURCE_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/win32/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
+    )
+endif ()
+#file(GLOB_RECURSE UMGEBUNG_SOURCE_FILES
+#        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+#)
 add_library(umgebung-lib ${UMGEBUNG_SOURCE_FILES})
 
 # Specify include directories for the library
@@ -113,14 +128,14 @@ elseif (UNIX)
     message(STATUS "SYSTEM        : UNIX ( including RPI )")
     target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_UNIX)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_UNIX)
-elseif (WIN32)
-    message(STATUS "SYSTEM        : Windows")
-    message(WARNING "Warning: System is not supported")
+#elseif (WIN32)
+else ()
+    message(STATUS "SYSTEM        : ( Assuming ) Windows")
     target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_WIN32)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_WIN32)
-else ()
-    message(STATUS "SYSTEM        : (unknown system)")
-    message(WARNING "Warning: System is not supported")
+#else ()
+#    message(STATUS "SYSTEM        : (unknown system)")
+#    message(WARNING "Warning: System is not supported")
 endif ()
 
 # NOTE removed specific system check for now ( because it fails with ninja build system ). it may not be necessary to have such a specific check for RPI.
@@ -170,15 +185,17 @@ endif ()
 if (NOT DISABLE_GRAPHICS)
     # OpenGL + GLEW + FTGL
     pkg_search_module(GLEW REQUIRED glew)
-    find_package(OpenGL REQUIRED) # or `OPENGL`
     pkg_search_module(FTGL REQUIRED ftgl)
     pkg_search_module(SDL2 REQUIRED sdl2)
     if (APPLE)
+        find_package(OpenGL REQUIRED) # or `OPENGL`
     elseif (UNIX)
-    elseif (WIN32)
-        message(STATUS "plattform may not be supported")
-    else ()
-        message(STATUS "plattform may not be supported")
+        find_package(OpenGL REQUIRED) # or `OPENGL`
+#    elseif (WIN32)
+#        message(STATUS "plattform may not be supported")
+#    else ()
+        message(STATUS "plattform may not be supported ... assuming windows.")
+        pkg_search_module(OpenGL REQUIRED)
     endif ()
 
     # FFMPEG
@@ -189,10 +206,10 @@ if (NOT DISABLE_GRAPHICS)
         pkg_search_module(SWSCALE REQUIRED libswscale)
         if (APPLE)
         elseif (UNIX)
-        elseif (WIN32)
-            message(STATUS "plattform may not be supported")
+#        elseif (WIN32)
+#            message(STATUS "plattform may not be supported")
         else ()
-            message(STATUS "plattform may not be supported")
+            message(STATUS "plattform may not be supported ... assuming windows.")
         endif ()
     endif (NOT DISABLE_VIDEO)
 endif (NOT DISABLE_GRAPHICS)
@@ -254,10 +271,10 @@ if (NOT DISABLE_GRAPHICS)
         target_include_directories(${PROJECT_NAME} PUBLIC ${AVCODEC_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVUTIL_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS})
         if (APPLE)
         elseif (UNIX)
-        elseif (WIN32)
-            message(STATUS "plattform may not be supported")
+#        elseif (WIN32)
+#            message(STATUS "plattform may not be supported")
         else ()
-            message(STATUS "plattform may not be supported")
+            message(STATUS "plattform may not be supported ... assuming windows.")
         endif ()
     endif (NOT DISABLE_VIDEO)
 endif (NOT DISABLE_GRAPHICS)

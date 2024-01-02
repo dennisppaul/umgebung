@@ -21,6 +21,13 @@
 #include <string>
 #include <random>
 #include <ctime>
+#include <filesystem>
+
+#if defined(SYSTEM_WIN32)
+#include <windows.h>
+#include <iostream>
+#endif
+
 #include "Umgebung.h"
 #include "SimplexNoise.h"
 
@@ -83,15 +90,14 @@ namespace umgebung {
     }
 
 #if defined(SYSTEM_WIN32)
-#include <windows.h>
-#include <iostream>
 
     std::string sketchPath_impl() {
         char path[MAX_PATH];
         if (GetModuleFileName(NULL, path, MAX_PATH)) {
             std::filesystem::path exePath(path);
             std::filesystem::path dirPath = exePath.parent_path();
-            return std::string(dirPath) + std::string("/");
+            return std::string("/ERROR/");
+//            return std::string(dirPath) + std::string("/");
         } else {
             std::cerr << "Error retrieving path" << std::endl;
             return std::string();
