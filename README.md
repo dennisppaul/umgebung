@@ -53,8 +53,11 @@ $ sudo apt-get install git clang mesa-utils # optional
 ### on Windows
 
 - install [MSYS2](https://www.msys2.org/)
-- install `MinGW` from `MSYS2` terminal with `pacman -S mingw-w64-ucrt-x86_64-gcc` or `‌pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain`
-- e.g use this instruction https://code.visualstudio.com/docs/cpp/config-mingw
+- install `MinGW` from `MSYS2` terminal with `pacman -S mingw-w64-ucrt-x86_64-gcc` ( or `‌pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain` )
+- install CMake with `pacman -S cmake`
+- install Make with `pacman -S make`
+  
+( see e.g these instruction https://code.visualstudio.com/docs/cpp/config-mingw )
 
 ## Build Applications with *Umgebung*
 
