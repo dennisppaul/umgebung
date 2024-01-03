@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(umgebung-lib VERSION 1.0 LANGUAGES CXX)
 
-message(STATUS "")
+message(STATUS "----------------------------------------")
 message(STATUS "UMGEBUNG_APP  : ${UMGEBUNG_APP}")
 
 #if (NOT DEFINED UMGEBUNG_APP OR "${UMGEBUNG_APP}" STREQUAL "")
@@ -47,24 +47,28 @@ endif (APPLE)
 ### ADD SOURCE + HEADER FILES                                                                          ###
 ##########################################################################################################
 
-# Add the library target
+# Add library target
 if (APPLE OR UNIX)
     file(GLOB UMGEBUNG_SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
     )
-#elseif (WIN32)
-else ()
+elseif (WIN32)
     file(GLOB UMGEBUNG_SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/win32/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
     )
+else ()
+    file(GLOB UMGEBUNG_SOURCE_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
+    )
 endif ()
-#file(GLOB_RECURSE UMGEBUNG_SOURCE_FILES
-#        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-#)
 add_library(umgebung-lib ${UMGEBUNG_SOURCE_FILES})
 
 # Specify include directories for the library
@@ -128,14 +132,14 @@ elseif (UNIX)
     message(STATUS "SYSTEM        : UNIX ( including RPI )")
     target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_UNIX)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_UNIX)
-#elseif (WIN32)
-else ()
-    message(STATUS "SYSTEM        : ( Assuming ) Windows")
+elseif (WIN32)
+    message(STATUS "SYSTEM        : Windows")
     target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_WIN32)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_WIN32)
-#else ()
-#    message(STATUS "SYSTEM        : (unknown system)")
-#    message(WARNING "Warning: System is not supported")
+else ()
+    message(STATUS "SYSTEM        : Undefined, Good Luck!")
+    target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_UNDEFINED)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_UNDEFINED)
 endif ()
 
 # NOTE removed specific system check for now ( because it fails with ninja build system ). it may not be necessary to have such a specific check for RPI.
@@ -186,16 +190,19 @@ if (NOT DISABLE_GRAPHICS)
     # OpenGL + GLEW + FTGL
     pkg_search_module(GLEW REQUIRED glew)
     pkg_search_module(FTGL REQUIRED ftgl)
-    pkg_search_module(SDL2 REQUIRED sdl2)
     if (APPLE)
+        pkg_search_module(SDL2 REQUIRED sdl2)
         find_package(OpenGL REQUIRED) # or `OPENGL`
     elseif (UNIX)
-        find_package(OpenGL REQUIRED) # or `OPENGL`
-#    elseif (WIN32)
-#        message(STATUS "plattform may not be supported")
-#    else ()
-        message(STATUS "plattform may not be supported ... assuming windows.")
-        pkg_search_module(OpenGL REQUIRED)
+        pkg_search_module(SDL2 REQUIRED sdl2)
+        find_package(OpenGL REQUIRED)
+    elseif (WIN32)
+        find_package(SDL2 REQUIRED)
+        find_package(OpenGL REQUIRED)
+    else ()
+        message(STATUS "plattform may not be supported.")
+        pkg_search_module(SDL2 REQUIRED sdl2)
+        find_package(OpenGL REQUIRED)
     endif ()
 
     # FFMPEG
@@ -206,8 +213,7 @@ if (NOT DISABLE_GRAPHICS)
         pkg_search_module(SWSCALE REQUIRED libswscale)
         if (APPLE)
         elseif (UNIX)
-#        elseif (WIN32)
-#            message(STATUS "plattform may not be supported")
+        elseif (WIN32)
         else ()
             message(STATUS "plattform may not be supported ... assuming windows.")
         endif ()
@@ -244,6 +250,7 @@ if (HOMEBREW_LIB_PATH)
 endif ()
 
 if (WIN32)
+    target_link_libraries(${PROJECT_NAME} wsock32 ws2_32 winmm)
 elseif (APPLE)
 elseif (UNIX)
     target_link_libraries(${PROJECT_NAME} Threads::Threads)
@@ -271,8 +278,8 @@ if (NOT DISABLE_GRAPHICS)
         target_include_directories(${PROJECT_NAME} PUBLIC ${AVCODEC_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVUTIL_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS})
         if (APPLE)
         elseif (UNIX)
-#        elseif (WIN32)
-#            message(STATUS "plattform may not be supported")
+        elseif (WIN32)
+            message(STATUS "plattform may not be supported")
         else ()
             message(STATUS "plattform may not be supported ... assuming windows.")
         endif ()
@@ -309,3 +316,4 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++17-extensions")
 #if (WIN32)
 #    target_link_libraries(${PROJECT_NAME} PUBLIC pdcurses)
 #endif (WIN32)
+message(STATUS "----------------------------------------")

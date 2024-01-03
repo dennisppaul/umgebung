@@ -620,6 +620,7 @@ namespace umgebung {
     }
 } // namespace umgebung
 
-int main() {
+int main(int argc, char* argv[]) {
+    // `int main() {` this signature fails on windows
     return umgebung::run_application();
 }

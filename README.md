@@ -70,17 +70,15 @@ an example application can be found in the `example` folder. to run the example 
 
 ```
 $ cd ./examples/umgebung-app/
-$ mkdir build
-$ cd build
-$ cmake ..
-$ make
-$ ./umgebung-app
+$ cmake -B build -G "Unix Makefiles" .
+$ make -C build
+$ ./build/umgebung-app
 ```
 
 if changes are made to `umgebung-app.cpp` ( or any other file in that folder ) it is enough to just run:
 
 ```
-$ make ; ./umgebung-app
+$ make -C build ; ./build/umgebung-app
 ```
 
 ## Known Issues

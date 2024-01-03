@@ -22,10 +22,11 @@
 #include <random>
 #include <ctime>
 #include <filesystem>
+#include <iostream>
+#include <vector>
 
 #if defined(SYSTEM_WIN32)
 #include <windows.h>
-#include <iostream>
 #endif
 
 #include "Umgebung.h"
@@ -90,24 +91,28 @@ namespace umgebung {
     }
 
 #if defined(SYSTEM_WIN32)
+std::string sketchPath_impl() {
+    std::vector<char> buffer(MAX_PATH);
+    DWORD length = GetModuleFileNameA(NULL, buffer.data(), buffer.size());
 
-    std::string sketchPath_impl() {
-        char path[MAX_PATH];
-        if (GetModuleFileName(NULL, path, MAX_PATH)) {
-            std::filesystem::path exePath(path);
-            std::filesystem::path dirPath = exePath.parent_path();
-            return std::string("/ERROR/");
-//            return std::string(dirPath) + std::string("/");
-        } else {
-            std::cerr << "Error retrieving path" << std::endl;
-            return std::string();
-        }
+    while (length == buffer.size() && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+        // Increase buffer size if the path was truncated
+        buffer.resize(buffer.size() * 2);
+        length = GetModuleFileNameA(NULL, buffer.data(), buffer.size());
     }
+
+    if (length == 0) {
+        // GetModuleFileName failed
+        std::cerr << "Error retrieving path, error code: " << GetLastError() << std::endl;
+        return std::string();
+    }
+
+    std::filesystem::path exePath(buffer.data());
+    std::filesystem::path dirPath = exePath.parent_path();
+    return dirPath.string() + "/";
+}
 #elif defined(SYSTEM_UNIX)
 #include <unistd.h>
-#include <iostream>
-#include <vector>
-#include <filesystem>
 
     std::string sketchPath_impl() {
         std::vector<char> buf(1024);
@@ -125,9 +130,6 @@ namespace umgebung {
 
 #elif  defined(SYSTEM_MACOS)
 #include <mach-o/dyld.h>
-#include <iostream>
-#include <vector>
-#include <filesystem>
 
     const std::string sketchPath_impl() {
         uint32_t size = 1024;
