@@ -77,7 +77,7 @@ $ ./build/umgebung-app
 if changes are made to `umgebung-app.cpp` ( or any other file in that folder ) it is enough to just run:
 
 ```
-$ make -C build ; ./build/umgebung-app
+$ $ make -C build ; ./build/umgebung-app
 ```
 
 ## Known Issues
@@ -85,7 +85,7 @@ $ make -C build ; ./build/umgebung-app
 - a LOT of functions + methods + strategies are not yet implemented ( the idea is to implement these on demand )
 - color system is currently fixed to rang `0 ... 1` and only works with RGB(A)
 - elements in `println()` need to be concatenated with `,` and not `+` e.g `println("hello ", 23, " world");`
-- only tested on macOS + Raspberry Pi OS. although theoretically the external libraries as well as the build system should be cross-platform ( i.e macOS, Windows and any UNIX-like system )
+- only tested on macOS + Raspberry Pi OS + Windows 11 + Ubuntu. although theoretically the external libraries as well as the build system should be cross-platform ( i.e macOS, Windows and any UNIX-like system ) it mz require some tweaking.
 
 ### Setting up Homebrew on macOS
 
