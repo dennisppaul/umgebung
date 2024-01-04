@@ -315,8 +315,8 @@ namespace umgebung {
 
         APP_WINDOW *window = SDL_CreateWindow(
                 title,
-                SDL_WINDOWPOS_UNDEFINED,
-                SDL_WINDOWPOS_UNDEFINED,
+                SDL_WINDOWPOS_CENTERED,
+                SDL_WINDOWPOS_CENTERED,
                 fApplet->width,
                 fApplet->height,
                 SDL_WINDOW_OPENGL
@@ -345,7 +345,10 @@ namespace umgebung {
         set_default_graphics_state();
 
         /* initialize GLEW */
-        if (glewInit() != GLEW_OK) {
+        glewExperimental = GL_TRUE;
+        GLenum glewInitResult = glewInit();
+        if (GLEW_OK != glewInitResult) {
+            std::cerr << "ERROR: " << glewGetErrorString(glewInitResult) << std::endl;
             return nullptr;
         }
 
