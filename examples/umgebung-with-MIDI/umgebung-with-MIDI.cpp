@@ -1,9 +1,6 @@
 #include "Umgebung.h"
 #include "midi/MIDI.h"
 
-#include <thread>
-#include <chrono>
-
 using namespace umgebung;
 
 class UmgebungExampleAppWithMIDI : public PApplet, MIDIListener {
