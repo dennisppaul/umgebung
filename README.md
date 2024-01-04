@@ -29,7 +29,7 @@ this project relies on the following packages:
 - [ffmpeg](https://ffmpeg.org)
 - [rtmidi](https://github.com/thestk/rtmidi)
 
-### on macOS
+### macOS
 
 in order to compile and run applications install the following packages with [Homebrew](https://brew.sh):
 
@@ -39,31 +39,33 @@ $ brew install cmake pkgconfig sdl2 ftgl glew ffmpeg rtmidi
 
 ( or run `brew bundle` in project directory. )
 
-### on Linux
+### Linux
 
 on linux ( including Raspberry Pi OS ) install the required packages with [APT](https://en.wikipedia.org/wiki/APT_(software)):
 
 ```
 $ sudo apt-get update -y
 $ sudo apt-get upgrade -y
-$ sudo apt-get install cmake pkg-config libsdl2-dev libglfw3-dev libftgl-dev libglew-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev -y
 $ sudo apt-get install git clang mesa-utils # optional
+$ sudo apt-get install cmake pkg-config libsdl2-dev libftgl-dev libglew-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev -y
 ```
 
-### on Windows
+### Windows
 
 - install [MSYS2](https://www.msys2.org/)
 - install the following modules with `pacman` in `MSYS2 UCRT64`:
 
 ```
 $ pacman -Syu --noconfirm
-$ pacman -S --noconfirm mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake git make
+$ pacman -S --noconfirm mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake git
 $ pacman -S --noconfirm mingw-w64-ucrt-x86_64-glew mingw-w64-ucrt-x86_64-mesa mingw-w64-ucrt-x86_64-ftgl mingw-w64-ucrt-x86_64-SDL2 mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-rtmidi
 ```
 
+the setup is exclusively for the `MSYS2 UCRT64` branch ( and not for `MSYS2 MINGW64` etcetera ). also it uses `ninja` as a build system instead of `make` ( which is the defaul ton linux + macOS ).
+
 ## Build Applications with *Umgebung*
 
-an example application can be found in the `example` folder. to run the example application do the following:
+example applications can be found in the `example` folder. to run example `umgebung-app` do the following:
 
 ```
 $ cd ./umgebung/examples/umgebung-app/
