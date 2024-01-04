@@ -53,25 +53,22 @@ $ sudo apt-get install git clang mesa-utils # optional
 ### on Windows
 
 - install [MSYS2](https://www.msys2.org/)
-- install the following modules with `pacman`  in `MSYS` ( note that this uses the `mingw-w64-x86_64` variants ):
+- install the following modules with `pacman` in `MSYS2 UCRT64`:
 
 ```
 $ pacman -Syu --noconfirm
-# $ pacman -S --noconfirm base-devel gcc cmake git
-$ pacman -S mingw-w64-ucrt-x86_64-toolchain mingw-w64-x86_64-cmake git make
-$ pacman -S --noconfirm mingw-w64-x86_64-glew mingw-w64-x86_64-mesa mingw-w64-x86_64-ftgl mingw-w64-x86_64-SDL2 mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-rtmidi
+$ pacman -S --noconfirm mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake git make
+$ pacman -S --noconfirm mingw-w64-ucrt-x86_64-glew mingw-w64-ucrt-x86_64-mesa mingw-w64-ucrt-x86_64-ftgl mingw-w64-ucrt-x86_64-SDL2 mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-rtmidi
 ```
-
-( see e.g these instruction https://code.visualstudio.com/docs/cpp/config-mingw )
 
 ## Build Applications with *Umgebung*
 
 an example application can be found in the `example` folder. to run the example application do the following:
 
 ```
-$ cd ./examples/umgebung-app/
-$ cmake -B build . # might need to change this to `cmake -B build -G "Unix Makefiles" .` in MINGW
-$ make -C build
+$ cd ./umgebung/examples/umgebung-app/
+$ cmake -B build .
+$ cmake --build build
 $ ./build/umgebung-app
 ```
 
