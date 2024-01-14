@@ -46,7 +46,7 @@ on linux ( including Raspberry Pi OS ) install the required packages with [APT](
 ```
 $ sudo apt-get update -y
 $ sudo apt-get upgrade -y
-$ sudo apt-get install git clang mesa-utils # optional
+$ sudo apt-get install git clang mesa-utils # optional -y
 $ sudo apt-get install cmake pkg-config libsdl2-dev libftgl-dev libglew-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev -y
 ```
 
