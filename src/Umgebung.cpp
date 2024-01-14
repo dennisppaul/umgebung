@@ -43,8 +43,7 @@
 #include "Umgebung.h"
 
 namespace umgebung {
-
-/* public */
+    /* public */
 
     int  audio_input_device    = DEFAULT_AUDIO_DEVICE;
     int  audio_output_device   = DEFAULT_AUDIO_DEVICE;
@@ -57,33 +56,33 @@ namespace umgebung {
     bool headless              = false;
     bool no_audio              = false;
 
-/* private */
+    /* private */
 
-    static PApplet      *fApplet          = nullptr;
-    static bool         fAppIsRunning     = true;
-    static const double fTargetFrameTime  = 1.0 / 60.0; // @development make this adjustable
-    static bool         fAppIsInitialized = false;
-    static bool         fMouseIsPressed   = false;
+    static PApplet *        fApplet           = nullptr;
+    static bool             fAppIsRunning     = true;
+    static constexpr double fTargetFrameTime  = 1.0 / 60.0; // @development make this adjustable
+    static bool             fAppIsInitialized = false;
+    static bool             fMouseIsPressed   = false;
 
-    static SDL_GLContext     glContext           = 0;
+    static SDL_GLContext     glContext           = nullptr;
     static SDL_AudioDeviceID audio_output_stream = 0;
     static SDL_AudioDeviceID audio_input_stream  = 0;
 
 #ifndef DISABLE_AUDIO
 
-    float *input_buffer     = nullptr;
-    bool  audio_input_ready = false;
+    float *input_buffer    = nullptr;
+    bool audio_input_ready = false;
 
     void audioOutputCallback(void *userdata, Uint8 *stream, int len) {
-        int   samples         = len / sizeof(float); // Number of samples to fill
-        float *output_buffer  = reinterpret_cast<float *>(stream); // (assuming AUDIO_F32 format)
+        const int samples    = len / sizeof(float); // Number of samples to fill
+        float *output_buffer = reinterpret_cast<float *>(stream); // (assuming AUDIO_F32 format)
         if (input_buffer == nullptr && audio_input_channels > 0) {
             for (int i = 0; i < samples; ++i) {
                 output_buffer[i] = 0;
             }
             return;
         }
-        int   mIterationGuard = DEFAULT_AUDIO_SAMPLE_RATE / DEFAULT_FRAMES_PER_BUFFER;
+        int mIterationGuard = DEFAULT_AUDIO_SAMPLE_RATE / DEFAULT_FRAMES_PER_BUFFER;
         while (!audio_input_ready && mIterationGuard-- > 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
@@ -94,9 +93,9 @@ namespace umgebung {
     }
 
     void audioInputCallback(void *userdata, Uint8 *stream, int len) {
-        audio_input_ready = false;
-        float *samples    = reinterpret_cast<float *>(stream); // Assuming AUDIO_F32 format
-        int   sampleCount = len / sizeof(float);
+        audio_input_ready     = false;
+        const float *samples  = reinterpret_cast<float *>(stream); // Assuming AUDIO_F32 format
+        const int sampleCount = len / sizeof(float);
 
         if (input_buffer == nullptr) {
             return;
@@ -111,14 +110,14 @@ namespace umgebung {
     static int print_audio_devices() {
         std::cout << "Available audio devices:\n";
 
-        int      numInputDevices = SDL_GetNumAudioDevices(SDL_TRUE);
-        for (int i               = 0; i < numInputDevices; i++) {
+        const int numInputDevices = SDL_GetNumAudioDevices(SDL_TRUE);
+        for (int i = 0; i < numInputDevices; i++) {
             const char *deviceName = SDL_GetAudioDeviceName(i, SDL_TRUE);
             std::cout << "- Input Device  : " << i << " : " << deviceName << std::endl;
         }
 
-        int      numOutputDevices = SDL_GetNumAudioDevices(SDL_FALSE);
-        for (int i                = 0; i < numOutputDevices; i++) {
+        const int numOutputDevices = SDL_GetNumAudioDevices(SDL_FALSE);
+        for (int i = 0; i < numOutputDevices; i++) {
             const char *deviceName = SDL_GetAudioDeviceName(i, SDL_FALSE);
             std::cout << "- Output Device : " << i << " : " << deviceName << std::endl;
         }
@@ -134,16 +133,16 @@ namespace umgebung {
             SDL_AudioSpec audio_output_spec, audio_output_obtained_spec;
             SDL_zero(audio_output_spec);
             audio_output_spec.freq     = DEFAULT_AUDIO_SAMPLE_RATE; // @TODO make this adjustable
-            audio_output_spec.format   = AUDIO_F32;                 // @TODO make this adjustable
+            audio_output_spec.format   = AUDIO_F32; // @TODO make this adjustable
             audio_output_spec.channels = output_channels;
             audio_output_spec.samples  = DEFAULT_FRAMES_PER_BUFFER; // @TODO make this adjustable
             audio_output_spec.callback = audioOutputCallback;
-            audio_output_stream = SDL_OpenAudioDevice(
-                    audio_output_device == DEFAULT_AUDIO_DEVICE ? NULL : SDL_GetAudioDeviceName(audio_output_device, 0),
-                    0,
-                    &audio_output_spec,
-                    &audio_output_obtained_spec,
-                    SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+            audio_output_stream        = SDL_OpenAudioDevice(
+                audio_output_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_output_device, 0),
+                0,
+                &audio_output_spec,
+                &audio_output_obtained_spec,
+                SDL_AUDIO_ALLOW_FORMAT_CHANGE);
             if (audio_output_stream == 0) {
                 std::cerr << "error: failed to open audio output: " << SDL_GetError() << std::endl;
                 return;
@@ -155,16 +154,16 @@ namespace umgebung {
             SDL_AudioSpec audio_input_spec, audio_input_obtained_spec;
             SDL_zero(audio_input_spec);
             audio_input_spec.freq     = DEFAULT_AUDIO_SAMPLE_RATE; // @TODO make this adjustable
-            audio_input_spec.format   = AUDIO_F32;                 // @TODO make this adjustable
+            audio_input_spec.format   = AUDIO_F32; // @TODO make this adjustable
             audio_input_spec.channels = input_channels;
             audio_input_spec.samples  = DEFAULT_FRAMES_PER_BUFFER; // @TODO make this adjustable
             audio_input_spec.callback = audioInputCallback;
-            audio_input_stream = SDL_OpenAudioDevice(
-                    audio_input_device == DEFAULT_AUDIO_DEVICE ? NULL : SDL_GetAudioDeviceName(audio_input_device, 1),
-                    1,
-                    &audio_input_spec,
-                    &audio_input_obtained_spec,
-                    SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+            audio_input_stream        = SDL_OpenAudioDevice(
+                audio_input_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_input_device, 1),
+                1,
+                &audio_input_spec,
+                &audio_input_obtained_spec,
+                SDL_AUDIO_ALLOW_FORMAT_CHANGE);
             if (audio_input_stream == 0) {
                 std::cerr << "error: failed to open audio input: " << SDL_GetError() << std::endl;
                 return;
@@ -174,51 +173,51 @@ namespace umgebung {
             SDL_PauseAudioDevice(audio_input_stream, 0);
         }
 
-//            std::cout << "+++ using default audio input and output devices" << std::endl;
-//            err = Pa_OpenDefaultStream(&stream,
-//                                       input_channels,
-//                                       output_channels,
-//                                       paFloat32,
-//                                       DEFAULT_AUDIO_SAMPLE_RATE,
-//                                       DEFAULT_FRAMES_PER_BUFFER,
-//                                       audioCallback,
-//                                       nullptr);
-//        } else {
-//            print_audio_devices();
+        //            std::cout << "+++ using default audio input and output devices" << std::endl;
+        //            err = Pa_OpenDefaultStream(&stream,
+        //                                       input_channels,
+        //                                       output_channels,
+        //                                       paFloat32,
+        //                                       DEFAULT_AUDIO_SAMPLE_RATE,
+        //                                       DEFAULT_FRAMES_PER_BUFFER,
+        //                                       audioCallback,
+        //                                       nullptr);
+        //        } else {
+        //            print_audio_devices();
 
-//            PaStreamParameters inputParameters, outputParameters;
-//            inputParameters.device                     = audio_input_device;
-//            inputParameters.channelCount               = input_channels;
-//            inputParameters.sampleFormat               = paFloat32;
-//            inputParameters.suggestedLatency           = Pa_GetDeviceInfo(audio_input_device)->defaultLowInputLatency;
-//            inputParameters.hostApiSpecificStreamInfo  = nullptr;
-//            outputParameters.device                    = audio_output_device;
-//            outputParameters.channelCount              = output_channels;
-//            outputParameters.sampleFormat              = paFloat32;
-//            outputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_output_device)->defaultLowOutputLatency;
-//            outputParameters.hostApiSpecificStreamInfo = nullptr;
-//            err = Pa_OpenStream(&stream,
-//                                &inputParameters,
-//                                &outputParameters,
-//                                DEFAULT_AUDIO_SAMPLE_RATE,
-//                                DEFAULT_FRAMES_PER_BUFFER,
-//                                paClipOff,
-//                                audioCallback,
-//                                nullptr);
-//        }
-//
-//        if (err != paNoError) {
-//            std::cerr << "PortAudio error (@open_stream): " << Pa_GetErrorText(err) << std::endl;
-//            return nullptr;
-//        }
-//
-//        err = Pa_StartStream(stream);
-//        if (err != paNoError) {
-//            std::cerr << "PortAudio error (@start_stream): " << Pa_GetErrorText(err) << std::endl;
-//            return nullptr;
-//        }
-//        return stream;
-//        }
+        //            PaStreamParameters inputParameters, outputParameters;
+        //            inputParameters.device                     = audio_input_device;
+        //            inputParameters.channelCount               = input_channels;
+        //            inputParameters.sampleFormat               = paFloat32;
+        //            inputParameters.suggestedLatency           = Pa_GetDeviceInfo(audio_input_device)->defaultLowInputLatency;
+        //            inputParameters.hostApiSpecificStreamInfo  = nullptr;
+        //            outputParameters.device                    = audio_output_device;
+        //            outputParameters.channelCount              = output_channels;
+        //            outputParameters.sampleFormat              = paFloat32;
+        //            outputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_output_device)->defaultLowOutputLatency;
+        //            outputParameters.hostApiSpecificStreamInfo = nullptr;
+        //            err = Pa_OpenStream(&stream,
+        //                                &inputParameters,
+        //                                &outputParameters,
+        //                                DEFAULT_AUDIO_SAMPLE_RATE,
+        //                                DEFAULT_FRAMES_PER_BUFFER,
+        //                                paClipOff,
+        //                                audioCallback,
+        //                                nullptr);
+        //        }
+        //
+        //        if (err != paNoError) {
+        //            std::cerr << "PortAudio error (@open_stream): " << Pa_GetErrorText(err) << std::endl;
+        //            return nullptr;
+        //        }
+        //
+        //        err = Pa_StartStream(stream);
+        //        if (err != paNoError) {
+        //            std::cerr << "PortAudio error (@start_stream): " << Pa_GetErrorText(err) << std::endl;
+        //            return nullptr;
+        //        }
+        //        return stream;
+        //        }
     }
 
 #endif // DISABLE_AUDIO
@@ -233,60 +232,60 @@ namespace umgebung {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
-//    static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-//        fApplet->width  = width;
-//        fApplet->height = height;
-//
-//        int framebufferWidth, framebufferHeight;
-//        glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
-//        fApplet->framebuffer_width  = framebufferWidth;
-//        fApplet->framebuffer_height = framebufferHeight;
-//    }
-//
-//    static void error_callback(int error, const char *description) {
-//        std::cerr << "GLFW Error: " << description << std::endl;
-//    }
-//
-//    static int wndPos[2];
-//    static int wndSize[2];
-//
-//    static void SetFullScreen(GLFWwindow *_wnd, GLFWmonitor *_monitor, bool fullscreen) {
-//        // see https://stackoverflow.com/questions/47402766/switching-between-windowed-and-full-screen-in-opengl-glfw-3-2
-//        if (fullscreen) {
-//            // backup window position and window size
-//            glfwGetWindowPos(_wnd, &wndPos[0], &wndPos[1]);
-//            glfwGetWindowSize(_wnd, &wndSize[0], &wndSize[1]);
-//
-//            // get resolution of monitor
-//            const GLFWvidmode *mode = glfwGetVideoMode(_monitor);
-//
-//            // switch to full screen
-//            glfwSetWindowMonitor(_wnd, _monitor, 0, 0, mode->width, mode->height, 0);
-//        } else {
-//            // restore last window size and position
-//            glfwSetWindowMonitor(_wnd, nullptr, wndPos[0], wndPos[1], wndSize[0], wndSize[1], 0);
-//        }
-//    }
+    //    static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+    //        fApplet->width  = width;
+    //        fApplet->height = height;
+    //
+    //        int framebufferWidth, framebufferHeight;
+    //        glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+    //        fApplet->framebuffer_width  = framebufferWidth;
+    //        fApplet->framebuffer_height = framebufferHeight;
+    //    }
+    //
+    //    static void error_callback(int error, const char *description) {
+    //        std::cerr << "GLFW Error: " << description << std::endl;
+    //    }
+    //
+    //    static int wndPos[2];
+    //    static int wndSize[2];
+    //
+    //    static void SetFullScreen(GLFWwindow *_wnd, GLFWmonitor *_monitor, bool fullscreen) {
+    //        // see https://stackoverflow.com/questions/47402766/switching-between-windowed-and-full-screen-in-opengl-glfw-3-2
+    //        if (fullscreen) {
+    //            // backup window position and window size
+    //            glfwGetWindowPos(_wnd, &wndPos[0], &wndPos[1]);
+    //            glfwGetWindowSize(_wnd, &wndSize[0], &wndSize[1]);
+    //
+    //            // get resolution of monitor
+    //            const GLFWvidmode *mode = glfwGetVideoMode(_monitor);
+    //
+    //            // switch to full screen
+    //            glfwSetWindowMonitor(_wnd, _monitor, 0, 0, mode->width, mode->height, 0);
+    //        } else {
+    //            // restore last window size and position
+    //            glfwSetWindowMonitor(_wnd, nullptr, wndPos[0], wndPos[1], wndSize[0], wndSize[1], 0);
+    //        }
+    //    }
 
     static APP_WINDOW *init_graphics(int width, int height, const char *title) {
         fApplet->width  = width;
         fApplet->height = height;
 
-//        /* monitors */
-//        GLFWmonitor *desiredMonitor = nullptr;
-//        if (monitor != DEFAULT) {
-//            int         monitorCount;
-//            GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
-//            for (int    i          = 0; i < monitorCount; ++i) {
-//                const GLFWvidmode *mode = glfwGetVideoMode(monitors[i]);
-//                std::cout << "+++ monitor " << i << ": " << mode->width << "x" << mode->height << " (" << mode->refreshRate
-//                          << "Hz)"
-//                          << std::endl;
-//            }
-//            if (monitor < monitorCount) {
-//                desiredMonitor = monitors[monitor];
-//            }
-//        }
+        //        /* monitors */
+        //        GLFWmonitor *desiredMonitor = nullptr;
+        //        if (monitor != DEFAULT) {
+        //            int         monitorCount;
+        //            GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
+        //            for (int    i          = 0; i < monitorCount; ++i) {
+        //                const GLFWvidmode *mode = glfwGetVideoMode(monitors[i]);
+        //                std::cout << "+++ monitor " << i << ": " << mode->width << "x" << mode->height << " (" << mode->refreshRate
+        //                          << "Hz)"
+        //                          << std::endl;
+        //            }
+        //            if (monitor < monitorCount) {
+        //                desiredMonitor = monitors[monitor];
+        //            }
+        //        }
 
         /* anti aliasing */
         if (antialiasing > 0) {
@@ -299,27 +298,27 @@ namespace umgebung {
             mWindowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
         }
 
-//        int major, minor, revision;
-//        glfwGetVersion(&major, &minor, &revision);
-//        std::cout << "+++ OpenGL version: " << major << "." << minor << "." << revision << std::endl;
+        //        int major, minor, revision;
+        //        glfwGetVersion(&major, &minor, &revision);
+        //        std::cout << "+++ OpenGL version: " << major << "." << minor << "." << revision << std::endl;
 
-//#if USE_CURRENT_OPENGL
-//        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-//        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-//        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
-//        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-//#endif // USE_CURRENT_OPENGL
-//        glfwWindowHint(GLFW_FOCUSED, true);
-//        glfwWindowHint(GLFW_DECORATED, true);
-//        glfwWindowHint(GLFW_RESIZABLE, resizable);
+        //#if USE_CURRENT_OPENGL
+        //        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        //        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        //        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
+        //        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        //#endif // USE_CURRENT_OPENGL
+        //        glfwWindowHint(GLFW_FOCUSED, true);
+        //        glfwWindowHint(GLFW_DECORATED, true);
+        //        glfwWindowHint(GLFW_RESIZABLE, resizable);
 
         APP_WINDOW *window = SDL_CreateWindow(
-                title,
-                SDL_WINDOWPOS_CENTERED,
-                SDL_WINDOWPOS_CENTERED,
-                fApplet->width,
-                fApplet->height,
-                SDL_WINDOW_OPENGL
+            title,
+            SDL_WINDOWPOS_CENTERED,
+            SDL_WINDOWPOS_CENTERED,
+            fApplet->width,
+            fApplet->height,
+            SDL_WINDOW_OPENGL
         );
 
         if (!window) {
@@ -328,7 +327,7 @@ namespace umgebung {
         }
 
         glContext = SDL_GL_CreateContext(window);
-        if (glContext == NULL) {
+        if (glContext == nullptr) {
             std::cerr << "+++ error: could not create OpenGL context: " << SDL_GetError() << std::endl;
             SDL_DestroyWindow(window);
             return nullptr;
@@ -345,8 +344,8 @@ namespace umgebung {
         set_default_graphics_state();
 
         /* initialize GLEW */
-        glewExperimental = GL_TRUE;
-        GLenum glewInitResult = glewInit();
+        glewExperimental            = GL_TRUE;
+        const GLenum glewInitResult = glewInit();
         if (GLEW_OK != glewInitResult) {
             std::cerr << "ERROR: " << glewGetErrorString(glewInitResult) << std::endl;
             return nullptr;
@@ -355,12 +354,12 @@ namespace umgebung {
         return window;
     }
 
-//    /* implement scroll_callback */
-//
-//    static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-//        // TODO add `void mouseWheel(MouseEvent event) { ... }`
-//        std::cout << "Scroll: " << xoffset << ", " << yoffset << std::endl;
-//    }
+    //    /* implement scroll_callback */
+    //
+    //    static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+    //        // TODO add `void mouseWheel(MouseEvent event) { ... }`
+    //        std::cout << "Scroll: " << xoffset << ", " << yoffset << std::endl;
+    //    }
 
 
 #endif // DISABLE_GRAPHICS
@@ -409,7 +408,8 @@ namespace umgebung {
 
     static void handle_draw(APP_WINDOW *window) {
         /* timer begin  */
-        static std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now(), endTime;
+        static std::chrono::high_resolution_clock::time_point
+                startTime = std::chrono::high_resolution_clock::now(), endTime;
 
         if (headless) {
             fApplet->draw();
@@ -424,16 +424,16 @@ namespace umgebung {
         }
 
         /* timer end */
-        endTime = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
-                endTime - startTime);
-        double                        frameTime     = frameDuration.count();
-        fApplet->frameRate = (float) (1.0 / frameTime);
+        endTime                                           = std::chrono::high_resolution_clock::now();
+        const std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double> >(
+            endTime - startTime);
+        const double frameTime = frameDuration.count();
+        fApplet->frameRate     = static_cast<float>(1.0 / frameTime);
         fApplet->frameCount++;
         startTime = std::chrono::high_resolution_clock::now();
     }
 
-    static void handle_event(SDL_Event event) {
+    static void handle_event(const SDL_Event &event) {
         switch (event.type) {
             case SDL_QUIT:
                 fAppIsRunning = false;
@@ -460,8 +460,8 @@ namespace umgebung {
                 fApplet->mouseReleased();
                 break;
             case SDL_MOUSEMOTION:
-                fApplet->mouseX = (float) event.motion.x;
-                fApplet->mouseY = (float) event.motion.y;
+                fApplet->mouseX = static_cast<float>(event.motion.x);
+                fApplet->mouseY = static_cast<float>(event.motion.y);
                 if (fMouseIsPressed) {
                     fApplet->mouseDragged();
                 } else {
@@ -476,6 +476,7 @@ namespace umgebung {
                 SDL_free(dropped_filedir);
                 break;
             }
+            default: break;
         }
     }
 
@@ -509,9 +510,9 @@ namespace umgebung {
         }
 #elif !defined(DISABLE_GRAPHICS)
         if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-                std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
-                return 1;
-            }
+            std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
+            return 1;
+        }
 #elif !defined(DISABLE_AUDIO)
             if (SDL_Init(SDL_INIT_AUDIO) != 0) {
                 std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
@@ -522,13 +523,13 @@ namespace umgebung {
         fApplet = instance();
         if (fApplet == nullptr) {
             std::cerr << "+++ error: no instance created make sure to include\n"
-                      << "\n"
-                      << "    PApplet *umgebung::instance() {\n"
-                      << "        return new ApplicationInstance()\n"
-                      << "    }\n"
-                      << "\n"
-                      << "+++ in application file,"
-                      << std::endl;
+                    << "\n"
+                    << "    PApplet *umgebung::instance() {\n"
+                    << "        return new ApplicationInstance()\n"
+                    << "    }\n"
+                    << "\n"
+                    << "+++ in application file,"
+                    << std::endl;
             return -1;
         }
 
@@ -575,10 +576,10 @@ namespace umgebung {
             while (SDL_PollEvent(&e) != 0) {
                 handle_event(e);
             }
-            std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double>                  frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
-                    currentTime - lastFrameTime);
-            double                                         frameTime     = frameDuration.count();
+            std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double> >(
+                currentTime - lastFrameTime);
+            double frameTime = frameDuration.count();
             if (frameTime >= fTargetFrameTime) {
                 handle_draw(window);
                 lastFrameTime = currentTime;
@@ -623,7 +624,7 @@ namespace umgebung {
     }
 } // namespace umgebung
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     // `int main() {` this signature fails on windows
     return umgebung::run_application();
 }

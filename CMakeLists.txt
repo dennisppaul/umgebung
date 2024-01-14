@@ -51,6 +51,7 @@ endif (APPLE)
 if (APPLE OR UNIX)
     file(GLOB UMGEBUNG_SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
     )
