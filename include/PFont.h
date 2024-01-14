@@ -37,6 +37,7 @@
 
 #ifndef DISABLE_GRAPHICS
 
+#include <GL/glew.h>
 #include <FTGL/ftgl.h>
 
 #endif

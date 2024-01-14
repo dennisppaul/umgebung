@@ -27,10 +27,17 @@
 #include <iostream>
 #include <cmath>
 
+#if !defined(DISABLE_GRAPHICS) || !defined(DISABLE_AUDIO)
+
+#include <SDL2/SDL.h>
+
+#endif
+
 #ifndef DISABLE_GRAPHICS
-
-#include <GL/glew.h>
-
+#define APP_WINDOW SDL_Window
+#else
+// @TODO maybe find a better solution then `void`
+#define APP_WINDOW void
 #endif
 
 #ifndef TRUE
@@ -53,7 +60,7 @@ namespace umgebung {
 #define DEFAULT_FRAMES_PER_BUFFER         2048  // TODO make this configurable
 #define DEFAULT_NUMBER_OF_INPUT_CHANNELS  1     // TODO make this configurable
 #define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2     // TODO make this configurable
-//#define DEFAULT_AUDIO_DEVICE              (-1)
+    //#define DEFAULT_AUDIO_DEVICE              (-1)
     static const int DEFAULT_AUDIO_DEVICE = -1;
 #define DEFAULT                           (-1)
 #define DEFAULT_WINDOW_WIDTH              1024
@@ -73,7 +80,6 @@ namespace umgebung {
     extern bool enable_retina_support; // @development maybe implement as `HINT(ENABLE_RETINA_SUPPORT, true)`
     extern bool headless;
     extern bool no_audio;
-
 } // namespace umgebung
 
 #include "UmgebungConstants.h"
@@ -86,3 +92,18 @@ namespace umgebung {
 
 #include "UmgebungFunctions.h"
 #include "PApplet.h"
+
+/* Graphics Prototypes */
+namespace umgebung {
+    void set_graphics_context(PApplet *applet);
+
+    APP_WINDOW *init_graphics(int width, int height, const char *title);
+
+    void handle_setup(APP_WINDOW *window);
+
+    void handle_draw(APP_WINDOW *window);
+
+    void handle_event(const SDL_Event &event, bool &fAppIsRunning, bool &fMouseIsPressed);
+
+    void handle_shutdown(APP_WINDOW *window);
+}
