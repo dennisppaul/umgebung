@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 project(umgebung-simple)                               # set application name
 set(UMGEBUNG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../..") # set absolut path to umgebung library e.g `set(UMGEBUNG_PATH "<absolute/path/to/library>")`
 link_directories("/usr/local/lib")                     # optional, can help to fix issues with Homebrew on macOS
+link_directories("/opt/homebrew/lib/")
 
 option(DISABLE_GRAPHICS "Disable graphic output" OFF)
 option(DISABLE_VIDEO "Disable video output" ON)
@@ -18,10 +19,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE UMGEBUNG_WINDOW_TITLE="${PROJ
 
 # add umgebung
 
-set(UMGEBUNG_APP ${PROJECT_NAME})
-add_subdirectory(${UMGEBUNG_PATH} ${CMAKE_BINARY_DIR}/umgebung-lib)
-target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib-interface)
-target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib)
+add_subdirectory(${UMGEBUNG_PATH} ${CMAKE_BINARY_DIR}/umgebung-lib-${PROJECT_NAME})
+add_umgebung_libs()
 
 # set compiler flags to C++17 ( minimum required by umgebung )
 

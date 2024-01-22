@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 project(umgebung-lib VERSION 1.0 LANGUAGES CXX)
 
 message(STATUS "----------------------------------------")
-message(STATUS "UMGEBUNG_APP  : ${UMGEBUNG_APP}")
+message(STATUS "UMGEBUNG_APP  : ${PROJECT_NAME}")
 
 #if (NOT DEFINED UMGEBUNG_APP OR "${UMGEBUNG_APP}" STREQUAL "")
 #    message(STATUS "CHARACTER     : using umgebung standalone ( UMGEBUNG_APP not set )")
@@ -294,6 +294,27 @@ if (NOT DISABLE_MIDI)
     add_definitions(${RTMIDI_CFLAGS_OTHER})
     #    target_compile_definitions(${PROJECT_NAME} PUBLIC ${RTMIDI_CFLAGS_OTHER})
 endif (NOT DISABLE_MIDI)
+
+##########################################################################################################
+### COMPILER FLAGS                                                                                     ###
+##########################################################################################################
+
+function(add_umgebung_libs)
+    # Check if umgebung-lib-interface target already exists
+    if(NOT TARGET umgebung-lib-interface)
+        message(FATAL_ERROR "umgebung-lib-interface target not found. Make sure it is defined before calling add_umgebung_libs.")
+    endif()
+
+    # Check if umgebung-lib target already exists
+    if(NOT TARGET umgebung-lib)
+        message(FATAL_ERROR "umgebung-lib target not found. Make sure it is defined before calling add_umgebung_libs.")
+    endif()
+
+    # Link the libraries if they exist
+    target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib-interface)
+    target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib)
+endfunction()
+
 
 ##########################################################################################################
 ### COMPILER FLAGS                                                                                     ###

@@ -17,10 +17,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE UMGEBUNG_WINDOW_TITLE="${PROJ
 
 # add umgebung
 
-set(UMGEBUNG_APP ${PROJECT_NAME})
-add_subdirectory(${UMGEBUNG_PATH} ${CMAKE_BINARY_DIR}/umgebung-lib)
-target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib-interface)
-target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib)
+add_subdirectory(${UMGEBUNG_PATH} ${CMAKE_BINARY_DIR}/umgebung-lib-${PROJECT_NAME})
+add_umgebung_libs()
 
 # set compiler flags to C++17 ( minimum required by umgebung )
 
