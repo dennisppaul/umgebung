@@ -27,7 +27,6 @@
 // TODO check if these functions should be moved to PApplet?
 
 namespace umgebung {
-
     void exit();
 
     void audio_devices(int input_device, int output_device);
@@ -71,6 +70,16 @@ namespace umgebung {
         std::ostringstream os;
         (os << ... << args);
         std::cout << os.str() << std::endl;
+#ifdef FLUSH_PRINT
+        std::flush(std::cout);
+#endif
+    }
+
+    template<typename T>
+    void printArray(const std::vector<T> &vec) {
+        for (size_t i = 0; i < vec.size(); ++i) {
+            std::cout << "[" << i << "] " << vec[i] << std::endl;
+        }
 #ifdef FLUSH_PRINT
         std::flush(std::cout);
 #endif

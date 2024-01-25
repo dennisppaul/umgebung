@@ -25,9 +25,10 @@
 #include <sstream>
 #include <iomanip>
 #include <regex>
+#include <vector>
+#include <filesystem>
 
 namespace umgebung {
-
     class PApplet : public PGraphics {
     public:
         /**
@@ -53,10 +54,10 @@ namespace umgebung {
          * @param re
          * @return
          */
-        std::vector<std::string> matchAll(const std::string &text, const std::regex &re) {
+        static std::vector<std::string> matchAll(const std::string &text, const std::regex &re) {
             std::vector<std::string> matches;
             std::sregex_iterator     begin(text.begin(), text.end(), re), end;
-            for (auto                i = begin; i != end; ++i) {
+            for (auto i = begin; i != end; ++i) {
                 matches.push_back((*i).str());
             }
             return matches;
@@ -68,11 +69,12 @@ namespace umgebung {
          * @param re
          * @return
          */
-        std::vector<std::string> match(const std::string &text, const std::regex &re) {
+        static std::vector<std::string> match(const std::string &text, const std::regex &re) {
             std::vector<std::string> groups;
             std::smatch              match;
             if (std::regex_search(text, match, re)) {
-                for (size_t i = 1; i < match.size(); ++i) { // Start from 1 to skip the full match
+                for (size_t i = 1; i < match.size(); ++i) {
+                    // Start from 1 to skip the full match
                     groups.push_back(match[i]);
                 }
             }
@@ -84,7 +86,7 @@ namespace umgebung {
          * @param number
          * @return
          */
-        std::string nfc(float number) {
+        static std::string nfc(const float number) {
             std::stringstream ss;
             ss.imbue(std::locale(""));
             ss << std::fixed << number;
@@ -97,7 +99,7 @@ namespace umgebung {
          * @param decimalPlaces
          * @return
          */
-        std::string nf(float number, int decimalPlaces = 2) {
+        static std::string nf(const float number, const int decimalPlaces = 2) {
             std::ostringstream out;
             out << std::fixed << std::setprecision(decimalPlaces) << number;
             return out.str();
@@ -109,7 +111,7 @@ namespace umgebung {
          * @param decimalPlaces
          * @return
          */
-        std::string nfp(float number, int decimalPlaces = 2) {
+        static std::string nfp(const float number, const int decimalPlaces = 2) {
             std::ostringstream out;
             if (number >= 0) {
                 out << "+";
@@ -124,7 +126,7 @@ namespace umgebung {
          * @param decimalPlaces
          * @return
          */
-        std::string nfs(float number, int decimalPlaces = 2) {
+        static std::string nfs(const float number, const int decimalPlaces = 2) {
             std::ostringstream out;
             if (number >= 0) {
                 out << " ";
@@ -139,9 +141,9 @@ namespace umgebung {
          * @param tokens
          * @return
          */
-        std::vector<std::string> splitTokens(const std::string &str, const std::string &tokens) {
+        static std::vector<std::string> splitTokens(const std::string &str, const std::string &tokens) {
             std::vector<std::string> result;
-            size_t                   start = 0, end = 0;
+            size_t                   start = 0, end;
             while ((end = str.find_first_of(tokens, start)) != std::string::npos) {
                 if (end != start) {
                     result.push_back(str.substr(start, end - start));
@@ -160,9 +162,9 @@ namespace umgebung {
          * @param delimiter
          * @return
          */
-        std::vector<std::string> split(const std::string &str, const std::string &delimiter) {
+        static std::vector<std::string> split(const std::string &str, const std::string &delimiter) {
             std::vector<std::string> result;
-            size_t                   start = 0, end = 0;
+            size_t                   start = 0, end;
             while ((end = str.find(delimiter, start)) != std::string::npos) {
                 result.push_back(str.substr(start, end - start));
                 start = end + delimiter.length();
@@ -178,13 +180,31 @@ namespace umgebung {
          * @param str
          * @return
          */
-        std::string trim(const std::string &str) {
-            size_t first = str.find_first_not_of(" \t\n\r\f\v");
+        static std::string trim(const std::string &str) {
+            const size_t first = str.find_first_not_of(" \t\n\r\f\v");
             if (first == std::string::npos)
                 return "";
             size_t last = str.find_last_not_of(" \t\n\r\f\v");
             return str.substr(first, (last - first + 1));
         }
+
+        /**
+         * get files from directory
+         */
+        static std::vector<std::string> getFiles(const std::string &directory, const std::string &extension = "") {
+            std::vector<std::string> files;
+            for (const auto &entry: std::filesystem::directory_iterator(directory)) {
+                if (entry.path().extension() == extension
+                    || extension == "*"
+                    || extension == "*.*"
+                    || extension == "") {
+                    files.push_back(entry.path().string());
+                }
+            }
+            return files;
+        }
+
+        /* ---------------------------------------------------------------------------------------------------------- */
 
         int   framebuffer_width;
         int   framebuffer_height;
@@ -227,7 +247,8 @@ namespace umgebung {
             glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
             glGenTextures(1, &texture);
             glBindTexture(GL_TEXTURE_2D, texture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_width, framebuffer_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_width, framebuffer_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                         nullptr);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
@@ -259,7 +280,8 @@ namespace umgebung {
             antialiasing = DEFAULT;
         }
 
-        virtual void setup() {}
+        virtual void setup() {
+        }
 
         virtual void pre_draw() {
 #ifndef DISABLE_GRAPHICS
@@ -278,12 +300,13 @@ namespace umgebung {
 #endif // DISABLE_GRAPHICS
         }
 
-        virtual void draw() {}
+        virtual void draw() {
+        }
 
         virtual void post_draw() {
 #ifndef DISABLE_GRAPHICS
-//        glFlush();
-//        glFinish();
+            //        glFlush();
+            //        glFinish();
 #endif // DISABLE_GRAPHICS
 #ifndef DISABLE_GRAPHICS
 #if RENDER_INTO_FRAMEBUFFER
@@ -317,29 +340,29 @@ namespace umgebung {
             glVertex2f(0, framebuffer_height);
             glEnd();
 
-//        /* with padding of 10px */
-//        glBegin(GL_QUADS);
-//        glTexCoord2f(0.0, 0.0);
-//        glVertex2f(10, 10);
-//        glTexCoord2f(1.0, 0.0);
-//        glVertex2f(framebuffer_width - 10, 10);
-//        glTexCoord2f(1.0, 1.0);
-//        glVertex2f(framebuffer_width - 10, framebuffer_height - 10);
-//        glTexCoord2f(0.0, 1.0);
-//        glVertex2f(10, framebuffer_height - 10);
-//        glEnd();
+            //        /* with padding of 10px */
+            //        glBegin(GL_QUADS);
+            //        glTexCoord2f(0.0, 0.0);
+            //        glVertex2f(10, 10);
+            //        glTexCoord2f(1.0, 0.0);
+            //        glVertex2f(framebuffer_width - 10, 10);
+            //        glTexCoord2f(1.0, 1.0);
+            //        glVertex2f(framebuffer_width - 10, framebuffer_height - 10);
+            //        glTexCoord2f(0.0, 1.0);
+            //        glVertex2f(10, framebuffer_height - 10);
+            //        glEnd();
 
-//        /* 10% tiny view */
-//        glBegin(GL_QUADS);
-//        glTexCoord2f(0.0, 0.0);
-//        glVertex2f(20, 20);
-//        glTexCoord2f(1.0, 0.0);
-//        glVertex2f(20 + framebuffer_width * 0.1, 20);
-//        glTexCoord2f(1.0, 1.0);
-//        glVertex2f(20 + framebuffer_width * 0.1, 20 + framebuffer_height * 0.1);
-//        glTexCoord2f(0.0, 1.0);
-//        glVertex2f(20, 20 + framebuffer_height * 0.1);
-//        glEnd();
+            //        /* 10% tiny view */
+            //        glBegin(GL_QUADS);
+            //        glTexCoord2f(0.0, 0.0);
+            //        glVertex2f(20, 20);
+            //        glTexCoord2f(1.0, 0.0);
+            //        glVertex2f(20 + framebuffer_width * 0.1, 20);
+            //        glTexCoord2f(1.0, 1.0);
+            //        glVertex2f(20 + framebuffer_width * 0.1, 20 + framebuffer_height * 0.1);
+            //        glTexCoord2f(0.0, 1.0);
+            //        glVertex2f(20, 20 + framebuffer_height * 0.1);
+            //        glEnd();
 
             glDisable(GL_TEXTURE_2D);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -348,27 +371,34 @@ namespace umgebung {
 
 #endif // RENDER_INTO_FRAMEBUFFER
 #endif // DISABLE_GRAPHICS
-
         }
 
-        virtual void finish() {}
+        virtual void finish() {
+        }
 
-        virtual void audioblock(const float *input, float *output, int length) {};
+        virtual void audioblock(const float *input, float *output, int length) {
+        };
 
-        virtual void mouseMoved() {}
+        virtual void mouseMoved() {
+        }
 
-        virtual void mouseDragged() {}
+        virtual void mouseDragged() {
+        }
 
-        virtual void mousePressed() {}
+        virtual void mousePressed() {
+        }
 
-        virtual void mouseReleased() {}
+        virtual void mouseReleased() {
+        }
 
-        virtual void keyPressed() {}
+        virtual void keyPressed() {
+        }
 
-        virtual void keyReleased() {}
+        virtual void keyReleased() {
+        }
 
-        virtual void dropped(std::string file_name) {}
-
+        virtual void dropped(std::string file_name) {
+        }
     };
 
     extern PApplet *instance();
