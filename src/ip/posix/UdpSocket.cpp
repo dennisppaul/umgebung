@@ -46,7 +46,9 @@
 #include <sys/time.h>
 #include <netinet/in.h> // for sockaddr_in
 
+#if !defined(__APPLE__)
 #include <signal.h>
+#endif
 #include <math.h>
 #include <errno.h>
 #include <string.h> 

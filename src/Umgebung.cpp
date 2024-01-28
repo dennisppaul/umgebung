@@ -29,7 +29,6 @@
 #include "Umgebung.h"
 
 namespace umgebung {
-
     /* public */
 
     int  audio_input_device    = DEFAULT_AUDIO_DEVICE;
@@ -75,7 +74,14 @@ namespace umgebung {
         if (mIterationGuard <= 1) {
             return;
         }
-        fApplet->audioblock(input_buffer, output_buffer, samples / audio_output_channels);
+        /* wait with callback until after `setup()` */
+        if (fAppIsInitialized) {
+            fApplet->audioblock(input_buffer, output_buffer, samples / audio_output_channels);
+        } else {
+            for (int i = 0; i < samples; ++i) {
+                output_buffer[i] = 0;
+            }
+        }
     }
 
     void audioInputCallback(void *userdata, Uint8 *stream, int len) {

@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include "Umgebung.h"
-
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -58,7 +56,7 @@ namespace umgebung {
             std::vector<std::string> matches;
             std::sregex_iterator     begin(text.begin(), text.end(), re), end;
             for (auto i = begin; i != end; ++i) {
-                matches.push_back((*i).str());
+                matches.push_back(i->str());
             }
             return matches;
         }
@@ -184,7 +182,7 @@ namespace umgebung {
             const size_t first = str.find_first_not_of(" \t\n\r\f\v");
             if (first == std::string::npos)
                 return "";
-            size_t last = str.find_last_not_of(" \t\n\r\f\v");
+            const size_t last = str.find_last_not_of(" \t\n\r\f\v");
             return str.substr(first, (last - first + 1));
         }
 
@@ -236,7 +234,11 @@ namespace umgebung {
 #endif // RENDER_INTO_FRAMEBUFFER
 #endif // DISABLE_GRAPHICS
 
-        PApplet() {
+        PApplet()
+            : framebuffer_width(0),
+              framebuffer_height(0),
+              framebuffer(0),
+              texture(0) {
             this->width       = DEFAULT_WINDOW_WIDTH;
             this->height      = DEFAULT_WINDOW_HEIGHT;
             this->mouseX      = 0;
@@ -309,7 +311,7 @@ namespace umgebung {
             glLoadIdentity();
 
             glScalef(1, -1, 1);
-            glTranslatef(0, (float) -height, 0);
+            glTranslatef(0, static_cast<float>(-height), 0);
 #endif // DISABLE_GRAPHICS
         }
 

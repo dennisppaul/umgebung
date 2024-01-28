@@ -26,7 +26,7 @@
 #include <iostream>
 #include <cstdint>
 
-class WAVFile {
+class WAVE {
 public:
     static constexpr uint16_t AUDIO_FORMAT_PCM       = 1;
     static constexpr uint16_t AUDIO_FORMAT_FLOAT     = 3;
@@ -35,7 +35,7 @@ public:
     static constexpr uint16_t AUDIO_FORMAT_IBM_MULAW = 257;
     static constexpr uint16_t AUDIO_FORMAT_ADPCM     = 259;
 
-    explicit WAVFile(const std::string &filename) {
+    explicit WAVE(const std::string &filename) {
         file.open(filename, std::ios::binary);
         if (!file.is_open()) {
             throw std::runtime_error("Unable to open file");
@@ -43,7 +43,7 @@ public:
         readInfo();
     }
 
-    ~WAVFile() {
+    ~WAVE() {
         if (file.is_open()) {
             file.close();
         }
