@@ -191,7 +191,7 @@ namespace umgebung {
         /**
          * get files from directory
          */
-        static std::vector<std::string> getFiles(const std::string &directory, const std::string &extension = "") {
+        static std::vector<std::string> get_files(const std::string &directory, const std::string &extension = "") {
             std::vector<std::string> files;
             for (const auto &entry: std::filesystem::directory_iterator(directory)) {
                 if (entry.path().extension() == extension
@@ -202,6 +202,19 @@ namespace umgebung {
                 }
             }
             return files;
+        }
+
+        static float map(const float value,
+                         const float inputMin,
+                         const float inputMax,
+                         const float outputMin,
+                         const float outputMax) {
+            const float a = value - inputMin;
+            const float b = inputMax - inputMin;
+            const float c = outputMax - outputMin;
+            const float d = a / b;
+            const float e = d * c;
+            return e + outputMin;
         }
 
         /* ---------------------------------------------------------------------------------------------------------- */
