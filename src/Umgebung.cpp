@@ -55,16 +55,20 @@ namespace umgebung {
 
 #ifndef DISABLE_AUDIO
 
-    float *input_buffer      = nullptr;
-    bool   audio_input_ready = false;
+    float *input_buffer          = nullptr;
+    bool   audio_input_ready     = false;
+    bool   audio_was_initialized = false;
 
     void audioOutputCallback(void *userdata, Uint8 *stream, int len) {
         const int samples       = len / sizeof(float);               // Number of samples to fill
         float *   output_buffer = reinterpret_cast<float *>(stream); // (assuming AUDIO_F32 format)
         if (input_buffer == nullptr && audio_input_channels > 0) {
-            for (int i = 0; i < samples; ++i) {
-                output_buffer[i] = 0;
-            }
+            std::fill(output_buffer, output_buffer + samples, 0);
+            return;
+        }
+        if (!fAppIsInitialized) {
+            /* wait with callback until after `setup()` */
+            std::fill(output_buffer, output_buffer + samples, 0);
             return;
         }
         int mIterationGuard = DEFAULT_AUDIO_SAMPLE_RATE / DEFAULT_FRAMES_PER_BUFFER;
@@ -72,14 +76,15 @@ namespace umgebung {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         if (mIterationGuard <= 1) {
+            std::fill(output_buffer, output_buffer + samples, 0);
             return;
         }
-        /* wait with callback until after `setup()` */
-        if (fAppIsInitialized) {
-            fApplet->audioblock(input_buffer, output_buffer, samples / audio_output_channels);
-        } else {
+        fApplet->audioblock(input_buffer, output_buffer, samples / audio_output_channels);
+        if (!audio_was_initialized) {
+            audio_was_initialized = true;
+            /* fade in audio output to avoid audible clicks */
             for (int i = 0; i < samples; ++i) {
-                output_buffer[i] = 0;
+                output_buffer[i] *= static_cast<float>(i) / samples;
             }
         }
     }
