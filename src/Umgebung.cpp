@@ -59,6 +59,87 @@ namespace umgebung {
     bool  audio_input_ready     = false;
     bool  audio_was_initialized = false;
 
+#define FIXED_MEMORY_ALLOCATION
+#ifdef FIXED_MEMORY_ALLOCATION
+
+#define MAX_CHANNELS 4                       // TODO make this configurable
+#define MAX_FRAMES DEFAULT_FRAMES_PER_BUFFER // TODO make this configurable
+
+    void audioOutputCallback(void *userdata, Uint8 *stream, int len) {
+        const int samples        = len / sizeof(float); // Number of samples to fill
+        float     *output_buffer = reinterpret_cast<float *>(stream); // Assuming AUDIO_F32 format
+
+        if (input_buffer == nullptr && audio_input_channels > 0) {
+            std::fill(output_buffer, output_buffer + samples, 0);
+            return;
+        }
+        if (!fAppIsInitialized) {
+            /* wait with callback until after `setup()` */
+            std::fill(output_buffer, output_buffer + samples, 0);
+            return;
+        }
+        int mIterationGuard = DEFAULT_AUDIO_SAMPLE_RATE / DEFAULT_FRAMES_PER_BUFFER;
+        while (!audio_input_ready && mIterationGuard-- > 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        if (mIterationGuard <= 1) {
+            std::fill(output_buffer, output_buffer + samples, 0);
+            return;
+        }
+
+        const int frames = (audio_output_channels == 0) ?
+                           (samples / audio_input_channels) :
+                           (samples / audio_output_channels);
+
+        // Ensure that frames and channels do not exceed maximum allowed values
+        if (audio_input_channels > MAX_CHANNELS || audio_output_channels > MAX_CHANNELS || frames > MAX_FRAMES) {
+            std::cerr << "Error: Exceeded maximum channel or frame count." << std::endl;
+            std::fill(output_buffer, output_buffer + samples, 0);
+            return;
+        }
+
+        // Statically allocated arrays for deinterleaving and interleaving
+        float input_channels[MAX_CHANNELS][MAX_FRAMES];
+        float output_channels[MAX_CHANNELS][MAX_FRAMES];
+
+        // Deinterleave input buffer into separate channels
+        if (input_buffer != nullptr) {
+            for (int frame = 0; frame < frames; ++frame) {
+                for (int ch = 0; ch < audio_input_channels; ++ch) {
+                    input_channels[ch][frame] = input_buffer[frame * audio_input_channels + ch];
+                }
+            }
+        }
+
+        // Process the deinterleaved audio
+        float    *input_ptrs[MAX_CHANNELS];
+        float    *output_ptrs[MAX_CHANNELS];
+        for (int ch = 0; ch < audio_input_channels; ++ch) {
+            input_ptrs[ch] = input_channels[ch];
+        }
+        for (int ch = 0; ch < audio_output_channels; ++ch) {
+            output_ptrs[ch] = output_channels[ch];
+        }
+
+        fApplet->audioblock(input_ptrs, output_ptrs, frames);
+
+        // Interleave the processed output channels into the output buffer
+        for (int frame = 0; frame < frames; ++frame) {
+            for (int ch = 0; ch < audio_output_channels; ++ch) {
+                output_buffer[frame * audio_output_channels + ch] = output_channels[ch][frame];
+            }
+        }
+
+        // Apply fade-in if audio was not initialized before
+        if (!audio_was_initialized) {
+            audio_was_initialized = true;
+            for (int i = 0; i < samples; ++i) {
+                output_buffer[i] *= static_cast<float>(i) / samples;
+            }
+        }
+    }
+
+#else
     void audioOutputCallback(void *userdata, Uint8 *stream, int len) {
         const int samples        = len / sizeof(float);               // Number of samples to fill
         float     *output_buffer = reinterpret_cast<float *>(stream); // (assuming AUDIO_F32 format)
@@ -80,17 +161,6 @@ namespace umgebung {
             return;
         }
 
-#ifdef USE_INTERLEAVED_BUFFER
-        fApplet->audioblock(input_buffer, output_buffer, samples / audio_output_channels);
-
-        if (!audio_was_initialized) {
-            audio_was_initialized = true;
-            /* fade in audio output to avoid audible clicks */
-            for (int i = 0; i < samples; ++i) {
-                output_buffer[i] *= static_cast<float>(i) / samples;
-            }
-        }
-#else
         const int frames = (audio_output_channels == 0) ?
                            (samples / audio_input_channels) :
                            (samples / audio_output_channels);
@@ -143,8 +213,8 @@ namespace umgebung {
         }
         delete[] input_channels;
         delete[] output_channels;
-#endif
     }
+#endif
 
     void audioInputCallback(void *userdata, Uint8 *stream, int len) {
         audio_input_ready       = false;
