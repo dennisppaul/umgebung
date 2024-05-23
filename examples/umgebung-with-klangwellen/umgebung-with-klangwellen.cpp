@@ -35,14 +35,13 @@ class UmgebungApp : public PApplet {
         text("23", mouseX, mouseY);
     }
 
-    void audioblock(const float *input, float *output, int length) {
-        // TODO change to `void audioblock(float** input_signal, float** output_signal) {}`
+    void audioblock(float **input, float **output, int length) {
         for (int i = 0; i < length; i++) {
             float mSample = fWavetable.process();
             mSample = fADSR.process(mSample);
             mSample = fReverb.process(mSample);
             for (int j = 0; j < audio_output_channels; ++j) {
-                output[i * audio_output_channels + j] = mSample;
+                output[j][i] = mSample;
             }
         }
     }
