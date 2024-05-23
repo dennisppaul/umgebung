@@ -44,7 +44,7 @@ namespace umgebung {
 
     /* private */
 
-    static PApplet *        fApplet           = nullptr;
+    static PApplet          *fApplet          = nullptr;
     static bool             fAppIsRunning     = true;
     static constexpr double fTargetFrameTime  = 1.0 / 60.0; // @development make this adjustable
     static bool             fAppIsInitialized = false;
@@ -55,13 +55,13 @@ namespace umgebung {
 
 #ifndef DISABLE_AUDIO
 
-    float *input_buffer          = nullptr;
-    bool   audio_input_ready     = false;
-    bool   audio_was_initialized = false;
+    float *input_buffer         = nullptr;
+    bool  audio_input_ready     = false;
+    bool  audio_was_initialized = false;
 
     void audioOutputCallback(void *userdata, Uint8 *stream, int len) {
-        const int samples       = len / sizeof(float);               // Number of samples to fill
-        float *   output_buffer = reinterpret_cast<float *>(stream); // (assuming AUDIO_F32 format)
+        const int samples        = len / sizeof(float);               // Number of samples to fill
+        float     *output_buffer = reinterpret_cast<float *>(stream); // (assuming AUDIO_F32 format)
         if (input_buffer == nullptr && audio_input_channels > 0) {
             std::fill(output_buffer, output_buffer + samples, 0);
             return;
@@ -79,7 +79,10 @@ namespace umgebung {
             std::fill(output_buffer, output_buffer + samples, 0);
             return;
         }
+
+#ifdef USE_INTERLEAVED_BUFFER
         fApplet->audioblock(input_buffer, output_buffer, samples / audio_output_channels);
+
         if (!audio_was_initialized) {
             audio_was_initialized = true;
             /* fade in audio output to avoid audible clicks */
@@ -87,12 +90,66 @@ namespace umgebung {
                 output_buffer[i] *= static_cast<float>(i) / samples;
             }
         }
+#else
+        const int frames = (audio_output_channels == 0) ?
+                           (samples / audio_input_channels) :
+                           (samples / audio_output_channels);
+
+        // Dynamically allocate memory for deinterleaved channels
+        float **input_channels  = new float *[audio_input_channels];
+        float **output_channels = new float *[audio_output_channels];
+
+        for (int ch = 0; ch < audio_input_channels; ++ch) {
+            input_channels[ch] = new float[frames];
+        }
+
+        for (int ch = 0; ch < audio_output_channels; ++ch) {
+            output_channels[ch] = new float[frames];
+        }
+
+        // Deinterleave input buffer into separate channels
+        if (input_buffer != nullptr) {
+            for (int frame = 0; frame < frames; ++frame) {
+                for (int ch = 0; ch < audio_input_channels; ++ch) {
+                    input_channels[ch][frame] = input_buffer[frame * audio_input_channels + ch];
+                }
+            }
+        }
+
+        // Process the deinterleaved audio
+        fApplet->audioblock(input_channels, output_channels, frames);
+
+        // Interleave the processed output channels into the output buffer
+        for (int frame = 0; frame < frames; ++frame) {
+            for (int ch = 0; ch < audio_output_channels; ++ch) {
+                output_buffer[frame * audio_output_channels + ch] = output_channels[ch][frame];
+            }
+        }
+
+        // Apply fade-in if audio was not initialized before
+        if (!audio_was_initialized) {
+            audio_was_initialized = true;
+            for (int i = 0; i < samples; ++i) {
+                output_buffer[i] *= static_cast <float>(i) / samples;
+            }
+        }
+
+        // Deallocate memory
+        for (int ch = 0; ch < audio_input_channels; ++ch) {
+            delete[] input_channels[ch];
+        }
+        for (int ch = 0; ch < audio_output_channels; ++ch) {
+            delete[] output_channels[ch];
+        }
+        delete[] input_channels;
+        delete[] output_channels;
+#endif
     }
 
     void audioInputCallback(void *userdata, Uint8 *stream, int len) {
-        audio_input_ready        = false;
-        const float *samples     = reinterpret_cast<float *>(stream); // Assuming AUDIO_F32 format
-        const int    sampleCount = len / sizeof(float);
+        audio_input_ready       = false;
+        const float *samples    = reinterpret_cast<float *>(stream); // Assuming AUDIO_F32 format
+        const int   sampleCount = len / sizeof(float);
 
         if (input_buffer == nullptr) {
             return;
@@ -108,13 +165,13 @@ namespace umgebung {
         std::cout << "Available audio devices:\n";
 
         const int numInputDevices = SDL_GetNumAudioDevices(SDL_TRUE);
-        for (int i = 0; i < numInputDevices; i++) {
+        for (int  i               = 0; i < numInputDevices; i++) {
             const char *deviceName = SDL_GetAudioDeviceName(i, SDL_TRUE);
             std::cout << "- Input Device  : " << i << " : " << deviceName << std::endl;
         }
 
         const int numOutputDevices = SDL_GetNumAudioDevices(SDL_FALSE);
-        for (int i = 0; i < numOutputDevices; i++) {
+        for (int  i                = 0; i < numOutputDevices; i++) {
             const char *deviceName = SDL_GetAudioDeviceName(i, SDL_FALSE);
             std::cout << "- Output Device : " << i << " : " << deviceName << std::endl;
         }
@@ -134,12 +191,13 @@ namespace umgebung {
             audio_output_spec.channels = output_channels;
             audio_output_spec.samples  = DEFAULT_FRAMES_PER_BUFFER; // @TODO make this adjustable
             audio_output_spec.callback = audioOutputCallback;
-            audio_output_stream        = SDL_OpenAudioDevice(
-                audio_output_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_output_device, 0),
-                0,
-                &audio_output_spec,
-                &audio_output_obtained_spec,
-                SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+            audio_output_stream = SDL_OpenAudioDevice(
+                    audio_output_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_output_device,
+                                                                                                   0),
+                    0,
+                    &audio_output_spec,
+                    &audio_output_obtained_spec,
+                    SDL_AUDIO_ALLOW_FORMAT_CHANGE);
             if (audio_output_stream == 0) {
                 std::cerr << "error: failed to open audio output: " << SDL_GetError() << std::endl;
                 return;
@@ -155,12 +213,13 @@ namespace umgebung {
             audio_input_spec.channels = input_channels;
             audio_input_spec.samples  = DEFAULT_FRAMES_PER_BUFFER; // @TODO make this adjustable
             audio_input_spec.callback = audioInputCallback;
-            audio_input_stream        = SDL_OpenAudioDevice(
-                audio_input_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_input_device, 1),
-                1,
-                &audio_input_spec,
-                &audio_input_obtained_spec,
-                SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+            audio_input_stream = SDL_OpenAudioDevice(
+                    audio_input_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_input_device,
+                                                                                                  1),
+                    1,
+                    &audio_input_spec,
+                    &audio_input_obtained_spec,
+                    SDL_AUDIO_ALLOW_FORMAT_CHANGE);
             if (audio_input_stream == 0) {
                 std::cerr << "error: failed to open audio input: " << SDL_GetError() << std::endl;
                 return;
@@ -227,6 +286,7 @@ namespace umgebung {
     }
 
 #endif // DISABLE_AUDIO
+
     static int run_application() {
         std::cout << "+++ current working directory: " << sketchPath() << std::endl;
 
@@ -250,13 +310,13 @@ namespace umgebung {
         fApplet = instance();
         if (fApplet == nullptr) {
             std::cerr << "+++ error: no instance created make sure to include\n"
-                    << "\n"
-                    << "    PApplet *umgebung::instance() {\n"
-                    << "        return new ApplicationInstance()\n"
-                    << "    }\n"
-                    << "\n"
-                    << "+++ in application file,"
-                    << std::endl;
+                      << "\n"
+                      << "    PApplet *umgebung::instance() {\n"
+                      << "        return new ApplicationInstance()\n"
+                      << "    }\n"
+                      << "\n"
+                      << "+++ in application file,"
+                      << std::endl;
             return -1;
         }
 
@@ -305,10 +365,10 @@ namespace umgebung {
             while (SDL_PollEvent(&e) != 0) {
                 handle_event(e, fAppIsRunning, fMouseIsPressed);
             }
-            std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double> >(
-                currentTime - lastFrameTime);
-            double frameTime = frameDuration.count();
+            std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double>                  frameDuration = std::chrono::duration_cast<std::chrono::duration<double> >(
+                    currentTime - lastFrameTime);
+            double                                         frameTime     = frameDuration.count();
             if (frameTime >= fTargetFrameTime) {
                 handle_draw(window);
                 lastFrameTime = currentTime;
@@ -351,6 +411,7 @@ namespace umgebung {
     void exit() {
         fAppIsRunning = false;
     }
+
 } // namespace umgebung
 
 int main(int argc, char *argv[]) {

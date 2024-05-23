@@ -117,7 +117,7 @@ class UmgebungApp : public PApplet {
         popMatrix();
     }
 
-    void audioblock(const float *input, float *output, int length) {
+    void audioblock(float **input, float **output, int length) {
         // NOTE length is the number of samples per channel
         // TODO change to `void audioblock(float** input_signal, float** output_signal) {}`
         static float phase     = 0.0;
@@ -132,6 +132,7 @@ class UmgebungApp : public PApplet {
                 phase -= TWO_PI;
             }
 
+#ifdef USE_INTERLEAVED_BUFFER
             float    mInput = 0;
             for (int j      = 0; j < audio_input_channels; ++j) {
                 mInput += input[i * audio_input_channels + j];
@@ -139,6 +140,15 @@ class UmgebungApp : public PApplet {
             for (int j      = 0; j < audio_output_channels; ++j) {
                 output[i * audio_output_channels + j] = sample + mInput * 0.5f;
             }
+#else
+            float    mInput = 0;
+            for (int j      = 0; j < audio_input_channels; ++j) {
+                mInput += input[j][i];
+            }
+            for (int j      = 0; j < audio_output_channels; ++j) {
+                output[j][i] = sample + mInput * 0.5f;
+            }
+#endif
         }
     }
 
