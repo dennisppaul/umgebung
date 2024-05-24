@@ -25,10 +25,10 @@ this project relies on the following packages:
 - [SDL2](https://www.libsdl.org)
 - [FTGL](https://github.com/frankheckenbach/ftgl)
 - [GLEW](https://glew.sourceforge.net/)
-- [oscpack](http://www.rossbencina.com/code/oscpack) ( included as source files )
 - [ffmpeg](https://ffmpeg.org)
 - [rtmidi](https://github.com/thestk/rtmidi)
-- [dr_libs](https://github.com/mackron/dr_libs)
+- [oscpack](http://www.rossbencina.com/code/oscpack) ( included as source files )
+- [dr_libs](https://github.com/mackron/dr_libs) ( included as source files )
 
 ### macOS
 
