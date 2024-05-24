@@ -26,7 +26,7 @@ if (APPLE)
     else ()
         message(WARNING "HOMEBREW not found.")
     endif ()
-endif (APPLE) 
+endif (APPLE)
 
 ##########################################################################################################
 ### SUPPLEMENT LIBRARY SEARCH PATH                                                                     ###
@@ -50,24 +50,24 @@ endif (APPLE)
 # Add library target
 if (APPLE OR UNIX)
     file(GLOB UMGEBUNG_SOURCE_FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
     )
 elseif (WIN32)
     file(GLOB UMGEBUNG_SOURCE_FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/win32/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/win32/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
     )
 else ()
     file(GLOB UMGEBUNG_SOURCE_FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
     )
 endif ()
 add_library(umgebung-lib ${UMGEBUNG_SOURCE_FILES})
@@ -301,14 +301,14 @@ endif (NOT DISABLE_MIDI)
 
 function(add_umgebung_libs)
     # Check if umgebung-lib-interface target already exists
-    if(NOT TARGET umgebung-lib-interface)
+    if (NOT TARGET umgebung-lib-interface)
         message(FATAL_ERROR "umgebung-lib-interface target not found. Make sure it is defined before calling add_umgebung_libs.")
-    endif()
+    endif ()
 
     # Check if umgebung-lib target already exists
-    if(NOT TARGET umgebung-lib)
+    if (NOT TARGET umgebung-lib)
         message(FATAL_ERROR "umgebung-lib target not found. Make sure it is defined before calling add_umgebung_libs.")
-    endif()
+    endif ()
 
     # Link the libraries if they exist
     target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib-interface)

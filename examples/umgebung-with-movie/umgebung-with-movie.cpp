@@ -5,7 +5,7 @@ using namespace umgebung;
 
 class UmgebungExampleAppWithMovie : public PApplet {
 
-    Movie *myMovie;
+    Movie* myMovie;
 
     void settings() {
         size(1024, 768);
@@ -19,9 +19,9 @@ class UmgebungExampleAppWithMovie : public PApplet {
 
     void draw() {
         background(0);
-//        if (myMovie->available()) {
-//            myMovie->read();
-//        }
+        //        if (myMovie->available()) {
+        //            myMovie->read();
+        //        }
         myMovie->reload(); // TODO if run from thread ( i.e `myMovie->play();` ) this needs to be called in draw
         image(myMovie, mouseX, mouseY);
     }
@@ -39,6 +39,6 @@ class UmgebungExampleAppWithMovie : public PApplet {
     }
 };
 
-PApplet *umgebung::instance() {
+PApplet* umgebung::instance() {
     return new UmgebungExampleAppWithMovie();
 }

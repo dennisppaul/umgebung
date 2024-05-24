@@ -31,9 +31,9 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for
 
 # add run target
 add_custom_target(run
-    COMMAND ${PROJECT_NAME}
-    DEPENDS ${PROJECT_NAME}
-    WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
+        COMMAND ${PROJECT_NAME}
+        DEPENDS ${PROJECT_NAME}
+        WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
 )
 
 # create application bundle

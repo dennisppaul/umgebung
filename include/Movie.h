@@ -52,7 +52,7 @@ namespace umgebung {
 
     class Movie : public PImage {
     public:
-        Movie(const std::string &filename, int _channels = -1);
+        Movie(const std::string& filename, int _channels = -1);
 
         ~Movie();
 
@@ -66,13 +66,13 @@ namespace umgebung {
 
         void reload();
 
-        float frameRate() const; //	Sets how often frames are read from the movie.
-        void speed(float factor); //	Sets the relative playback speed of the movie.
-        float duration() const; //	Returns the length of the movie in seconds.
-        void jump(float seconds); //	Jumps to a specific location within a movie.
-        float time() const; //	Returns the location of the playback head in seconds.
-        void loop(); //	Plays a movie continuously, restarting it when it's over.
-        void noLoop(); //	If a movie is looping, this will cause it to play until the end and then stop on the last
+        float frameRate() const;   //	Sets how often frames are read from the movie.
+        void  speed(float factor); //	Sets the relative playback speed of the movie.
+        float duration() const;    //	Returns the length of the movie in seconds.
+        void  jump(float seconds); //	Jumps to a specific location within a movie.
+        float time() const;        //	Returns the location of the playback head in seconds.
+        void  loop();              //	Plays a movie continuously, restarting it when it's over.
+        void  noLoop();            //	If a movie is looping, this will cause it to play until the end and then stop on the last
 
     private:
         std::atomic<bool> isLooping            = false;
@@ -83,21 +83,21 @@ namespace umgebung {
         double            frameDuration; // Duration of each frame in seconds
 #ifndef DISABLE_GRAPHICS
 #ifndef DISABLE_VIDEO
-        uint8_t         *buffer;
-        AVFrame         *frame;
-        AVFrame         *convertedFrame;
-        AVCodecContext  *videoCodecContext;
-        AVCodecContext  *audioCodecContext;
-        AVFormatContext *formatContext;
-        AVPacket        *packet;
-        SwsContext      *swsContext;
-        int             videoStreamIndex;
-        int             audioStreamIndex;
-        int             mFrameCounter = 0;
+        uint8_t*         buffer;
+        AVFrame*         frame;
+        AVFrame*         convertedFrame;
+        AVCodecContext*  videoCodecContext;
+        AVCodecContext*  audioCodecContext;
+        AVFormatContext* formatContext;
+        AVPacket*        packet;
+        SwsContext*      swsContext;
+        int              videoStreamIndex;
+        int              audioStreamIndex;
+        int              mFrameCounter = 0;
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
 
-        int init_from_file(const std::string &filename, int _channels = -1);
+        int init_from_file(const std::string& filename, int _channels = -1);
 
         void playbackLoop();
 

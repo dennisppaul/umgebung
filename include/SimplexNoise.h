@@ -9,11 +9,11 @@
  */
 #pragma once
 
-#include <cstddef>  // size_t
+#include <cstddef> // size_t
 
 namespace umgebung {
 
-/**
+    /**
  * @brief A Perlin Simplex Noise C++ Implementation (1D, 2D, 3D, 4D).
  */
     class SimplexNoise {
@@ -42,14 +42,13 @@ namespace umgebung {
          * @param[in] lacunarity   Lacunarity specifies the frequency multiplier between successive octaves (default to 2.0).
          * @param[in] persistence  Persistence is the loss of amplitude between successive octaves (usually 1/lacunarity)
          */
-        explicit SimplexNoise(float frequency = 1.0f,
-                              float amplitude = 1.0f,
-                              float lacunarity = 2.0f,
-                              float persistence = 0.5f) :
-                mFrequency(frequency),
-                mAmplitude(amplitude),
-                mLacunarity(lacunarity),
-                mPersistence(persistence) {
+        explicit SimplexNoise(float frequency   = 1.0f,
+                              float amplitude   = 1.0f,
+                              float lacunarity  = 2.0f,
+                              float persistence = 0.5f) : mFrequency(frequency),
+                                                          mAmplitude(amplitude),
+                                                          mLacunarity(lacunarity),
+                                                          mPersistence(persistence) {
         }
 
     private:
@@ -60,5 +59,5 @@ namespace umgebung {
         float mPersistence; ///< Persistence is the loss of amplitude between successive octaves (usually 1/lacunarity)
     };
 
-// from https://github.com/SRombauts/SimplexNoise
+    // from https://github.com/SRombauts/SimplexNoise
 } // namespace umgebung

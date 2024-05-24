@@ -50,24 +50,24 @@
 #define WEAK __attribute__((weak))
 #endif
 
-#define USE_CURRENT_OPENGL                FALSE // on macOS currently VERSION 3.3 // TODO does not work currently
+#define USE_CURRENT_OPENGL FALSE // on macOS currently VERSION 3.3 // TODO does not work currently
 #ifndef RENDER_INTO_FRAMEBUFFER
-#define RENDER_INTO_FRAMEBUFFER           TRUE  // this is required when not clearing the framebuffer each frame
-#endif // RENDER_INTO_FRAMEBUFFER
+#define RENDER_INTO_FRAMEBUFFER TRUE // this is required when not clearing the framebuffer each frame
+#endif                               // RENDER_INTO_FRAMEBUFFER
 
 namespace umgebung {
-#define DEFAULT_AUDIO_SAMPLE_RATE         48000 // TODO make this configurable
-#define DEFAULT_FRAMES_PER_BUFFER         2048  // TODO make this configurable
-#define DEFAULT_NUMBER_OF_INPUT_CHANNELS  1     // TODO make this configurable
-#define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2     // TODO make this configurable
+#define DEFAULT_AUDIO_SAMPLE_RATE 48000     // TODO make this configurable
+#define DEFAULT_FRAMES_PER_BUFFER 2048      // TODO make this configurable
+#define DEFAULT_NUMBER_OF_INPUT_CHANNELS 1  // TODO make this configurable
+#define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2 // TODO make this configurable
     //#define DEFAULT_AUDIO_DEVICE              (-1)
     static const int DEFAULT_AUDIO_DEVICE = -1;
-#define DEFAULT                           (-1)
-#define DEFAULT_WINDOW_WIDTH              1024
-#define DEFAULT_WINDOW_HEIGHT             768
-#define DEFAULT_WINDOW_TITLE              "Umgebung"
-#ifndef UMGEBUNG_WINDOW_TITLE             // can be set in `CMakeLists.txt`
-#define UMGEBUNG_WINDOW_TITLE             DEFAULT_WINDOW_TITLE
+#define DEFAULT (-1)
+#define DEFAULT_WINDOW_WIDTH 1024
+#define DEFAULT_WINDOW_HEIGHT 768
+#define DEFAULT_WINDOW_TITLE "Umgebung"
+#ifndef UMGEBUNG_WINDOW_TITLE // can be set in `CMakeLists.txt`
+#define UMGEBUNG_WINDOW_TITLE DEFAULT_WINDOW_TITLE
 #endif
 
     extern int  audio_input_device;
@@ -95,15 +95,15 @@ namespace umgebung {
 
 /* Graphics Prototypes */
 namespace umgebung {
-    void set_graphics_context(PApplet *applet);
+    void set_graphics_context(PApplet* applet);
 
-    APP_WINDOW *init_graphics(int width, int height, const char *title);
+    APP_WINDOW* init_graphics(int width, int height, const char* title);
 
-    void handle_setup(APP_WINDOW *window);
+    void handle_setup(APP_WINDOW* window);
 
-    void handle_draw(APP_WINDOW *window);
+    void handle_draw(APP_WINDOW* window);
 
-    void handle_event(const SDL_Event &event, bool &fAppIsRunning, bool &fMouseIsPressed);
+    void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed);
 
-    void handle_shutdown(APP_WINDOW *window);
-}
+    void handle_shutdown(APP_WINDOW* window);
+} // namespace umgebung

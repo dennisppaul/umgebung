@@ -113,10 +113,10 @@ void PGraphics::point(float x, float y, float z) {
     if (!stroke_color.active) return;
     glColor4f(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
 
-//    glPushMatrix();
-//    translate(x - fPointSize * 0.5, y - fPointSize * 0.5, z);
-//    rect(0, 0, fPointSize, fPointSize);
-//    glPopMatrix();
+    //    glPushMatrix();
+    //    translate(x - fPointSize * 0.5, y - fPointSize * 0.5, z);
+    //    rect(0, 0, fPointSize, fPointSize);
+    //    glPopMatrix();
 
     glPointSize(fPointSize); // @development when using antialiasing a point size of 1 produces a semitransparent point
     glBegin(GL_POINTS);
@@ -175,12 +175,12 @@ void PGraphics::vertex(float x, float y, float z) {
 
 /* font */
 
-PFont *PGraphics::loadFont(std::string file, float size) {
-    auto *font = new PFont(file.c_str(), size);
+PFont* PGraphics::loadFont(std::string file, float size) {
+    auto* font = new PFont(file.c_str(), size);
     return font;
 }
 
-void PGraphics::textFont(PFont *font) {
+void PGraphics::textFont(PFont* font) {
     fCurrentFont = font;
 }
 
@@ -189,7 +189,7 @@ void PGraphics::textSize(float size) {
     fCurrentFont->size(size);
 }
 
-void PGraphics::text(const std::string &text, float x, float y, float z) {
+void PGraphics::text(const std::string& text, float x, float y, float z) {
     if (fCurrentFont == nullptr) return;
     if (!fill_color.active) return;
 
@@ -200,18 +200,18 @@ void PGraphics::text(const std::string &text, float x, float y, float z) {
 }
 
 template<typename T>
-void PGraphics::text(const T &value, float x, float y, float z) {
+void PGraphics::text(const T& value, float x, float y, float z) {
     std::ostringstream ss;
     ss << value;
     text(ss.str(), x, y, z);
 }
 
-PImage *PGraphics::loadImage(const std::string &filename) {
-    auto *img = new PImage(filename);
+PImage* PGraphics::loadImage(const std::string& filename) {
+    auto* img = new PImage(filename);
     return img;
 }
 
-void PGraphics::image(PImage *img, float x, float y, float w, float h) {
+void PGraphics::image(PImage* img, float x, float y, float w, float h) {
 #ifndef DISABLE_GRAPHICS
     glEnable(GL_TEXTURE_2D);
     glColor4f(1, 1, 1, 1);
@@ -234,7 +234,7 @@ void PGraphics::image(PImage *img, float x, float y, float w, float h) {
 #endif // DISABLE_GRAPHICS
 }
 
-void PGraphics::image(PImage *img, float x, float y) {
+void PGraphics::image(PImage* img, float x, float y) {
     image(img, x, y, img->width, img->height);
 }
 
@@ -284,7 +284,7 @@ void PGraphics::scale(float x, float y, float z) {
     glScalef(x, y, z);
 }
 
-#else // DISABLE_GRAPHICS
+#else  // DISABLE_GRAPHICS
 void PGraphics::popMatrix() {
 }
 

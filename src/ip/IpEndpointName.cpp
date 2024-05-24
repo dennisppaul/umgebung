@@ -42,12 +42,12 @@
 
 static const int MAX_ADDRESS_STRING_LENGTH = 512;
 
-unsigned long IpEndpointName::GetHostByName(const char *s) {
+unsigned long IpEndpointName::GetHostByName(const char* s) {
     return ::GetHostByName(s);
 }
 
 
-void IpEndpointName::AddressAsString(char *s) const {
+void IpEndpointName::AddressAsString(char* s) const {
     if (address == ANY_ADDRESS) {
         snprintf(s, MAX_ADDRESS_STRING_LENGTH, "<any>");
     } else {
@@ -60,7 +60,7 @@ void IpEndpointName::AddressAsString(char *s) const {
 }
 
 
-void IpEndpointName::AddressAndPortAsString(char *s) const {
+void IpEndpointName::AddressAndPortAsString(char* s) const {
     if (port == ANY_PORT) {
         if (address == ANY_ADDRESS) {
             snprintf(s, MAX_ADDRESS_STRING_LENGTH, "<any>:<any>");

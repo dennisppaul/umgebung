@@ -23,10 +23,10 @@
 #include <GL/glew.h>
 
 namespace umgebung {
-    static PApplet *     fApplet   = nullptr;
+    static PApplet*      fApplet   = nullptr;
     static SDL_GLContext glContext = nullptr;
 
-    void set_graphics_context(PApplet *applet) {
+    void set_graphics_context(PApplet* applet) {
         fApplet = applet;
     }
 
@@ -73,7 +73,7 @@ namespace umgebung {
     //        }
     //    }
 
-    APP_WINDOW *init_graphics(int width, int height, const char *title) {
+    APP_WINDOW* init_graphics(int width, int height, const char* title) {
         fApplet->width  = width;
         fApplet->height = height;
 
@@ -118,14 +118,13 @@ namespace umgebung {
         //        glfwWindowHint(GLFW_DECORATED, true);
         //        glfwWindowHint(GLFW_RESIZABLE, resizable);
 
-        APP_WINDOW *window = SDL_CreateWindow(
+        APP_WINDOW* window = SDL_CreateWindow(
             title,
             SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED,
             fApplet->width,
             fApplet->height,
-            SDL_WINDOW_OPENGL
-        );
+            SDL_WINDOW_OPENGL);
 
         if (!window) {
             std::cerr << "+++ error: could not create window: " << SDL_GetError() << std::endl;
@@ -168,14 +167,14 @@ namespace umgebung {
     //    }
 
 
-    void handle_shutdown(APP_WINDOW *window) {
+    void handle_shutdown(APP_WINDOW* window) {
         if (!headless) {
             SDL_GL_DeleteContext(glContext);
             SDL_DestroyWindow(window);
         }
     }
 
-    void handle_setup(APP_WINDOW *window) {
+    void handle_setup(APP_WINDOW* window) {
         if (!headless) {
             if (window != nullptr) {
                 SDL_GL_SetSwapInterval(1); // Enable vsync (1 means on, 0 means off)
@@ -192,10 +191,11 @@ namespace umgebung {
         }
     }
 
-    void handle_draw(APP_WINDOW *window) {
+    void handle_draw(APP_WINDOW* window) {
         /* timer begin  */
         static std::chrono::high_resolution_clock::time_point
-                startTime = std::chrono::high_resolution_clock::now(), endTime;
+            startTime = std::chrono::high_resolution_clock::now(),
+            endTime;
 
         if (headless) {
             fApplet->draw();
@@ -211,7 +211,7 @@ namespace umgebung {
 
         /* timer end */
         endTime                                           = std::chrono::high_resolution_clock::now();
-        const std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double> >(
+        const std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
             endTime - startTime);
         const double frameTime = frameDuration.count();
         fApplet->frameRate     = static_cast<float>(1.0 / frameTime);
@@ -219,7 +219,7 @@ namespace umgebung {
         startTime = std::chrono::high_resolution_clock::now();
     }
 
-    void handle_event(const SDL_Event &event, bool &fAppIsRunning, bool &fMouseIsPressed) {
+    void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed) {
         switch (event.type) {
             case SDL_QUIT:
                 fAppIsRunning = false;
@@ -238,7 +238,7 @@ namespace umgebung {
                 break;
             case SDL_MOUSEBUTTONDOWN:
                 fApplet->mouseButton = event.button.button;
-                fMouseIsPressed = true;
+                fMouseIsPressed      = true;
                 fApplet->mousePressed();
                 break;
             case SDL_MOUSEBUTTONUP:
@@ -257,7 +257,7 @@ namespace umgebung {
                 fApplet->pmouseY = fApplet->mouseY;
                 break;
             case SDL_DROPFILE: {
-                char *dropped_filedir = event.drop.file;
+                char* dropped_filedir = event.drop.file;
                 fApplet->dropped(dropped_filedir);
                 SDL_free(dropped_filedir);
                 break;

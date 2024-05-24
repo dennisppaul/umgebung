@@ -48,84 +48,83 @@ class TimerListener;
 
 class UdpSocket;
 
-class SocketReceiveMultiplexer{
+class SocketReceiveMultiplexer {
     class Implementation;
-    Implementation *impl_;
+    Implementation* impl_;
 
-	friend class UdpSocket;
+    friend class UdpSocket;
 
 public:
     SocketReceiveMultiplexer();
     ~SocketReceiveMultiplexer();
 
-	// only call the attach/detach methods _before_ calling Run
+    // only call the attach/detach methods _before_ calling Run
 
     // only one listener per socket, each socket at most once
-    void AttachSocketListener( UdpSocket *socket, PacketListener *listener );
-    void DetachSocketListener( UdpSocket *socket, PacketListener *listener );
+    void AttachSocketListener(UdpSocket* socket, PacketListener* listener);
+    void DetachSocketListener(UdpSocket* socket, PacketListener* listener);
 
-    void AttachPeriodicTimerListener( int periodMilliseconds, TimerListener *listener );
-	void AttachPeriodicTimerListener(
-            int initialDelayMilliseconds, int periodMilliseconds, TimerListener *listener );
-    void DetachPeriodicTimerListener( TimerListener *listener );  
+    void AttachPeriodicTimerListener(int periodMilliseconds, TimerListener* listener);
+    void AttachPeriodicTimerListener(
+        int initialDelayMilliseconds, int periodMilliseconds, TimerListener* listener);
+    void DetachPeriodicTimerListener(TimerListener* listener);
 
-    void Run();      // loop and block processing messages indefinitely
-	void RunUntilSigInt();
-    void Break();    // call this from a listener to exit once the listener returns
+    void Run(); // loop and block processing messages indefinitely
+    void RunUntilSigInt();
+    void Break();             // call this from a listener to exit once the listener returns
     void AsynchronousBreak(); // call this from another thread or signal handler to exit the Run() state
 };
 
 
-class UdpSocket{
+class UdpSocket {
     class Implementation;
-    Implementation *impl_;
-    
-	friend class SocketReceiveMultiplexer::Implementation;
-    
+    Implementation* impl_;
+
+    friend class SocketReceiveMultiplexer::Implementation;
+
 public:
+    // Ctor throws std::runtime_error if there's a problem
+    // initializing the socket.
+    UdpSocket();
+    virtual ~UdpSocket();
 
-	// Ctor throws std::runtime_error if there's a problem
-	// initializing the socket.
-	UdpSocket();
-	virtual ~UdpSocket();
+    // Enable broadcast addresses (e.g. x.x.x.255)
+    // Sets SO_BROADCAST socket option.
+    void SetEnableBroadcast(bool enableBroadcast);
 
-	// Enable broadcast addresses (e.g. x.x.x.255)
-	// Sets SO_BROADCAST socket option.
-	void SetEnableBroadcast( bool enableBroadcast );
-
-	// Enable multiple listeners for a single port on same 
-	// network interface*
-	// Sets SO_REUSEADDR (also SO_REUSEPORT on OS X).
-	// [*] The exact behavior of SO_REUSEADDR and 
-	// SO_REUSEPORT is undefined for some common cases 
-	// and may have drastically different behavior on different
-	// operating systems.
-	void SetAllowReuse( bool allowReuse );
-
-
-	// The socket is created in an unbound, unconnected state
-	// such a socket can only be used to send to an arbitrary
-	// address using SendTo(). To use Send() you need to first
-	// connect to a remote endpoint using Connect(). To use
-	// ReceiveFrom you need to first bind to a local endpoint
-	// using Bind().
-
-	// Retrieve the local endpoint name when sending to 'to'
-	IpEndpointName LocalEndpointFor( const IpEndpointName& remoteEndpoint ) const;
-
-	// Connect to a remote endpoint which is used as the target
-	// for calls to Send()
-	void Connect( const IpEndpointName& remoteEndpoint );	
-	void Send( const char *data, std::size_t size );
-    void SendTo( const IpEndpointName& remoteEndpoint, const char *data, std::size_t size );
+    // Enable multiple listeners for a single port on same
+    // network interface*
+    // Sets SO_REUSEADDR (also SO_REUSEPORT on OS X).
+    // [*] The exact behavior of SO_REUSEADDR and
+    // SO_REUSEPORT is undefined for some common cases
+    // and may have drastically different behavior on different
+    // operating systems.
+    void SetAllowReuse(bool allowReuse);
 
 
-	// Bind a local endpoint to receive incoming data. Endpoint
-	// can be 'any' for the system to choose an endpoint
-	void Bind( const IpEndpointName& localEndpoint );
-	bool IsBound() const;
+    // The socket is created in an unbound, unconnected state
+    // such a socket can only be used to send to an arbitrary
+    // address using SendTo(). To use Send() you need to first
+    // connect to a remote endpoint using Connect(). To use
+    // ReceiveFrom you need to first bind to a local endpoint
+    // using Bind().
 
-    std::size_t ReceiveFrom( IpEndpointName& remoteEndpoint, char *data, std::size_t size );
+    // Retrieve the local endpoint name when sending to 'to'
+    IpEndpointName LocalEndpointFor(const IpEndpointName& remoteEndpoint) const;
+
+    // Connect to a remote endpoint which is used as the target
+    // for calls to Send()
+    void Connect(const IpEndpointName& remoteEndpoint);
+    void Send(const char* data, std::size_t size);
+    void SendTo(const IpEndpointName& remoteEndpoint, const char* data, std::size_t size);
+
+
+    // Bind a local endpoint to receive incoming data. Endpoint
+    // can be 'any' for the system to choose an endpoint
+    void Bind(const IpEndpointName& localEndpoint);
+    bool IsBound() const;
+
+    std::size_t ReceiveFrom(IpEndpointName& remoteEndpoint, char* data, std::size_t size);
 };
 
 
@@ -134,40 +133,37 @@ public:
 // note that you can still use a receive socket
 // for transmitting etc
 
-class UdpTransmitSocket : public UdpSocket{
+class UdpTransmitSocket : public UdpSocket {
 public:
-	UdpTransmitSocket( const IpEndpointName& remoteEndpoint )
-		{ Connect( remoteEndpoint ); }
+    UdpTransmitSocket(const IpEndpointName& remoteEndpoint) { Connect(remoteEndpoint); }
 };
 
 
-class UdpReceiveSocket : public UdpSocket{
+class UdpReceiveSocket : public UdpSocket {
 public:
-	UdpReceiveSocket( const IpEndpointName& localEndpoint )
-		{ Bind( localEndpoint ); }
+    UdpReceiveSocket(const IpEndpointName& localEndpoint) { Bind(localEndpoint); }
 };
 
 
 // UdpListeningReceiveSocket provides a simple way to bind one listener
 // to a single socket without having to manually set up a SocketReceiveMultiplexer
 
-class UdpListeningReceiveSocket : public UdpSocket{
+class UdpListeningReceiveSocket : public UdpSocket {
     SocketReceiveMultiplexer mux_;
-    PacketListener *listener_;
+    PacketListener*          listener_;
+
 public:
-	UdpListeningReceiveSocket( const IpEndpointName& localEndpoint, PacketListener *listener )
-        : listener_( listener )
-    {
-        Bind( localEndpoint );
-        mux_.AttachSocketListener( this, listener_ );
+    UdpListeningReceiveSocket(const IpEndpointName& localEndpoint, PacketListener* listener)
+        : listener_(listener) {
+        Bind(localEndpoint);
+        mux_.AttachSocketListener(this, listener_);
     }
 
-    ~UdpListeningReceiveSocket()
-        { mux_.DetachSocketListener( this, listener_ ); }
+    ~UdpListeningReceiveSocket() { mux_.DetachSocketListener(this, listener_); }
 
     // see SocketReceiveMultiplexer above for the behaviour of these methods...
     void Run() { mux_.Run(); }
-	void RunUntilSigInt() { mux_.RunUntilSigInt(); }
+    void RunUntilSigInt() { mux_.RunUntilSigInt(); }
     void Break() { mux_.Break(); }
     void AsynchronousBreak() { mux_.AsynchronousBreak(); }
 };

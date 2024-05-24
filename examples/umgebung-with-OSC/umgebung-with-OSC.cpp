@@ -9,7 +9,7 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
     bool message_event   = false;
     int  message_counter = 0;
 
-    void receive(const OscMessage &msg) {
+    void receive(const OscMessage& msg) {
         if (msg.typetag() == "ifs") {
             println("received address pattern: ",
                     msg.addrPattern(),
@@ -21,8 +21,7 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
                     msg.get(1).floatValue(),
                     ", ",
                     msg.get(2).stringValue(),
-                    ")"
-            );
+                    ")");
             message_event = true;
         } else {
             println("could not parse OSC message: ", msg.typetag());
@@ -43,7 +42,7 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
 
     void draw() {
         if (message_event) {
-            message_event         = false;
+            message_event = false;
             fill(1);
             const int   num_rects = 20;
             const float size_rect = width / num_rects;
@@ -75,6 +74,6 @@ class UmgebungExampleAppWithOSC : public PApplet, OSCListener {
     }
 };
 
-PApplet *umgebung::instance() {
+PApplet* umgebung::instance() {
     return new UmgebungExampleAppWithOSC();
 }

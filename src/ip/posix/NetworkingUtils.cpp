@@ -43,20 +43,18 @@
 #include <cstring>
 
 
-
 NetworkInitializer::NetworkInitializer() {}
 
 NetworkInitializer::~NetworkInitializer() {}
 
 
-unsigned long GetHostByName( const char *name )
-{
+unsigned long GetHostByName(const char* name) {
     unsigned long result = 0;
 
-    struct hostent *h = gethostbyname( name );
-    if( h ){
+    struct hostent* h = gethostbyname(name);
+    if (h) {
         struct in_addr a;
-        std::memcpy( &a, h->h_addr_list[0], h->h_length );
+        std::memcpy(&a, h->h_addr_list[0], h->h_length);
         result = ntohl(a.s_addr);
     }
 

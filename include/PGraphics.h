@@ -83,22 +83,22 @@ namespace umgebung {
 
         void vertex(float x, float y, float z = 0.0);
 
-        PFont *loadFont(std::string file, float size); // @development maybe use smart pointers here
+        PFont* loadFont(std::string file, float size); // @development maybe use smart pointers here
 
-        void textFont(PFont *font);
+        void textFont(PFont* font);
 
         void textSize(float size);
 
-        void text(const std::string &text, float x, float y, float z = 0.0);
+        void text(const std::string& text, float x, float y, float z = 0.0);
 
         template<typename T>
-        void text(const T &value, float x, float y, float z);
+        void text(const T& value, float x, float y, float z);
 
-        PImage *loadImage(const std::string &filename);
+        PImage* loadImage(const std::string& filename);
 
-        void image(PImage *img, float x, float y, float w, float h);
+        void image(PImage* img, float x, float y, float w, float h);
 
-        void image(PImage *img, float x, float y);
+        void image(PImage* img, float x, float y);
 
         void popMatrix();
 
@@ -123,8 +123,8 @@ namespace umgebung {
         void scale(float x, float y, float z);
 
     private:
-        PFont *fCurrentFont = nullptr;
-        float fPointSize    = 1;
+        PFont* fCurrentFont = nullptr;
+        float  fPointSize   = 1;
 
         struct {
             float r      = 0;
@@ -132,6 +132,6 @@ namespace umgebung {
             float b      = 0;
             float a      = 1;
             bool  active = false;
-        }     fill_color, stroke_color;
+        } fill_color, stroke_color;
     };
 } // namespace umgebung

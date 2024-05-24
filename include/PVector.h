@@ -24,7 +24,7 @@
 
 namespace umgebung {
 
-/*
+    /*
       PVector operator+(const PVector &other) const {
         return {x + other.x, y + other.y, z + other.z};
     }
@@ -45,8 +45,8 @@ namespace umgebung {
     }
   */
 
-//#include <cmath>
-//#include <random>
+    //#include <cmath>
+    //#include <random>
 
 #ifndef M_PI
 #define M_PI 3.141592653589
@@ -113,13 +113,13 @@ namespace umgebung {
             z += _z;
         }
 
-        void add(const PVector &v) {
+        void add(const PVector& v) {
             x += v.x;
             y += v.y;
             z += v.z;
         }
 
-        static PVector add(const PVector &v1, const PVector &v2) {
+        static PVector add(const PVector& v1, const PVector& v2) {
             return {v1.x + v2.x, v1.y + v2.y, v1.z + v2.z};
         }
 
@@ -130,13 +130,13 @@ namespace umgebung {
             z -= _z;
         }
 
-        void sub(const PVector &v) {
+        void sub(const PVector& v) {
             x -= v.x;
             y -= v.y;
             z -= v.z;
         }
 
-        static PVector sub(const PVector &v1, const PVector &v2) {
+        static PVector sub(const PVector& v1, const PVector& v2) {
             return {v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
         }
 
@@ -147,7 +147,7 @@ namespace umgebung {
             z *= scalar;
         }
 
-        static PVector mult(const PVector &v, float scalar) {
+        static PVector mult(const PVector& v, float scalar) {
             return {v.x * scalar, v.y * scalar, v.z * scalar};
         }
 
@@ -160,7 +160,7 @@ namespace umgebung {
             }
         }
 
-        static PVector div(const PVector &v, float scalar) {
+        static PVector div(const PVector& v, float scalar) {
             if (scalar != 0) {
                 return {v.x / scalar, v.y / scalar, v.z / scalar};
             }
@@ -168,7 +168,7 @@ namespace umgebung {
         }
 
         // Calculate the distance between two points
-        static float dist(const PVector &v1, const PVector &v2) {
+        static float dist(const PVector& v1, const PVector& v2) {
             float dx = v2.x - v1.x;
             float dy = v2.y - v1.y;
             float dz = v2.z - v1.z;
@@ -176,12 +176,12 @@ namespace umgebung {
         }
 
         // Calculate the dot product of two vectors
-        static float dot(const PVector &v1, const PVector &v2) {
+        static float dot(const PVector& v1, const PVector& v2) {
             return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
         }
 
         // Calculate and return the cross product
-        static PVector cross(const PVector &v1, const PVector &v2) {
+        static PVector cross(const PVector& v1, const PVector& v2) {
             return {v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x};
         }
 
@@ -216,19 +216,19 @@ namespace umgebung {
         void rotate(float angle) {
             float new_x = x * (float) cos(angle) - y * (float) sin(angle);
             float new_y = x * (float) sin(angle) + y * (float) cos(angle);
-            x = new_x;
-            y = new_y;
+            x           = new_x;
+            y           = new_y;
         }
 
         // Linear interpolate the vector to another vector
-        void lerp(const PVector &target, float amount) {
+        void lerp(const PVector& target, float amount) {
             x = x + (target.x - x) * amount;
             y = y + (target.y - y) * amount;
             z = z + (target.z - z) * amount;
         }
 
         // Calculate and return the angle between two vectors
-        static float angleBetween(const PVector &v1, const PVector &v2) {
+        static float angleBetween(const PVector& v1, const PVector& v2) {
             float dotProduct = dot(v1, v2);
             float magV1      = v1.mag();
             float magV2      = v2.mag();
@@ -236,11 +236,11 @@ namespace umgebung {
         }
 
         // Return a representation of the vector as a float array
-        [[nodiscard]] float *array() const {
-            auto *arr = new float[3];
-            arr[0] = x;
-            arr[1] = y;
-            arr[2] = z;
+        [[nodiscard]] float* array() const {
+            auto* arr = new float[3];
+            arr[0]    = x;
+            arr[1]    = y;
+            arr[2]    = z;
             return arr;
         }
     };

@@ -40,19 +40,19 @@ class NetAddress {
 public:
     NetAddress(std::string ip_address, int port) {
         IpEndpointName mEndpointName = IpEndpointName(ip_address.c_str(), port);
-        fTransmitSocket = new UdpTransmitSocket(mEndpointName);
+        fTransmitSocket              = new UdpTransmitSocket(mEndpointName);
     }
 
     ~NetAddress() {
         delete fTransmitSocket;
     }
 
-    UdpTransmitSocket *socket() {
+    UdpTransmitSocket* socket() {
         return fTransmitSocket;
     }
 
 private:
-    UdpTransmitSocket *fTransmitSocket = nullptr;
+    UdpTransmitSocket* fTransmitSocket = nullptr;
 };
 
 class OscPayloadFragment {
@@ -68,7 +68,7 @@ public:
     }
 
     std::string stringValue() const {
-        return std::any_cast<const char *>(value);
+        return std::any_cast<const char*>(value);
     }
 
     bool boolValue() const {
@@ -105,7 +105,7 @@ public:
         return fPacket.Size();
     }
 
-    const char *data() const {
+    const char* data() const {
         return fPacket.Data();
     }
 
@@ -158,29 +158,27 @@ private:
 
 class OSCListener {
 public:
-    virtual void receive_native(const osc::ReceivedMessage &msg) {};
+    virtual void receive_native(const osc::ReceivedMessage& msg) {};
 
-    virtual void receive(const OscMessage &msg) {};
+    virtual void receive(const OscMessage& msg) {};
 };
 
 class OSC {
 public:
-    OSC(std::string transmit_address, int transmit_port, int receive_port, bool use_UDP_multicast = true) :
-            fTransmitAddress(std::move(transmit_address)),
-            fTransmitPort(transmit_port),
-            fReceivePort(receive_port),
-            fUseUDPMulticast(use_UDP_multicast) {
+    OSC(std::string transmit_address, int transmit_port, int receive_port, bool use_UDP_multicast = true) : fTransmitAddress(std::move(transmit_address)),
+                                                                                                            fTransmitPort(transmit_port),
+                                                                                                            fReceivePort(receive_port),
+                                                                                                            fUseUDPMulticast(use_UDP_multicast) {
         mOSCThread = std::thread(&OSC::osc_thread, this);
 
         IpEndpointName mEndpointName = IpEndpointName(fTransmitAddress.c_str(), fTransmitPort);
-        mTransmitSocket = new UdpTransmitSocket(mEndpointName);
+        mTransmitSocket              = new UdpTransmitSocket(mEndpointName);
     }
 
-    OSC(int receive_port, bool use_UDP_multicast = true) :
-            fTransmitAddress(""),
-            fTransmitPort(-1),
-            fReceivePort(receive_port),
-            fUseUDPMulticast(use_UDP_multicast) {
+    OSC(int receive_port, bool use_UDP_multicast = true) : fTransmitAddress(""),
+                                                           fTransmitPort(-1),
+                                                           fReceivePort(receive_port),
+                                                           fUseUDPMulticast(use_UDP_multicast) {
         mOSCThread      = std::thread(&OSC::osc_thread, this);
         mTransmitSocket = nullptr;
     }
@@ -192,13 +190,13 @@ public:
         }
     }
 
-    void callback(OSCListener *instance) {
+    void callback(OSCListener* instance) {
         callback_native = &OSCListener::receive_native;
         callback_       = &OSCListener::receive;
         fInstance       = instance;
     }
 
-    void invoke_callback(const osc::ReceivedMessage &msg) {
+    void invoke_callback(const osc::ReceivedMessage& msg) {
         OscMessage                           msg_(msg.AddressPattern());
         osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
         while (arg != msg.ArgumentsEnd()) {
@@ -237,7 +235,7 @@ public:
     }
 
     template<typename... Args>
-    void send(const std::string &addr_pattern, Args... args) {
+    void send(const std::string& addr_pattern, Args... args) {
         char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
         osc::OutboundPacketStream p(buffer, OSC_TRANSMIT_OUTPUT_BUFFER_SIZE);
         p << osc::BeginBundleImmediate
@@ -252,114 +250,114 @@ public:
         }
     }
 
-//    void process_KLANG_OSC_CMD(const osc::ReceivedMessage &msg) {
-//#ifdef DEBUG_OSC
-//        KLANG_LOG("@sdlApp onReceive *KLANG_OSC_CMD*     : %s", KLANG_OSC_CMD);
-//#endif
-//        uint8_t mData[msg.ArgumentCount()];
-//        uint8_t i = 0;
-//        for (osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
-//             arg != msg.ArgumentsEnd(); ++arg) {
-//            mData[i] = (uint8_t) arg->AsInt32();
-//            i++;
-//        }
-//        data_receive(ALL_PERIPHERALS, mData, msg.ArgumentCount());
-//    }
+    //    void process_KLANG_OSC_CMD(const osc::ReceivedMessage &msg) {
+    //#ifdef DEBUG_OSC
+    //        KLANG_LOG("@sdlApp onReceive *KLANG_OSC_CMD*     : %s", KLANG_OSC_CMD);
+    //#endif
+    //        uint8_t mData[msg.ArgumentCount()];
+    //        uint8_t i = 0;
+    //        for (osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
+    //             arg != msg.ArgumentsEnd(); ++arg) {
+    //            mData[i] = (uint8_t) arg->AsInt32();
+    //            i++;
+    //        }
+    //        data_receive(ALL_PERIPHERALS, mData, msg.ArgumentCount());
+    //    }
 
-//    void process_KLANG_OSC_DATA(const osc::ReceivedMessage &msg) {
-//#ifdef DEBUG_OSC
-//        KLANG_LOG("@sdlApp onReceive *KLANG_OSC_DATA* : %s", KLANG_OSC_DATA);
-//#endif
-//        if (msg.ArgumentCount() > 1) {
-//            const uint8_t mLength = msg.ArgumentCount() - 1;
-//            osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
-//            const uint8_t mSender = (uint8_t) arg->AsInt32();
-//            ++arg;
-//            uint8_t mData[mLength];
-//            uint8_t i = 0;
-//            while (arg != msg.ArgumentsEnd()) {
-//                mData[i] = (uint8_t) arg->AsInt32();
-//                ++arg;
-//                ++i;
-//            }
-//            data_receive(mSender, mData, mLength);
-//        }
-//    }
+    //    void process_KLANG_OSC_DATA(const osc::ReceivedMessage &msg) {
+    //#ifdef DEBUG_OSC
+    //        KLANG_LOG("@sdlApp onReceive *KLANG_OSC_DATA* : %s", KLANG_OSC_DATA);
+    //#endif
+    //        if (msg.ArgumentCount() > 1) {
+    //            const uint8_t mLength = msg.ArgumentCount() - 1;
+    //            osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
+    //            const uint8_t mSender = (uint8_t) arg->AsInt32();
+    //            ++arg;
+    //            uint8_t mData[mLength];
+    //            uint8_t i = 0;
+    //            while (arg != msg.ArgumentsEnd()) {
+    //                mData[i] = (uint8_t) arg->AsInt32();
+    //                ++arg;
+    //                ++i;
+    //            }
+    //            data_receive(mSender, mData, mLength);
+    //        }
+    //    }
 
-//    void process_KLANG_OSC_MIDI_IN(const osc::ReceivedMessage &msg) {
-//#ifdef DEBUG_OSC
-//        KLANG_LOG("@sdlApp onReceive *KLANG_OSC_MIDI_IN* : %s", KLANG_OSC_MIDI_IN);
-//#endif
-//        EVENT_TYPE mMidiInEvent;
-//        if (msg.ArgumentCount() > 0) {
-//            osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
-//            mMidiInEvent = (EVENT_TYPE) arg->AsInt32();
-//            if (msg.ArgumentCount() > 1) {
-//                float mData[msg.ArgumentCount() - 1];
-//                uint8_t i = 0;
-//                for (osc::ReceivedMessage::const_iterator args = msg.ArgumentsBegin();
-//                     args != msg.ArgumentsEnd(); ++args) {
-//                    if (i == 0) {
-//                        args++;
-//                    }
-//                    mData[i] = (float) args->AsInt32();
-//                    i++;
-//                }
-//                event_receive(mMidiInEvent, mData);
-//            } else {
-//                event_receive(mMidiInEvent, nullptr);
-//            }
-//        }
-//    }
+    //    void process_KLANG_OSC_MIDI_IN(const osc::ReceivedMessage &msg) {
+    //#ifdef DEBUG_OSC
+    //        KLANG_LOG("@sdlApp onReceive *KLANG_OSC_MIDI_IN* : %s", KLANG_OSC_MIDI_IN);
+    //#endif
+    //        EVENT_TYPE mMidiInEvent;
+    //        if (msg.ArgumentCount() > 0) {
+    //            osc::ReceivedMessage::const_iterator arg = msg.ArgumentsBegin();
+    //            mMidiInEvent = (EVENT_TYPE) arg->AsInt32();
+    //            if (msg.ArgumentCount() > 1) {
+    //                float mData[msg.ArgumentCount() - 1];
+    //                uint8_t i = 0;
+    //                for (osc::ReceivedMessage::const_iterator args = msg.ArgumentsBegin();
+    //                     args != msg.ArgumentsEnd(); ++args) {
+    //                    if (i == 0) {
+    //                        args++;
+    //                    }
+    //                    mData[i] = (float) args->AsInt32();
+    //                    i++;
+    //                }
+    //                event_receive(mMidiInEvent, mData);
+    //            } else {
+    //                event_receive(mMidiInEvent, nullptr);
+    //            }
+    //        }
+    //    }
 
 private:
-    OSCListener       *fInstance;
-    const std::string fTransmitAddress;
-    const int         fTransmitPort;
-    const int         fReceivePort;
-    const bool        fUseUDPMulticast;
-    std::thread       mOSCThread;
-    UdpTransmitSocket *mTransmitSocket = nullptr;
+    OSCListener*       fInstance;
+    const std::string  fTransmitAddress;
+    const int          fTransmitPort;
+    const int          fReceivePort;
+    const bool         fUseUDPMulticast;
+    std::thread        mOSCThread;
+    UdpTransmitSocket* mTransmitSocket = nullptr;
 
-//    void register_callback(void (OSCListener::*callback)(const osc::ReceivedMessage &), OSCListener *instance) {
-//        callback_ = callback;
-//        instance_ = instance;
-//    }
+    //    void register_callback(void (OSCListener::*callback)(const osc::ReceivedMessage &), OSCListener *instance) {
+    //        callback_ = callback;
+    //        instance_ = instance;
+    //    }
 
-    void (OSCListener::*callback_native)(const osc::ReceivedMessage &);
+    void (OSCListener::*callback_native)(const osc::ReceivedMessage&);
 
-    void (OSCListener::*callback_)(const OscMessage &msg);
+    void (OSCListener::*callback_)(const OscMessage& msg);
 
     template<typename T, typename... Rest>
-    [[maybe_unused]] void addArgsToPacketStream(osc::OutboundPacketStream &p, T first, Rest... rest) {
+    [[maybe_unused]] void addArgsToPacketStream(osc::OutboundPacketStream& p, T first, Rest... rest) {
         p << first;
         addArgsToPacketStream(p, rest...);
     }
 
-    void addArgsToPacketStream([[maybe_unused]] osc::OutboundPacketStream &p) {}
+    void addArgsToPacketStream([[maybe_unused]] osc::OutboundPacketStream& p) {}
 
     class MOscPacketListener : public osc::OscPacketListener {
     public:
-        [[maybe_unused]] MOscPacketListener(OSC *parent) : mParent(parent) {}
+        [[maybe_unused]] MOscPacketListener(OSC* parent) : mParent(parent) {}
 
-        void process(const osc::ReceivedMessage &msg) {
+        void process(const osc::ReceivedMessage& msg) {
             mParent->invoke_callback(msg);
         }
 
     private:
-        OSC *mParent;
+        OSC* mParent;
 
-        [[maybe_unused]] bool addr_pattern_equals(const osc::ReceivedMessage &msg, const char *pAddrPatter) {
+        [[maybe_unused]] bool addr_pattern_equals(const osc::ReceivedMessage& msg, const char* pAddrPatter) {
             return (strcmp(msg.AddressPattern(), pAddrPatter) == 0);
         }
 
     protected:
-        void ProcessMessage(const osc::ReceivedMessage &msg,
-                            const IpEndpointName &remoteEndpoint) override {
-            (void) remoteEndpoint;  // suppress unused parameter warning
+        void ProcessMessage(const osc::ReceivedMessage& msg,
+                            const IpEndpointName&       remoteEndpoint) override {
+            (void) remoteEndpoint; // suppress unused parameter warning
             try {
                 process(msg);
-            } catch (osc::Exception &e) {
+            } catch (osc::Exception& e) {
                 std::cerr << "+++ OSC receive error: " << e.what() << std::endl;
             }
         }
@@ -369,8 +367,8 @@ private:
         try {
             if (fUseUDPMulticast) {
                 MOscPacketListener mOscListener(this);
-                PacketListener *listener_      = &mOscListener;
-                IpEndpointName mIpEndpointName = IpEndpointName(fTransmitAddress.c_str(), fReceivePort);
+                PacketListener*    listener_       = &mOscListener;
+                IpEndpointName     mIpEndpointName = IpEndpointName(fTransmitAddress.c_str(), fReceivePort);
                 if (mIpEndpointName.IsMulticastAddress()) {
                     UdpSocket mUdpSocket;
                     mUdpSocket.SetAllowReuse(true);
@@ -384,11 +382,11 @@ private:
                     s.Run();
                 }
             } else {
-                MOscPacketListener mOscListener(this);
+                MOscPacketListener        mOscListener(this);
                 UdpListeningReceiveSocket s(IpEndpointName(IpEndpointName::ANY_ADDRESS, fReceivePort), &mOscListener);
                 s.Run();
             }
-        } catch (std::exception &e) {
+        } catch (std::exception& e) {
             std::cerr << "+++ OSC receive error: " << e.what() << std::endl;
         }
     }

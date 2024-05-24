@@ -48,7 +48,7 @@ class UmgebungExampleAppWithMIDI : public PApplet, MIDIListener {
         }
     }
 
-    void receive_native(const std::vector<unsigned char> &message) {
+    void receive_native(const std::vector<unsigned char>& message) {
         if (message.size() > 0) {
             std::cout << "Received MIDI message: ";
             for (size_t i = 0; i < message.size(); ++i) {
@@ -59,6 +59,6 @@ class UmgebungExampleAppWithMIDI : public PApplet, MIDIListener {
     };
 };
 
-PApplet *umgebung::instance() {
+PApplet* umgebung::instance() {
     return new UmgebungExampleAppWithMIDI();
 }

@@ -34,10 +34,10 @@ class UmgebungApp : public PApplet {
         rect(20, 20, width / 2 - 40, height / 2 - 40);
     }
 
-    void audioblock(float **input, float **output, int length) {
+    void audioblock(float** input, float** output, int length) {
         for (int i = 0; i < length; i++) {
-            float    sample = random(-0.1, 0.1);
-            for (int j      = 0; j < audio_output_channels; ++j) {
+            float sample = random(-0.1, 0.1);
+            for (int j = 0; j < audio_output_channels; ++j) {
                 output[j][i] = sample;
             }
         }
@@ -51,6 +51,6 @@ class UmgebungApp : public PApplet {
     }
 };
 
-PApplet *umgebung::instance() {
+PApplet* umgebung::instance() {
     return new UmgebungApp();
 }

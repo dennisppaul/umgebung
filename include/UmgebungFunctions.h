@@ -49,14 +49,14 @@ namespace umgebung {
 
     float degrees(float radians);
 
-    bool exists(const std::string &file_path);
+    bool exists(const std::string& file_path);
 
     std::string sketchPath();
 
 #define FLUSH_PRINT
 
     template<typename... Args>
-    void print(const Args &... args) {
+    void print(const Args&... args) {
         std::ostringstream os;
         (os << ... << args);
         std::cout << os.str();
@@ -66,7 +66,7 @@ namespace umgebung {
     }
 
     template<typename... Args>
-    void println(const Args &... args) {
+    void println(const Args&... args) {
         std::ostringstream os;
         (os << ... << args);
         std::cout << os.str() << std::endl;
@@ -76,7 +76,7 @@ namespace umgebung {
     }
 
     template<typename T>
-    void printArray(const std::vector<T> &vec) {
+    void printArray(const std::vector<T>& vec) {
         for (size_t i = 0; i < vec.size(); ++i) {
             std::cout << "[" << i << "] " << vec[i] << std::endl;
         }
@@ -86,7 +86,7 @@ namespace umgebung {
     }
 
     template<typename... Args>
-    std::string to_string(const Args &... args) {
+    std::string to_string(const Args&... args) {
         std::ostringstream oss;
         (oss << ... << args);
         return oss.str();

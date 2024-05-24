@@ -54,7 +54,7 @@ namespace umgebung {
         GLuint               vertexArray, vertexBuffer;
         GLuint               vertexShader, fragmentShader, shaderProgram;
 
-        const char *vertexShaderSource = R"(
+        const char* vertexShaderSource = R"(
     #version 330 core
     layout(location = 0) in vec3 aPos;
     layout(location = 1) in vec3 aColor;
@@ -65,7 +65,7 @@ namespace umgebung {
     }
 )";
 
-        const char *fragmentShaderSource = R"(
+        const char* fragmentShaderSource = R"(
     #version 330 core
     in vec3 color;
     out vec4 FragColor;
@@ -76,6 +76,6 @@ namespace umgebung {
 #endif // DISABLE_GRAPHICS
     };
 
-    PShape *createShape();
+    PShape* createShape();
 
 } // namespace umgebung

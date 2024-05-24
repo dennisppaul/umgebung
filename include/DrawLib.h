@@ -22,8 +22,8 @@
 #include "PApplet.h"
 
 namespace umgebung {
-    static void draw_buffer(PApplet *    g,
-                            const float *buffer,
+    static void draw_buffer(PApplet*     g,
+                            const float* buffer,
                             const int    length,
                             const int    step,
                             const float  width,

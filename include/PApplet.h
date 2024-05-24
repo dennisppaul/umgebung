@@ -35,7 +35,7 @@ namespace umgebung {
          * @param separator
          * @return
          */
-        static std::string join(const std::vector<std::string> &strings, const std::string &separator) {
+        static std::string join(const std::vector<std::string>& strings, const std::string& separator) {
             std::string result;
             for (size_t i = 0; i < strings.size(); ++i) {
                 result += strings[i];
@@ -52,7 +52,7 @@ namespace umgebung {
          * @param re
          * @return
          */
-        static std::vector<std::string> matchAll(const std::string &text, const std::regex &re) {
+        static std::vector<std::string> matchAll(const std::string& text, const std::regex& re) {
             std::vector<std::string> matches;
             std::sregex_iterator     begin(text.begin(), text.end(), re), end;
             for (auto i = begin; i != end; ++i) {
@@ -67,7 +67,7 @@ namespace umgebung {
          * @param re
          * @return
          */
-        static std::vector<std::string> match(const std::string &text, const std::regex &re) {
+        static std::vector<std::string> match(const std::string& text, const std::regex& re) {
             std::vector<std::string> groups;
             std::smatch              match;
             if (std::regex_search(text, match, re)) {
@@ -139,7 +139,7 @@ namespace umgebung {
          * @param tokens
          * @return
          */
-        static std::vector<std::string> splitTokens(const std::string &str, const std::string &tokens) {
+        static std::vector<std::string> splitTokens(const std::string& str, const std::string& tokens) {
             std::vector<std::string> result;
             size_t                   start = 0, end;
             while ((end = str.find_first_of(tokens, start)) != std::string::npos) {
@@ -160,7 +160,7 @@ namespace umgebung {
          * @param delimiter
          * @return
          */
-        static std::vector<std::string> split(const std::string &str, const std::string &delimiter) {
+        static std::vector<std::string> split(const std::string& str, const std::string& delimiter) {
             std::vector<std::string> result;
             size_t                   start = 0, end;
             while ((end = str.find(delimiter, start)) != std::string::npos) {
@@ -178,7 +178,7 @@ namespace umgebung {
          * @param str
          * @return
          */
-        static std::string trim(const std::string &str) {
+        static std::string trim(const std::string& str) {
             const size_t first = str.find_first_not_of(" \t\n\r\f\v");
             if (first == std::string::npos)
                 return "";
@@ -189,13 +189,10 @@ namespace umgebung {
         /**
          * get files from directory
          */
-        static std::vector<std::string> get_files(const std::string &directory, const std::string &extension = "") {
+        static std::vector<std::string> get_files(const std::string& directory, const std::string& extension = "") {
             std::vector<std::string> files;
-            for (const auto &entry: std::filesystem::directory_iterator(directory)) {
-                if (entry.path().extension() == extension
-                    || extension == "*"
-                    || extension == "*.*"
-                    || extension == "") {
+            for (const auto& entry: std::filesystem::directory_iterator(directory)) {
+                if (entry.path().extension() == extension || extension == "*" || extension == "*.*" || extension == "") {
                     files.push_back(entry.path().string());
                 }
             }
@@ -391,7 +388,7 @@ namespace umgebung {
         virtual void finish() {
         }
 
-        virtual void audioblock(float **input, float **output, int length) {
+        virtual void audioblock(float** input, float** output, int length) {
         };
 
         virtual void mouseMoved() {
@@ -416,5 +413,5 @@ namespace umgebung {
         }
     };
 
-    extern PApplet *instance();
+    extern PApplet* instance();
 } // namespace umgebung

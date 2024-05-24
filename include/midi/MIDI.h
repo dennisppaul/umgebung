@@ -25,7 +25,7 @@
 
 class MIDIListener {
 public:
-    virtual void message(const std::vector<unsigned char> &message) {};
+    virtual void message(const std::vector<unsigned char>& message) {};
 
     virtual void note_off(int channel, int note) {};
 
@@ -35,14 +35,13 @@ public:
 
     virtual void program_change(int channel, int program) {};
 
-//    virtual void aftertouch(int channel, int pressure) {};
+    //    virtual void aftertouch(int channel, int pressure) {};
 
     virtual void pitch_bend(int channel, int value) {};
 
-//    virtual void poly_aftertouch(int channel, int note, int pressure) {};
+    //    virtual void poly_aftertouch(int channel, int note, int pressure) {};
 
-    virtual void sys_ex(const std::vector<unsigned char> &message) {};
-
+    virtual void sys_ex(const std::vector<unsigned char>& message) {};
 };
 
 class MIDI {
@@ -65,7 +64,7 @@ public:
             try {
                 std::string portName = midiIn->getPortName(i);
                 std::cout << "+++\t" << i << ":\t" << portName << std::endl;
-            } catch (RtMidiError &error) {
+            } catch (RtMidiError& error) {
                 error.printMessage();
             }
         }
@@ -78,7 +77,7 @@ public:
             try {
                 std::string portName = midiOut->getPortName(i);
                 std::cout << "+++\t" << i << ":\t" << portName << std::endl;
-            } catch (RtMidiError &error) {
+            } catch (RtMidiError& error) {
                 error.printMessage();
             }
         }
@@ -102,18 +101,18 @@ public:
         midiOut->openPort(port);
     }
 
-    void open_input_port(const std::string &portName) {
+    void open_input_port(const std::string& portName) {
         unsigned int portNumber = find_port(portName, true);
         open_input_port(portNumber);
     }
 
-    void open_output_port(const std::string &portName) {
+    void open_output_port(const std::string& portName) {
         unsigned int portNumber = find_port(portName, false);
         open_output_port(portNumber);
     }
 
-    unsigned int find_port(const std::string &portName, bool isInput) {
-        RtMidi       *midi  = isInput ? static_cast<RtMidi *>(midiIn) : static_cast<RtMidi *>(midiOut);
+    unsigned int find_port(const std::string& portName, bool isInput) {
+        RtMidi*      midi   = isInput ? static_cast<RtMidi*>(midiIn) : static_cast<RtMidi*>(midiOut);
         unsigned int nPorts = midi->getPortCount();
 
         for (unsigned int i = 0; i < nPorts; ++i) {
@@ -122,7 +121,7 @@ public:
                 if (name == portName) {
                     return i;
                 }
-            } catch (RtMidiError &error) {
+            } catch (RtMidiError& error) {
                 error.printMessage();
             }
         }
@@ -133,35 +132,32 @@ public:
 
     void note_off(int channel, int note) {
         std::vector<unsigned char> message = {
-                static_cast<unsigned char>(128 + channel),
-                static_cast<unsigned char>(note),
-                0};
+            static_cast<unsigned char>(128 + channel),
+            static_cast<unsigned char>(note),
+            0};
         midiOut->sendMessage(&message);
     }
 
     void note_on(int channel, int note, int velocity) {
         std::vector<unsigned char> message = {
-                static_cast<unsigned char>(144 + channel),
-                static_cast<unsigned char>(note),
-                static_cast<unsigned char>(velocity)
-        };
+            static_cast<unsigned char>(144 + channel),
+            static_cast<unsigned char>(note),
+            static_cast<unsigned char>(velocity)};
         midiOut->sendMessage(&message);
     }
 
     void control_change(int channel, int control, int value) {
         std::vector<unsigned char> message = {
-                static_cast<unsigned char>(176 + channel),
-                static_cast<unsigned char>(control),
-                static_cast<unsigned char>(value)
-        };
+            static_cast<unsigned char>(176 + channel),
+            static_cast<unsigned char>(control),
+            static_cast<unsigned char>(value)};
         midiOut->sendMessage(&message);
     }
 
     void program_change(int channel, int program) {
         std::vector<unsigned char> message = {
-                static_cast<unsigned char>(192 + channel),
-                static_cast<unsigned char>(program)
-        };
+            static_cast<unsigned char>(192 + channel),
+            static_cast<unsigned char>(program)};
         midiOut->sendMessage(&message);
     }
 
@@ -172,22 +168,20 @@ public:
         int msb = (value >> 7) & 0x7F;
 
         std::vector<unsigned char> message = {
-                static_cast<unsigned char>(224 + channel),
-                static_cast<unsigned char>(lsb),
-                static_cast<unsigned char>(msb)
-        };
+            static_cast<unsigned char>(224 + channel),
+            static_cast<unsigned char>(lsb),
+            static_cast<unsigned char>(msb)};
         midiOut->sendMessage(&message);
     }
 
     void channel_pressure(int channel, int pressure) {
         std::vector<unsigned char> message = {
-                static_cast<unsigned char>(208 + channel),
-                static_cast<unsigned char>(pressure)
-        };
+            static_cast<unsigned char>(208 + channel),
+            static_cast<unsigned char>(pressure)};
         midiOut->sendMessage(&message);
     }
 
-    void sysEx(const std::vector<unsigned char> &data) {
+    void sysEx(const std::vector<unsigned char>& data) {
         std::vector<unsigned char> message;
         message.push_back(0xF0); // Start of SysEx
         message.insert(message.end(), data.begin(), data.end());
@@ -195,34 +189,34 @@ public:
         midiOut->sendMessage(&message);
     }
 
-    void callback(MIDIListener *instance) {
+    void callback(MIDIListener* instance) {
         callback_message = &MIDIListener::message;
-//        callback_note_on         = &MIDIListener::note_on;
-//        callback_note_off        = &MIDIListener::note_off;
-//        callback_control_change  = &MIDIListener::control_change;
-//        callback_program_change  = &MIDIListener::program_change;
-//        callback_aftertouch      = &MIDIListener::aftertouch;
-//        callback_pitch_bend      = &MIDIListener::pitch_bend;
-//        callback_poly_aftertouch = &MIDIListener::poly_aftertouch;
-        fInstance        = instance;
+        //        callback_note_on         = &MIDIListener::note_on;
+        //        callback_note_off        = &MIDIListener::note_off;
+        //        callback_control_change  = &MIDIListener::control_change;
+        //        callback_program_change  = &MIDIListener::program_change;
+        //        callback_aftertouch      = &MIDIListener::aftertouch;
+        //        callback_pitch_bend      = &MIDIListener::pitch_bend;
+        //        callback_poly_aftertouch = &MIDIListener::poly_aftertouch;
+        fInstance = instance;
     }
 
 private:
-    RtMidiIn     *midiIn;
-    RtMidiOut    *midiOut;
-    MIDIListener *fInstance;
+    RtMidiIn*     midiIn;
+    RtMidiOut*    midiOut;
+    MIDIListener* fInstance;
 
-    void (MIDIListener::*callback_message)(const std::vector<unsigned char> &message);
+    void (MIDIListener::*callback_message)(const std::vector<unsigned char>& message);
 
-//    void (MIDIListener::*callback_note_on)(int, int, int);
-//    void (MIDIListener::*callback_note_off)(int, int);
-//    void (MIDIListener::*callback_control_change)(int, int, int);
-//    void (MIDIListener::*callback_program_change)(int, int);
-//    void (MIDIListener::*callback_aftertouch)(int, int);
-//    void (MIDIListener::*callback_pitch_bend)(int, int);
-//    void (MIDIListener::*callback_poly_aftertouch)(int, int, int);
+    //    void (MIDIListener::*callback_note_on)(int, int, int);
+    //    void (MIDIListener::*callback_note_off)(int, int);
+    //    void (MIDIListener::*callback_control_change)(int, int, int);
+    //    void (MIDIListener::*callback_program_change)(int, int);
+    //    void (MIDIListener::*callback_aftertouch)(int, int);
+    //    void (MIDIListener::*callback_pitch_bend)(int, int);
+    //    void (MIDIListener::*callback_poly_aftertouch)(int, int, int);
 
-    void invoke_callback(const std::vector<unsigned char> &message) {
+    void invoke_callback(const std::vector<unsigned char>& message) {
         if (fInstance == nullptr) {
             std::cerr << "+++ MIDI error: no callback instance" << std::endl;
             return;
@@ -285,8 +279,8 @@ private:
         (fInstance->*callback_message)(message);
     }
 
-    static void midiInputCallback(double deltatime, std::vector<unsigned char> *message, void *userData) {
-        auto *handler = static_cast<MIDI *>(userData);
+    static void midiInputCallback(double deltatime, std::vector<unsigned char>* message, void* userData) {
+        auto* handler = static_cast<MIDI*>(userData);
         handler->invoke_callback(*message);
     }
 };

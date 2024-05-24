@@ -38,7 +38,7 @@
 #define INCLUDED_OSCPACK_TIMERLISTENER_H
 
 
-class TimerListener{
+class TimerListener {
 public:
     virtual ~TimerListener() {}
     virtual void TimerExpired() = 0;

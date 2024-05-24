@@ -44,7 +44,7 @@ namespace umgebung {
 
     /* private */
 
-    static PApplet          *fApplet          = nullptr;
+    static PApplet*         fApplet           = nullptr;
     static bool             fAppIsRunning     = true;
     static constexpr double fTargetFrameTime  = 1.0 / 60.0; // @development make this adjustable
     static bool             fAppIsInitialized = false;
@@ -55,9 +55,9 @@ namespace umgebung {
 
 #ifndef DISABLE_AUDIO
 
-    float *input_buffer         = nullptr;
-    bool  audio_input_ready     = false;
-    bool  audio_was_initialized = false;
+    float* input_buffer          = nullptr;
+    bool   audio_input_ready     = false;
+    bool   audio_was_initialized = false;
 
 #define FIXED_MEMORY_ALLOCATION
 #ifdef FIXED_MEMORY_ALLOCATION
@@ -65,9 +65,9 @@ namespace umgebung {
 #define MAX_CHANNELS 4                       // TODO make this configurable
 #define MAX_FRAMES DEFAULT_FRAMES_PER_BUFFER // TODO make this configurable
 
-    void audioOutputCallback(void *userdata, Uint8 *stream, int len) {
-        const int samples        = len / sizeof(float); // Number of samples to fill
-        float     *output_buffer = reinterpret_cast<float *>(stream); // Assuming AUDIO_F32 format
+    void audioOutputCallback(void* userdata, Uint8* stream, int len) {
+        const int samples       = len / sizeof(float);              // Number of samples to fill
+        float*    output_buffer = reinterpret_cast<float*>(stream); // Assuming AUDIO_F32 format
 
         if (input_buffer == nullptr && audio_input_channels > 0) {
             std::fill(output_buffer, output_buffer + samples, 0);
@@ -87,9 +87,7 @@ namespace umgebung {
             return;
         }
 
-        const int frames = (audio_output_channels == 0) ?
-                           (samples / audio_input_channels) :
-                           (samples / audio_output_channels);
+        const int frames = (audio_output_channels == 0) ? (samples / audio_input_channels) : (samples / audio_output_channels);
 
         // Ensure that frames and channels do not exceed maximum allowed values
         if (audio_input_channels > MAX_CHANNELS || audio_output_channels > MAX_CHANNELS || frames > MAX_FRAMES) {
@@ -112,8 +110,8 @@ namespace umgebung {
         }
 
         // Process the deinterleaved audio
-        float    *input_ptrs[MAX_CHANNELS];
-        float    *output_ptrs[MAX_CHANNELS];
+        float* input_ptrs[MAX_CHANNELS];
+        float* output_ptrs[MAX_CHANNELS];
         for (int ch = 0; ch < audio_input_channels; ++ch) {
             input_ptrs[ch] = input_channels[ch];
         }
@@ -140,9 +138,9 @@ namespace umgebung {
     }
 
 #else
-    void audioOutputCallback(void *userdata, Uint8 *stream, int len) {
-        const int samples        = len / sizeof(float);               // Number of samples to fill
-        float     *output_buffer = reinterpret_cast<float *>(stream); // (assuming AUDIO_F32 format)
+    void audioOutputCallback(void* userdata, Uint8* stream, int len) {
+        const int samples       = len / sizeof(float);              // Number of samples to fill
+        float*    output_buffer = reinterpret_cast<float*>(stream); // (assuming AUDIO_F32 format)
         if (input_buffer == nullptr && audio_input_channels > 0) {
             std::fill(output_buffer, output_buffer + samples, 0);
             return;
@@ -161,13 +159,11 @@ namespace umgebung {
             return;
         }
 
-        const int frames = (audio_output_channels == 0) ?
-                           (samples / audio_input_channels) :
-                           (samples / audio_output_channels);
+        const int frames = (audio_output_channels == 0) ? (samples / audio_input_channels) : (samples / audio_output_channels);
 
         // Dynamically allocate memory for deinterleaved channels
-        float **input_channels  = new float *[audio_input_channels];
-        float **output_channels = new float *[audio_output_channels];
+        float** input_channels  = new float*[audio_input_channels];
+        float** output_channels = new float*[audio_output_channels];
 
         for (int ch = 0; ch < audio_input_channels; ++ch) {
             input_channels[ch] = new float[frames];
@@ -200,7 +196,7 @@ namespace umgebung {
         if (!audio_was_initialized) {
             audio_was_initialized = true;
             for (int i = 0; i < samples; ++i) {
-                output_buffer[i] *= static_cast <float>(i) / samples;
+                output_buffer[i] *= static_cast<float>(i) / samples;
             }
         }
 
@@ -216,10 +212,10 @@ namespace umgebung {
     }
 #endif
 
-    void audioInputCallback(void *userdata, Uint8 *stream, int len) {
-        audio_input_ready       = false;
-        const float *samples    = reinterpret_cast<float *>(stream); // Assuming AUDIO_F32 format
-        const int   sampleCount = len / sizeof(float);
+    void audioInputCallback(void* userdata, Uint8* stream, int len) {
+        audio_input_ready        = false;
+        const float* samples     = reinterpret_cast<float*>(stream); // Assuming AUDIO_F32 format
+        const int    sampleCount = len / sizeof(float);
 
         if (input_buffer == nullptr) {
             return;
@@ -235,14 +231,14 @@ namespace umgebung {
         std::cout << "Available audio devices:\n";
 
         const int numInputDevices = SDL_GetNumAudioDevices(SDL_TRUE);
-        for (int  i               = 0; i < numInputDevices; i++) {
-            const char *deviceName = SDL_GetAudioDeviceName(i, SDL_TRUE);
+        for (int i = 0; i < numInputDevices; i++) {
+            const char* deviceName = SDL_GetAudioDeviceName(i, SDL_TRUE);
             std::cout << "- Input Device  : " << i << " : " << deviceName << std::endl;
         }
 
         const int numOutputDevices = SDL_GetNumAudioDevices(SDL_FALSE);
-        for (int  i                = 0; i < numOutputDevices; i++) {
-            const char *deviceName = SDL_GetAudioDeviceName(i, SDL_FALSE);
+        for (int i = 0; i < numOutputDevices; i++) {
+            const char* deviceName = SDL_GetAudioDeviceName(i, SDL_FALSE);
             std::cout << "- Output Device : " << i << " : " << deviceName << std::endl;
         }
 
@@ -261,13 +257,12 @@ namespace umgebung {
             audio_output_spec.channels = output_channels;
             audio_output_spec.samples  = DEFAULT_FRAMES_PER_BUFFER; // @TODO make this adjustable
             audio_output_spec.callback = audioOutputCallback;
-            audio_output_stream = SDL_OpenAudioDevice(
-                    audio_output_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_output_device,
-                                                                                                   0),
-                    0,
-                    &audio_output_spec,
-                    &audio_output_obtained_spec,
-                    SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+            audio_output_stream        = SDL_OpenAudioDevice(
+                audio_output_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_output_device, 0),
+                0,
+                &audio_output_spec,
+                &audio_output_obtained_spec,
+                SDL_AUDIO_ALLOW_FORMAT_CHANGE);
             if (audio_output_stream == 0) {
                 std::cerr << "error: failed to open audio output: " << SDL_GetError() << std::endl;
                 return;
@@ -283,13 +278,12 @@ namespace umgebung {
             audio_input_spec.channels = input_channels;
             audio_input_spec.samples  = DEFAULT_FRAMES_PER_BUFFER; // @TODO make this adjustable
             audio_input_spec.callback = audioInputCallback;
-            audio_input_stream = SDL_OpenAudioDevice(
-                    audio_input_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_input_device,
-                                                                                                  1),
-                    1,
-                    &audio_input_spec,
-                    &audio_input_obtained_spec,
-                    SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+            audio_input_stream        = SDL_OpenAudioDevice(
+                audio_input_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_input_device, 1),
+                1,
+                &audio_input_spec,
+                &audio_input_obtained_spec,
+                SDL_AUDIO_ALLOW_FORMAT_CHANGE);
             if (audio_input_stream == 0) {
                 std::cerr << "error: failed to open audio input: " << SDL_GetError() << std::endl;
                 return;
@@ -371,10 +365,10 @@ namespace umgebung {
             return 1;
         }
 #elif !defined(DISABLE_AUDIO)
-            if (SDL_Init(SDL_INIT_AUDIO) != 0) {
-                std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
-                return 1;
-            }
+        if (SDL_Init(SDL_INIT_AUDIO) != 0) {
+            std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
+            return 1;
+        }
 #endif
 
         fApplet = instance();
@@ -395,7 +389,7 @@ namespace umgebung {
 
 #ifndef DISABLE_GRAPHICS
 
-        APP_WINDOW *window;
+        APP_WINDOW* window;
         if (headless) {
             window = nullptr;
             std::cout << "+++ running headless application" << std::endl;
@@ -436,9 +430,9 @@ namespace umgebung {
                 handle_event(e, fAppIsRunning, fMouseIsPressed);
             }
             std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double>                  frameDuration = std::chrono::duration_cast<std::chrono::duration<double> >(
-                    currentTime - lastFrameTime);
-            double                                         frameTime     = frameDuration.count();
+            std::chrono::duration<double>                  frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
+                currentTime - lastFrameTime);
+            double frameTime = frameDuration.count();
             if (frameTime >= fTargetFrameTime) {
                 handle_draw(window);
                 lastFrameTime = currentTime;
@@ -456,8 +450,8 @@ namespace umgebung {
         while (fAppIsRunning) {
             std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double>                  frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
-                    currentTime - lastFrameTime);
-            double                                         frameTime     = frameDuration.count();
+                currentTime - lastFrameTime);
+            double frameTime = frameDuration.count();
             if (frameTime >= fTargetFrameTime) {
                 handle_draw();
                 lastFrameTime = currentTime;
@@ -484,7 +478,7 @@ namespace umgebung {
 
 } // namespace umgebung
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     // `int main() {` this signature fails on windows
     return umgebung::run_application();
 }

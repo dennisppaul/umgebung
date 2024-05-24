@@ -36,7 +36,7 @@ namespace umgebung {
         static constexpr uint16_t AUDIO_FORMAT_IBM_MULAW = 257;
         static constexpr uint16_t AUDIO_FORMAT_ADPCM     = 259;
 
-        explicit WAVE(const std::string &filename) {
+        explicit WAVE(const std::string& filename) {
             file.open(filename, std::ios::binary);
             if (!file.is_open()) {
                 throw std::runtime_error("Unable to open file");
@@ -52,7 +52,7 @@ namespace umgebung {
 
         std::vector<uint8_t> get_raw_data_block(int num_bytes) {
             std::vector<uint8_t> buffer(num_bytes);
-            file.read(reinterpret_cast<char *>(buffer.data()), num_bytes);
+            file.read(reinterpret_cast<char*>(buffer.data()), num_bytes);
 
             const int bytesRead = file.gcount();
             buffer.resize(bytesRead);
@@ -71,7 +71,7 @@ namespace umgebung {
 
             // Create a buffer of the calculated size
             std::vector<uint8_t> buffer(numBytes);
-            file.read(reinterpret_cast<char *>(buffer.data()), numBytes);
+            file.read(reinterpret_cast<char*>(buffer.data()), numBytes);
 
             // Check how many bytes were actually read
             const int bytesRead = file.gcount();
@@ -95,7 +95,7 @@ namespace umgebung {
             return file.eof();
         }
 
-        float *get_samples(float *samples) {
+        float* get_samples(float* samples) {
             if (!file.is_open()) {
                 throw std::runtime_error("File not open");
             }
@@ -106,14 +106,14 @@ namespace umgebung {
             // auto *         samples    = new float[numSamples];
 
             constexpr size_t chunkSize = 4096; // 4 KB
-            auto *           buffer    = new uint8_t[chunkSize];
+            auto*            buffer    = new uint8_t[chunkSize];
 
             try {
                 size_t   totalBytesProcessed = 0;
                 uint32_t sampleIndex         = 0;
                 while (totalBytesProcessed < fDataChunkSize) {
                     const size_t bytesToRead = std::min(chunkSize, fDataChunkSize - totalBytesProcessed);
-                    file.read(reinterpret_cast<char *>(buffer), bytesToRead);
+                    file.read(reinterpret_cast<char*>(buffer), bytesToRead);
 
                     if (!file) {
                         std::cerr << "Warning: problem reading data." << std::endl;
@@ -254,12 +254,12 @@ namespace umgebung {
             }
 
             // parse header
-            fAudioFormat = *reinterpret_cast<uint16_t *>(header.data() + 20);
-            fNumChannels = *reinterpret_cast<uint16_t *>(header.data() + 22);
-            fSampleRate  = *reinterpret_cast<uint32_t *>(header.data() + 24);
-            fByteRate    = *reinterpret_cast<uint32_t *>(header.data() + 28);
-            fBlockAlign  = *reinterpret_cast<uint16_t *>(header.data() + 32);
-            fBitDepth    = *reinterpret_cast<uint16_t *>(header.data() + 34);
+            fAudioFormat = *reinterpret_cast<uint16_t*>(header.data() + 20);
+            fNumChannels = *reinterpret_cast<uint16_t*>(header.data() + 22);
+            fSampleRate  = *reinterpret_cast<uint32_t*>(header.data() + 24);
+            fByteRate    = *reinterpret_cast<uint32_t*>(header.data() + 28);
+            fBlockAlign  = *reinterpret_cast<uint16_t*>(header.data() + 32);
+            fBitDepth    = *reinterpret_cast<uint16_t*>(header.data() + 34);
 
             // number of samples
             file.seekg(36, std::ios::beg);
@@ -283,14 +283,14 @@ namespace umgebung {
                 if (std::strncmp(chunkId.data(), "data", 4) == 0) {
                     // Found the 'data' chunk. The next 4 bytes are the size.
                     uint32_t chunkSize;
-                    file.read(reinterpret_cast<char *>(&chunkSize), sizeof(chunkSize));
+                    file.read(reinterpret_cast<char*>(&chunkSize), sizeof(chunkSize));
                     fDataChunkSize     = chunkSize;
                     fStartOfSampleData = file.tellg();
                     break;
                 } else {
                     // Read the chunk size
                     uint32_t chunkSize;
-                    file.read(reinterpret_cast<char *>(&chunkSize), sizeof(chunkSize));
+                    file.read(reinterpret_cast<char*>(&chunkSize), sizeof(chunkSize));
 
                     // Skip the chunk data
                     file.seekg(chunkSize, std::ios_base::cur);
@@ -306,7 +306,7 @@ namespace umgebung {
             }
         }
 
-        std::vector<float> convertToFloat(std::vector<uint8_t> &buffer, uint16_t format) const {
+        std::vector<float> convertToFloat(std::vector<uint8_t>& buffer, uint16_t format) const {
             std::vector<float> floatBuffer;
 
             if (format == AUDIO_FORMAT_PCM) {
@@ -323,7 +323,7 @@ namespace umgebung {
                     }
                 } else if (fBitDepth == 32) {
                     for (size_t i = 0; i < buffer.size(); i += 4) {
-                        const auto sample = reinterpret_cast<float *>(&buffer[i]);
+                        const auto sample = reinterpret_cast<float*>(&buffer[i]);
                         floatBuffer.push_back(*sample);
                     }
                 } else {
@@ -331,7 +331,7 @@ namespace umgebung {
                 }
             } else if (format == AUDIO_FORMAT_FLOAT) {
                 for (size_t i = 0; i < buffer.size(); i += 4) {
-                    const auto *sample = reinterpret_cast<float *>(&buffer[i]);
+                    const auto* sample = reinterpret_cast<float*>(&buffer[i]);
                     floatBuffer.push_back(*sample);
                 }
             } else {
@@ -342,11 +342,11 @@ namespace umgebung {
         }
 
     public:
-        static void write(const std::string &filename,
+        static void write(const std::string& filename,
                           int                sampleRate,
                           int                numChannels,
                           int                bitsPerSample,
-                          const int16_t *    data,
+                          const int16_t*     data,
                           const int          numSamples) {
             std::ofstream file(filename, std::ios::binary);
 
@@ -358,34 +358,34 @@ namespace umgebung {
             // Write WAV header
             file.write("RIFF", 4);
             int32_t fileSize = 36 + numSamples * numChannels * bitsPerSample / 8;
-            file.write(reinterpret_cast<char *>(&fileSize), 4);
+            file.write(reinterpret_cast<char*>(&fileSize), 4);
             file.write("WAVE", 4);
             file.write("fmt ", 4);
             int32_t fmtSize = 16;
-            file.write(reinterpret_cast<char *>(&fmtSize), 4);
+            file.write(reinterpret_cast<char*>(&fmtSize), 4);
             int16_t audioFormat = AUDIO_FORMAT_PCM;
-            file.write(reinterpret_cast<char *>(&audioFormat), 2);
-            file.write(reinterpret_cast<char *>(&numChannels), 2);
-            file.write(reinterpret_cast<char *>(&sampleRate), 4);
+            file.write(reinterpret_cast<char*>(&audioFormat), 2);
+            file.write(reinterpret_cast<char*>(&numChannels), 2);
+            file.write(reinterpret_cast<char*>(&sampleRate), 4);
             int32_t byteRate = sampleRate * numChannels * bitsPerSample / 8;
-            file.write(reinterpret_cast<char *>(&byteRate), 4);
+            file.write(reinterpret_cast<char*>(&byteRate), 4);
             int16_t blockAlign = numChannels * bitsPerSample / 8;
-            file.write(reinterpret_cast<char *>(&blockAlign), 2);
-            file.write(reinterpret_cast<char *>(&bitsPerSample), 2);
+            file.write(reinterpret_cast<char*>(&blockAlign), 2);
+            file.write(reinterpret_cast<char*>(&bitsPerSample), 2);
             file.write("data", 4);
             int32_t dataSize = numSamples * numChannels * bitsPerSample / 8;
-            file.write(reinterpret_cast<char *>(&dataSize), 4);
+            file.write(reinterpret_cast<char*>(&dataSize), 4);
 
             // Write audio data
-            file.write(reinterpret_cast<const char *>(data), dataSize);
+            file.write(reinterpret_cast<const char*>(data), dataSize);
 
             file.close();
         }
 
-        static void write(const std::string &filename,
+        static void write(const std::string& filename,
                           const int          sampleRate,
                           const int          numChannels,
-                          const float *      data,
+                          const float*       data,
                           const int          numSamples) {
             int16_t mAudioData[numSamples * numChannels];
             for (int i = 0; i < numSamples; i++) {

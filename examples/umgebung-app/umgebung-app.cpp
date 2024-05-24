@@ -4,8 +4,8 @@ using namespace umgebung;
 
 class UmgebungApp : public PApplet {
 
-    PFont   *mFont;
-    PImage  *mImage;
+    PFont*  mFont;
+    PImage* mImage;
     PVector mVector{16, 16};
     PShape  mShape;
     int     mouseMoveCounter = 0;
@@ -27,8 +27,8 @@ class UmgebungApp : public PApplet {
             exit();
         }
         if (!headless) {
-            mImage     = loadImage(sketchPath() + "../image.png");
-            float    pixels[100 * 100 * mImage->channels];
+            mImage = loadImage(sketchPath() + "../image.png");
+            float pixels[100 * 100 * mImage->channels];
             for (int i = 0; i < 100 * 100 * mImage->channels; ++i) {
                 pixels[i] = random(1);
             }
@@ -117,7 +117,7 @@ class UmgebungApp : public PApplet {
         popMatrix();
     }
 
-    void audioblock(float **input, float **output, int length) {
+    void audioblock(float** input, float** output, int length) {
         // NOTE length is the number of samples per channel
         // TODO change to `void audioblock(float** input_signal, float** output_signal) {}`
         static float phase     = 0.0;
@@ -133,19 +133,19 @@ class UmgebungApp : public PApplet {
             }
 
 #ifdef USE_INTERLEAVED_BUFFER
-            float    mInput = 0;
-            for (int j      = 0; j < audio_input_channels; ++j) {
+            float mInput = 0;
+            for (int j = 0; j < audio_input_channels; ++j) {
                 mInput += input[i * audio_input_channels + j];
             }
-            for (int j      = 0; j < audio_output_channels; ++j) {
+            for (int j = 0; j < audio_output_channels; ++j) {
                 output[i * audio_output_channels + j] = sample + mInput * 0.5f;
             }
 #else
-            float    mInput = 0;
-            for (int j      = 0; j < audio_input_channels; ++j) {
+            float mInput = 0;
+            for (int j = 0; j < audio_input_channels; ++j) {
                 mInput += input[j][i];
             }
-            for (int j      = 0; j < audio_output_channels; ++j) {
+            for (int j = 0; j < audio_output_channels; ++j) {
                 output[j][i] = sample + mInput * 0.5f;
             }
 #endif
@@ -176,6 +176,6 @@ class UmgebungApp : public PApplet {
     }
 };
 
-PApplet *umgebung::instance() {
+PApplet* umgebung::instance() {
     return new UmgebungApp();
 }

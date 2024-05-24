@@ -37,7 +37,7 @@ PImage::PImage() {
     channels = 0;
 }
 
-PImage::PImage(const std::string &filename) {
+PImage::PImage(const std::string& filename) {
     int _width    = 0;
     int _height   = 0;
     int _channels = 0;
@@ -49,10 +49,10 @@ PImage::PImage(const std::string &filename) {
         std::cerr << "Failed to load image: " << filename << std::endl;
     }
     stbi_image_free(data); // @TODO maybe not release the data for later use?
-#endif // DISABLE_GRAPHICS
+#endif                     // DISABLE_GRAPHICS
 }
 
-void PImage::init(int _width, int _height, int _channels, unsigned char *_data) {
+void PImage::init(int _width, int _height, int _channels, unsigned char* _data) {
 #ifndef DISABLE_GRAPHICS
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -84,14 +84,14 @@ void PImage::bind() {
 #endif // DISABLE_GRAPHICS
 }
 
-void PImage::update(float *_data, int _width, int _height, int offset_x, int offset_y) {
+void PImage::update(float* _data, int _width, int _height, int offset_x, int offset_y) {
 #ifndef DISABLE_GRAPHICS
     const int     length = _width * _height * channels;
     unsigned char mData[length];
-    for (int      i      = 0; i < _width * _height * channels; ++i) {
+    for (int i = 0; i < _width * _height * channels; ++i) {
         mData[i] = _data[i] * 255;
     }
-    int           mFormat;
+    int mFormat;
     if (channels == 3) {
         mFormat = GL_RGB;
     } else if (channels == 4) {
@@ -109,6 +109,6 @@ void PImage::update(float *_data, int _width, int _height, int offset_x, int off
 #endif // DISABLE_GRAPHICS
 }
 
-void PImage::update(float *_data) {
+void PImage::update(float* _data) {
     update(_data, width, height, 0, 0);
 }

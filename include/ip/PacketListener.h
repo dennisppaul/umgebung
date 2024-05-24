@@ -40,11 +40,11 @@
 
 class IpEndpointName;
 
-class PacketListener{
+class PacketListener {
 public:
     virtual ~PacketListener() {}
-    virtual void ProcessPacket( const char *data, int size, 
-			const IpEndpointName& remoteEndpoint ) = 0;
+    virtual void ProcessPacket(const char* data, int size,
+                               const IpEndpointName& remoteEndpoint) = 0;
 };
 
 #endif /* INCLUDED_OSCPACK_PACKETLISTENER_H */

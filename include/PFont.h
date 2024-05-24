@@ -48,7 +48,7 @@ namespace umgebung {
 
     class PFont {
     public:
-        PFont(const char *file, float size) {
+        PFont(const char* file, float size) {
 #ifndef DISABLE_GRAPHICS
             font = new FTTextureFont(file);
             if (font->Error()) {
@@ -67,7 +67,7 @@ namespace umgebung {
 #endif
         }
 
-        void draw(const char *text, float x, float y, float z) {
+        void draw(const char* text, float x, float y, float z) {
 #ifndef DISABLE_GRAPHICS
             if (font == nullptr) return;
             glPushMatrix();
@@ -80,7 +80,7 @@ namespace umgebung {
 
     private:
 #ifndef DISABLE_GRAPHICS
-        FTTextureFont *font = nullptr;
+        FTTextureFont* font = nullptr;
 #endif
     };
 

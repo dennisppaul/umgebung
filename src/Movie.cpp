@@ -37,7 +37,7 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 }
 
-Movie::Movie(const std::string &filename, int _channels) : PImage() {
+Movie::Movie(const std::string& filename, int _channels) : PImage() {
     if (init_from_file(filename, _channels) >= 0) {
         std::cout << "+++ Movie: width: " << width << ", height: " << height << ", channels: " << channels << std::endl;
         calculateFrameDuration();
@@ -49,7 +49,7 @@ Movie::Movie(const std::string &filename, int _channels) : PImage() {
     }
 }
 
-int Movie::init_from_file(const std::string &filename, int _channels) {
+int Movie::init_from_file(const std::string& filename, int _channels) {
     // Open the input file
     formatContext = avformat_alloc_context();
     if (avformat_open_input(&formatContext, filename.c_str(), NULL, NULL) != 0) {
@@ -67,10 +67,10 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
     videoStreamIndex = -1;
     audioStreamIndex = -1;
     for (unsigned int i = 0; i < formatContext->nb_streams; i++) {
-//        if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-//            videoStreamIndex = i;
-//            break;
-//        }
+        //        if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+        //            videoStreamIndex = i;
+        //            break;
+        //        }
         if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && videoStreamIndex < 0) {
             videoStreamIndex = i;
         } else if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && audioStreamIndex < 0) {
@@ -89,9 +89,9 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
     }
 
     // Get a pointer to the codec context for the video stream
-    AVCodecParameters *codecParameters = formatContext->streams[videoStreamIndex]->codecpar;
-    const AVCodec     *codec           = avcodec_find_decoder(codecParameters->codec_id);
-    videoCodecContext = avcodec_alloc_context3(codec);
+    AVCodecParameters* codecParameters = formatContext->streams[videoStreamIndex]->codecpar;
+    const AVCodec*     codec           = avcodec_find_decoder(codecParameters->codec_id);
+    videoCodecContext                  = avcodec_alloc_context3(codec);
     avcodec_parameters_to_context(videoCodecContext, codecParameters);
     if (avcodec_open2(videoCodecContext, codec, NULL) < 0) {
         std::cerr << "+++ Movie: ERROR: Could not open codec" << std::endl;
@@ -99,8 +99,8 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
     }
 
     // Initialize audio codec
-    const AVCodec *audioCodec = avcodec_find_decoder(formatContext->streams[audioStreamIndex]->codecpar->codec_id);
-    audioCodecContext = avcodec_alloc_context3(audioCodec);
+    const AVCodec* audioCodec = avcodec_find_decoder(formatContext->streams[audioStreamIndex]->codecpar->codec_id);
+    audioCodecContext         = avcodec_alloc_context3(audioCodec);
     avcodec_parameters_to_context(audioCodecContext, formatContext->streams[audioStreamIndex]->codecpar);
     avcodec_open2(audioCodecContext, audioCodec, NULL);
 
@@ -111,30 +111,30 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
     std::cout << "+++ Movie: frame duration: " << frame_duration << std::endl;
 
     // Determine the pixel format and number of channels based on input file
-    AVPixelFormat            src_pix_fmt = videoCodecContext->pix_fmt;
-    AVPixelFormat            dst_pix_fmt;
-    const AVPixFmtDescriptor *desc       = av_pix_fmt_desc_get(src_pix_fmt);
+    AVPixelFormat             src_pix_fmt = videoCodecContext->pix_fmt;
+    AVPixelFormat             dst_pix_fmt;
+    const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get(src_pix_fmt);
     if (_channels < 0) {
         _channels   = 4;
         dst_pix_fmt = AV_PIX_FMT_RGBA;
-//        std::cout << "not looking for format. defaulting to RGBA ( 4 channels )" << std::endl;
+        //        std::cout << "not looking for format. defaulting to RGBA ( 4 channels )" << std::endl;
     } else if (desc && desc->nb_components == 4) {
         _channels   = 4;
         dst_pix_fmt = AV_PIX_FMT_RGBA;
-//        std::cout << "found RGBA video" << std::endl;
+        //        std::cout << "found RGBA video" << std::endl;
     } else {
         _channels   = 3;
         dst_pix_fmt = AV_PIX_FMT_RGB24;
-//        std::cout << "found RGB video" << std::endl;
+        //        std::cout << "found RGB video" << std::endl;
     }
 
     // Create a sws context for the conversion
     swsContext = sws_getContext(
-            videoCodecContext->width, videoCodecContext->height, src_pix_fmt,
-            videoCodecContext->width, videoCodecContext->height, dst_pix_fmt,
-            SWS_FAST_BILINEAR,
-//            SWS_BICUBIC,
-            NULL, NULL, NULL);
+        videoCodecContext->width, videoCodecContext->height, src_pix_fmt,
+        videoCodecContext->width, videoCodecContext->height, dst_pix_fmt,
+        SWS_FAST_BILINEAR,
+        //            SWS_BICUBIC,
+        NULL, NULL, NULL);
 
     if (!swsContext) {
         std::cerr << "+++ Movie: ERROR: Failed to create SwScale context" << std::endl;
@@ -159,7 +159,7 @@ int Movie::init_from_file(const std::string &filename, int _channels) {
                                             videoCodecContext->width,
                                             videoCodecContext->height,
                                             1);
-    buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
+    buffer       = (uint8_t*) av_malloc(numBytes * sizeof(uint8_t));
     av_image_fill_arrays(convertedFrame->data,
                          convertedFrame->linesize,
                          buffer,
@@ -191,7 +191,7 @@ Movie::~Movie() {
 
 void Movie::calculateFrameDuration() {
     AVRational frame_rate = formatContext->streams[videoStreamIndex]->avg_frame_rate;
-    frameDuration = 1.0 / (frame_rate.num / (double) frame_rate.den);
+    frameDuration         = 1.0 / (frame_rate.num / (double) frame_rate.den);
 }
 
 void Movie::playbackLoop() {
@@ -202,20 +202,20 @@ void Movie::playbackLoop() {
                 if (processFrame()) {
                     // TODO flag that a texture reload is required
                     // TODO callback with `MovieListener`
-//                } else {
-//                    // Check if the end of the video is reached
-//                    bool isEndOfVideo = false;
-//                    if (isEndOfVideo) {
-//                        std::cout << "+++ end of video reached" << std::endl;
-//                        if (isLooping) {
-//                            // Seek back to the start of the video
-//                            av_seek_frame(formatContext, videoStream, 0, AVSEEK_FLAG_BACKWARD);
-//                            mFrameCounter = 0; // Reset frame counter
-//                        } else {
-//                            // Stop playback if not looping
-//                            pause();
-//                        }
-//                    }
+                    //                } else {
+                    //                    // Check if the end of the video is reached
+                    //                    bool isEndOfVideo = false;
+                    //                    if (isEndOfVideo) {
+                    //                        std::cout << "+++ end of video reached" << std::endl;
+                    //                        if (isLooping) {
+                    //                            // Seek back to the start of the video
+                    //                            av_seek_frame(formatContext, videoStream, 0, AVSEEK_FLAG_BACKWARD);
+                    //                            mFrameCounter = 0; // Reset frame counter
+                    //                        } else {
+                    //                            // Stop playback if not looping
+                    //                            pause();
+                    //                        }
+                    //                    }
                 }
             }
 
@@ -250,14 +250,14 @@ bool Movie::available() {
             // Decode audio frame
             avcodec_send_packet(audioCodecContext, packet);
             // TODO implement audio processing
-//            while (avcodec_receive_frame(audioCodecContext, frame) == 0) {
-//                process_audio_frame(frame);
-//                av_frame_unref(frame);
-//            }
+            //            while (avcodec_receive_frame(audioCodecContext, frame) == 0) {
+            //                process_audio_frame(frame);
+            //                av_frame_unref(frame);
+            //            }
         }
         av_packet_unref(packet);
     } else if (ret == AVERROR_EOF) {
-//        std::cout << "AVERROR_EOF" << std::endl;
+        //        std::cout << "AVERROR_EOF" << std::endl;
         if (isLooping) {
             // Seek back to the start of the video
             av_seek_frame(formatContext, videoStreamIndex, 0, AVSEEK_FLAG_BACKWARD);
@@ -293,7 +293,7 @@ bool Movie::processFrame() {
                 std::cout << "+++ AVERROR_EOF" << std::endl;
             } else if (ret == AVERROR(EAGAIN)) {
                 // No frame available right now, try again later
-//                std::cout << "+++ AVERROR(EAGAIN)" << std::endl;
+                //                std::cout << "+++ AVERROR(EAGAIN)" << std::endl;
             } else {
                 // std::cerr << "+++ Movie: ERROR: Error receiving frame: " << av_err2str(ret));
             }
@@ -326,7 +326,7 @@ float Movie::frameRate() const {
 
 // Example of setting playback speed
 void Movie::speed(float factor) {
-//    std::lock_guard<std::mutex> lock(mutex);
+    //    std::lock_guard<std::mutex> lock(mutex);
     frameDuration /= factor; // Adjust frame duration based on speed factor
 }
 
@@ -343,7 +343,7 @@ void Movie::jump(float seconds) {
 }
 
 float Movie::time() const {
-//    std::lock_guard<std::mutex> lock(mutex);
+    //    std::lock_guard<std::mutex> lock(mutex);
     return mFrameCounter / frameRate();
 }
 
@@ -357,7 +357,7 @@ void Movie::noLoop() {
 
 #else
 
-Movie::Movie(const std::string &filename, int _channels) : PImage() {
+Movie::Movie(const std::string& filename, int _channels) : PImage() {
     std::cerr << "Movie - ERROR: video is disabled" << std::endl;
 }
 
@@ -367,7 +367,7 @@ bool Movie::available() { return false; }
 
 bool Movie::read() { return false; }
 
-int Movie::init_from_file(const std::string &filename, int _channels) { return -1; }
+int Movie::init_from_file(const std::string& filename, int _channels) { return -1; }
 
 void Movie::playbackLoop() {}
 

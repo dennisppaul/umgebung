@@ -26,46 +26,46 @@ using namespace umgebung;
 
 void PShape::beginShape(int shape) {
     isRecording = true;
-    fShape = shape; // TODO implement
+    fShape      = shape; // TODO implement
 }
 
 void PShape::endShape() {
     isRecording = false;
 
-//    glGenVertexArrays(1, &vertexArray);
-//    glGenBuffers(1, &vertexBuffer);
-//
-//    glBindVertexArray(vertexArray);
-//    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-//    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_STATIC_DRAW);
-//
-//    // Create and compile the vertex shader
-//    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-//    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-//    glCompileShader(vertexShader);
-//
-//    // Create and compile the fragment shader
-//    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-//    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-//    glCompileShader(fragmentShader);
-//
-//    // Create shader program
-//    shaderProgram = glCreateProgram();
-//    glAttachShader(shaderProgram, vertexShader);
-//    glAttachShader(shaderProgram, fragmentShader);
-//    glLinkProgram(shaderProgram);
-//    glUseProgram(shaderProgram);
-//
-//    // Specify vertex attributes
-//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *) 0);
-//    glEnableVertexAttribArray(0);
-//    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
-//    glEnableVertexAttribArray(1);
-//
-//    glBindVertexArray(0);
-//
-//    fVerticesSize = vertices.size();
-//    vertices.clear(); // TODO can it be cleared here?
+    //    glGenVertexArrays(1, &vertexArray);
+    //    glGenBuffers(1, &vertexBuffer);
+    //
+    //    glBindVertexArray(vertexArray);
+    //    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    //    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat), vertices.data(), GL_STATIC_DRAW);
+    //
+    //    // Create and compile the vertex shader
+    //    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    //    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
+    //    glCompileShader(vertexShader);
+    //
+    //    // Create and compile the fragment shader
+    //    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    //    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+    //    glCompileShader(fragmentShader);
+    //
+    //    // Create shader program
+    //    shaderProgram = glCreateProgram();
+    //    glAttachShader(shaderProgram, vertexShader);
+    //    glAttachShader(shaderProgram, fragmentShader);
+    //    glLinkProgram(shaderProgram);
+    //    glUseProgram(shaderProgram);
+    //
+    //    // Specify vertex attributes
+    //    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *) 0);
+    //    glEnableVertexAttribArray(0);
+    //    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *) (3 * sizeof(GLfloat)));
+    //    glEnableVertexAttribArray(1);
+    //
+    //    glBindVertexArray(0);
+    //
+    //    fVerticesSize = vertices.size();
+    //    vertices.clear(); // TODO can it be cleared here?
 }
 
 void PShape::vertex(float x, float y, float z, float r, float g, float b) {
@@ -79,18 +79,18 @@ void PShape::vertex(float x, float y, float z, float r, float g, float b) {
 }
 
 void PShape::release() {
-//    glDeleteVertexArrays(1, &vertexArray);
-//    glDeleteBuffers(1, &vertexBuffer);
-//    glDeleteProgram(shaderProgram);
-//    glDeleteShader(vertexShader);
-//    glDeleteShader(fragmentShader);
+    //    glDeleteVertexArrays(1, &vertexArray);
+    //    glDeleteBuffers(1, &vertexBuffer);
+    //    glDeleteProgram(shaderProgram);
+    //    glDeleteShader(vertexShader);
+    //    glDeleteShader(fragmentShader);
 }
 
 void PShape::draw() {
-//    glUseProgram(shaderProgram);
-//    glBindVertexArray(vertexArray);
-//    glDrawArrays(GL_TRIANGLES, 0, fVerticesSize / 6);  // TODO implement different shapes
-//    glBindVertexArray(0);
+    //    glUseProgram(shaderProgram);
+    //    glBindVertexArray(vertexArray);
+    //    glDrawArrays(GL_TRIANGLES, 0, fVerticesSize / 6);  // TODO implement different shapes
+    //    glBindVertexArray(0);
     int mShape;
     switch (fShape) {
         case TRIANGLES:
@@ -127,12 +127,10 @@ void PShape::draw() {
     for (int i = 0; i < vertices.size(); i += 6) {
         glColor3f(vertices[i + 3],
                   vertices[i + 4],
-                  vertices[i + 5]
-        );
+                  vertices[i + 5]);
         glVertex3f(vertices[i + 0],
                    vertices[i + 1],
-                   vertices[i + 2]
-        );
+                   vertices[i + 2]);
     }
     glEnd();
 }

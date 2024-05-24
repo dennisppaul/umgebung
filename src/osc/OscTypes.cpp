@@ -36,17 +36,17 @@
 */
 #include "OscTypes.h"
 
-namespace osc{
+namespace osc {
 
-BundleInitiator BeginBundleImmediate(1);
-BundleTerminator EndBundle;
-MessageTerminator EndMessage;
-NilType OscNil;
+    BundleInitiator   BeginBundleImmediate(1);
+    BundleTerminator  EndBundle;
+    MessageTerminator EndMessage;
+    NilType           OscNil;
 #ifndef _OBJC_OBJC_H_
-NilType Nil; // Objective-C defines Nil. so our Nil is deprecated. use OscNil instead
+    NilType Nil; // Objective-C defines Nil. so our Nil is deprecated. use OscNil instead
 #endif
-InfinitumType Infinitum;
-ArrayInitiator BeginArray;
-ArrayTerminator EndArray;
+    InfinitumType   Infinitum;
+    ArrayInitiator  BeginArray;
+    ArrayTerminator EndArray;
 
 } // namespace osc
