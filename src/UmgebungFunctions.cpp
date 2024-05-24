@@ -85,38 +85,38 @@ namespace umgebung {
         return radians * 180.0f / M_PI;
     }
 
-    bool exists(const std::string &file_path) {
+    bool exists(const std::string& file_path) {
         std::filesystem::path path(file_path);
         return std::filesystem::exists(path);
     }
 
 #if defined(SYSTEM_WIN32)
-std::string sketchPath_impl() {
-    std::vector<char> buffer(MAX_PATH);
-    DWORD length = GetModuleFileNameA(NULL, buffer.data(), buffer.size());
+    std::string sketchPath_impl() {
+        std::vector<char> buffer(MAX_PATH);
+        DWORD             length = GetModuleFileNameA(NULL, buffer.data(), buffer.size());
 
-    while (length == buffer.size() && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
-        // Increase buffer size if the path was truncated
-        buffer.resize(buffer.size() * 2);
-        length = GetModuleFileNameA(NULL, buffer.data(), buffer.size());
+        while (length == buffer.size() && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+            // Increase buffer size if the path was truncated
+            buffer.resize(buffer.size() * 2);
+            length = GetModuleFileNameA(NULL, buffer.data(), buffer.size());
+        }
+
+        if (length == 0) {
+            // GetModuleFileName failed
+            std::cerr << "Error retrieving path, error code: " << GetLastError() << std::endl;
+            return std::string();
+        }
+
+        std::filesystem::path exePath(buffer.data());
+        std::filesystem::path dirPath = exePath.parent_path();
+        return dirPath.string() + "/";
     }
-
-    if (length == 0) {
-        // GetModuleFileName failed
-        std::cerr << "Error retrieving path, error code: " << GetLastError() << std::endl;
-        return std::string();
-    }
-
-    std::filesystem::path exePath(buffer.data());
-    std::filesystem::path dirPath = exePath.parent_path();
-    return dirPath.string() + "/";
-}
 #elif defined(SYSTEM_UNIX)
 #include <unistd.h>
 
     std::string sketchPath_impl() {
         std::vector<char> buf(1024);
-        ssize_t len = readlink("/proc/self/exe", buf.data(), buf.size());
+        ssize_t           len = readlink("/proc/self/exe", buf.data(), buf.size());
         if (len != -1) {
             buf[len] = '\0'; // Null-terminate the string
             std::filesystem::path exePath(buf.data());
@@ -128,11 +128,11 @@ std::string sketchPath_impl() {
         }
     }
 
-#elif  defined(SYSTEM_MACOS)
+#elif defined(SYSTEM_MACOS)
 #include <mach-o/dyld.h>
 
     const std::string sketchPath_impl() {
-        uint32_t size = 1024;
+        uint32_t          size = 1024;
         std::vector<char> buf(size);
         if (_NSGetExecutablePath(buf.data(), &size) == 0) {
             std::filesystem::path exePath(buf.data());
