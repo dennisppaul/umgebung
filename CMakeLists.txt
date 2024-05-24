@@ -78,6 +78,7 @@ target_include_directories(umgebung-lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include/ip
         ${CMAKE_CURRENT_SOURCE_DIR}/include/osc
         ${CMAKE_CURRENT_SOURCE_DIR}/include/midi
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/dr_libs
         #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/ip>
         #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/osc>
