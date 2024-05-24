@@ -26,78 +26,56 @@
 #define DR_WAV_IMPLEMENTATION
 #include "dr_wav.h"
 
-/**
- * @brief read audio files in WAV format, mono 32-bit float
- */
-class AudioFile {
-public:
-    AudioFile() : opened(false) {}
+#include "Umgebung.h"
 
-    ~AudioFile() {
-        drwav_uninit(&wav);
+/**
+ * @brief write audio files in WAV format, mono 32-bit float
+ * TODO add support for other formats and multi-channels
+ */
+class AudioFileWriter {
+public:
+    AudioFileWriter() : opened(false) {
+        format.container     = drwav_container_riff; // <-- drwav_container_riff = normal WAV files, drwav_container_w64 = Sony Wave64.
+        format.format        = DR_WAVE_FORMAT_IEEE_FLOAT;
+        format.channels      = 1;
+        format.sampleRate    = DEFAULT_AUDIO_SAMPLE_RATE;
+        format.bitsPerSample = 32;
     }
 
-    bool eof() { return current_position() >= length(); }
+    ~AudioFileWriter() {
+        drwav_uninit(&wav);
+    }
 
     bool open(const std::string& filename) {
         if (opened) {
             return false;
         }
-        if (drwav_init_file(&wav, filename.c_str(), NULL) == DRWAV_FALSE) {
-            std::cerr << "+++ error opening WAV file: " << filename << std::endl;
+        if (!drwav_init_file_write(&wav, filename.c_str(), &format, NULL)) {
+            std::cerr << "+++ @AudioFileWriter / error opening WAV file: " << filename << std::endl;
             return false;
         }
         opened = true;
         return true;
     }
 
-    int read(int frames_to_read, float* buffer) {
+    int write(size_t length, const float* buffer) {
         if (!opened) {
             return 0;
         }
-        return drwav_read_pcm_frames_f32(&wav, frames_to_read, buffer);
+        drwav_uint64 samples_written = drwav_write_pcm_frames(&wav, length, buffer);
+        if (samples_written != length) {
+            std::cerr << "+++ @AudioFileWriter / error writing WAV file" << std::endl;
+            return 0;
+        }
+        return samples_written;
     }
 
-    void rewind() {
+    void close() {
         if (!opened) {
             return;
         }
-        drwav_seek_to_pcm_frame(&wav, 0);
-    }
-
-    void seek(int frame) {
-        if (!opened) {
-            return;
-        }
-        drwav_seek_to_pcm_frame(&wav, frame);
-    }
-
-    int channels() {
-        if (!opened) {
-            return 0;
-        }
-        return wav.channels;
-    }
-
-    int length() {
-        if (!opened) {
-            return 0;
-        }
-        return wav.totalPCMFrameCount;
-    }
-
-    int bits_per_sample() {
-        if (!opened) {
-            return 0;
-        }
-        return wav.bitsPerSample;
-    }
-
-    int current_position() {
-        if (!opened) {
-            return 0;
-        }
-        return wav.readCursorInPCMFrames;
+        drwav_uninit(&wav);
+        opened = false;
     }
 
 private:
