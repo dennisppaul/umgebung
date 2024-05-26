@@ -30,6 +30,11 @@ class UmgebungApp : public PApplet {
 
     void setup() {
         fAudioFileReader.open("../teilchen.wav");
+
+        std::cout << "sample_rate: " << fAudioFileReader.sample_rate() << std::endl;
+        std::cout << "channels   : " << fAudioFileReader.channels() << std::endl;
+        std::cout << "length     : " << fAudioFileReader.length() << std::endl;
+
         write_WAV_file();
     }
 
