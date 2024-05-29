@@ -6,7 +6,7 @@ this project tries to supply a framework that allow to write applications that m
 
 *Umgebung* may also function as a statement on what is good and valueable about the [Processing.org](https://processing.org) *idiom* while at the same time suggesting to disconnecting it from one specific group, application or project … maybe a bit like markdown in that sense.
 
-see [DOCUMENTATION](./DOCUMENTATION.md) for usage information.
+see [DOCUMENTATION](./DOCUMENTATION.md) for usage information and [examples](https://github.com/dennisppaul/umgebung-examples) for applications.
 
 ## Cloning with submodules
 
