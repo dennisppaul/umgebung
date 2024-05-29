@@ -35,6 +35,8 @@
 	above license is reproduced.
 */
 
+#if defined(_WIN32)
+
 #include <winsock2.h> // this must come first to prevent errors with MSVC7
 #include <windows.h>
 #include <mmsystem.h> // for timeGetTime()
@@ -513,3 +515,5 @@ void SocketReceiveMultiplexer::Break() {
 void SocketReceiveMultiplexer::AsynchronousBreak() {
     impl_->AsynchronousBreak();
 }
+
+#endif // defined(_WIN32)

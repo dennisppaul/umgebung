@@ -34,6 +34,9 @@
 	requested that these non-binding requests be included whenever the
 	above license is reproduced.
 */
+
+#if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
+
 #include "ip/NetworkingUtils.h"
 
 #include <netdb.h>
@@ -42,11 +45,9 @@
 
 #include <cstring>
 
-
 NetworkInitializer::NetworkInitializer() {}
 
 NetworkInitializer::~NetworkInitializer() {}
-
 
 unsigned long GetHostByName(const char* name) {
     unsigned long result = 0;
@@ -60,3 +61,5 @@ unsigned long GetHostByName(const char* name) {
 
     return result;
 }
+
+#endif // defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))

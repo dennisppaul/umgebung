@@ -34,6 +34,9 @@
 	requested that these non-binding requests be included whenever the
 	above license is reproduced.
 */
+
+#if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
+
 #include "ip/UdpSocket.h"
 
 #include <pthread.h>
@@ -547,3 +550,5 @@ void SocketReceiveMultiplexer::Break() {
 void SocketReceiveMultiplexer::AsynchronousBreak() {
     impl_->AsynchronousBreak();
 }
+
+#endif // defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
