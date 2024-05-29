@@ -479,6 +479,7 @@ namespace umgebung {
 
 } // namespace umgebung
 
+#ifndef UMGEBUNG_OMIT_MAIN
 int main(int argc, char* argv[]) {
     std::vector<std::string> args;
     if (argc > 1) {
@@ -488,3 +489,4 @@ int main(int argc, char* argv[]) {
     }
     return umgebung::run_application(args);
 }
+#endif // UMGEBUNG_OMIT_MAIN
