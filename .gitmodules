@@ -1,9 +1,0 @@
-[submodule "examples/umgebung-with-klangwellen/klangwellen"]
-	path = examples/umgebung-with-klangwellen/klangwellen
-	url = https://github.com/dennisppaul/klangwellen.git
-[submodule "examples/umgebung-with-paulstretch/paulstretch"]
-	path = examples/umgebung-with-paulstretch/paulstretch
-	url = https://github.com/dennisppaul/paulstretch.git
-[submodule "examples/umgebung-with-paulstretch/klangwellen"]
-	path = examples/umgebung-with-paulstretch/klangwellen
-	url = https://github.com/dennisppaul/klangwellen.git
