@@ -351,7 +351,7 @@ namespace umgebung {
 
 #endif // DISABLE_AUDIO
 
-    static int run_application() {
+    static int run_application(std::vector<std::string> args) {
         std::cout << "+++ current working directory: " << sketchPath() << std::endl;
 
 #if !defined(DISABLE_GRAPHICS) && !defined(DISABLE_AUDIO)
@@ -385,6 +385,7 @@ namespace umgebung {
         }
 
         set_graphics_context(fApplet);
+        fApplet->arguments(args);
         fApplet->settings();
 
 #ifndef DISABLE_GRAPHICS
@@ -479,6 +480,11 @@ namespace umgebung {
 } // namespace umgebung
 
 int main(int argc, char* argv[]) {
-    // `int main() {` this signature fails on windows
-    return umgebung::run_application();
+    std::vector<std::string> args;
+    if (argc > 1) {
+        for (int i = 1; i < argc; i++) {
+            args.push_back(argv[i]);
+        }
+    }
+    return umgebung::run_application(args);
 }

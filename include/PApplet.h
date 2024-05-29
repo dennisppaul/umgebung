@@ -187,6 +187,31 @@ namespace umgebung {
         }
 
         /**
+         * compares the beginning of a string with a prefix
+         * @param str
+         * @param prefix
+         * @return
+         */
+        static bool begins_with(const std::string& str, const std::string& prefix) {
+            if (prefix.size() > str.size()) return false;
+            return str.substr(0, prefix.size()) == prefix;
+        }
+
+        /**
+         * get an int value from an argument formated like e.g this "value=23"
+         * @param argument
+         * @return
+         */
+        static int get_int_from_argument(const std::string& argument) {
+            std::size_t pos = argument.find('=');
+            if (pos == std::string::npos) {
+                throw std::invalid_argument("no '=' character found in argument.");
+            }
+            std::string valueStr = argument.substr(pos + 1);
+            return std::stoi(valueStr);
+        }
+
+        /**
          * get files from directory
          */
         static std::vector<std::string> get_files(const std::string& directory, const std::string& extension = "") {
@@ -283,6 +308,9 @@ namespace umgebung {
             this->framebuffer_width  = _width;
             this->framebuffer_height = _height;
             // TODO maybe implement some kind of mechanism that alerts if width or height are changed after this point
+        }
+
+        virtual void arguments(std::vector<std::string> args) {
         }
 
         virtual void settings() {

@@ -7,9 +7,23 @@ class UmgebungApp : public PApplet {
     PVector mVector{16, 16};
     PShape  mShape;
     int     mouseMoveCounter = 0;
+    int     mWidth           = 1024;
+    int     mHeight          = 768;
+
+    void arguments(std::vector<std::string> args) {
+        for (std::string s: args) {
+            println("> ", s);
+            if (begins_with(s, "--width")) {
+                mWidth = get_int_from_argument(s);
+            }
+            if (begins_with(s, "--height")) {
+                mHeight = get_int_from_argument(s);
+            }
+        }
+    }
 
     void settings() {
-        size(1024, 768);
+        size(mWidth, mHeight);
         antialiasing          = 8;
         enable_retina_support = true;
         headless              = false;
