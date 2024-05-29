@@ -26,11 +26,13 @@ this project relies on the following packages:
 
 in order to compile and run applications install the following packages with [Homebrew](https://brew.sh):
 
+either manually with:
+
 ```
 $ brew install cmake pkgconfig sdl2 ftgl glew ffmpeg rtmidi
 ```
 
-( or run `brew bundle` in project directory. )
+or run installer script `./install-macOS.sh` ( i.e checking for Homebrew and running the bundler with `brew bundle` ).
 
 ### Linux
 
@@ -42,6 +44,8 @@ $ sudo apt-get upgrade -y
 $ sudo apt-get install git clang mesa-utils # optional -y
 $ sudo apt-get install cmake pkg-config libsdl2-dev libftgl-dev libglew-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev -y
 ```
+
+alternatively, run installer script `./install-linux.sh` to install packages with [Linuxbrew](https://docs.brew.sh/Homebrew-on-Linux) ( linux version of Homebrew ).
 
 ### Windows
 
