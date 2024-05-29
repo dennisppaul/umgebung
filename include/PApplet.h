@@ -212,6 +212,20 @@ namespace umgebung {
         }
 
         /**
+         * get a string value from an argument formated like e.g this "value=twentythree"
+         * @param argument
+         * @return
+         */
+        static std::string get_string_from_argument(const std::string& argument) {
+            std::size_t pos = argument.find('=');
+            if (pos == std::string::npos) {
+                throw std::invalid_argument("no '=' character found in argument.");
+            }
+            std::string valueStr = argument.substr(pos + 1);
+            return valueStr;
+        }
+
+        /**
          * get files from directory
          */
         static std::vector<std::string> get_files(const std::string& directory, const std::string& extension = "") {

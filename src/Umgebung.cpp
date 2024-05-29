@@ -352,7 +352,7 @@ namespace umgebung {
 #endif // DISABLE_AUDIO
 
     static int run_application(std::vector<std::string> args) {
-        std::cout << "+++ current working directory: " << sketchPath() << std::endl;
+        // std::cout << "+++ current working directory: " << sketchPath() << std::endl;
 
 #if !defined(DISABLE_GRAPHICS) && !defined(DISABLE_AUDIO)
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
