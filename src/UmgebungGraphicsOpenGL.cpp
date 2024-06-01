@@ -124,7 +124,7 @@ namespace umgebung {
             SDL_WINDOWPOS_CENTERED,
             fApplet->width,
             fApplet->height,
-            SDL_WINDOW_OPENGL);
+            mWindowFlags);
 
         if (!window) {
             std::cerr << "+++ error: could not create window: " << SDL_GetError() << std::endl;

@@ -181,7 +181,10 @@ Movie::~Movie() {
     av_freep(&buffer);
     av_frame_free(&frame);
     av_frame_free(&convertedFrame);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     avcodec_close(videoCodecContext);
+#pragma clang diagnostic pop
     avcodec_free_context(&videoCodecContext);
     avformat_close_input(&formatContext);
     avformat_free_context(formatContext);
