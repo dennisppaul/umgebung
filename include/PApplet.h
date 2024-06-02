@@ -253,20 +253,22 @@ namespace umgebung {
 
         /* ---------------------------------------------------------------------------------------------------------- */
 
-        int   framebuffer_width;
-        int   framebuffer_height;
-        float mouseX;
-        float mouseY;
-        float pmouseX;
-        float pmouseY;
-        int   mouseButton;
-        int   key;
-        int   frameCount;
-        float frameRate;
+        int        framebuffer_width;
+        int        framebuffer_height;
+        float      mouseX;
+        float      mouseY;
+        float      pmouseX;
+        float      pmouseY;
+        int        mouseButton;
+        int        key;
+        int        frameCount;
+        float      frameRate;
+        PGraphics* g;
 
 #ifndef DISABLE_GRAPHICS
 #if RENDER_INTO_FRAMEBUFFER
-        GLuint framebuffer, texture;
+        GLuint framebuffer,
+            texture;
 #endif // RENDER_INTO_FRAMEBUFFER
 #endif // DISABLE_GRAPHICS
 
@@ -313,6 +315,7 @@ namespace umgebung {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
 #endif // RENDER_INTO_FRAMEBUFFER
+            g = this;
 #endif // DISABLE_GRAPHICS
         }
 
