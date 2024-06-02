@@ -55,6 +55,14 @@ void PGraphics::fill(float r, float g, float b, float a) {
     fill_color.active = true;
 }
 
+void PGraphics::fill(float brightness, float a) {
+    fill_color.r      = brightness;
+    fill_color.g      = brightness;
+    fill_color.b      = brightness;
+    fill_color.a      = a;
+    fill_color.active = true;
+}
+
 void PGraphics::fill(float a) {
     fill(a, a, a);
 }
@@ -93,6 +101,53 @@ void PGraphics::rect(float x, float y, float _width, float _height) {
         glVertex2f(x, y + _height);
         glEnd();
     }
+}
+
+void PGraphics::ellipse(float x, float y, float _width, float _height) {
+    const int   num_segments = 36; // Number of segments to approximate the ellipse
+    const float theta        = 2 * 3.1415926 / float(num_segments);
+    const float c            = cosf(theta); // Precalculate the sine and cosine
+    const float s            = sinf(theta);
+    float       t;
+
+    const float hw = _width / 2.0f;  // Half width
+    // const float hh = _height / 2.0f; // Half height
+
+    float x1 = hw; // We start at angle = 0
+    float y1 = 0;
+
+    if (fill_color.active) {
+        glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+        glBegin(GL_TRIANGLE_FAN);
+        glVertex2f(x, y); // Center of the ellipse
+        for (int i = 0; i < num_segments + 1; i++) {
+            glVertex2f(x + x1, y + y1);
+            // Apply the rotation matrix
+            t  = x1;
+            x1 = c * x1 - s * y1;
+            y1 = s * t + c * y1;
+        }
+        glEnd();
+    }
+
+    if (stroke_color.active) {
+        glColor4f(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
+        glBegin(GL_LINE_LOOP);
+        x1 = hw; // We start at angle = 0
+        y1 = 0;
+        for (int i = 0; i < num_segments + 1; i++) {
+            glVertex2f(x + x1, y + y1);
+            // Apply the rotation matrix
+            t  = x1;
+            x1 = c * x1 - s * y1;
+            y1 = s * t + c * y1;
+        }
+        glEnd();
+    }
+}
+
+void PGraphics::circle(float x, float y, float diameter) {
+    ellipse(x, y, diameter, diameter);
 }
 
 void PGraphics::line(float x1, float y1, float x2, float y2) {

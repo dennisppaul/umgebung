@@ -61,6 +61,8 @@ namespace umgebung {
 
         void fill(float r, float g, float b, float a = 1.0);
 
+        void fill(float brightness, float a);
+
         void fill(float a);
 
         void noFill();
@@ -70,6 +72,10 @@ namespace umgebung {
         void background(float a);
 
         void rect(float x, float y, float _width, float _height);
+
+        void ellipse(float x, float y, float width, float height);
+
+        void circle(float x, float y, float radius);
 
         void line(float x1, float y1, float x2, float y2);
 
