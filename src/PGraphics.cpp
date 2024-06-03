@@ -48,6 +48,14 @@ void PGraphics::stroke(float r, float g, float b, float a) {
     stroke_color.active = true;
 }
 
+void PGraphics::stroke(float brightness, float a) {
+    stroke_color.r      = brightness;
+    stroke_color.g      = brightness;
+    stroke_color.b      = brightness;
+    stroke_color.a      = a;
+    stroke_color.active = true;
+}
+
 void PGraphics::stroke(float a) {
     stroke(a, a, a);
 }
