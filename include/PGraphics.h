@@ -40,7 +40,16 @@ sphere() A sphere is a hollow ball made from tessellated triangles
 
 
 #include <string>
+
+#ifndef DISABLE_GRAPHICS
+
+#include <GL/glew.h>
+
+#endif // DISABLE_GRAPHICS
+
 #include "UmgebungConstants.h"
+
+// #define PGRAPHICS_USE_VBO
 
 namespace umgebung {
 
@@ -52,6 +61,10 @@ namespace umgebung {
     public:
         int width  = 0;
         int height = 0;
+
+        PGraphics();
+
+        ~PGraphics();
 
         void stroke(float r, float g, float b, float a = 1.0);
 
@@ -139,5 +152,11 @@ namespace umgebung {
             float a      = 1;
             bool  active = false;
         } fill_color, stroke_color;
+
+        const static int ELLIPSE_NUM_SEGMENTS = 32;
+        GLuint           ellipseVBO;
+        int              ellipseSegments;
+        bool             bufferInitialized;
+        void             setupEllipseBuffer(int num_segments);
     };
 } // namespace umgebung
