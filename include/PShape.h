@@ -46,33 +46,33 @@ namespace umgebung {
         void draw();
 
     private:
-        bool isRecording   = false;
-        int  fShape        = POLYGON;
-        int  fVerticesSize = 0;
+        bool isRecording = false;
+        int  fShape      = POLYGON;
+        // int  fVerticesSize = 0;
 #ifndef DISABLE_GRAPHICS
         std::vector<GLfloat> vertices;
-        GLuint               vertexArray, vertexBuffer;
-        GLuint               vertexShader, fragmentShader, shaderProgram;
+        // GLuint               vertexArray, vertexBuffer;
+        // GLuint               vertexShader, fragmentShader, shaderProgram;
 
-        const char* vertexShaderSource = R"(
-    #version 330 core
-    layout(location = 0) in vec3 aPos;
-    layout(location = 1) in vec3 aColor;
-    out vec3 color;
-    void main() {
-        gl_Position = vec4(aPos, 1.0);
-        color = aColor;
-    }
-)";
+//         const char* vertexShaderSource = R"(
+//     #version 330 core
+//     layout(location = 0) in vec3 aPos;
+//     layout(location = 1) in vec3 aColor;
+//     out vec3 color;
+//     void main() {
+//         gl_Position = vec4(aPos, 1.0);
+//         color = aColor;
+//     }
+// )";
 
-        const char* fragmentShaderSource = R"(
-    #version 330 core
-    in vec3 color;
-    out vec4 FragColor;
-    void main() {
-        FragColor = vec4(color, 1.0);
-    }
-)";
+//         const char* fragmentShaderSource = R"(
+//     #version 330 core
+//     in vec3 color;
+//     out vec4 FragColor;
+//     void main() {
+//         FragColor = vec4(color, 1.0);
+//     }
+// )";
 #endif // DISABLE_GRAPHICS
     };
 
