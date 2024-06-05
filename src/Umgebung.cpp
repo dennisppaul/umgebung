@@ -23,6 +23,7 @@
 
 #include <chrono>
 #include <thread>
+#include <utility>
 
 #endif
 
@@ -62,12 +63,13 @@ namespace umgebung {
 #define FIXED_MEMORY_ALLOCATION
 #ifdef FIXED_MEMORY_ALLOCATION
 
-#define MAX_CHANNELS 4                       // TODO make this configurable
+#define MAX_CHANNELS 8                       // TODO make this configurable
 #define MAX_FRAMES DEFAULT_FRAMES_PER_BUFFER // TODO make this configurable
 
     void audioOutputCallback(void* userdata, Uint8* stream, int len) {
-        const int samples       = len / sizeof(float);              // Number of samples to fill
-        float*    output_buffer = reinterpret_cast<float*>(stream); // Assuming AUDIO_F32 format
+        (void) userdata;
+        const int samples       = len / (int) sizeof(float);        // Number of samples to fill
+        auto*     output_buffer = reinterpret_cast<float*>(stream); // Assuming AUDIO_F32 format
 
         if (input_buffer == nullptr && audio_input_channels > 0) {
             std::fill(output_buffer, output_buffer + samples, 0);
@@ -132,7 +134,7 @@ namespace umgebung {
         if (!audio_was_initialized) {
             audio_was_initialized = true;
             for (int i = 0; i < samples; ++i) {
-                output_buffer[i] *= static_cast<float>(i) / samples;
+                output_buffer[i] *= static_cast<float>(i) / (float) samples;
             }
         }
     }
@@ -213,9 +215,10 @@ namespace umgebung {
 #endif
 
     void audioInputCallback(void* userdata, Uint8* stream, int len) {
+        (void) userdata;
         audio_input_ready        = false;
         const float* samples     = reinterpret_cast<float*>(stream); // Assuming AUDIO_F32 format
-        const int    sampleCount = len / sizeof(float);
+        const int    sampleCount = len / (int) sizeof(float);
 
         if (input_buffer == nullptr) {
             return;
@@ -232,14 +235,28 @@ namespace umgebung {
 
         const int numInputDevices = SDL_GetNumAudioDevices(SDL_TRUE);
         for (int i = 0; i < numInputDevices; i++) {
-            const char* deviceName = SDL_GetAudioDeviceName(i, SDL_TRUE);
-            std::cout << "- Input Device  : " << i << " : " << deviceName << std::endl;
+            const char*   deviceName = SDL_GetAudioDeviceName(i, SDL_TRUE);
+            SDL_AudioSpec spec;
+            SDL_GetAudioDeviceSpec(i, SDL_TRUE, &spec);
+            std::cout << "- Input Device  : " << i << " : " << deviceName;
+            std::cout << " ( ";
+            std::cout << "channels : " << (int) spec.channels;
+            std::cout << " + frequency : " << spec.freq;
+            std::cout << " )";
+            std::cout << std::endl;
         }
 
         const int numOutputDevices = SDL_GetNumAudioDevices(SDL_FALSE);
         for (int i = 0; i < numOutputDevices; i++) {
-            const char* deviceName = SDL_GetAudioDeviceName(i, SDL_FALSE);
-            std::cout << "- Output Device : " << i << " : " << deviceName << std::endl;
+            const char*   deviceName = SDL_GetAudioDeviceName(i, SDL_FALSE);
+            SDL_AudioSpec spec;
+            SDL_GetAudioDeviceSpec(i, SDL_FALSE, &spec);
+            std::cout << "- Output Device : " << i << " : " << deviceName;
+            std::cout << " ( ";
+            std::cout << "channels : " << (int) spec.channels;
+            std::cout << " + frequency : " << spec.freq;
+            std::cout << " )";
+            std::cout << std::endl;
         }
 
         return 0;
@@ -257,16 +274,25 @@ namespace umgebung {
             audio_output_spec.channels = output_channels;
             audio_output_spec.samples  = DEFAULT_FRAMES_PER_BUFFER; // @TODO make this adjustable
             audio_output_spec.callback = audioOutputCallback;
-            audio_output_stream        = SDL_OpenAudioDevice(
+
+            audio_output_stream = SDL_OpenAudioDevice(
                 audio_output_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_output_device, 0),
-                0,
+                SDL_FALSE,
                 &audio_output_spec,
                 &audio_output_obtained_spec,
-                SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+                SDL_AUDIO_ALLOW_CHANNELS_CHANGE | SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
             if (audio_output_stream == 0) {
                 std::cerr << "error: failed to open audio output: " << SDL_GetError() << std::endl;
                 return;
             }
+
+            if (audio_output_spec.channels != audio_output_obtained_spec.channels || audio_output_spec.freq != audio_output_obtained_spec.freq) {
+                std::cout << "+++ warning opening audio device with different specs: ";
+                std::cout << " channel(s): " << (int) audio_output_spec.channels;
+                std::cout << " frequency: " << audio_output_spec.freq;
+                std::cout << std::endl;
+            }
+
             SDL_PauseAudioDevice(audio_output_stream, 0);
         }
 
@@ -385,7 +411,7 @@ namespace umgebung {
         }
 
         set_graphics_context(fApplet);
-        fApplet->arguments(args);
+        fApplet->arguments(std::move(args));
         fApplet->settings();
 
 #ifndef DISABLE_GRAPHICS
@@ -484,7 +510,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> args;
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
-            args.push_back(argv[i]);
+            args.emplace_back(argv[i]);
         }
     }
     return umgebung::run_application(args);
