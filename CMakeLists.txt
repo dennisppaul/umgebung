@@ -108,6 +108,12 @@ if (DISABLE_VIDEO)
     message(STATUS "DISABLING     : video")
 endif (DISABLE_VIDEO)
 
+if (ENABLE_PORTAUDIO)
+    target_compile_definitions(umgebung-lib-interface INTERFACE ENABLE_PORTAUDIO)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_PORTAUDIO)
+    message(STATUS "ENABLING      : Portaudio Driver")
+endif (ENABLE_PORTAUDIO)
+
 ##########################################################################################################
 ### CREATE EXECUTABLE                                                                                  ###
 ##########################################################################################################
@@ -224,7 +230,11 @@ endif (NOT DISABLE_GRAPHICS)
 
 # AUDIO
 if (NOT DISABLE_AUDIO)
-    pkg_search_module(SDL2 REQUIRED sdl2)
+    if (ENABLE_PORTAUDIO)
+        pkg_search_module(PORTAUDIO REQUIRED portaudio-2.0)
+    else (ENABLE_PORTAUDIO)
+        pkg_search_module(SDL2 REQUIRED sdl2)
+    endif (ENABLE_PORTAUDIO)
 endif (NOT DISABLE_AUDIO)
 
 # MIDI
@@ -260,6 +270,11 @@ else ()
 endif ()
 
 # GRAPHICS + VIDEO + AUDIO
+if (NOT DISABLE_AUDIO)
+    target_link_libraries(${PROJECT_NAME} ${PORTAUDIO_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${PORTAUDIO_INCLUDE_DIRS})
+endif (NOT DISABLE_AUDIO)
+
 if (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
     target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})

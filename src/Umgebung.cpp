@@ -18,12 +18,24 @@
  */
 
 #include <iostream>
+#define UMGEBUNG_AUDIO_DRIVER_SDL_AUDIO 0
+#define UMGEBUNG_AUDIO_DRIVER_PORTAUDIO 1
 
 #ifndef DISABLE_AUDIO
+
+#ifdef ENABLE_PORTAUDIO
+#define UMGEBUNG_AUDIO_DRIVER UMGEBUNG_AUDIO_DRIVER_PORTAUDIO
+#else
+#define UMGEBUNG_AUDIO_DRIVER UMGEBUNG_AUDIO_DRIVER_SDL_AUDIO
+#endif
 
 #include <chrono>
 #include <thread>
 #include <utility>
+
+#if (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_PORTAUDIO)
+#include "portaudio.h"
+#endif // UMGEBUNG_AUDIO_DRIVER
 
 #endif
 
@@ -51,10 +63,16 @@ namespace umgebung {
     static bool             fAppIsInitialized = false;
     static bool             fMouseIsPressed   = false;
 
+#ifndef DISABLE_AUDIO
+
+#if (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_SDL_AUDIO)
     static SDL_AudioDeviceID audio_output_stream = 0;
     static SDL_AudioDeviceID audio_input_stream  = 0;
+#elif (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_PORTAUDIO)
+    static PaStream* stream;
+#endif // UMGEBUNG_AUDIO_DRIVER
 
-#ifndef DISABLE_AUDIO
+#if (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_SDL_AUDIO)
 
     float* input_buffer          = nullptr;
     bool   audio_input_ready     = false;
@@ -212,7 +230,7 @@ namespace umgebung {
         delete[] input_channels;
         delete[] output_channels;
     }
-#endif
+#endif // FIXED_MEMORY_ALLOCATION
 
     void audioInputCallback(void* userdata, Uint8* stream, int len) {
         (void) userdata;
@@ -230,7 +248,7 @@ namespace umgebung {
         audio_input_ready = true;
     }
 
-    static int print_audio_devices() {
+    int print_audio_devices() {
         std::cout << "Available audio devices:\n";
 
         const int numInputDevices = SDL_GetNumAudioDevices(SDL_TRUE);
@@ -319,37 +337,46 @@ namespace umgebung {
             SDL_PauseAudioDevice(audio_input_stream, 0);
         }
 
+        if (!audio_output_stream && audio_output_channels > 0) {
+            std::cerr << "+++ error: no audio output stream" << std::endl;
+            //            return -1;
+        }
+        if (!audio_input_stream && audio_input_channels > 0) {
+            std::cerr << "+++ error: no audio input stream" << std::endl;
+            //            return -1;
+        }
+
         //            std::cout << "+++ using default audio input and output devices" << std::endl;
-        //            err = Pa_OpenDefaultStream(&stream,
-        //                                       input_channels,
-        //                                       output_channels,
-        //                                       paFloat32,
-        //                                       DEFAULT_AUDIO_SAMPLE_RATE,
-        //                                       DEFAULT_FRAMES_PER_BUFFER,
-        //                                       audioCallback,
-        //                                       nullptr);
+        //                    err = Pa_OpenDefaultStream(&stream,
+        //                                               input_channels,
+        //                                               output_channels,
+        //                                               paFloat32,
+        //                                               DEFAULT_AUDIO_SAMPLE_RATE,
+        //                                               DEFAULT_FRAMES_PER_BUFFER,
+        //                                               audioCallback,
+        //                                               nullptr);
         //        } else {
         //            print_audio_devices();
 
-        //            PaStreamParameters inputParameters, outputParameters;
-        //            inputParameters.device                     = audio_input_device;
-        //            inputParameters.channelCount               = input_channels;
-        //            inputParameters.sampleFormat               = paFloat32;
-        //            inputParameters.suggestedLatency           = Pa_GetDeviceInfo(audio_input_device)->defaultLowInputLatency;
-        //            inputParameters.hostApiSpecificStreamInfo  = nullptr;
-        //            outputParameters.device                    = audio_output_device;
-        //            outputParameters.channelCount              = output_channels;
-        //            outputParameters.sampleFormat              = paFloat32;
-        //            outputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_output_device)->defaultLowOutputLatency;
-        //            outputParameters.hostApiSpecificStreamInfo = nullptr;
-        //            err = Pa_OpenStream(&stream,
-        //                                &inputParameters,
-        //                                &outputParameters,
-        //                                DEFAULT_AUDIO_SAMPLE_RATE,
-        //                                DEFAULT_FRAMES_PER_BUFFER,
-        //                                paClipOff,
-        //                                audioCallback,
-        //                                nullptr);
+        //                    PaStreamParameters inputParameters, outputParameters;
+        //                    inputParameters.device                     = audio_input_device;
+        //                    inputParameters.channelCount               = input_channels;
+        //                    inputParameters.sampleFormat               = paFloat32;
+        //                    inputParameters.suggestedLatency           = Pa_GetDeviceInfo(audio_input_device)->defaultLowInputLatency;
+        //                    inputParameters.hostApiSpecificStreamInfo  = nullptr;
+        //                    outputParameters.device                    = audio_output_device;
+        //                    outputParameters.channelCount              = output_channels;
+        //                    outputParameters.sampleFormat              = paFloat32;
+        //                    outputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_output_device)->defaultLowOutputLatency;
+        //                    outputParameters.hostApiSpecificStreamInfo = nullptr;
+        //                    err = Pa_OpenStream(&stream,
+        //                                        &inputParameters,
+        //                                        &outputParameters,
+        //                                        DEFAULT_AUDIO_SAMPLE_RATE,
+        //                                        DEFAULT_FRAMES_PER_BUFFER,
+        //                                        paClipOff,
+        //                                        audioCallback,
+        //                                        nullptr);
         //        }
         //
         //        if (err != paNoError) {
@@ -366,7 +393,7 @@ namespace umgebung {
         //        }
     }
 
-    static void shutdown() {
+    static void shutdown_audio() {
         if (!audio_output_stream) {
             SDL_CloseAudioDevice(audio_output_stream);
         }
@@ -374,6 +401,191 @@ namespace umgebung {
             SDL_CloseAudioDevice(audio_input_stream);
         }
     }
+#elif (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_PORTAUDIO)
+    static int audioCallback(const void* inputBuffer, void* outputBuffer,
+                             unsigned long                   framesPerBuffer,
+                             const PaStreamCallbackTimeInfo* timeInfo,
+                             PaStreamCallbackFlags           statusFlags,
+                             void*                           userData) {
+        (void)timeInfo;
+        (void)statusFlags;
+        (void)userData;
+        // assuming the sample format is paFloat32
+        auto in  = static_cast<const float*>(inputBuffer);
+        auto out = static_cast<float*>(outputBuffer);
+
+        // create 2D arrays on stack for input and output
+        std::vector<std::vector<float>> inputArray(audio_input_channels, std::vector<float>(framesPerBuffer));
+        std::vector<std::vector<float>> outputArray(audio_output_channels, std::vector<float>(framesPerBuffer));
+
+        // pointers array to pass to processing function
+        std::vector<float*> inputPtrs(audio_input_channels);
+        std::vector<float*> outputPtrs(audio_output_channels);
+
+        // fill input arrays from input buffer and setup pointers
+        for (unsigned int ch = 0; ch < audio_input_channels; ++ch) {
+            inputPtrs[ch] = inputArray[ch].data();
+            for (unsigned long i = 0; i < framesPerBuffer; ++i) {
+                if (audio_input_channels > 0) {
+                    inputArray[ch][i] = in[i * audio_input_channels + ch];
+                }
+            }
+        }
+
+        // setup output pointers
+        for (unsigned int ch = 0; ch < audio_output_channels; ++ch) {
+            outputPtrs[ch] = outputArray[ch].data();
+        }
+
+        // process audio block
+        if (fApplet != nullptr) {
+            fApplet->audioblock(inputPtrs.data(), outputPtrs.data(), static_cast<int>(framesPerBuffer));
+        }
+
+        // write processed output to output buffer
+        for (unsigned int ch = 0; ch < audio_output_channels; ++ch) {
+            for (unsigned long i = 0; i < framesPerBuffer; ++i) {
+                out[i * audio_output_channels + ch] = outputArray[ch][i];
+            }
+        }
+        return paContinue;
+    }
+
+    static void shutdown_audio() {
+        PaError err;
+
+        err = Pa_StopStream(stream);
+        if (err != paNoError) {
+            std::cerr << "+++ error when stopping stream: " << Pa_GetErrorText(err) << std::endl;
+            return;
+        }
+
+        err = Pa_CloseStream(stream);
+        if (err != paNoError) {
+            std::cerr << "+++ error when closing stream: " << Pa_GetErrorText(err) << std::endl;
+            return;
+        }
+
+        Pa_Terminate();
+    }
+
+    int print_audio_devices() {
+        int numDevices = Pa_GetDeviceCount();
+        if (numDevices < 0) {
+            std::cerr << "+++ error 'Pa_CountDevices' returned " << numDevices << std::endl;
+            std::cerr << "+++ error when counting devices: " << Pa_GetErrorText(numDevices) << std::endl;
+            return -1;
+        }
+
+        std::cout << "Found " << numDevices << " audio devices:" << std::endl;
+        for (int i = 0; i < numDevices; i++) {
+            const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+            std::cout << "Device " << i << ": " << deviceInfo->name << std::endl;
+            std::cout << "  Max input channels: " << deviceInfo->maxInputChannels << std::endl;
+            std::cout << "  Max output channels: " << deviceInfo->maxOutputChannels << std::endl;
+            std::cout << "  Default sample rate: " << deviceInfo->defaultSampleRate << std::endl;
+
+            const PaHostApiInfo* hostInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
+            if (hostInfo) {
+                std::cout << "  Host API: " << hostInfo->name << std::endl;
+            }
+        }
+        std::cout << "---" << std::endl;
+        return 0;
+    }
+
+    static void init_audio(int input_channels, int output_channels) {
+        PaError err;
+
+        if (audio_input_device == DEFAULT_AUDIO_DEVICE && audio_output_device == DEFAULT_AUDIO_DEVICE) {
+            std::cout << "Opening default audio device." << std::endl;
+            err = Pa_OpenDefaultStream(&stream,
+                                       input_channels,
+                                       output_channels,
+                                       paFloat32,
+                                       DEFAULT_AUDIO_SAMPLE_RATE,
+                                       DEFAULT_FRAMES_PER_BUFFER,
+                                       audioCallback,
+                                       nullptr);
+        } else {
+            print_audio_devices();
+
+            if (audio_input_device < 0) {
+                audio_input_device = Pa_GetDefaultInputDevice();
+                std::cout << "Using default input device with ID: " << audio_input_device << std::endl;
+            }
+            if (audio_output_device < 0) {
+                audio_output_device = Pa_GetDefaultOutputDevice();
+                std::cout << "Using default output device with ID: " << audio_output_device << std::endl;
+            }
+
+            std::cout << "Opening audio device (input/output): (" << audio_input_device << "/" << audio_output_device << ")" << std::endl;
+            const PaDeviceInfo*  deviceInfo  = Pa_GetDeviceInfo(audio_output_device);
+            const PaHostApiInfo* hostApiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
+
+            std::cout << "Opening stream for device with ID: " << deviceInfo->name;
+            std::cout << "( Host API: " << hostApiInfo->name;
+            std::cout << ", Channels (input/output): (" << input_channels << "/" << output_channels << ")";
+            std::cout << " ) ... ";
+
+            PaStreamParameters inputParameters;
+            inputParameters.device                    = audio_input_device;
+            inputParameters.channelCount              = input_channels;
+            inputParameters.sampleFormat              = paFloat32;
+            inputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_input_device)->defaultLowInputLatency;
+            inputParameters.hostApiSpecificStreamInfo = nullptr;
+
+            PaStreamParameters outputParameters;
+            outputParameters.device                    = audio_output_device;
+            outputParameters.channelCount              = output_channels;
+            outputParameters.sampleFormat              = paFloat32;
+            outputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_output_device)->defaultLowOutputLatency;
+            outputParameters.hostApiSpecificStreamInfo = nullptr;
+
+            err = Pa_OpenStream(&stream,
+                                &inputParameters,
+                                &outputParameters,
+                                DEFAULT_AUDIO_SAMPLE_RATE,
+                                DEFAULT_FRAMES_PER_BUFFER,
+                                paClipOff,
+                                audioCallback,
+                                nullptr);
+            std::cout << "OK." << std::endl;
+        }
+        if (err != paNoError) {
+            std::cerr << "+++ error when opening stream: " << Pa_GetErrorText(err) << std::endl;
+            return;
+        }
+
+        err = Pa_StartStream(stream);
+        if (err != paNoError) {
+            std::cerr << "++ error when starting stream: " << Pa_GetErrorText(err) << std::endl;
+            return;
+        }
+    }
+
+    //     err = Pa_OpenDefaultStream(&stream, 0, CHANNELS, paFloat32, SAMPLE_RATE, 256, patestCallback, &sine);
+
+    // Setup output stream parameters
+    //        PaStreamParameters outputParams;
+    //        outputParams.device                    = audio_output_device;
+    //        outputParams.channelCount              = output_channels; // Set to the number of desired output channels
+    //        outputParams.sampleFormat              = paFloat32;       // Float 32-bit format
+    //        outputParams.suggestedLatency          = deviceInfo->defaultLowOutputLatency;
+    //        outputParams.hostApiSpecificStreamInfo = nullptr; // No specific host API parameters
+
+    //        err = Pa_OpenStream(
+    //            &audio_output_stream,
+    //            nullptr, // No input parameters, NULL indicates this is an output-only stream
+    //            &outputParams,
+    //            DEFAULT_AUDIO_SAMPLE_RATE, // Sample rate
+    //            DEFAULT_FRAMES_PER_BUFFER, // Frames per buffer
+    //            paClipOff,                 // Stream flags, paClipOff disables clipping.
+    //            audioOutputCallback,       // No callback, thus using blocking I/O
+    //            nullptr                    // No user data
+    //        );
+
+#endif // UMGEBUNG_AUDIO_DRIVER
 
 #endif // DISABLE_AUDIO
 
@@ -381,10 +593,23 @@ namespace umgebung {
         // std::cout << "+++ current working directory: " << sketchPath() << std::endl;
 
 #if !defined(DISABLE_GRAPHICS) && !defined(DISABLE_AUDIO)
+#if (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_SDL_AUDIO)
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
             std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
             return 1;
         }
+#elif (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_PORTAUDIO)
+        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+            std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
+            return 1;
+        }
+        PaError err;
+        err = Pa_Initialize();
+        if (err != paNoError) {
+            std::cerr << "Error message: " << Pa_GetErrorText(err) << std::endl;
+            return -1;
+        }
+#endif // UMGEBUNG_AUDIO_DRIVER
 #elif !defined(DISABLE_GRAPHICS)
         if (SDL_Init(SDL_INIT_VIDEO) != 0) {
             std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
@@ -434,14 +659,6 @@ namespace umgebung {
             std::cout << "+++ running application with no audio" << std::endl;
         } else {
             init_audio(audio_input_channels, audio_output_channels);
-            if (!audio_output_stream && audio_output_channels > 0) {
-                std::cerr << "+++ error: no audio output stream" << std::endl;
-                return -1;
-            }
-            if (!audio_input_stream && audio_input_channels > 0) {
-                std::cerr << "+++ error: no audio input stream" << std::endl;
-                return -1;
-            }
         }
 #endif // DISABLE_AUDIO
 
@@ -489,7 +706,7 @@ namespace umgebung {
 #endif // DISABLE_GRAPHICS
 
 #ifndef DISABLE_AUDIO
-        shutdown();
+        shutdown_audio();
 #endif // DISABLE_AUDIO
 
 #if defined(DISABLE_GRAPHICS) || defined(DISABLE_AUDIO)
