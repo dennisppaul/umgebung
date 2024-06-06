@@ -50,8 +50,10 @@ namespace umgebung {
     int  audio_output_channels = DEFAULT_NUMBER_OF_OUTPUT_CHANNELS;
     int  monitor               = DEFAULT;
     bool fullscreen            = false;
+    bool borderless            = false;
     int  antialiasing          = DEFAULT;
     bool resizable             = false;
+    bool always_on_top         = false;
     bool enable_retina_support = true;
     bool headless              = false;
     bool no_audio              = false;

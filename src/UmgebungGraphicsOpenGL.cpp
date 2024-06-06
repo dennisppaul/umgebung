@@ -77,21 +77,14 @@ namespace umgebung {
         fApplet->width  = width;
         fApplet->height = height;
 
-        //        /* monitors */
-        //        GLFWmonitor *desiredMonitor = nullptr;
-        //        if (monitor != DEFAULT) {
-        //            int         monitorCount;
-        //            GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
-        //            for (int    i          = 0; i < monitorCount; ++i) {
-        //                const GLFWvidmode *mode = glfwGetVideoMode(monitors[i]);
-        //                std::cout << "+++ monitor " << i << ": " << mode->width << "x" << mode->height << " (" << mode->refreshRate
-        //                          << "Hz)"
-        //                          << std::endl;
-        //            }
-        //            if (monitor < monitorCount) {
-        //                desiredMonitor = monitors[monitor];
-        //            }
-        //        }
+        // TODO move to OpenGL 3++ at some point
+        //        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        //        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        //        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 
         /* anti aliasing */
         if (antialiasing > 0) {
@@ -99,31 +92,36 @@ namespace umgebung {
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, antialiasing);
         }
 
-        int mWindowFlags = SDL_WINDOW_OPENGL;
+        int mWindowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS | SDL_WINDOW_SHOWN;
         if (enable_retina_support) {
             mWindowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
         }
-
+        if (borderless) {
+            mWindowFlags |= SDL_WINDOW_BORDERLESS;
+        }
         if (fullscreen) {
             mWindowFlags |= SDL_WINDOW_FULLSCREEN;
         }
         if (resizable) {
-            mWindowFlags |= SDL_WINDOW_RESIZABLE;  // Add resizable flag
+            mWindowFlags |= SDL_WINDOW_RESIZABLE;
         }
+        if (always_on_top) {
+            mWindowFlags |= SDL_WINDOW_ALWAYS_ON_TOP;
+        }
+
+        // TODO implement resizable and fullscreen at runtime
+        //    SDL_SetWindowFullscreen(window?!?, fullscreen_state ? SDL_WINDOW_FULLSCREEN: SDL_WINDOW_FULLSCREEN_DESKTOP);
+        //    SDL_SetWindowResizable(window?!?, SDL_TRUE);
 
         //        int major, minor, revision;
         //        glfwGetVersion(&major, &minor, &revision);
         //        std::cout << "+++ OpenGL version: " << major << "." << minor << "." << revision << std::endl;
-
         //#if USE_CURRENT_OPENGL
         //        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         //        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         //        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
         //        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         //#endif // USE_CURRENT_OPENGL
-        //        glfwWindowHint(GLFW_FOCUSED, true);
-        //        glfwWindowHint(GLFW_DECORATED, true);
-        //        glfwWindowHint(GLFW_RESIZABLE, resizable);
 
         int mMonitorLocation;
         if (monitor == DEFAULT) {
@@ -138,13 +136,12 @@ namespace umgebung {
             }
         }
 
-        APP_WINDOW* window = SDL_CreateWindow(
-            title,
-            mMonitorLocation,
-            mMonitorLocation,
-            fApplet->width,
-            fApplet->height,
-            mWindowFlags);
+        APP_WINDOW* window = SDL_CreateWindow(title,
+                                              mMonitorLocation,
+                                              mMonitorLocation,
+                                              fApplet->width,
+                                              fApplet->height,
+                                              mWindowFlags);
 
         if (!window) {
             std::cerr << "+++ error: could not create window: " << SDL_GetError() << std::endl;
@@ -185,7 +182,6 @@ namespace umgebung {
     //        // TODO add `void mouseWheel(MouseEvent event) { ... }`
     //        std::cout << "Scroll: " << xoffset << ", " << yoffset << std::endl;
     //    }
-
 
     void handle_shutdown(APP_WINDOW* window) {
         if (!headless) {
@@ -285,16 +281,5 @@ namespace umgebung {
             default: break;
         }
     }
-
-    // TODO implement resizable and fullscreen
-    //    void fullscreen(bool fullscreen_state) {
-    //        SDL_SetWindowFullscreen(window?!?, fullscreen_state ? SDL_WINDOW_FULLSCREEN: SDL_WINDOW_FULLSCREEN_DESKTOP);
-    //    }
-    //    // To make a window resizable
-    //    SDL_SetWindowResizable(window?!?, SDL_TRUE);
-    //
-    //    // To make a window non-resizable
-    //    SDL_SetWindowResizable(window?!?, SDL_FALSE);
-
 } // namespace umgebung
 #endif // DISABLE_GRAPHICS

@@ -75,8 +75,10 @@ namespace umgebung {
     extern int  audio_output_channels;
     extern int  monitor;
     extern bool fullscreen;
+    extern bool borderless;
     extern int  antialiasing;
     extern bool resizable;
+    extern bool always_on_top;
     extern bool enable_retina_support; // @development maybe implement as `HINT(ENABLE_RETINA_SUPPORT, true)`
     extern bool headless;
     extern bool no_audio;
