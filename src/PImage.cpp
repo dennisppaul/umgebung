@@ -84,12 +84,12 @@ void PImage::bind() {
 #endif // DISABLE_GRAPHICS
 }
 
-void PImage::update(float* _data, int _width, int _height, int offset_x, int offset_y) {
+void PImage::update(const float* _data, int _width, int _height, int offset_x, int offset_y) const {
 #ifndef DISABLE_GRAPHICS
     const int     length = _width * _height * channels;
     unsigned char mData[length];
     for (int i = 0; i < _width * _height * channels; ++i) {
-        mData[i] = _data[i] * 255;
+        mData[i] = static_cast<unsigned char>(_data[i] * 255);
     }
     int mFormat;
     if (channels == 3) {

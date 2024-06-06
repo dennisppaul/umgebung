@@ -49,8 +49,9 @@ namespace umgebung {
     int  audio_input_channels  = DEFAULT_NUMBER_OF_INPUT_CHANNELS;
     int  audio_output_channels = DEFAULT_NUMBER_OF_OUTPUT_CHANNELS;
     int  monitor               = DEFAULT;
+    bool fullscreen            = false;
     int  antialiasing          = DEFAULT;
-    bool resizable             = true;
+    bool resizable             = false;
     bool enable_retina_support = true;
     bool headless              = false;
     bool no_audio              = false;
@@ -339,58 +340,10 @@ namespace umgebung {
 
         if (!audio_output_stream && audio_output_channels > 0) {
             std::cerr << "+++ error: no audio output stream" << std::endl;
-            //            return -1;
         }
         if (!audio_input_stream && audio_input_channels > 0) {
             std::cerr << "+++ error: no audio input stream" << std::endl;
-            //            return -1;
         }
-
-        //            std::cout << "+++ using default audio input and output devices" << std::endl;
-        //                    err = Pa_OpenDefaultStream(&stream,
-        //                                               input_channels,
-        //                                               output_channels,
-        //                                               paFloat32,
-        //                                               DEFAULT_AUDIO_SAMPLE_RATE,
-        //                                               DEFAULT_FRAMES_PER_BUFFER,
-        //                                               audioCallback,
-        //                                               nullptr);
-        //        } else {
-        //            print_audio_devices();
-
-        //                    PaStreamParameters inputParameters, outputParameters;
-        //                    inputParameters.device                     = audio_input_device;
-        //                    inputParameters.channelCount               = input_channels;
-        //                    inputParameters.sampleFormat               = paFloat32;
-        //                    inputParameters.suggestedLatency           = Pa_GetDeviceInfo(audio_input_device)->defaultLowInputLatency;
-        //                    inputParameters.hostApiSpecificStreamInfo  = nullptr;
-        //                    outputParameters.device                    = audio_output_device;
-        //                    outputParameters.channelCount              = output_channels;
-        //                    outputParameters.sampleFormat              = paFloat32;
-        //                    outputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_output_device)->defaultLowOutputLatency;
-        //                    outputParameters.hostApiSpecificStreamInfo = nullptr;
-        //                    err = Pa_OpenStream(&stream,
-        //                                        &inputParameters,
-        //                                        &outputParameters,
-        //                                        DEFAULT_AUDIO_SAMPLE_RATE,
-        //                                        DEFAULT_FRAMES_PER_BUFFER,
-        //                                        paClipOff,
-        //                                        audioCallback,
-        //                                        nullptr);
-        //        }
-        //
-        //        if (err != paNoError) {
-        //            std::cerr << "PortAudio error (@open_stream): " << Pa_GetErrorText(err) << std::endl;
-        //            return nullptr;
-        //        }
-        //
-        //        err = Pa_StartStream(stream);
-        //        if (err != paNoError) {
-        //            std::cerr << "PortAudio error (@start_stream): " << Pa_GetErrorText(err) << std::endl;
-        //            return nullptr;
-        //        }
-        //        return stream;
-        //        }
     }
 
     static void shutdown_audio() {
@@ -407,9 +360,9 @@ namespace umgebung {
                              const PaStreamCallbackTimeInfo* timeInfo,
                              PaStreamCallbackFlags           statusFlags,
                              void*                           userData) {
-        (void)timeInfo;
-        (void)statusFlags;
-        (void)userData;
+        (void) timeInfo;
+        (void) statusFlags;
+        (void) userData;
         // assuming the sample format is paFloat32
         auto in  = static_cast<const float*>(inputBuffer);
         auto out = static_cast<float*>(outputBuffer);
@@ -563,27 +516,6 @@ namespace umgebung {
             return;
         }
     }
-
-    //     err = Pa_OpenDefaultStream(&stream, 0, CHANNELS, paFloat32, SAMPLE_RATE, 256, patestCallback, &sine);
-
-    // Setup output stream parameters
-    //        PaStreamParameters outputParams;
-    //        outputParams.device                    = audio_output_device;
-    //        outputParams.channelCount              = output_channels; // Set to the number of desired output channels
-    //        outputParams.sampleFormat              = paFloat32;       // Float 32-bit format
-    //        outputParams.suggestedLatency          = deviceInfo->defaultLowOutputLatency;
-    //        outputParams.hostApiSpecificStreamInfo = nullptr; // No specific host API parameters
-
-    //        err = Pa_OpenStream(
-    //            &audio_output_stream,
-    //            nullptr, // No input parameters, NULL indicates this is an output-only stream
-    //            &outputParams,
-    //            DEFAULT_AUDIO_SAMPLE_RATE, // Sample rate
-    //            DEFAULT_FRAMES_PER_BUFFER, // Frames per buffer
-    //            paClipOff,                 // Stream flags, paClipOff disables clipping.
-    //            audioOutputCallback,       // No callback, thus using blocking I/O
-    //            nullptr                    // No user data
-    //        );
 
 #endif // UMGEBUNG_AUDIO_DRIVER
 

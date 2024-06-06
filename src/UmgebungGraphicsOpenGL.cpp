@@ -104,6 +104,13 @@ namespace umgebung {
             mWindowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
         }
 
+        if (fullscreen) {
+            mWindowFlags |= SDL_WINDOW_FULLSCREEN;
+        }
+        if (resizable) {
+            mWindowFlags |= SDL_WINDOW_RESIZABLE;  // Add resizable flag
+        }
+
         //        int major, minor, revision;
         //        glfwGetVersion(&major, &minor, &revision);
         //        std::cout << "+++ OpenGL version: " << major << "." << minor << "." << revision << std::endl;
@@ -118,10 +125,23 @@ namespace umgebung {
         //        glfwWindowHint(GLFW_DECORATED, true);
         //        glfwWindowHint(GLFW_RESIZABLE, resizable);
 
+        int mMonitorLocation;
+        if (monitor == DEFAULT) {
+            mMonitorLocation = SDL_WINDOWPOS_CENTERED;
+        } else {
+            int numDisplays = SDL_GetNumVideoDisplays();
+            if (monitor >= numDisplays) {
+                std::cerr << "+++ display index out of range. Only %d displays available: " << numDisplays << std::endl;
+                mMonitorLocation = SDL_WINDOWPOS_CENTERED;
+            } else {
+                mMonitorLocation = SDL_WINDOWPOS_CENTERED_DISPLAY(monitor);
+            }
+        }
+
         APP_WINDOW* window = SDL_CreateWindow(
             title,
-            SDL_WINDOWPOS_CENTERED,
-            SDL_WINDOWPOS_CENTERED,
+            mMonitorLocation,
+            mMonitorLocation,
             fApplet->width,
             fApplet->height,
             mWindowFlags);
@@ -265,5 +285,16 @@ namespace umgebung {
             default: break;
         }
     }
+
+    // TODO implement resizable and fullscreen
+    //    void fullscreen(bool fullscreen_state) {
+    //        SDL_SetWindowFullscreen(window?!?, fullscreen_state ? SDL_WINDOW_FULLSCREEN: SDL_WINDOW_FULLSCREEN_DESKTOP);
+    //    }
+    //    // To make a window resizable
+    //    SDL_SetWindowResizable(window?!?, SDL_TRUE);
+    //
+    //    // To make a window non-resizable
+    //    SDL_SetWindowResizable(window?!?, SDL_FALSE);
+
 } // namespace umgebung
 #endif // DISABLE_GRAPHICS
