@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.12)
 
 project(umgebung-lib VERSION 1.0 LANGUAGES CXX)
 
+option(SET_COMPILER_FLAGS "Set Compiler Flags to C++17" OFF)
+
 message(STATUS "----------------------------------------")
 message(STATUS "UMGEBUNG_APP  : ${PROJECT_NAME}")
 
@@ -11,6 +13,23 @@ message(STATUS "UMGEBUNG_APP  : ${PROJECT_NAME}")
 #else ()
 #    set(BUILD_STANDALONE OFF)
 #endif ()
+
+##########################################################################################################
+### COMPILER FLAGS                                                                                     ###
+##########################################################################################################
+# NOTE can and should be set in root cmake script
+if (SET_COMPILER_FLAGS)
+    message(STATUS "COMPILER_FLAGS: Umgebung is setting compiler flags")
+    # TODO check if this is necessary or if they can be inherited from the parent project
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++17-extensions")
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
+else(SET_COMPILER_FLAGS)
+    message(STATUS "COMPILER_FLAGS: Umgebung is expecting compiler flags to be set by root script")
+endif(SET_COMPILER_FLAGS)
 
 ##########################################################################################################
 ### CHECK FOR HOMEBREW                                                                                 ###
@@ -333,16 +352,8 @@ endfunction()
 
 
 ##########################################################################################################
-### COMPILER FLAGS                                                                                     ###
+### TODO                                                                                               ###
 ##########################################################################################################
-
-# TODO check if this is necessary or if they can be inherited from the parent project
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++17-extensions")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
 
 # TODO implement curses for headless mode
 ## ncurses
