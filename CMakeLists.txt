@@ -18,15 +18,19 @@ message(STATUS "UMGEBUNG_APP  : ${PROJECT_NAME}")
 ### COMPILER FLAGS                                                                                     ###
 ##########################################################################################################
 # NOTE can and should be set in root cmake script
-if (SET_COMPILER_FLAGS)
-    message(STATUS "COMPILER_FLAGS: Umgebung is setting compiler flags")
-    # TODO check if this is necessary or if they can be inherited from the parent project
+function(set_umgebung_compiler_flags)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++17-extensions")
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
+endfunction()
+
+if (SET_COMPILER_FLAGS)
+    message(STATUS "COMPILER_FLAGS: Umgebung is setting compiler flags")
+    # TODO check if this is necessary or if they can be inherited from the parent project
+    set_umgebung_compiler_flags()
 else(SET_COMPILER_FLAGS)
     message(STATUS "COMPILER_FLAGS: Umgebung is expecting compiler flags to be set by root script")
 endif(SET_COMPILER_FLAGS)
