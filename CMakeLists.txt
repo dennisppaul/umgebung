@@ -370,3 +370,11 @@ endfunction()
 #    target_link_libraries(${PROJECT_NAME} PUBLIC pdcurses)
 #endif (WIN32)
 message(STATUS "----------------------------------------")
+
+##########################################################################################################
+### NOTE                                                                                               ###
+##########################################################################################################
+
+# use these in projects:
+# - prepare umgebung ( before `add_executable` ): `include(${UMGEBUNG_PATH}/cmake/default-pre.cmake)`
+# - prepare umgebung ( after `add_executable` ): `include(${UMGEBUNG_PATH}/cmake/default-post.cmake)`
