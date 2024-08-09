@@ -234,6 +234,15 @@ public:
         address.socket()->Send(message.data(), message.size());
     }
 
+    void send(OscMessage& message) {
+        message.end();
+        if (mTransmitSocket != nullptr) {
+            mTransmitSocket->Send(message.data(), message.size());
+        } else {
+            std::cerr << "+++ OSC error: no transmit socket created" << std::endl;
+        }
+    }
+
     template<typename... Args>
     void send(const std::string& addr_pattern, Args... args) {
         char                      buffer[OSC_TRANSMIT_OUTPUT_BUFFER_SIZE];
