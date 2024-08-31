@@ -37,12 +37,23 @@ PImage::PImage() {
     channels = 0;
 }
 
+PImage::PImage(const int _width, const int _height, const int _channels) : width(_width),
+                                                                           height(_height),
+                                                                           channels(_channels) {
+    const int length = width * height * channels;
+    data             = new unsigned char[length];
+    for (int i = 0; i < length; ++i) {
+        data[i] = 0x80;
+    }
+    init(width, height, channels, data);
+}
+
 PImage::PImage(const std::string& filename) {
     int _width    = 0;
     int _height   = 0;
     int _channels = 0;
 #ifndef DISABLE_GRAPHICS
-    data = stbi_load(filename.c_str(), &_width, &_height, &_channels, 0);
+    unsigned char* data = stbi_load(filename.c_str(), &_width, &_height, &_channels, 0);
     if (data) {
         init(_width, _height, _channels, data);
     } else {
@@ -52,7 +63,7 @@ PImage::PImage(const std::string& filename) {
 #endif                     // DISABLE_GRAPHICS
 }
 
-void PImage::init(int _width, int _height, int _channels, unsigned char* _data) {
+void PImage::init(const int _width, const int _height, int _channels, const unsigned char* _data) {
 #ifndef DISABLE_GRAPHICS
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -72,19 +83,23 @@ void PImage::init(int _width, int _height, int _channels, unsigned char* _data) 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 #endif // DISABLE_GRAPHICS
-    width    = (float) _width;
-    height   = (float) _height;
+    width    = static_cast<float>(_width);
+    height   = static_cast<float>(_height);
     channels = _channels;
 }
 
 
-void PImage::bind() {
+void PImage::bind() const {
 #ifndef DISABLE_GRAPHICS
     glBindTexture(GL_TEXTURE_2D, textureID);
 #endif // DISABLE_GRAPHICS
 }
 
-void PImage::update(const float* _data, int _width, int _height, int offset_x, int offset_y) const {
+void PImage::update(const float* _data,
+                    const int    _width,
+                    const int    _height,
+                    const int    offset_x,
+                    const int    offset_y) const {
 #ifndef DISABLE_GRAPHICS
     const int     length = _width * _height * channels;
     unsigned char mData[length];
@@ -109,6 +124,34 @@ void PImage::update(const float* _data, int _width, int _height, int offset_x, i
 #endif // DISABLE_GRAPHICS
 }
 
-void PImage::update(float* _data) {
+void PImage::update(const unsigned char* _data,
+                    const int            _width,
+                    const int            _height,
+                    const int            offset_x,
+                    const int            offset_y) const {
+#ifndef DISABLE_GRAPHICS
+    int mFormat;
+    if (channels == 3) {
+        mFormat = GL_RGB;
+    } else if (channels == 4) {
+        mFormat = GL_RGBA;
+    } else {
+        std::cerr << "Unsupported image format" << std::endl;
+        mFormat = GL_RGB;
+    }
+    glTexSubImage2D(GL_TEXTURE_2D,
+                    0, offset_x, offset_y,
+                    _width, _height,
+                    mFormat,
+                    GL_UNSIGNED_BYTE,
+                    _data);
+#endif // DISABLE_GRAPHICS
+}
+
+void PImage::update(const float* _data) const {
     update(_data, width, height, 0, 0);
+}
+
+void PImage::update() const {
+    update(data, width, height, 0, 0);
 }

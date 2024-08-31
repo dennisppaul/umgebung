@@ -158,6 +158,7 @@ private:
 
 class OSCListener {
 public:
+    virtual ~    OSCListener() = default;
     virtual void receive_native(const osc::ReceivedMessage& msg) {};
 
     virtual void receive(const OscMessage& msg) {};

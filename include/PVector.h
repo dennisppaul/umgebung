@@ -59,10 +59,10 @@ namespace umgebung {
         // Constructors
         PVector() : x(0), y(0), z(0) {}
 
-        PVector(float x, float y, float z = 0) : x(x), y(y), z(z) {}
+        PVector(const float x, const float y, const float z = 0) : x(x), y(y), z(z) {}
 
         // Set the components of the vector
-        void set(float _x, float _y, float _z = 0) {
+        void set(const float _x, const float _y, const float _z = 0) {
             x = _x;
             y = _y;
             z = _z;

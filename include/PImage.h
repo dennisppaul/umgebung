@@ -25,23 +25,24 @@
 namespace umgebung {
     class PImage {
     public:
-        PImage(const std::string& filename);
+        explicit PImage(const std::string& filename);
+                 PImage(int _width, int _height, int _channels);
+                 PImage();
 
-        PImage();
+        void bind() const;
 
-        void bind();
-
-        void update(float* data); // maybe change to 32bit int format
-        void update(const float* _data, int _width, int _height, int offset_x, int offset_y) const;
-
+        void  update() const;
+        void  update(const float* data) const; // maybe change to 32bit int format
+        void  update(const float* _data, int _width, int _height, int offset_x, int offset_y) const;
+        void  update(const unsigned char* _data, int _width, int _height, int offset_x, int offset_y) const;
         float width{};
         float height{};
         int   channels{};
 
     protected:
-        unsigned int   textureID{};
-        unsigned char* data{};
+        uint32_t*    data{};
+        unsigned int textureID{};
 
-        void init(int width, int height, int channels, unsigned char* _data);
+        void init(int width, int height, int channels, const unsigned char* _data);
     };
 } // namespace umgebung

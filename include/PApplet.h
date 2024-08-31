@@ -274,7 +274,7 @@ namespace umgebung {
 
         PApplet()
             : framebuffer_width(0),
-              framebuffer_height(0),
+              framebuffer_height(0), g(nullptr),
               framebuffer(0),
               texture(0) {
             this->width       = DEFAULT_WINDOW_WIDTH;
