@@ -36,6 +36,14 @@ namespace umgebung {
         void update(const uint32_t* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
         void update(const float* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
 
+        void set(const int x, const int y, const uint32_t color) const {
+            pixels[y * width + x] = color;
+        }
+
+        uint32_t get(const int x, const int y) const {
+            return pixels[y * width + x];
+        }
+
         int       width{};
         int       height{};
         int       channels{};
