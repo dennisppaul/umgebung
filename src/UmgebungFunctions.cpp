@@ -31,6 +31,7 @@
 
 #include "Umgebung.h"
 #include "SimplexNoise.h"
+#include "UmgebungFunctions.h"
 
 namespace umgebung {
 
@@ -51,6 +52,17 @@ namespace umgebung {
 
     float random(float max) {
         return random(0, max);
+    }
+
+    uint32_t color(const float r, const float g, const float b, const float a) {
+        return static_cast<uint32_t>(a * 255) << 24 |
+               static_cast<uint32_t>(b * 255) << 16 |
+               static_cast<uint32_t>(g * 255) << 8 |
+               static_cast<uint32_t>(r * 255);
+    }
+
+    uint32_t color(const float r, const float g, const float b) {
+        return color(r, g, b, 1);
     }
 
     std::string nf(int number, int _width) {

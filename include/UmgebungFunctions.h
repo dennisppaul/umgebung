@@ -33,6 +33,10 @@ namespace umgebung {
 
     /* static functions for PApplet */
 
+    uint32_t color(float r, float g, float b, float a);
+
+    uint32_t color(float r, float g, float b);
+
     float random(float min, float max);
 
     float random(float max);
@@ -55,10 +59,19 @@ namespace umgebung {
 
 #define FLUSH_PRINT
 
+    template<typename T>
+    static auto to_printable(const T& value) -> typename std::conditional<std::is_same<T, uint8_t>::value, int, const T&>::type {
+        if constexpr (std::is_same<T, uint8_t>::value) {
+            return static_cast<int>(value);
+        } else {
+            return value;
+        }
+    }
+
     template<typename... Args>
     void print(const Args&... args) {
         std::ostringstream os;
-        (os << ... << args);
+        ((os << to_printable(args)), ...);
         std::cout << os.str();
 #ifdef FLUSH_PRINT
         std::flush(std::cout);
@@ -68,7 +81,7 @@ namespace umgebung {
     template<typename... Args>
     void println(const Args&... args) {
         std::ostringstream os;
-        (os << ... << args);
+        ((os << to_printable(args)), ...);
         std::cout << os.str() << std::endl;
 #ifdef FLUSH_PRINT
         std::flush(std::cout);

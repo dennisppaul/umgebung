@@ -19,21 +19,22 @@ message(STATUS "UMGEBUNG_APP  : ${PROJECT_NAME}")
 ##########################################################################################################
 # NOTE can and should be set in root cmake script
 function(set_umgebung_compiler_flags)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++17-extensions")
-    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++17-extensions")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
+    #set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X")
 endfunction()
 
 if (SET_COMPILER_FLAGS)
     message(STATUS "COMPILER_FLAGS: Umgebung is setting compiler flags")
     # TODO check if this is necessary or if they can be inherited from the parent project
     set_umgebung_compiler_flags()
-else(SET_COMPILER_FLAGS)
+else (SET_COMPILER_FLAGS)
     message(STATUS "COMPILER_FLAGS: Umgebung is expecting compiler flags to be set by root script")
-endif(SET_COMPILER_FLAGS)
+endif (SET_COMPILER_FLAGS)
 
 ##########################################################################################################
 ### CHECK FOR HOMEBREW                                                                                 ###

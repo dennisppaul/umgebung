@@ -169,7 +169,8 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
                          1);
     packet = av_packet_alloc();
 
-    init(videoCodecContext->width, videoCodecContext->height, _channels, convertedFrame->data[0]);
+    // TODO check if this still works
+    init(reinterpret_cast<uint32_t*>(convertedFrame->data[0]), videoCodecContext->width, videoCodecContext->height, _channels);
     return 1;
 }
 

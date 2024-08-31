@@ -20,28 +20,30 @@
 #pragma once
 
 #include <iostream>
-#include <string>
+#include <cstdint>
 
 namespace umgebung {
     class PImage {
     public:
-        PImage(const std::string& filename);
+        explicit PImage(const std::string& filename);
+                 PImage(int _width, int _height, int _channels);
+                 PImage();
 
-        PImage();
+        void bind() const;
 
-        void bind();
+        void update() const;
+        void update(const uint32_t* pixel_data) const;
+        void update(const uint32_t* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
+        void update(const float* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
 
-        void update(float* data); // maybe change to 32bit int format
-        void update(const float* _data, int _width, int _height, int offset_x, int offset_y) const;
-
-        float width;
-        float height;
-        int   channels;
+        int       width{};
+        int       height{};
+        int       channels{};
+        uint32_t* pixels;
 
     protected:
-        unsigned int   textureID{};
-        unsigned char* data{};
+        unsigned int textureID = -1;
 
-        void init(int width, int height, int channels, unsigned char* _data);
+        void init(const uint32_t* _data, int _width, int _height, int channels);
     };
 } // namespace umgebung

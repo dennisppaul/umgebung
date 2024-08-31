@@ -59,8 +59,8 @@ namespace umgebung {
 
     class PGraphics {
     public:
-        int width  = 0;
-        int height = 0;
+        int width;
+        int height;
 
         PGraphics();
 

@@ -308,7 +308,7 @@ extern "C" /*static*/ void InterruptSignalHandler(int);
 
 
 class SocketReceiveMultiplexer::Implementation {
-    std::vector<std::pair<PacketListener*, UdpSocket*>> socketListeners_;
+    std::vector<std::pair<PacketListener*, UdpSocket*> > socketListeners_;
     std::vector<AttachedTimerListener>                  timerListeners_;
 
     volatile bool break_;
@@ -340,7 +340,7 @@ public:
     }
 
     void DetachSocketListener(UdpSocket* socket, PacketListener* listener) {
-        std::vector<std::pair<PacketListener*, UdpSocket*>>::iterator i =
+        std::vector<std::pair<PacketListener*, UdpSocket*> >::iterator i =
             std::find(socketListeners_.begin(), socketListeners_.end(), std::make_pair(listener, socket));
         assert(i != socketListeners_.end());
 
@@ -386,7 +386,7 @@ public:
             FD_SET(breakPipe_[0], &masterfds);
             int fdmax = breakPipe_[0];
 
-            for (std::vector<std::pair<PacketListener*, UdpSocket*>>::iterator i = socketListeners_.begin();
+            for (std::vector<std::pair<PacketListener*, UdpSocket*> >::iterator i = socketListeners_.begin();
                  i != socketListeners_.end(); ++i) {
 
                 if (fdmax < i->second->impl_->Socket())
@@ -399,7 +399,7 @@ public:
             double currentTimeMs = GetCurrentTimeMs();
 
             // expiry time ms, listener
-            std::vector<std::pair<double, AttachedTimerListener>> timerQueue_;
+            std::vector<std::pair<double, AttachedTimerListener> > timerQueue_;
             for (std::vector<AttachedTimerListener>::iterator i = timerListeners_.begin();
                  i != timerListeners_.end(); ++i)
                 timerQueue_.push_back(std::make_pair(currentTimeMs + i->initialDelayMs, *i));
@@ -450,7 +450,7 @@ public:
                 if (break_)
                     break;
 
-                for (std::vector<std::pair<PacketListener*, UdpSocket*>>::iterator i = socketListeners_.begin();
+                for (std::vector<std::pair<PacketListener*, UdpSocket*> >::iterator i = socketListeners_.begin();
                      i != socketListeners_.end(); ++i) {
 
                     if (FD_ISSET(i->second->impl_->Socket(), &tempfds)) {
@@ -467,7 +467,7 @@ public:
                 // execute any expired timers
                 currentTimeMs = GetCurrentTimeMs();
                 bool resort   = false;
-                for (std::vector<std::pair<double, AttachedTimerListener>>::iterator i = timerQueue_.begin();
+                for (std::vector<std::pair<double, AttachedTimerListener> >::iterator i = timerQueue_.begin();
                      i != timerQueue_.end() && i->first <= currentTimeMs; ++i) {
 
                     i->second.listener->TimerExpired();

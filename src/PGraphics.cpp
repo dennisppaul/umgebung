@@ -26,7 +26,7 @@ using namespace umgebung;
 
 // TODO look into OpenGL 3 e.g https://github.com/opengl-tutorials/ogl/
 
-PGraphics::PGraphics() : ellipseVBO(0), ellipseSegments(0), bufferInitialized(false) {
+PGraphics::PGraphics() : width(0), height(0), ellipseVBO(0), ellipseSegments(0), bufferInitialized(false) {
 #ifdef PGRAPHICS_USE_VBO
     setupEllipseBuffer(ELLIPSE_NUM_SEGMENTS);
 #endif // PGRAPHICS_USE_VBO

@@ -158,6 +158,7 @@ private:
 
 class OSCListener {
 public:
+    virtual ~    OSCListener() = default;
     virtual void receive_native(const osc::ReceivedMessage& msg) {};
 
     virtual void receive(const OscMessage& msg) {};
@@ -232,6 +233,15 @@ public:
     void send(OscMessage message, NetAddress address) {
         message.end();
         address.socket()->Send(message.data(), message.size());
+    }
+
+    void send(OscMessage& message) {
+        message.end();
+        if (mTransmitSocket != nullptr) {
+            mTransmitSocket->Send(message.data(), message.size());
+        } else {
+            std::cerr << "+++ OSC error: no transmit socket created" << std::endl;
+        }
     }
 
     template<typename... Args>
