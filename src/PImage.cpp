@@ -48,6 +48,9 @@ PImage::PImage(const std::string& filename) {
     } else {
         std::cerr << "Failed to load image: " << filename << std::endl;
     }
+    width    = _width;
+    height   = _height;
+    channels = _channels;
     stbi_image_free(data); // @TODO maybe not release the data for later use?
 #endif                     // DISABLE_GRAPHICS
 }

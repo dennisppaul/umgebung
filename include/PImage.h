@@ -34,9 +34,9 @@ namespace umgebung {
         void update(float* data); // maybe change to 32bit int format
         void update(const float* _data, int _width, int _height, int offset_x, int offset_y) const;
 
-        float width{};
-        float height{};
-        int   channels{};
+        float width;
+        float height;
+        int   channels;
 
     protected:
         unsigned int   textureID{};
