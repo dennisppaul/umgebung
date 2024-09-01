@@ -17,9 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// TODO add `glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);`, however, data is also stored in `pixels`
-
 #include "Umgebung.h"
+#include "PImage.h"
 
 #ifndef DISABLE_GRAPHICS
 
@@ -31,19 +30,31 @@
 
 using namespace umgebung;
 
-PImage::PImage() : width(0), height(0), channels(0), pixels(nullptr) {}
-
-PImage::PImage(const int _width, const int _height, const int _channels) : width(_width),
-                                                                           height(_height),
-                                                                           channels(_channels) {
-    const int length = _width * _height;
-    pixels           = new uint32_t[length]{0x00000000};
-    init(pixels, _width, _height, channels);
-}
-
 #define RGBA(r, g, b, a) (((uint32_t) (a) << 24) | ((uint32_t) (b) << 16) | ((uint32_t) (g) << 8) | ((uint32_t) (r)))
 
-PImage::PImage(const std::string& filename) : pixels(nullptr) {
+PImage::PImage() : width(0),
+                   height(0),
+                   format(0),
+                   pixels(nullptr) {
+    // note that PImage is not initialized with any data
+}
+
+PImage::PImage(const int width, const int height, const int format) : width(width),
+                                                                      height(height),
+                                                                      format(format),
+                                                                      pixels(nullptr) {
+    const int length = width * height;
+    if (length <= 0) {
+        return;
+    }
+    pixels = new uint32_t[length]{0x00000000};
+    init(pixels, width, height, format);
+}
+
+PImage::PImage(const std::string& filename) : width(0),
+                                              height(0),
+                                              format(0),
+                                              pixels(nullptr) {
 #ifndef DISABLE_GRAPHICS
     int            _width    = 0;
     int            _height   = 0;
@@ -76,23 +87,39 @@ PImage::PImage(const std::string& filename) : pixels(nullptr) {
 #endif // DISABLE_GRAPHICS
 }
 
-void PImage::init(const uint32_t* data, const int _width, const int _height, const int _channels) {
+void PImage::loadPixels() const {
 #ifndef DISABLE_GRAPHICS
-    width    = _width;
-    height   = _height;
-    channels = _channels;
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+#endif // DISABLE_GRAPHICS
+}
+
+void PImage::init(uint32_t* pixels, const int width, const int height, const int format) {
+#ifndef DISABLE_GRAPHICS
+    if (pixels == nullptr) {
+        std::cerr << "unitialized pixel buffer" << std::endl;
+        return;
+    }
+    this->pixels = pixels;
+    this->width  = width;
+    this->height = height;
+    this->format = format;
+    if (format != 4) {
+        std::cerr << "Unsupported image format, defaulting to RGBA forcing 4 color channels." << std::endl;
+        this->format = 4;
+    }
+
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     constexpr GLint mFormat = GL_RGBA; // internal format is always RGBA
-    glTexImage2D(GL_TEXTURE_2D, 0, mFormat, _width, _height, 0, mFormat, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, mFormat, width, height, 0, mFormat, GL_UNSIGNED_BYTE, pixels);
 
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 #endif // DISABLE_GRAPHICS
 }
-
 
 void PImage::bind() const {
 #ifndef DISABLE_GRAPHICS
@@ -128,8 +155,12 @@ void PImage::update(const uint32_t* pixel_data,
                     const int       offset_x,
                     const int       offset_y) const {
 #ifndef DISABLE_GRAPHICS
-    if (!pixel_data || !pixels) {
-        std::cerr << "Invalid pixel data or target buffer" << std::endl;
+    if (!pixel_data) {
+        std::cerr << "invalid pixel data" << std::endl;
+        return;
+    }
+    if (!pixels) {
+        std::cerr << "pixel array not initialized" << std::endl;
         return;
     }
 
@@ -139,7 +170,7 @@ void PImage::update(const uint32_t* pixel_data,
     if (offset_x < 0 || offset_y < 0 ||
         offset_x + _width > width ||
         offset_y + _height > height) {
-        std::cerr << "Subregion is out of bounds" << std::endl;
+        std::cerr << "subregion is out of bounds" << std::endl;
         return;
     }
 
@@ -166,6 +197,26 @@ void PImage::update(const uint32_t* pixel_data) const {
     update(pixel_data, width, height, 0, 0);
 }
 
-void PImage::update() const {
+void PImage::updatePixels() const {
     update(pixels, width, height, 0, 0);
+}
+
+void PImage::updatePixels(const int x, const int y, const int w, const int h) const {
+    if (!pixels) {
+        std::cerr << "pixel array not initialized" << std::endl;
+        return;
+    }
+
+    if (x < 0 || y < 0 || x + w > width || y + h > height) {
+        return;
+    }
+
+    const int length  = w * h;
+    auto*     mPixels = new uint32_t[length];
+    for (int i = 0; i < length; ++i) {
+        const int src_index = (y + i / w) * width + (x + i % w);
+        mPixels[i]          = pixels[src_index];
+    }
+    update(mPixels, w, h, x, y);
+    delete[] mPixels;
 }

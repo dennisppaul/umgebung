@@ -37,6 +37,14 @@ namespace umgebung {
 
     uint32_t color(float r, float g, float b);
 
+    float red(uint32_t color);
+
+    float green(uint32_t color);
+
+    float blue(uint32_t color);
+
+    float alpha(uint32_t color);
+
     float random(float min, float max);
 
     float random(float max);

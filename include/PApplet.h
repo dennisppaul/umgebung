@@ -27,7 +27,7 @@
 #include <filesystem>
 
 namespace umgebung {
-    class PApplet : public PGraphics {
+    class PApplet : public virtual PGraphics {
     public:
         /**
          * Combines an array of Strings into one String, each separated by the character(s) used for the separator parameter
@@ -180,8 +180,9 @@ namespace umgebung {
          */
         static std::string trim(const std::string& str) {
             const size_t first = str.find_first_not_of(" \t\n\r\f\v");
-            if (first == std::string::npos)
+            if (first == std::string::npos) {
                 return "";
+            }
             const size_t last = str.find_last_not_of(" \t\n\r\f\v");
             return str.substr(first, (last - first + 1));
         }
@@ -193,7 +194,9 @@ namespace umgebung {
          * @return
          */
         static bool begins_with(const std::string& str, const std::string& prefix) {
-            if (prefix.size() > str.size()) return false;
+            if (prefix.size() > str.size()) {
+                return false;
+            }
             return str.substr(0, prefix.size()) == prefix;
         }
 
@@ -231,7 +234,7 @@ namespace umgebung {
         static std::vector<std::string> get_files(const std::string& directory, const std::string& extension = "") {
             std::vector<std::string> files;
             for (const auto& entry: std::filesystem::directory_iterator(directory)) {
-                if (entry.path().extension() == extension || extension == "*" || extension == "*.*" || extension == "") {
+                if (entry.path().extension() == extension || extension == "*" || extension == "*.*" || extension.empty()) {
                     files.push_back(entry.path().string());
                 }
             }
@@ -267,14 +270,14 @@ namespace umgebung {
 
 #ifndef DISABLE_GRAPHICS
 #if RENDER_INTO_FRAMEBUFFER
-        GLuint framebuffer,
-            texture;
+        GLuint framebuffer, texture;
 #endif // RENDER_INTO_FRAMEBUFFER
 #endif // DISABLE_GRAPHICS
 
         PApplet()
             : framebuffer_width(0),
-              framebuffer_height(0), g(nullptr),
+              framebuffer_height(0),
+              g(nullptr),
               framebuffer(0),
               texture(0) {
             this->width       = DEFAULT_WINDOW_WIDTH;
@@ -293,7 +296,7 @@ namespace umgebung {
          * called right before `setup()`. at this point OpenGL is valid.
          * TODO maybe move to PGraphics
          */
-        void init() {
+        void init_graphics() {
 #ifndef DISABLE_GRAPHICS
 #if RENDER_INTO_FRAMEBUFFER
             glGenFramebuffers(1, &framebuffer);
@@ -319,11 +322,11 @@ namespace umgebung {
 #endif // DISABLE_GRAPHICS
         }
 
-        void size(int _width, int _height) {
-            this->width              = _width;
-            this->height             = _height;
-            this->framebuffer_width  = _width;
-            this->framebuffer_height = _height;
+        void size(const int width, const int height) {
+            this->width              = width;
+            this->height             = height;
+            this->framebuffer_width  = width;
+            this->framebuffer_height = height;
             // TODO maybe implement some kind of mechanism that alerts if width or height are changed after this point
         }
 
@@ -390,11 +393,11 @@ namespace umgebung {
             glTexCoord2f(0.0, 0.0);
             glVertex2f(0, 0);
             glTexCoord2f(1.0, 0.0);
-            glVertex2f(framebuffer_width, 0);
+            glVertex2f(static_cast<float>(framebuffer_width), 0);
             glTexCoord2f(1.0, 1.0);
-            glVertex2f(framebuffer_width, framebuffer_height);
+            glVertex2f(static_cast<float>(framebuffer_width), static_cast<float>(framebuffer_height));
             glTexCoord2f(0.0, 1.0);
-            glVertex2f(0, framebuffer_height);
+            glVertex2f(0, static_cast<float>(framebuffer_height));
             glEnd();
 
             //        /* with padding of 10px */
@@ -422,7 +425,7 @@ namespace umgebung {
             //        glEnd();
 
             glDisable(GL_TEXTURE_2D);
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
             glPopAttrib();
 
@@ -433,8 +436,7 @@ namespace umgebung {
         virtual void finish() {
         }
 
-        virtual void audioblock(float** input, float** output, int length) {
-        };
+        virtual void audioblock(float** input, float** output, int length){};
 
         virtual void mouseMoved() {
         }
@@ -455,6 +457,39 @@ namespace umgebung {
         }
 
         virtual void dropped(std::string file_name) {
+        }
+
+
+        void init(uint32_t* pixels, const int width, const int height, const int format) override {
+            PImage::init(pixels, width, height, format);
+        }
+
+        void loadPixels() const override {
+#ifndef DISABLE_GRAPHICS
+            glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+            /* flip pixel buffer */
+            for (int i = 0; i < height / 2; i++) {
+                for (int j = 0; j < width; j++) {
+                    const int index1 = i * width + j;
+                    const int index2 = (height - i - 1) * width + j;
+                    std::swap(pixels[index1], pixels[index2]);
+                }
+            }
+#endif // DISABLE_GRAPHICS
+        }
+
+        void bind() const override {
+#ifndef DISABLE_GRAPHICS
+            glBindTexture(GL_TEXTURE_2D, textureID);
+#endif // DISABLE_GRAPHICS
+        }
+
+        PGraphics* createGraphics(const int width, const int height) {
+            auto*      pg_ptr = new PGraphics();
+            PGraphics& pg     = *pg_ptr;
+            pg.init(nullptr, width, height, 4);
+            // pg.init_as_fbo(width, height);
+            return pg_ptr;
         }
     };
 

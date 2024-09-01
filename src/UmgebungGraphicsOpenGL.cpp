@@ -127,7 +127,7 @@ namespace umgebung {
         if (monitor == DEFAULT) {
             mMonitorLocation = SDL_WINDOWPOS_CENTERED;
         } else {
-            int numDisplays = SDL_GetNumVideoDisplays();
+            const int numDisplays = SDL_GetNumVideoDisplays();
             if (monitor >= numDisplays) {
                 std::cerr << "+++ display index out of range. Only %d displays available: " << numDisplays << std::endl;
                 mMonitorLocation = SDL_WINDOWPOS_CENTERED;
@@ -196,7 +196,7 @@ namespace umgebung {
                 SDL_GL_SetSwapInterval(1); // Enable vsync (1 means on, 0 means off)
             }
         }
-        fApplet->init();
+        fApplet->init_graphics();
         if (!headless) {
             fApplet->pre_draw();
             set_default_graphics_state();
@@ -204,6 +204,8 @@ namespace umgebung {
         fApplet->setup();
         if (!headless) {
             fApplet->post_draw();
+            fApplet->pixels = new uint32_t[fApplet->width * fApplet->height];
+            fApplet->init(fApplet->pixels, fApplet->width, fApplet->height, 4);
         }
     }
 

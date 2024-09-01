@@ -35,9 +35,7 @@
 
 namespace umgebung {
 
-    static SimplexNoise fSimplexNoise;
-
-    void audio_devices(int input_device, int output_device) {
+    void audio_devices(const int input_device, const int output_device) {
         audio_input_device  = input_device;
         audio_output_device = output_device;
     }
@@ -45,12 +43,12 @@ namespace umgebung {
     static unsigned int fRandomSeed = static_cast<unsigned int>(std::time(nullptr));
     static std::mt19937 gen(fRandomSeed); // Create a Mersenne Twister pseudo-random number generator with the specified seed
 
-    float random(float min, float max) {
+    float random(const float min, const float max) {
         std::uniform_real_distribution<float> distribution(min, max);
         return distribution(gen);
     }
 
-    float random(float max) {
+    float random(const float max) {
         return random(0, max);
     }
 
@@ -65,40 +63,56 @@ namespace umgebung {
         return color(r, g, b, 1);
     }
 
-    std::string nf(int number, int _width) {
+    float red(const uint32_t color) {
+        return static_cast<float>((color & 0x000000FF) >> 0) / 255.0f;
+    }
+
+    float green(const uint32_t color) {
+        return static_cast<float>((color & 0x0000FF00) >> 8) / 255.0f;
+    }
+
+    float blue(const uint32_t color) {
+        return static_cast<float>((color & 0x00FF0000) >> 16) / 255.0f;
+    }
+
+    float alpha(const uint32_t color) {
+        return static_cast<float>((color & 0xFF000000) >> 24) / 255.0f;
+    }
+
+    std::string nf(const int number, const int width) {
         std::ostringstream oss;
-        oss << std::setw(_width) << std::setfill('0') << number;
+        oss << std::setw(width) << std::setfill('0') << number;
         return oss.str();
     }
 
-    static int fNoiseSeed = static_cast<unsigned int>(std::time(nullptr));
+    static int fNoiseSeed = static_cast<int>(std::time(nullptr));
 
-    void noiseSeed(int seed) {
+    void noiseSeed(const int seed) {
         fNoiseSeed = seed;
     }
 
-    float noise(float x) {
-        return fSimplexNoise.noise(x);
+    float noise(const float x) {
+        return SimplexNoise::noise(x);
     }
 
-    float noise(float x, float y) {
-        return fSimplexNoise.noise(x, y);
+    float noise(const float x, const float y) {
+        return SimplexNoise::noise(x, y);
     }
 
-    float noise(float x, float y, float z) {
-        return fSimplexNoise.noise(x, y, z);
+    float noise(const float x, const float y, const float z) {
+        return SimplexNoise::noise(x, y, z);
     }
 
-    float radians(float degrees) {
-        return degrees * M_PI / 180.0f;
+    float radians(const float degrees) {
+        return M_PI * degrees / 180.0f;
     }
 
-    float degrees(float radians) {
-        return radians * 180.0f / M_PI;
+    float degrees(const float radians) {
+        return static_cast<float>(radians * 180.0f / M_PI);
     }
 
     bool exists(const std::string& file_path) {
-        std::filesystem::path path(file_path);
+        const std::filesystem::path path(file_path);
         return std::filesystem::exists(path);
     }
 
@@ -143,7 +157,7 @@ namespace umgebung {
 #elif defined(SYSTEM_MACOS)
 #include <mach-o/dyld.h>
 
-    const std::string sketchPath_impl() {
+    std::string sketchPath_impl() {
         uint32_t          size = 1024;
         std::vector<char> buf(size);
         if (_NSGetExecutablePath(buf.data(), &size) == 0) {
@@ -152,7 +166,7 @@ namespace umgebung {
             return dirPath.string() + std::string("/");
         } else {
             std::cerr << "Error retrieving path" << std::endl;
-            return std::string(); // Return an empty string in case of error
+            return {}; // Return an empty string in case of error
         }
     }
 #else

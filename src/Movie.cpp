@@ -39,7 +39,7 @@ extern "C" {
 
 Movie::Movie(const std::string& filename, int _channels) : PImage() {
     if (init_from_file(filename, _channels) >= 0) {
-        std::cout << "+++ Movie: width: " << width << ", height: " << height << ", channels: " << channels << std::endl;
+        std::cout << "+++ Movie: width: " << width << ", height: " << height << ", channels: " << format << std::endl;
         calculateFrameDuration();
         keepRunning    = true;
         isPlaying      = false;
@@ -309,7 +309,7 @@ bool Movie::processFrame() {
 }
 
 void Movie::reload() {
-    GLint mFormat = (channels == 4) ? GL_RGBA : GL_RGB;
+    GLint mFormat = (format == 4) ? GL_RGBA : GL_RGB;
     glTexImage2D(GL_TEXTURE_2D, 0, mFormat, width, height, 0, mFormat, GL_UNSIGNED_BYTE, convertedFrame->data[0]);
 }
 
@@ -317,7 +317,7 @@ bool Movie::read() {
     if (!processFrame()) {
         return false; // No frame available or error processing frame
     }
-    GLint mFormat = (channels == 4) ? GL_RGBA : GL_RGB;
+    GLint mFormat = (format == 4) ? GL_RGBA : GL_RGB;
     glTexImage2D(GL_TEXTURE_2D, 0, mFormat, width, height, 0, mFormat, GL_UNSIGNED_BYTE, convertedFrame->data[0]);
     return true;
 }

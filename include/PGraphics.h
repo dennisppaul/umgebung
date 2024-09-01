@@ -38,16 +38,15 @@ sphereDetail() Controls the detail used to render a sphere by adjusting the numb
 sphere() A sphere is a hollow ball made from tessellated triangles
 */
 
-
-#include <string>
-
 #ifndef DISABLE_GRAPHICS
+#define PGRAPHICS_RENDER_INTO_FRAMEBUFFER
 
 #include <GL/glew.h>
 
 #endif // DISABLE_GRAPHICS
 
 #include "UmgebungConstants.h"
+#include "PImage.h"
 
 // #define PGRAPHICS_USE_VBO
 
@@ -57,14 +56,11 @@ namespace umgebung {
 
     class PFont;
 
-    class PGraphics {
+    class PGraphics : public virtual PImage {
     public:
-        int width;
-        int height;
-
         PGraphics();
 
-        ~PGraphics();
+        ~PGraphics() override;
 
         void stroke(float r, float g, float b, float a = 1.0);
 
@@ -155,10 +151,116 @@ namespace umgebung {
             bool  active = false;
         } fill_color, stroke_color;
 
-        const static int ELLIPSE_NUM_SEGMENTS = 32;
-        GLuint           ellipseVBO;
-        int              ellipseSegments;
-        bool             bufferInitialized;
-        void             setupEllipseBuffer(int num_segments);
+        static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
+
+#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+    public:
+        GLuint fbo, fbo_texture;
+        int    fbo_width;
+        int    fbo_height;
+        GLint  fPreviousFBO = 0;
+
+        void beginDraw() {
+            /* save state */
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fPreviousFBO);
+            glPushAttrib(GL_ALL_ATTRIB_BITS);
+            glPushMatrix();
+
+            // Bind the FBO for offscreen rendering
+            glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+            glViewport(0, 0, fbo_width, fbo_height);
+
+            // Setup projection and modelview matrices
+            glMatrixMode(GL_PROJECTION);
+            glPushMatrix(); // Save the current projection matrix
+            glLoadIdentity();
+            glOrtho(0, fbo_width, 0, fbo_height, -1, 1);
+
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix(); // Save the current modelview matrix
+            glLoadIdentity();
+        }
+
+        void endDraw() const {
+            // Restore projection and modelview matrices
+            glMatrixMode(GL_PROJECTION);
+            glPopMatrix();
+
+            glMatrixMode(GL_MODELVIEW);
+            glPopMatrix();
+
+            /* restore state */
+            glBindFramebuffer(GL_FRAMEBUFFER, fPreviousFBO); // Restore the previously bound FBO
+            glPopMatrix();
+            glPopAttrib();
+        }
+
+        void bind() const override {
+            glBindTexture(GL_TEXTURE_2D, fbo_texture);
+        }
+
+        // handled in `image()`
+        // void draw_as_fbo(const float x, const float y, const float w, const float h) const {
+        //     glEnable(GL_TEXTURE_2D);
+        //     glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+        //     glBindTexture(GL_TEXTURE_2D, fbo_texture);
+        //
+        //     glBegin(GL_QUADS);
+        //     glTexCoord2f(0, 0);
+        //     glVertex2f(x, y);
+        //
+        //     glTexCoord2f(1, 0);
+        //     glVertex2f(x + w, y);
+        //
+        //     glTexCoord2f(1, 1);
+        //     glVertex2f(x + w, y + h);
+        //
+        //     glTexCoord2f(0, 1);
+        //     glVertex2f(x, y + h);
+        //     glEnd();
+        //     glDisable(GL_TEXTURE_2D);
+        // }
+
+        void init(uint32_t* pixels, const int width, const int height, int format) override {
+        // void init_as_fbo(const int width, const int height) {
+            this->width  = width;
+            this->height = height;
+            fbo_width    = width;
+            fbo_height   = height;
+            glGenFramebuffers(1, &fbo);
+            glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+            glGenTextures(1, &fbo_texture);
+            glBindTexture(GL_TEXTURE_2D, fbo_texture);
+            glTexImage2D(GL_TEXTURE_2D,
+                         0,
+                         GL_RGBA,
+                         fbo_width,
+                         fbo_height,
+                         0,
+                         GL_RGBA,
+                         GL_UNSIGNED_BYTE,
+                         nullptr);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_texture, 0);
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+                // Handle framebuffer incomplete error
+                std::cerr << "ERROR Framebuffer is not complete!" << std::endl;
+            }
+            glViewport(0, 0, fbo_width, fbo_height);
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+
+#ifdef PGRAPHICS_USE_VBO
+        GLuint ellipseVBO;
+        int    ellipseSegments;
+        bool   bufferInitialized;
+        void   setupEllipseBuffer(int num_segments);
+#endif // PGRAPHICS_USE_VBO
     };
 } // namespace umgebung

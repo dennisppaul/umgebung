@@ -89,16 +89,16 @@ namespace umgebung {
 
     void audioOutputCallback(void* userdata, Uint8* stream, int len) {
         (void) userdata;
-        const int samples       = len / (int) sizeof(float);        // Number of samples to fill
-        auto*     output_buffer = reinterpret_cast<float*>(stream); // Assuming AUDIO_F32 format
+        const int samples       = len / static_cast<int>(sizeof(float)); // Number of samples to fill
+        auto*     output_buffer = reinterpret_cast<float*>(stream);      // Assuming AUDIO_F32 format
 
         if (input_buffer == nullptr && audio_input_channels > 0) {
-            std::fill(output_buffer, output_buffer + samples, 0);
+            std::fill_n(output_buffer, samples, 0);
             return;
         }
         if (!fAppIsInitialized) {
             /* wait with callback until after `setup()` */
-            std::fill(output_buffer, output_buffer + samples, 0);
+            std::fill_n(output_buffer, samples, 0);
             return;
         }
         int mIterationGuard = DEFAULT_AUDIO_SAMPLE_RATE / DEFAULT_FRAMES_PER_BUFFER;
@@ -106,7 +106,7 @@ namespace umgebung {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         if (mIterationGuard <= 1) {
-            std::fill(output_buffer, output_buffer + samples, 0);
+            std::fill_n(output_buffer, samples, 0);
             return;
         }
 
@@ -115,7 +115,7 @@ namespace umgebung {
         // Ensure that frames and channels do not exceed maximum allowed values
         if (audio_input_channels > MAX_CHANNELS || audio_output_channels > MAX_CHANNELS || frames > MAX_FRAMES) {
             std::cerr << "Error: Exceeded maximum channel or frame count." << std::endl;
-            std::fill(output_buffer, output_buffer + samples, 0);
+            std::fill_n(output_buffer, samples, 0);
             return;
         }
 
@@ -235,11 +235,11 @@ namespace umgebung {
     }
 #endif // FIXED_MEMORY_ALLOCATION
 
-    void audioInputCallback(void* userdata, Uint8* stream, int len) {
+    void audioInputCallback(void* userdata, Uint8* stream, const int len) {
         (void) userdata;
         audio_input_ready        = false;
         const float* samples     = reinterpret_cast<float*>(stream); // Assuming AUDIO_F32 format
-        const int    sampleCount = len / (int) sizeof(float);
+        const int    sampleCount = len / static_cast<int>(sizeof(float));
 
         if (input_buffer == nullptr) {
             return;
@@ -261,7 +261,7 @@ namespace umgebung {
             SDL_GetAudioDeviceSpec(i, SDL_TRUE, &spec);
             std::cout << "- Input Device  : " << i << " : " << deviceName;
             std::cout << " ( ";
-            std::cout << "channels : " << (int) spec.channels;
+            std::cout << "channels : " << static_cast<int>(spec.channels);
             std::cout << " + frequency : " << spec.freq;
             std::cout << " )";
             std::cout << std::endl;
@@ -274,7 +274,7 @@ namespace umgebung {
             SDL_GetAudioDeviceSpec(i, SDL_FALSE, &spec);
             std::cout << "- Output Device : " << i << " : " << deviceName;
             std::cout << " ( ";
-            std::cout << "channels : " << (int) spec.channels;
+            std::cout << "channels : " << static_cast<int>(spec.channels);
             std::cout << " + frequency : " << spec.freq;
             std::cout << " )";
             std::cout << std::endl;
@@ -283,7 +283,7 @@ namespace umgebung {
         return 0;
     }
 
-    static void init_audio(int input_channels, int output_channels) {
+    static void init_audio(const int input_channels, const int output_channels) {
         if (audio_input_device != DEFAULT_AUDIO_DEVICE || audio_output_device != DEFAULT_AUDIO_DEVICE) {
             print_audio_devices();
         }
@@ -309,7 +309,7 @@ namespace umgebung {
 
             if (audio_output_spec.channels != audio_output_obtained_spec.channels || audio_output_spec.freq != audio_output_obtained_spec.freq) {
                 std::cout << "+++ warning opening audio device with different specs: ";
-                std::cout << " channel(s): " << (int) audio_output_spec.channels;
+                std::cout << " channel(s): " << static_cast<int>(audio_output_spec.channels);
                 std::cout << " frequency: " << audio_output_spec.freq;
                 std::cout << std::endl;
             }

@@ -25,25 +25,43 @@
 namespace umgebung {
     class PImage {
     public:
+        virtual ~PImage() = default;
         explicit PImage(const std::string& filename);
-                 PImage(int _width, int _height, int _channels);
+                 PImage(int width, int height, int format);
                  PImage();
 
-        void bind() const;
+        virtual void bind() const;
+        virtual void loadPixels() const;
+        virtual void init(uint32_t* pixels, int width, int height, int format);
 
-        void update() const;
+        void updatePixels() const;
+        void updatePixels(int x, int y, int w, int h) const;
         void update(const uint32_t* pixel_data) const;
         void update(const uint32_t* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
         void update(const float* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
 
-        int       width{};
-        int       height{};
-        int       channels{};
+
+        void set(const uint16_t x, const uint16_t y, const uint32_t c) const {
+            if (x >= width || y >= height) {
+                return;
+            }
+            pixels[y * width + x] = c;
+        }
+
+        [[nodiscard]] uint32_t get(const uint16_t x, const uint16_t y) const {
+            if (x >= width || y >= height) {
+                return 0;
+            }
+            const uint32_t c = pixels[y * width + x];
+            return c;
+        }
+
+        uint16_t  width;
+        uint16_t  height;
+        uint8_t   format;
         uint32_t* pixels;
 
     protected:
         unsigned int textureID = -1;
-
-        void init(const uint32_t* _data, int _width, int _height, int channels);
     };
 } // namespace umgebung

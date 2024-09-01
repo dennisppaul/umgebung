@@ -25,9 +25,11 @@
 using namespace umgebung;
 
 // TODO look into OpenGL 3 e.g https://github.com/opengl-tutorials/ogl/
-
-PGraphics::PGraphics() : width(0), height(0), ellipseVBO(0), ellipseSegments(0), bufferInitialized(false) {
+PGraphics::PGraphics() : PImage(0, 0, 0) {
 #ifdef PGRAPHICS_USE_VBO
+    ellipseVBO        = 0;
+    ellipseSegments   = 0;
+    bufferInitialized = false;
     setupEllipseBuffer(ELLIPSE_NUM_SEGMENTS);
 #endif // PGRAPHICS_USE_VBO
 }
@@ -240,7 +242,9 @@ void PGraphics::circle(float x, float y, float diameter) {
 }
 
 void PGraphics::line(float x1, float y1, float x2, float y2) {
-    if (!stroke_color.active) return;
+    if (!stroke_color.active) {
+        return;
+    }
     glColor4f(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
     glBegin(GL_LINES);
     glVertex2f(x1, y1);
@@ -254,7 +258,9 @@ void PGraphics::pointSize(float point_size) {
 }
 
 void PGraphics::point(float x, float y, float z) {
-    if (!stroke_color.active) return;
+    if (!stroke_color.active) {
+        return;
+    }
     glColor4f(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
 
     //    glPushMatrix();
@@ -269,7 +275,9 @@ void PGraphics::point(float x, float y, float z) {
 }
 
 void PGraphics::beginShape(int shape) {
-    if (!fill_color.active) return;
+    if (!fill_color.active) {
+        return;
+    }
     glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
 
     int mShape;
@@ -329,13 +337,19 @@ void PGraphics::textFont(PFont* font) {
 }
 
 void PGraphics::textSize(float size) {
-    if (fCurrentFont == nullptr) return;
+    if (fCurrentFont == nullptr) {
+        return;
+    }
     fCurrentFont->size(size);
 }
 
 void PGraphics::text(const std::string& text, float x, float y, float z) {
-    if (fCurrentFont == nullptr) return;
-    if (!fill_color.active) return;
+    if (fCurrentFont == nullptr) {
+        return;
+    }
+    if (!fill_color.active) {
+        return;
+    }
 
 #ifndef DISABLE_GRAPHICS
     glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
@@ -358,7 +372,7 @@ PImage* PGraphics::loadImage(const std::string& filename) {
 void PGraphics::image(PImage* img, float x, float y, float w, float h) {
 #ifndef DISABLE_GRAPHICS
     glEnable(GL_TEXTURE_2D);
-    glColor4f(1, 1, 1, 1);
+    glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
     img->bind();
 
     glBegin(GL_QUADS);
