@@ -268,18 +268,12 @@ namespace umgebung {
         float      frameRate;
         PGraphics* g;
 
-#ifndef DISABLE_GRAPHICS
-#if RENDER_INTO_FRAMEBUFFER
-        GLuint framebuffer, texture;
-#endif // RENDER_INTO_FRAMEBUFFER
-#endif // DISABLE_GRAPHICS
-
         PApplet()
             : framebuffer_width(0),
               framebuffer_height(0),
               g(nullptr),
               framebuffer(0),
-              texture(0) {
+              framebuffer_texture(0) {
             this->width       = DEFAULT_WINDOW_WIDTH;
             this->height      = DEFAULT_WINDOW_HEIGHT;
             this->mouseX      = 0;
@@ -290,36 +284,6 @@ namespace umgebung {
             this->key         = -1;
             this->frameCount  = 0;
             this->frameRate   = 0;
-        }
-
-        /**
-         * called right before `setup()`. at this point OpenGL is valid.
-         * TODO maybe move to PGraphics
-         */
-        void init_graphics() {
-#ifndef DISABLE_GRAPHICS
-#if RENDER_INTO_FRAMEBUFFER
-            glGenFramebuffers(1, &framebuffer);
-            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-            glGenTextures(1, &texture);
-            glBindTexture(GL_TEXTURE_2D, texture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_width, framebuffer_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                         nullptr);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-                // Handle framebuffer incomplete error
-                std::cerr << "ERROR Framebuffer is not complete!" << std::endl;
-            }
-            glViewport(0, 0, framebuffer_width, framebuffer_height);
-            glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-#endif // RENDER_INTO_FRAMEBUFFER
-            g = this;
-#endif // DISABLE_GRAPHICS
         }
 
         void size(const int width, const int height) {
@@ -385,7 +349,7 @@ namespace umgebung {
             glOrtho(0, framebuffer_width, 0, framebuffer_height, -1, 1);
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
-            glBindTexture(GL_TEXTURE_2D, texture);
+            glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
             glEnable(GL_TEXTURE_2D);
             glColor4f(1, 1, 1, 1);
 
@@ -491,6 +455,43 @@ namespace umgebung {
             // pg.init_as_fbo(width, height);
             return pg_ptr;
         }
+
+        /**
+          * called right before `setup()`. at this point OpenGL is valid.
+          * TODO maybe move to PGraphics
+          */
+        void init_graphics() {
+#ifndef DISABLE_GRAPHICS
+#if RENDER_INTO_FRAMEBUFFER
+            glGenFramebuffers(1, &framebuffer);
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+            glGenTextures(1, &framebuffer_texture);
+            glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_width, framebuffer_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                         nullptr);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer_texture, 0);
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+                // Handle framebuffer incomplete error
+                std::cerr << "ERROR Framebuffer is not complete!" << std::endl;
+            }
+            glViewport(0, 0, framebuffer_width, framebuffer_height);
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+#endif // RENDER_INTO_FRAMEBUFFER
+            g = this;
+#endif // DISABLE_GRAPHICS
+        }
+
+    private:
+#ifndef DISABLE_GRAPHICS
+#if RENDER_INTO_FRAMEBUFFER
+        GLuint framebuffer, framebuffer_texture;
+#endif // RENDER_INTO_FRAMEBUFFER
+#endif // DISABLE_GRAPHICS
     };
 
     extern PApplet* instance();

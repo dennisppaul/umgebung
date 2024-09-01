@@ -42,7 +42,7 @@ PGraphics::~PGraphics() {
 #endif // PGRAPHICS_USE_VBO
 }
 
-void PGraphics::stroke(float r, float g, float b, float a) {
+void PGraphics::stroke(const float r, const float g, const float b, const float a) {
     stroke_color.r      = r;
     stroke_color.g      = g;
     stroke_color.b      = b;
@@ -50,7 +50,7 @@ void PGraphics::stroke(float r, float g, float b, float a) {
     stroke_color.active = true;
 }
 
-void PGraphics::stroke(float brightness, float a) {
+void PGraphics::stroke(const float brightness, const float a) {
     stroke_color.r      = brightness;
     stroke_color.g      = brightness;
     stroke_color.b      = brightness;
@@ -58,7 +58,7 @@ void PGraphics::stroke(float brightness, float a) {
     stroke_color.active = true;
 }
 
-void PGraphics::stroke(float a) {
+void PGraphics::stroke(const float a) {
     stroke(a, a, a);
 }
 
@@ -66,7 +66,7 @@ void PGraphics::noStroke() {
     stroke_color.active = false;
 }
 
-void PGraphics::fill(float r, float g, float b, float a) {
+void PGraphics::fill(const float r, const float g, const float b, const float a) {
     fill_color.r      = r;
     fill_color.g      = g;
     fill_color.b      = b;
@@ -74,7 +74,7 @@ void PGraphics::fill(float r, float g, float b, float a) {
     fill_color.active = true;
 }
 
-void PGraphics::fill(float brightness, float a) {
+void PGraphics::fill(const float brightness, const float a) {
     fill_color.r      = brightness;
     fill_color.g      = brightness;
     fill_color.b      = brightness;
@@ -82,7 +82,7 @@ void PGraphics::fill(float brightness, float a) {
     fill_color.active = true;
 }
 
-void PGraphics::fill(float a) {
+void PGraphics::fill(const float a) {
     fill(a, a, a);
 }
 
@@ -92,7 +92,7 @@ void PGraphics::noFill() {
 
 #ifndef DISABLE_GRAPHICS
 
-void PGraphics::background(float a, float b, float c, float d) {
+void PGraphics::background(const float a, const float b, const float c, const float d) {
     glClearColor(a, b, c, d);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -101,23 +101,23 @@ void PGraphics::background(float a) {
     background(a, a, a);
 }
 
-void PGraphics::rect(float x, float y, float _width, float _height) {
+void PGraphics::rect(const float x, const float y, const float width, const float height) {
     if (fill_color.active) {
         glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
         glBegin(GL_QUADS);
         glVertex2f(x, y);
-        glVertex2f(x + _width, y);
-        glVertex2f(x + _width, y + _height);
-        glVertex2f(x, y + _height);
+        glVertex2f(x + width, y);
+        glVertex2f(x + width, y + height);
+        glVertex2f(x, y + height);
         glEnd();
     }
     if (stroke_color.active) {
         glColor4f(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
         glBegin(GL_LINE_LOOP);
         glVertex2f(x, y);
-        glVertex2f(x + _width, y);
-        glVertex2f(x + _width, y + _height);
-        glVertex2f(x, y + _height);
+        glVertex2f(x + width, y);
+        glVertex2f(x + width, y + height);
+        glVertex2f(x, y + height);
         glEnd();
     }
 }
@@ -193,55 +193,54 @@ void PGraphics::ellipse(float x, float y, float _width, float _height) {
     }
 }
 #else
-void PGraphics::ellipse(float x, float y, float _width, float _height) {
-    const int   num_segments = 36; // Number of segments to approximate the ellipse
-    const float theta        = 2 * 3.1415926 / float(num_segments);
-    const float c            = cosf(theta); // Precalculate the sine and cosine
-    const float s            = sinf(theta);
-    float       t;
 
-    const float hw = _width / 2.0f; // Half width
-    // const float hh = _height / 2.0f; // Half height
+static void draw_ellipse(const GLenum shape,
+                         const int    num_segments,
+                         const float  x,
+                         const float  y,
+                         const float  width,
+                         const float  height) {
+    const float radiusX = width / 2.0f;
+    const float radiusY = height / 2.0f;
+    const float centerX = x;
+    const float centerY = y;
+    glBegin(shape);
 
-    float x1 = hw; // We start at angle = 0
-    float y1 = 0;
+    if (shape == GL_TRIANGLE_FAN) {
+        glVertex2f(centerX, centerY);
+    }
 
+    for (int i = 0; i <= num_segments; ++i) {
+        const float theta = 2.0f * 3.1415926f * static_cast<float>(i) / static_cast<float>(num_segments);
+        const float dx    = radiusX * cosf(theta);
+        const float dy    = radiusY * sinf(theta);
+        glVertex2f(centerX + dx, centerY + dy);
+    }
+    glEnd();
+}
+
+void PGraphics::ellipse(const float x, const float y, const float width, const float height) {
     if (fill_color.active) {
         glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(x, y); // Center of the ellipse
-        for (int i = 0; i < num_segments + 1; i++) {
-            glVertex2f(x + x1, y + y1);
-            // Apply the rotation matrix
-            t  = x1;
-            x1 = c * x1 - s * y1;
-            y1 = s * t + c * y1;
-        }
-        glEnd();
+        draw_ellipse(GL_TRIANGLE_FAN, fEllipseDetail, x, y, width, height);
     }
 
     if (stroke_color.active) {
-        glColor4f(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
-        glBegin(GL_LINE_LOOP);
-        x1 = hw; // We start at angle = 0
-        y1 = 0;
-        for (int i = 0; i < num_segments + 1; i++) {
-            glVertex2f(x + x1, y + y1);
-            // Apply the rotation matrix
-            t  = x1;
-            x1 = c * x1 - s * y1;
-            y1 = s * t + c * y1;
-        }
-        glEnd();
+        glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+        draw_ellipse(GL_LINE_LOOP, fEllipseDetail, x, y, width, height);
     }
 }
 #endif // PGRAPHICS_USE_VBO
 
-void PGraphics::circle(float x, float y, float diameter) {
+void PGraphics::circle(const float x, const float y, const float diameter) {
     ellipse(x, y, diameter, diameter);
 }
 
-void PGraphics::line(float x1, float y1, float x2, float y2) {
+void PGraphics::ellipseDetail(int detail) {
+    fEllipseDetail = detail;
+}
+
+void PGraphics::line(const float x1, const float y1, const float x2, const float y2) {
     if (!stroke_color.active) {
         return;
     }
@@ -253,11 +252,11 @@ void PGraphics::line(float x1, float y1, float x2, float y2) {
 }
 
 
-void PGraphics::pointSize(float point_size) {
+void PGraphics::pointSize(const float point_size) {
     fPointSize = point_size;
 }
 
-void PGraphics::point(float x, float y, float z) {
+void PGraphics::point(const float x, const float y, const float z) {
     if (!stroke_color.active) {
         return;
     }
@@ -274,9 +273,12 @@ void PGraphics::point(float x, float y, float z) {
     glEnd();
 }
 
-void PGraphics::beginShape(int shape) {
+void PGraphics::beginShape(const int shape) {
     if (!fill_color.active) {
         return;
+    }
+    fShapeBegun = true;
+    if (fEnabledTextureInShape) {
     }
     glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
 
@@ -317,9 +319,20 @@ void PGraphics::beginShape(int shape) {
 
 void PGraphics::endShape() {
     glEnd();
+    if (fEnabledTextureInShape) {
+        glDisable(GL_TEXTURE_2D);
+        fEnabledTextureInShape = false;
+    }
+    fShapeBegun = false;
 }
 
-void PGraphics::vertex(float x, float y, float z) {
+void PGraphics::vertex(const float x, const float y, const float z) {
+    glVertex3f(x, y, z);
+}
+
+
+void PGraphics::vertex(const float x, const float y, const float z, const float u, const float v) {
+    glTexCoord2f(u, v);
     glVertex3f(x, y, z);
 }
 
@@ -327,7 +340,7 @@ void PGraphics::vertex(float x, float y, float z) {
 
 /* font */
 
-PFont* PGraphics::loadFont(std::string file, float size) {
+PFont* PGraphics::loadFont(std::string file, const float size) {
     auto* font = new PFont(file.c_str(), size);
     return font;
 }
@@ -336,7 +349,7 @@ void PGraphics::textFont(PFont* font) {
     fCurrentFont = font;
 }
 
-void PGraphics::textSize(float size) {
+void PGraphics::textSize(const float size) {
     if (fCurrentFont == nullptr) {
         return;
     }
@@ -396,6 +409,18 @@ void PGraphics::image(PImage* img, float x, float y) {
     image(img, x, y, img->width, img->height);
 }
 
+void PGraphics::texture(const PImage* img) {
+#ifndef DISABLE_GRAPHICS
+    if (fShapeBegun) {
+        std::cerr << "texture must be set before `beginShape()`" << std::endl;
+        return;
+    }
+    fEnabledTextureInShape = true;
+    glEnable(GL_TEXTURE_2D);
+    img->bind();
+#endif // DISABLE_GRAPHICS
+}
+
 #ifndef DISABLE_GRAPHICS
 
 void PGraphics::popMatrix() {
@@ -406,39 +431,39 @@ void PGraphics::pushMatrix() {
     glPushMatrix();
 }
 
-void PGraphics::translate(float x, float y, float z) {
+void PGraphics::translate(const float x, const float y, const float z) {
     glTranslatef(x, y, z);
 }
 
-void PGraphics::rotateX(float angle) {
+void PGraphics::rotateX(const float angle) {
     glRotatef(degrees(angle), 1.0f, 0.0f, 0.0f);
 }
 
-void PGraphics::rotateY(float angle) {
+void PGraphics::rotateY(const float angle) {
     glRotatef(degrees(angle), 0.0f, 1.0f, 0.0f);
 }
 
-void PGraphics::rotateZ(float angle) {
+void PGraphics::rotateZ(const float angle) {
     glRotatef(degrees(angle), 0.0f, 0.0f, 1.0f);
 }
 
-void PGraphics::rotate(float angle) {
+void PGraphics::rotate(const float angle) {
     glRotatef(degrees(angle), 0.0f, 0.0f, 1.0f);
 }
 
-void PGraphics::rotate(float angle, float x, float y, float z) {
+void PGraphics::rotate(const float angle, const float x, const float y, const float z) {
     glRotatef(degrees(angle), x, y, z);
 }
 
-void PGraphics::scale(float x) {
+void PGraphics::scale(const float x) {
     glScalef(x, x, x);
 }
 
-void PGraphics::scale(float x, float y) {
+void PGraphics::scale(const float x, const float y) {
     glScalef(x, y, 1.0f);
 }
 
-void PGraphics::scale(float x, float y, float z) {
+void PGraphics::scale(const float x, const float y, const float z) {
     glScalef(x, y, z);
 }
 
@@ -502,5 +527,8 @@ void PGraphics::endShape() {
 }
 
 void PGraphics::vertex(float x, float y, float z) {
+}
+
+void PGraphics::vertex(float x, float y, float z, float u, float v) {
 }
 #endif // DISABLE_GRAPHICS
