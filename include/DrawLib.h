@@ -29,13 +29,17 @@ namespace umgebung {
                             const float  width,
                             const float  height) {
         for (int i = 0; i < length; i += step) {
+            g->beginShape(LINES);
             const float x = PApplet::map(i,
                                          0, length,
                                          0, width);
             const float y = PApplet::map(buffer[i],
                                          -1.0f, 1.0f,
                                          -height / 2, height / 2);
-            g->line(x, 0, x, y);
+            g->vertex(x, 0);
+            g->vertex(x, y);
+            // g->line(x, 0, x, y);
+            g->endShape();
         }
     }
 } // namespace umgebung

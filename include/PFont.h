@@ -35,6 +35,8 @@
 //    //textSize() :: Sets the current font size
 //    textWidth() :: Calculates and returns the width of any character or text string
 
+#include <sys/_types/_u_int.h>
+#include <sys/_types/_u_int8_t.h>
 #ifndef DISABLE_GRAPHICS
 
 #include <GL/glew.h>
@@ -45,6 +47,7 @@
 #include "Umgebung.h"
 
 namespace umgebung {
+    static constexpr u_int8_t PIXEL_DENSITY = 2;
 
     class PFont {
     public:
@@ -56,7 +59,7 @@ namespace umgebung {
                 delete font;
                 return;
             }
-            font->FaceSize((int) size);
+            font->FaceSize((int) size * PIXEL_DENSITY);
 #endif // DISABLE_GRAPHICS
         }
 
@@ -72,7 +75,8 @@ namespace umgebung {
             if (font == nullptr) return;
             glPushMatrix();
             glTranslatef(x, y, z);
-            glScalef(1, -1, 1);
+            const float scaleFactor = 1.f / PIXEL_DENSITY;
+            glScalef(scaleFactor, -scaleFactor, scaleFactor);
             font->Render(text, -1, FTPoint(0, 0));
             glPopMatrix();
 #endif
