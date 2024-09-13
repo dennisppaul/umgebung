@@ -19,12 +19,7 @@
 
 #pragma once
 
-#include <iostream>
-#include <string>
-
 #include <thread>
-#include <chrono>
-#include <atomic>
 
 #include "PImage.h"
 
@@ -34,9 +29,6 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
-#include <libavutil/parseutils.h>
-#include <libavutil/imgutils.h>
-#include <libavdevice/avdevice.h>
 }
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
@@ -47,14 +39,15 @@ namespace umgebung {
 
     class MovieListener {
     public:
+        virtual ~    MovieListener()     = default;
         virtual void movieEvent(Movie m) = 0;
     };
 
-    class Movie : public PImage {
+    class Movie final : public PImage {
     public:
-        Movie(const std::string& filename, int _channels = -1);
+        explicit Movie(const std::string& filename, int channels = -1);
 
-        ~Movie();
+        ~Movie() override;
 
         bool available();
 
@@ -64,12 +57,12 @@ namespace umgebung {
 
         void pause();
 
-        void reload();
+        void reload() const;
 
         float frameRate() const;   //	Sets how often frames are read from the movie.
         void  speed(float factor); //	Sets the relative playback speed of the movie.
         float duration() const;    //	Returns the length of the movie in seconds.
-        void  jump(float seconds); //	Jumps to a specific location within a movie.
+        void  jump(float seconds) const; //	Jumps to a specific location within a movie.
         float time() const;        //	Returns the location of the playback head in seconds.
         void  loop();              //	Plays a movie continuously, restarting it when it's over.
         void  noLoop();            //	If a movie is looping, this will cause it to play until the end and then stop on the last
@@ -78,21 +71,21 @@ namespace umgebung {
         std::atomic<bool> isLooping            = false;
         bool              mVideoFrameAvailable = false;
         std::thread       playbackThread;
-        std::atomic<bool> keepRunning;
-        std::atomic<bool> isPlaying;
-        double            frameDuration; // Duration of each frame in seconds
+        std::atomic<bool> keepRunning{};
+        std::atomic<bool> isPlaying{};
+        double            frameDuration{}; // Duration of each frame in seconds
 #ifndef DISABLE_GRAPHICS
 #ifndef DISABLE_VIDEO
-        uint8_t*         buffer;
-        AVFrame*         frame;
-        AVFrame*         convertedFrame;
-        AVCodecContext*  videoCodecContext;
-        AVCodecContext*  audioCodecContext;
-        AVFormatContext* formatContext;
-        AVPacket*        packet;
-        SwsContext*      swsContext;
-        int              videoStreamIndex;
-        int              audioStreamIndex;
+        uint8_t*         buffer{};
+        AVFrame*         frame{};
+        AVFrame*         convertedFrame{};
+        AVCodecContext*  videoCodecContext{};
+        AVCodecContext*  audioCodecContext{};
+        AVFormatContext* formatContext{};
+        AVPacket*        packet{};
+        SwsContext*      swsContext{};
+        int              videoStreamIndex{};
+        int              audioStreamIndex{};
         int              mFrameCounter = 0;
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS

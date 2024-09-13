@@ -37,8 +37,8 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 }
 
-Movie::Movie(const std::string& filename, int _channels) : PImage() {
-    if (init_from_file(filename, _channels) >= 0) {
+Movie::Movie(const std::string& filename, const int channels) : PImage() {
+    if (init_from_file(filename, channels) >= 0) {
         std::cout << "+++ Movie: width: " << width << ", height: " << height << ", channels: " << format << std::endl;
         calculateFrameDuration();
         keepRunning    = true;
@@ -52,13 +52,13 @@ Movie::Movie(const std::string& filename, int _channels) : PImage() {
 int Movie::init_from_file(const std::string& filename, int _channels) {
     // Open the input file
     formatContext = avformat_alloc_context();
-    if (avformat_open_input(&formatContext, filename.c_str(), NULL, NULL) != 0) {
+    if (avformat_open_input(&formatContext, filename.c_str(), nullptr, nullptr) != 0) {
         std::cerr << "+++ Movie: ERROR: Could not open file: " << filename.c_str() << std::endl;
         return -1;
     }
 
     // Retrieve stream information
-    if (avformat_find_stream_info(formatContext, NULL) < 0) {
+    if (avformat_find_stream_info(formatContext, nullptr) < 0) {
         std::cerr << "+++ Movie: ERROR: Could not find stream information" << std::endl;
         return -1;
     }
@@ -72,9 +72,9 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
         //            break;
         //        }
         if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && videoStreamIndex < 0) {
-            videoStreamIndex = i;
+            videoStreamIndex = static_cast<int>(i);
         } else if (formatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && audioStreamIndex < 0) {
-            audioStreamIndex = i;
+            audioStreamIndex = static_cast<int>(i);
         }
     }
 
@@ -93,7 +93,7 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
     const AVCodec*     codec           = avcodec_find_decoder(codecParameters->codec_id);
     videoCodecContext                  = avcodec_alloc_context3(codec);
     avcodec_parameters_to_context(videoCodecContext, codecParameters);
-    if (avcodec_open2(videoCodecContext, codec, NULL) < 0) {
+    if (avcodec_open2(videoCodecContext, codec, nullptr) < 0) {
         std::cerr << "+++ Movie: ERROR: Could not open codec" << std::endl;
         return -1;
     }
@@ -102,16 +102,16 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
     const AVCodec* audioCodec = avcodec_find_decoder(formatContext->streams[audioStreamIndex]->codecpar->codec_id);
     audioCodecContext         = avcodec_alloc_context3(audioCodec);
     avcodec_parameters_to_context(audioCodecContext, formatContext->streams[audioStreamIndex]->codecpar);
-    avcodec_open2(audioCodecContext, audioCodec, NULL);
+    avcodec_open2(audioCodecContext, audioCodec, nullptr);
 
     // retrieve movie framerate
-    AVRational frame_rate     = formatContext->streams[videoStreamIndex]->avg_frame_rate;
-    double     frame_duration = 1.0 / (frame_rate.num / (double) frame_rate.den);
+    const AVRational frame_rate     = formatContext->streams[videoStreamIndex]->avg_frame_rate;
+    const double     frame_duration = 1.0 / (frame_rate.num / static_cast<double>(frame_rate.den));
     std::cout << "+++ Movie: framerate     : " << (frame_rate.num / frame_rate.den) << std::endl;
     std::cout << "+++ Movie: frame duration: " << frame_duration << std::endl;
 
     // Determine the pixel format and number of channels based on input file
-    AVPixelFormat             src_pix_fmt = videoCodecContext->pix_fmt;
+    const AVPixelFormat       src_pix_fmt = videoCodecContext->pix_fmt;
     AVPixelFormat             dst_pix_fmt;
     const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get(src_pix_fmt);
     if (_channels < 0) {
@@ -134,7 +134,7 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
         videoCodecContext->width, videoCodecContext->height, dst_pix_fmt,
         SWS_FAST_BILINEAR,
         //            SWS_BICUBIC,
-        NULL, NULL, NULL);
+        nullptr, nullptr, nullptr);
 
     if (!swsContext) {
         std::cerr << "+++ Movie: ERROR: Failed to create SwScale context" << std::endl;
@@ -159,7 +159,7 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
                                             videoCodecContext->width,
                                             videoCodecContext->height,
                                             1);
-    buffer       = (uint8_t*) av_malloc(numBytes * sizeof(uint8_t));
+    buffer       = static_cast<uint8_t*>(av_malloc(numBytes * sizeof(uint8_t)));
     av_image_fill_arrays(convertedFrame->data,
                          convertedFrame->linesize,
                          buffer,
@@ -184,7 +184,8 @@ Movie::~Movie() {
     av_frame_free(&convertedFrame);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    avcodec_close(videoCodecContext);
+    avcodec_free_context(&audioCodecContext);
+    // avcodec_close(videoCodecContext);
 #pragma clang diagnostic pop
     avcodec_free_context(&videoCodecContext);
     avformat_close_input(&formatContext);
@@ -194,8 +195,8 @@ Movie::~Movie() {
 }
 
 void Movie::calculateFrameDuration() {
-    AVRational frame_rate = formatContext->streams[videoStreamIndex]->avg_frame_rate;
-    frameDuration         = 1.0 / (frame_rate.num / (double) frame_rate.den);
+    const AVRational frame_rate = formatContext->streams[videoStreamIndex]->avg_frame_rate;
+    frameDuration               = 1.0 / (frame_rate.num / static_cast<double>(frame_rate.den));
 }
 
 void Movie::playbackLoop() {
@@ -280,13 +281,19 @@ bool Movie::available() {
 
 bool Movie::processFrame() {
     if (mVideoFrameAvailable) {
-        int ret = avcodec_receive_frame(videoCodecContext, frame);
+        const int ret = avcodec_receive_frame(videoCodecContext, frame);
         if (ret == 0) {
             // Successfully received a frame
             mFrameCounter++;
 
             // Convert data to RGBA or RGB
-            sws_scale(swsContext, frame->data, frame->linesize, 0, frame->height, convertedFrame->data, convertedFrame->linesize);
+            sws_scale(swsContext,
+                      frame->data,
+                      frame->linesize,
+                      0,
+                      frame->height,
+                      convertedFrame->data,
+                      convertedFrame->linesize);
 
             av_frame_unref(frame);
             mVideoFrameAvailable = false;
@@ -308,8 +315,8 @@ bool Movie::processFrame() {
     return false;
 }
 
-void Movie::reload() {
-    GLint mFormat = (format == 4) ? GL_RGBA : GL_RGB;
+void Movie::reload() const {
+    const GLint mFormat = (format == 4) ? GL_RGBA : GL_RGB;
     glTexImage2D(GL_TEXTURE_2D, 0, mFormat, width, height, 0, mFormat, GL_UNSIGNED_BYTE, convertedFrame->data[0]);
 }
 
@@ -317,38 +324,36 @@ bool Movie::read() {
     if (!processFrame()) {
         return false; // No frame available or error processing frame
     }
-    GLint mFormat = (format == 4) ? GL_RGBA : GL_RGB;
+    const GLint mFormat = (format == 4) ? GL_RGBA : GL_RGB;
     glTexImage2D(GL_TEXTURE_2D, 0, mFormat, width, height, 0, mFormat, GL_UNSIGNED_BYTE, convertedFrame->data[0]);
     return true;
 }
 
 // Example of frameRate() method
 float Movie::frameRate() const {
-    AVRational frame_rate = formatContext->streams[videoStreamIndex]->avg_frame_rate;
-    return frame_rate.num / static_cast<float>(frame_rate.den);
+    const AVRational frame_rate = formatContext->streams[videoStreamIndex]->avg_frame_rate;
+    return static_cast<float>(frame_rate.num) / static_cast<float>(frame_rate.den);
 }
 
 // Example of setting playback speed
-void Movie::speed(float factor) {
+void Movie::speed(const float factor) {
     //    std::lock_guard<std::mutex> lock(mutex);
     frameDuration /= factor; // Adjust frame duration based on speed factor
 }
 
-// Example of duration() method
 float Movie::duration() const {
     return static_cast<float>(formatContext->duration) / AV_TIME_BASE;
 }
 
-// Example of jump() method
-void Movie::jump(float seconds) {
-    int64_t timestamp = seconds * AV_TIME_BASE;
+void Movie::jump(const float seconds) const {
+    const int64_t timestamp = static_cast<int64_t>(seconds) * AV_TIME_BASE;
     av_seek_frame(formatContext, videoStreamIndex, timestamp, AVSEEK_FLAG_ANY);
     // Reset any buffers or states as needed
 }
 
 float Movie::time() const {
     //    std::lock_guard<std::mutex> lock(mutex);
-    return mFrameCounter / frameRate();
+    return static_cast<float>(mFrameCounter) / frameRate();
 }
 
 void Movie::loop() {

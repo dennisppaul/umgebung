@@ -48,7 +48,7 @@ PImage::PImage(const int width, const int height, const int format) : width(widt
         return;
     }
     pixels = new uint32_t[length]{0x00000000};
-    init(pixels, width, height, format);
+    PImage::init(pixels, width, height, format);
 }
 
 PImage::PImage(const std::string& filename) : width(0),
