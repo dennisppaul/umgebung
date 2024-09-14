@@ -47,25 +47,21 @@ namespace umgebung {
     public:
         explicit Movie(const std::string& filename, int channels = -1);
 
-        ~Movie() override;
-
         bool available();
-
         bool read();
-
         void play();
-
         void pause();
+        void reload();
 
-        void reload() const;
-
-        float frameRate() const;   //	Sets how often frames are read from the movie.
-        void  speed(float factor); //	Sets the relative playback speed of the movie.
-        float duration() const;    //	Returns the length of the movie in seconds.
+        float frameRate() const;         //	Sets how often frames are read from the movie.
+        void  speed(float factor);       //	Sets the relative playback speed of the movie.
+        float duration() const;          //	Returns the length of the movie in seconds.
         void  jump(float seconds) const; //	Jumps to a specific location within a movie.
-        float time() const;        //	Returns the location of the playback head in seconds.
-        void  loop();              //	Plays a movie continuously, restarting it when it's over.
-        void  noLoop();            //	If a movie is looping, this will cause it to play until the end and then stop on the last
+        float time() const;              //	Returns the location of the playback head in seconds.
+        void  loop();                    //	Plays a movie continuously, restarting it when it's over.
+        void  noLoop();                  //	If a movie is looping, this will cause it to play until the end and then stop on the last
+
+        ~Movie() override;
 
     private:
         std::atomic<bool> isLooping            = false;

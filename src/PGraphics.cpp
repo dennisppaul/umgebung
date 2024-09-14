@@ -32,6 +32,8 @@ PGraphics::PGraphics() : PImage(0, 0, 0) {
     bufferInitialized = false;
     setupEllipseBuffer(ELLIPSE_NUM_SEGMENTS);
 #endif // PGRAPHICS_USE_VBO
+    fill(1);
+    stroke(0);
 }
 
 PGraphics::~PGraphics() {
@@ -256,7 +258,7 @@ void PGraphics::pointSize(const float point_size) {
     fPointSize = point_size;
 }
 
-void PGraphics::point(const float x, const float y, const float z) {
+void PGraphics::point(const float x, const float y, const float z) const {
     if (!stroke_color.active) {
         return;
     }
@@ -382,7 +384,7 @@ PImage* PGraphics::loadImage(const std::string& filename) {
     return img;
 }
 
-void PGraphics::image(PImage* img, float x, float y, float w, float h) {
+void PGraphics::image(PImage* img, float x, float y, float w, float h) const {
 #ifndef DISABLE_GRAPHICS
     glEnable(GL_TEXTURE_2D);
     glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);

@@ -60,97 +60,57 @@ namespace umgebung {
     public:
         PGraphics();
 
+        void   stroke(float r, float g, float b, float a = 1.0);
+        void   stroke(float brightness, float a);
+        void   stroke(float a);
+        void   noStroke();
+        void   fill(float r, float g, float b, float a = 1.0);
+        void   fill(float brightness, float a);
+        void   fill(float a);
+        void   noFill();
+        void   background(float a, float b, float c, float d = 1.0);
+        void   background(float a);
+        void   rect(float x, float y, float width, float height);
+        void   ellipse(float x, float y, float width, float height);
+        void   circle(float x, float y, float radius);
+        void   ellipseDetail(int detail);
+        void   line(float x1, float y1, float x2, float y2);
+        void   pointSize(float point_size);
+        void   point(float x, float y, float z = 0.0) const;
+        void   beginShape(int shape = POLYGON);
+        void   endShape();
+        void   vertex(float x, float y, float z = 0.0);
+        void   vertex(float x, float y, float z, float u, float v);
+        PFont* loadFont(std::string file, float size); // @development maybe use smart pointers here
+        void   textFont(PFont* font);
+        void   textSize(float size);
+        void   text(const std::string& text, float x, float y, float z = 0.0);
+        template<typename T>
+        void    text(const T& value, float x, float y, float z);
+        PImage* loadImage(const std::string& filename);
+        void    image(PImage* img, float x, float y, float w, float h) const;
+        void    image(PImage* img, float x, float y);
+        void    texture(const PImage* img);
+        void    popMatrix();
+        void    pushMatrix();
+        void    translate(float x, float y, float z = 0);
+        void    rotateX(float angle);
+        void    rotateY(float angle);
+        void    rotateZ(float angle);
+        void    rotate(float angle);
+        void    rotate(float angle, float x, float y, float z);
+        void    scale(float x);
+        void    scale(float x, float y);
+        void    scale(float x, float y, float z);
+
         ~PGraphics() override;
 
-        void stroke(float r, float g, float b, float a = 1.0);
-
-        void stroke(float brightness, float a);
-
-        void stroke(float a);
-
-        void noStroke();
-
-        void fill(float r, float g, float b, float a = 1.0);
-
-        void fill(float brightness, float a);
-
-        void fill(float a);
-
-        void noFill();
-
-        void background(float a, float b, float c, float d = 1.0);
-
-        void background(float a);
-
-        void rect(float x, float y, float width, float height);
-
-        void ellipse(float x, float y, float width, float height);
-
-        void circle(float x, float y, float radius);
-
-        void ellipseDetail(int detail);
-
-        void line(float x1, float y1, float x2, float y2);
-
-        void pointSize(float point_size);
-
-        void point(float x, float y, float z = 0.0);
-
-        void beginShape(int shape = POLYGON);
-
-        void endShape();
-
-        void vertex(float x, float y, float z = 0.0);
-
-        void vertex(float x, float y, float z, float u, float v);
-
-        PFont* loadFont(std::string file, float size); // @development maybe use smart pointers here
-
-        void textFont(PFont* font);
-
-        void textSize(float size);
-
-        void text(const std::string& text, float x, float y, float z = 0.0);
-
-        template<typename T>
-        void text(const T& value, float x, float y, float z);
-
-        PImage* loadImage(const std::string& filename);
-
-        void image(PImage* img, float x, float y, float w, float h);
-
-        void image(PImage* img, float x, float y);
-
-        void texture(const PImage* img);
-
-        void popMatrix();
-
-        void pushMatrix();
-
-        void translate(float x, float y, float z = 0);
-
-        void rotateX(float angle);
-
-        void rotateY(float angle);
-
-        void rotateZ(float angle);
-
-        void rotate(float angle);
-
-        void rotate(float angle, float x, float y, float z);
-
-        void scale(float x);
-
-        void scale(float x, float y);
-
-        void scale(float x, float y, float z);
-
     private:
-        PFont* fCurrentFont = nullptr;
-        float  fPointSize   = 1;
+        PFont* fCurrentFont           = nullptr;
+        float  fPointSize             = 1;
         bool   fEnabledTextureInShape = false;
-        bool   fShapeBegun = false;
-        int fEllipseDetail = 32;
+        bool   fShapeBegun            = false;
+        int    fEllipseDetail         = 32;
 
         struct {
             float r      = 0;
@@ -164,9 +124,9 @@ namespace umgebung {
 
 #ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
     private:
-        GLuint fbo, fbo_texture;
-        int    fbo_width;
-        int    fbo_height;
+        GLuint fbo{}, fbo_texture{};
+        int    fbo_width{};
+        int    fbo_height{};
         GLint  fPreviousFBO = 0;
 
     public:

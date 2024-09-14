@@ -32,11 +32,14 @@ using namespace umgebung;
 
 #define RGBA(r, g, b, a) (((uint32_t) (a) << 24) | ((uint32_t) (b) << 16) | ((uint32_t) (g) << 8) | ((uint32_t) (r)))
 
+// static constexpr uint32_t UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE = GL_UNSIGNED_BYTE;
+static constexpr uint32_t UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE = GL_UNSIGNED_INT_8_8_8_8_REV;
+
 PImage::PImage() : width(0),
                    height(0),
                    format(0),
                    pixels(nullptr) {
-    // note that PImage is not initialized with any data
+    /* note that PImage is not initialized with any data in this constructor branch */
 }
 
 PImage::PImage(const int width, const int height, const int format) : width(width),
@@ -79,7 +82,7 @@ PImage::PImage(const std::string& filename) : width(0),
             std::cout << "Note that RGB is converted to RGBA and number of channels is changed to 4" << std::endl;
             _channels = 4;
         }
-        init(pixels, _width, _height, _channels);
+        PImage::init(pixels, _width, _height, _channels);
     } else {
         std::cerr << "Failed to load image: " << filename << std::endl;
     }
@@ -90,12 +93,20 @@ PImage::PImage(const std::string& filename) : width(0),
 void PImage::loadPixels() const {
 #ifndef DISABLE_GRAPHICS
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    glGetTexImage(GL_TEXTURE_2D, 0,
+                  GL_RGBA,
+                  UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                  pixels);
 #endif // DISABLE_GRAPHICS
 }
 
 void PImage::init(uint32_t* pixels, const int width, const int height, const int format) {
 #ifndef DISABLE_GRAPHICS
+    // GLenum error = glGetError();
+    // if (error != GL_NO_ERROR) {
+    //     std::cerr << "OpenGL Error: " << error << std::endl;
+    // }
+
     if (pixels == nullptr) {
         std::cerr << "unitialized pixel buffer" << std::endl;
         return;
@@ -105,19 +116,30 @@ void PImage::init(uint32_t* pixels, const int width, const int height, const int
     this->height = height;
     this->format = format;
     if (format != 4) {
-        std::cerr << "Unsupported image format, defaulting to RGBA forcing 4 color channels." << std::endl;
+        std::cerr << "unsupported image format, defaulting to RGBA forcing 4 color channels." << std::endl;
         this->format = 4;
     }
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
+    // TODO check how to handle formats other than RGBA
     constexpr GLint mFormat = GL_RGBA; // internal format is always RGBA
-    glTexImage2D(GL_TEXTURE_2D, 0, mFormat, width, height, 0, mFormat, GL_UNSIGNED_BYTE, pixels);
-
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 mFormat,
+                 width, height,
+                 0,
+                 mFormat,
+                 UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                 pixels);
+#ifdef UMGEBUNG_GENERATE_MIPMAP
     glGenerateMipmap(GL_TEXTURE_2D);
+#endif // UMGEBUNG_GENERATE_MIPMAP
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 #endif // DISABLE_GRAPHICS
 }
 
@@ -147,6 +169,18 @@ void PImage::update(const float* pixel_data,
                            clamp(pixel_data[j + 3]) * 255);
     }
     update(mPixels, _width, _height, offset_x, offset_y);
+}
+
+void PImage::update_full_internal() const {
+    // TODO currently RGB is not fully implemented
+    const GLint mFormat = (format == 4) ? GL_RGBA : GL_RGB;
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexSubImage2D(GL_TEXTURE_2D,
+                    0, 0, 0,
+                    width, height,
+                    mFormat,
+                    UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                    pixels);
 }
 
 void PImage::update(const uint32_t* pixel_data,
@@ -188,8 +222,8 @@ void PImage::update(const uint32_t* pixel_data,
                     0, offset_x, offset_y,
                     _width, _height,
                     mFormat,
-                    GL_UNSIGNED_BYTE,
-                    pixel_data);
+                    UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                    pixels);
 #endif // DISABLE_GRAPHICS
 }
 

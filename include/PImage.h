@@ -40,7 +40,6 @@ namespace umgebung {
         void update(const uint32_t* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
         void update(const float* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
 
-
         void set(const uint16_t x, const uint16_t y, const uint32_t c) const {
             if (x >= width || y >= height) {
                 return;
@@ -63,5 +62,7 @@ namespace umgebung {
 
     protected:
         unsigned int textureID = -1;
+
+        void update_full_internal() const;
     };
 } // namespace umgebung

@@ -37,9 +37,8 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 }
 
-Movie::Movie(const std::string& filename, const int channels) : PImage() {
+Movie::Movie(const std::string& filename, const int channels) {
     if (init_from_file(filename, channels) >= 0) {
-        std::cout << "+++ Movie: width: " << width << ", height: " << height << ", channels: " << format << std::endl;
         calculateFrameDuration();
         keepRunning    = true;
         isPlaying      = false;
@@ -89,9 +88,9 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
     }
 
     // Get a pointer to the codec context for the video stream
-    AVCodecParameters* codecParameters = formatContext->streams[videoStreamIndex]->codecpar;
-    const AVCodec*     codec           = avcodec_find_decoder(codecParameters->codec_id);
-    videoCodecContext                  = avcodec_alloc_context3(codec);
+    const AVCodecParameters* codecParameters = formatContext->streams[videoStreamIndex]->codecpar;
+    const AVCodec*           codec           = avcodec_find_decoder(codecParameters->codec_id);
+    videoCodecContext                        = avcodec_alloc_context3(codec);
     avcodec_parameters_to_context(videoCodecContext, codecParameters);
     if (avcodec_open2(videoCodecContext, codec, nullptr) < 0) {
         std::cerr << "+++ Movie: ERROR: Could not open codec" << std::endl;
@@ -107,8 +106,6 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
     // retrieve movie framerate
     const AVRational frame_rate     = formatContext->streams[videoStreamIndex]->avg_frame_rate;
     const double     frame_duration = 1.0 / (frame_rate.num / static_cast<double>(frame_rate.den));
-    std::cout << "+++ Movie: framerate     : " << (frame_rate.num / frame_rate.den) << std::endl;
-    std::cout << "+++ Movie: frame duration: " << frame_duration << std::endl;
 
     // Determine the pixel format and number of channels based on input file
     const AVPixelFormat       src_pix_fmt = videoCodecContext->pix_fmt;
@@ -155,11 +152,11 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
         return -1;
     }
 
-    int numBytes = av_image_get_buffer_size(dst_pix_fmt,
-                                            videoCodecContext->width,
-                                            videoCodecContext->height,
-                                            1);
-    buffer       = static_cast<uint8_t*>(av_malloc(numBytes * sizeof(uint8_t)));
+    const int numBytes = av_image_get_buffer_size(dst_pix_fmt,
+                                                  videoCodecContext->width,
+                                                  videoCodecContext->height,
+                                                  1);
+    buffer             = static_cast<uint8_t*>(av_malloc(numBytes * sizeof(uint8_t)));
     av_image_fill_arrays(convertedFrame->data,
                          convertedFrame->linesize,
                          buffer,
@@ -170,7 +167,18 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
     packet = av_packet_alloc();
 
     // TODO check if this still works
-    init(reinterpret_cast<uint32_t*>(convertedFrame->data[0]), videoCodecContext->width, videoCodecContext->height, _channels);
+    PImage::init(reinterpret_cast<uint32_t*>(convertedFrame->data[0]),
+                 videoCodecContext->width,
+                 videoCodecContext->height,
+                 _channels);
+
+#ifndef OMIT_PRINT_MOVIE_INFO
+    std::cout << "+++ Movie: dimensions    : " << videoCodecContext->width << ", " << videoCodecContext->height << std::endl;
+    std::cout << "+++ Movie: channels      : " << _channels << std::endl;
+    std::cout << "+++ Movie: framerate     : " << frame_rate.num / frame_rate.den << std::endl;
+    std::cout << "+++ Movie: frame duration: " << frame_duration << std::endl;
+#endif
+
     return 1;
 }
 
@@ -182,11 +190,7 @@ Movie::~Movie() {
     av_freep(&buffer);
     av_frame_free(&frame);
     av_frame_free(&convertedFrame);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     avcodec_free_context(&audioCodecContext);
-    // avcodec_close(videoCodecContext);
-#pragma clang diagnostic pop
     avcodec_free_context(&videoCodecContext);
     avformat_close_input(&formatContext);
     avformat_free_context(formatContext);
@@ -246,7 +250,7 @@ void Movie::pause() {
 }
 
 bool Movie::available() {
-    int ret = av_read_frame(formatContext, packet);
+    const int ret = av_read_frame(formatContext, packet);
     if (ret >= 0) {
         if (packet->stream_index == videoStreamIndex) {
             mVideoFrameAvailable = true;
@@ -315,17 +319,17 @@ bool Movie::processFrame() {
     return false;
 }
 
-void Movie::reload() const {
-    const GLint mFormat = (format == 4) ? GL_RGBA : GL_RGB;
-    glTexImage2D(GL_TEXTURE_2D, 0, mFormat, width, height, 0, mFormat, GL_UNSIGNED_BYTE, convertedFrame->data[0]);
+void Movie::reload() {
+    pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
+    update_full_internal();
 }
 
 bool Movie::read() {
     if (!processFrame()) {
         return false; // No frame available or error processing frame
     }
-    const GLint mFormat = (format == 4) ? GL_RGBA : GL_RGB;
-    glTexImage2D(GL_TEXTURE_2D, 0, mFormat, width, height, 0, mFormat, GL_UNSIGNED_BYTE, convertedFrame->data[0]);
+    pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
+    update_full_internal();
     return true;
 }
 
