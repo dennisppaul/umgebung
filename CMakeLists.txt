@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(umgebung-lib VERSION 1.0 LANGUAGES CXX)
+project(umgebung-lib VERSION 1.0 LANGUAGES CXX OBJCXX)
 
 option(SET_COMPILER_FLAGS "Set Compiler Flags to C++17" OFF)
 
@@ -74,6 +74,7 @@ endif (APPLE)
 # Add library target
 if (APPLE OR UNIX)
     file(GLOB UMGEBUNG_SOURCE_FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.mm
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
@@ -322,9 +323,16 @@ if (NOT DISABLE_GRAPHICS)
                 ${AVUTIL_LIBRARIES}
                 ${SWSCALE_LIBRARIES}
                 ${AVDEVICE_LIBRARIES}
+                "-framework AVFoundation"
+                "-framework Foundation"
         )
         target_include_directories(${PROJECT_NAME} PUBLIC ${AVCODEC_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVUTIL_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS})
         if (APPLE)
+            target_link_libraries(${PROJECT_NAME}
+                    "-framework AVFoundation"
+                    "-framework Foundation"
+                    "-framework CoreMedia"
+            )
         elseif (UNIX)
         elseif (WIN32)
             message(STATUS "plattform may not be supported")
