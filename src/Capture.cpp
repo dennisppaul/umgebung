@@ -417,12 +417,26 @@ namespace umgebung {
         }
 
         const std::vector<DeviceCapability> capabilities = getDeviceCapabilities();
+        bool                                found        = false;
         for (const auto& capability: capabilities) {
             if (capability.device_name == device_name) {
+                if (!found) {
+                    found = true;
+                    std::cout
+                        << "+++ device capabilities "
+                        << "'" << capability.device_name << "'"
+                        << std::endl;
+                }
                 std::cout
-                    << "+++ Capture: device: " << capability.device_name
-                    << " resolution: " << capability.width << "x" << capability.height
-                    << " frame rate: " << capability.minimum_frame_rate << " – " << capability.maximum_frame_rate
+                    << "    " << capability.width << "x" << capability.height << "px";
+                if (capability.minimum_frame_rate == capability.maximum_frame_rate) {
+                    std::cout
+                        << "\t" << capability.minimum_frame_rate << "FPS";
+                } else {
+                    std::cout
+                        << "\t" << capability.minimum_frame_rate << "–" << capability.maximum_frame_rate << "FPS";
+                }
+                std::cout
                     << std::endl;
             }
         }

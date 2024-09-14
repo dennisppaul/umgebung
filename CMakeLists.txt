@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.20)
 
-project(umgebung-lib VERSION 1.0 LANGUAGES CXX OBJCXX)
+project(umgebung-lib)
 
 option(SET_COMPILER_FLAGS "Set Compiler Flags to C++17" OFF)
 
