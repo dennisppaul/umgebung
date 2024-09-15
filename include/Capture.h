@@ -21,12 +21,18 @@
 
 #ifndef DISABLE_GRAPHICS
 #ifndef DISABLE_VIDEO
+
+#ifdef __cplusplus
 extern "C" {
+#endif
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
+#ifdef __cplusplus
 }
+#endif
+
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
 

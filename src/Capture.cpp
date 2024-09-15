@@ -434,8 +434,8 @@ namespace umgebung {
                     std::cout
                         << "\t" << capability.minimum_frame_rate << "–" << capability.maximum_frame_rate << " (FPS)";
                 }
-                std::cout
-                    << "\t" << capability.pixel_format;
+                // std::cout
+                //     << "\t" << capability.pixel_format;
                 std::cout
                     << std::endl;
             }
@@ -454,7 +454,6 @@ namespace umgebung {
         AVFormatContext* formatContext = avformat_alloc_context();
         AVDictionary*    options       = nullptr;
         av_dict_set(&options, "list_devices", "true", 0);
-
         av_dict_set(&options, "probesize", "10000000", 0);      // 1MB probe size
         av_dict_set(&options, "analyzeduration", "3000000", 0); // 5 seconds analysis duration
 

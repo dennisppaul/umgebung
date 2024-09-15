@@ -33,7 +33,8 @@ using namespace umgebung;
 #define RGBA(r, g, b, a) (((uint32_t) (a) << 24) | ((uint32_t) (b) << 16) | ((uint32_t) (g) << 8) | ((uint32_t) (r)))
 
 // static constexpr uint32_t UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE = GL_UNSIGNED_BYTE;
-static constexpr uint32_t UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE = GL_UNSIGNED_INT_8_8_8_8_REV;
+static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
+static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
 
 PImage::PImage() : width(0),
                    height(0),
@@ -94,7 +95,7 @@ void PImage::loadPixels() const {
 #ifndef DISABLE_GRAPHICS
     glBindTexture(GL_TEXTURE_2D, textureID);
     glGetTexImage(GL_TEXTURE_2D, 0,
-                  GL_RGBA,
+                  UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
                   UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
                   pixels);
 #endif // DISABLE_GRAPHICS
@@ -124,7 +125,7 @@ void PImage::init(uint32_t* pixels, const int width, const int height, const int
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     // TODO check how to handle formats other than RGBA
-    constexpr GLint mFormat = GL_RGBA; // internal format is always RGBA
+    constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT; // internal format is always RGBA
     glTexImage2D(GL_TEXTURE_2D,
                  0,
                  mFormat,
@@ -133,6 +134,7 @@ void PImage::init(uint32_t* pixels, const int width, const int height, const int
                  mFormat,
                  UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
                  pixels);
+#define UMGEBUNG_GENERATE_MIPMAP
 #ifdef UMGEBUNG_GENERATE_MIPMAP
     glGenerateMipmap(GL_TEXTURE_2D);
 #endif // UMGEBUNG_GENERATE_MIPMAP
@@ -173,7 +175,7 @@ void PImage::update(const float* pixel_data,
 
 void PImage::update_full_internal() const {
     // TODO currently RGB is not fully implemented
-    const GLint mFormat = (format == 4) ? GL_RGBA : GL_RGB;
+    constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT;
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexSubImage2D(GL_TEXTURE_2D,
                     0, 0, 0,
@@ -217,13 +219,13 @@ void PImage::update(const uint32_t* pixel_data,
     }
 
     glBindTexture(GL_TEXTURE_2D, textureID);
-    constexpr GLint mFormat = GL_RGBA; // internal format is always RGBA
+    constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT; // internal format is always RGBA
     glTexSubImage2D(GL_TEXTURE_2D,
                     0, offset_x, offset_y,
                     _width, _height,
                     mFormat,
                     UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-                    pixels);
+                    pixel_data);
 #endif // DISABLE_GRAPHICS
 }
 
