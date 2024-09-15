@@ -295,7 +295,7 @@ namespace umgebung {
             }
             av_packet_unref(packet);
         } else if (ret == AVERROR_EOF) {
-            pause();
+            stop();
         } else {
             char err_buf[AV_ERROR_MAX_STRING_SIZE];
             av_strerror(ret, err_buf, AV_ERROR_MAX_STRING_SIZE);
@@ -375,11 +375,11 @@ namespace umgebung {
         // }
     }
 
-    void Capture::play() {
+    void Capture::start() {
         isPlaying = true;
     }
 
-    void Capture::pause() {
+    void Capture::stop() {
         isPlaying = false;
     }
 
@@ -410,8 +410,8 @@ namespace umgebung {
 #endif
     }
 
-    void Capture::list_capabilities(const char* device_name) {
-        if (device_name == nullptr) {
+    void Capture::list_capabilities(const std::string& device_name) {
+        if (device_name.empty()) {
             std::cerr << "No device name provided" << std::endl;
             return;
         }
@@ -437,39 +437,17 @@ namespace umgebung {
                         << "\t" << capability.minimum_frame_rate << "–" << capability.maximum_frame_rate << "FPS";
                 }
                 std::cout
+                    << "\t" << capability.pixel_format;
+                std::cout
                     << std::endl;
             }
         }
-
-        // std::cout << "+++ capabilities of device: " << device_name << std::endl;
-        // register_all_devices();
-        //
-        // const char*          device_format = get_platform_inputformat();
-        // const AVInputFormat* iformat       = av_find_input_format(device_format);
-        // if (!iformat) {
-        //     av_log(NULL, AV_LOG_ERROR, "Input format not found: %s\n", device_format);
-        //     return;
-        // }
-        //
-        // AVDeviceInfoList* device_list = NULL;
-        // int               ret         = avdevice_list_input_sources(iformat, NULL, NULL, &device_list);
-        // if (ret < 0) {
-        //     std::cerr << "Failed to list input sources: " << ret << std::endl;
-        //     av_log(NULL, AV_LOG_ERROR, "Failed to list input sources\n");
-        //     return;
-        // }
-        //
-        // av_log(NULL, AV_LOG_INFO, "Devices:\n");
-        // for (int i = 0; i < device_list->nb_devices; i++) {
-        //     AVDeviceInfo* device = device_list->devices[i];
-        //     av_log(NULL, AV_LOG_INFO, " [%d] %s - %s\n", i, device->device_name, device->device_description);
-        // }
-        //
-        // avdevice_free_list_devices(&device_list);
     }
 
-    bool Capture::print_available_devices(std::vector<std::string>& devices) {
+    std::vector<std::string> Capture::list() {
         register_all_devices();
+
+        std::vector<std::string> devices;
 
         // Set the custom log callback
         av_log_set_callback(custom_log_callback);
@@ -486,7 +464,7 @@ namespace umgebung {
 
         if (!inputFormat) {
             std::cerr << "Input format not found" << std::endl;
-            return false;
+            return devices;
         }
 
         // Intercept available devices log
@@ -529,7 +507,7 @@ namespace umgebung {
         // Reset log callback to default
         av_log_set_callback(av_log_default_callback);
 
-        return true;
+        return devices;
     }
 #else
     Capture::Capture(const char* device_name,
@@ -558,13 +536,13 @@ namespace umgebung {
 
     Capture::~Capture() = default;
 
-    bool Capture::print_available_devices(std::vector<std::string>& devices) {
-        (void) devices;
-        return false;
+    void Capture::list_capabilities(const std::string& device_name) {
+        (void) device_name;
     }
 
-    void Capture::list_capabilities(const char* device_name) {
-        (void) device_name;
+    std::vector<std::string> Capture::list() {
+        std::vector<std::string> devices;
+        return devices;
     }
 
 #endif // DISABLE_VIDEO

@@ -30,6 +30,7 @@ struct DeviceCapability {
     int height;
     double minimum_frame_rate;
     double maximum_frame_rate;
+    std::string pixel_format;
 };
 
 std::vector<DeviceCapability> getDeviceCapabilities() {
@@ -55,6 +56,34 @@ std::vector<DeviceCapability> getDeviceCapabilities() {
                 CMFormatDescriptionRef desc = format.formatDescription;
                 CMVideoDimensions dimensions = CMVideoFormatDescriptionGetDimensions(desc);
 
+                FourCharCode mediaSubType = CMFormatDescriptionGetMediaSubType(desc);
+
+                // Convert FourCharCode to NSString
+                char formatCode[5];
+                formatCode[0] = (mediaSubType >> 24) & 0xFF;
+                formatCode[1] = (mediaSubType >> 16) & 0xFF;
+                formatCode[2] = (mediaSubType >> 8) & 0xFF;
+                formatCode[3] = mediaSubType & 0xFF;
+                formatCode[4] = '\0';
+                NSString *pixelFormatString = [NSString stringWithUTF8String:formatCode];
+
+                // Map FourCC to FFmpeg pixel format string
+                NSString *ffmpegPixelFormat = nil;
+                if (mediaSubType == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange ||
+                    mediaSubType == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
+                    ffmpegPixelFormat = @"nv12";
+                } else if (mediaSubType == kCVPixelFormatType_422YpCbCr8) {
+                    ffmpegPixelFormat = @"uyvy422";
+                } else if (mediaSubType == kCVPixelFormatType_32BGRA) {
+                    ffmpegPixelFormat = @"bgra";
+                } else if (mediaSubType == kCVPixelFormatType_32ARGB) {
+                    ffmpegPixelFormat = @"argb";
+                } else if (mediaSubType == kCVPixelFormatType_32RGBA) {
+                    ffmpegPixelFormat = @"rgba";
+                } else {
+                    ffmpegPixelFormat = @"unknown";
+                }
+
                 NSArray<AVFrameRateRange *> *frameRateRanges = format.videoSupportedFrameRateRanges;
                 for (AVFrameRateRange *range in frameRateRanges) {
                     DeviceCapability cap;
@@ -63,6 +92,7 @@ std::vector<DeviceCapability> getDeviceCapabilities() {
                     cap.height = dimensions.height;
                     cap.minimum_frame_rate = range.minFrameRate;
                     cap.maximum_frame_rate = range.maxFrameRate;
+                    cap.pixel_format = [ffmpegPixelFormat UTF8String];
                     capabilities.push_back(cap);
                 }
             }

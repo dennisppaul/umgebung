@@ -43,6 +43,7 @@ struct DeviceCapability {
     int         height;
     double      minimum_frame_rate;
     double      maximum_frame_rate;
+    std::string pixel_format;
 };
 
 std::vector<DeviceCapability> getDeviceCapabilities();
@@ -64,11 +65,12 @@ namespace umgebung {
                 const char* frame_rate,
                 const char* pixel_format);
 
-        bool available();
-        bool read();
-        void play();
-        void pause();
-        void reload();
+        bool  available();
+        float frameRate() const { return 1.0f / static_cast<float>(frameDuration); }
+        bool  read();
+        void  start();
+        void  stop();
+        void  reload();
 
         ~Capture() override;
 
@@ -103,8 +105,11 @@ namespace umgebung {
         /* --- print available devices --- */
 
     public:
-        static bool print_available_devices(std::vector<std::string>& devices);
-        static void list_capabilities(const char* device_name);
+        static std::vector<std::string>      list();
+        static void                          list_capabilities(const std::string& device_name);
+        static std::vector<DeviceCapability> devices_and_capabilities() {
+            return getDeviceCapabilities();
+        }
 
     private:
         static std::stringstream logStream;
