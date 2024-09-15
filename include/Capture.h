@@ -59,33 +59,37 @@ namespace umgebung {
 
     class CaptureListener {
     public:
-        virtual void captureEvent(Capture m) = 0;
+        virtual void captureEvent(Capture* capture) = 0;
 
         virtual ~CaptureListener() = default;
     };
 
     class Capture final : public PImage {
     public:
-        Capture(const char* device_name,
-                const char* resolution,
-                const char* frame_rate,
-                const char* pixel_format);
+        Capture();
 
+        bool  init(const char* device_name,
+                   const char* resolution,
+                   const char* frame_rate,
+                   const char* pixel_format);
         bool  available();
         float frameRate() const { return 1.0f / static_cast<float>(frameDuration); }
         bool  read();
         void  start();
         void  stop();
         void  reload();
+        void  set_listener(CaptureListener* listener) { this->listener = listener; }
 
         ~Capture() override;
 
     private:
-        bool              mVideoFrameAvailable = false;
+        bool              fIsInitialized       = false;
+        bool              fVideoFrameAvailable = false;
         std::thread       playbackThread;
         std::atomic<bool> keepRunning{};
         std::atomic<bool> isPlaying{};
         double            frameDuration{};
+        CaptureListener*  listener = nullptr;
 #ifndef DISABLE_GRAPHICS
 #ifndef DISABLE_VIDEO
         uint8_t*         buffer{};
@@ -97,7 +101,7 @@ namespace umgebung {
         SwsContext*      swsContext       = nullptr;
         AVDictionary*    options          = nullptr;
         int              videoStreamIndex = -1;
-        int              mFrameCounter    = 0;
+        int              fFrameCounter    = 0;
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
 

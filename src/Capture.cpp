@@ -21,7 +21,10 @@
 
 #ifndef DISABLE_GRAPHICS
 #ifndef DISABLE_VIDEO
+
+#ifdef __cplusplus
 extern "C" {
+#endif
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
@@ -29,7 +32,10 @@ extern "C" {
 #include <libavdevice/avdevice.h>
 #include <libavutil/avutil.h>
 #include <libavutil/log.h>
+#ifdef __cplusplus
 }
+#endif
+
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
 
@@ -53,22 +59,28 @@ namespace umgebung {
 #endif
     }
 
-    Capture::Capture(const char* device_name,
-                     const char* resolution,
-                     const char* frame_rate,
-                     const char* pixel_format) {
-        keepRunning      = true;
-        isPlaying        = false;
-        playbackThread   = std::thread(&Capture::playbackLoop, this);
+    Capture::Capture() {
+        keepRunning    = true;
+        isPlaying      = false;
+        playbackThread = std::thread(&Capture::playbackLoop, this);
+    }
+
+    bool Capture::init(const char* device_name,
+                       const char* resolution,
+                       const char* frame_rate,
+                       const char* pixel_format) {
         const int result = connect(device_name,
                                    resolution,
                                    frame_rate,
                                    pixel_format);
         if (result != 0) {
             std::cerr << "Failed to connect to camera" << std::endl;
+            return false;
         }
-        // TODO not sure how smart this is … better if the devices decides
-        frameDuration = 1.0f / (frame_rate ? std::stof(frame_rate) : 30.0f);
+        // TODO not sure how smart this is … better if the devices decides?
+        frameDuration  = 1.0f / (frame_rate ? std::stof(frame_rate) : 30.0f);
+        fIsInitialized = true;
+        return true;
     }
 
     bool Capture::read() {
@@ -298,7 +310,7 @@ namespace umgebung {
         const int ret = av_read_frame(formatContext, packet);
         if (ret >= 0) {
             if (packet->stream_index == videoStreamIndex) {
-                mVideoFrameAvailable = true;
+                fVideoFrameAvailable = true;
                 avcodec_send_packet(codecContext, packet);
             }
             av_packet_unref(packet);
@@ -311,15 +323,15 @@ namespace umgebung {
             printf("Error occurred: %s\n", err_buf);
 #endif
         }
-        return mVideoFrameAvailable;
+        return fVideoFrameAvailable;
     }
 
     bool Capture::processFrame() {
-        if (mVideoFrameAvailable) {
+        if (fVideoFrameAvailable) {
             const int ret = avcodec_receive_frame(codecContext, frame);
             if (ret == 0) {
                 // Successfully received a frame
-                mFrameCounter++;
+                fFrameCounter++;
 
                 // Convert data to RGBA or RGB
                 sws_scale(swsContext,
@@ -331,7 +343,12 @@ namespace umgebung {
                           convertedFrame->linesize);
 
                 av_frame_unref(frame);
-                mVideoFrameAvailable = false;
+
+                if (listener) {
+                    listener->captureEvent(this);
+                }
+
+                fVideoFrameAvailable = false;
                 return true;
             } else {
                 if (ret == AVERROR_EOF) {
@@ -507,14 +524,17 @@ namespace umgebung {
         return devices;
     }
 #else
-    Capture::Capture(const char* device_name,
-                     const char* resolution,
-                     const char* frame_rate,
-                     const char* pixel_format) {
+    Capture::Capture() {}
+
+    bool Capture::init(const char* device_name,
+                       const char* resolution,
+                       const char* frame_rate,
+                       const char* pixel_format) {
         (void) device_name;
         (void) resolution;
         (void) frame_rate;
         (void) pixel_format;
+        return false;
     }
 
     bool Capture::available() {
