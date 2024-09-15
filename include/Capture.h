@@ -68,21 +68,23 @@ namespace umgebung {
     public:
         Capture();
 
-        bool  init(const char* device_name,
-                   const char* resolution,
-                   const char* frame_rate,
-                   const char* pixel_format);
-        bool  available();
-        float frameRate() const { return 1.0f / static_cast<float>(frameDuration); }
-        bool  read();
-        void  start();
-        void  stop();
-        void  reload();
-        void  set_listener(CaptureListener* listener) { this->listener = listener; }
+        bool        init(const char* device_name,
+                         const char* resolution,
+                         const char* frame_rate,
+                         const char* pixel_format);
+        bool        available();
+        float       frameRate() const { return 1.0f / static_cast<float>(frameDuration); }
+        bool        read();
+        void        start();
+        void        stop();
+        void        reload();
+        void        set_listener(CaptureListener* listener) { this->listener = listener; }
+        const char* name() const { return fDeviceName; }
 
         ~Capture() override;
 
     private:
+        const char*       fDeviceName{};
         bool              fIsInitialized       = false;
         bool              fVideoFrameAvailable = false;
         std::thread       playbackThread;

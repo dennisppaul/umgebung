@@ -77,6 +77,7 @@ namespace umgebung {
             std::cerr << "Failed to connect to camera" << std::endl;
             return false;
         }
+        fDeviceName = device_name;
         // TODO not sure how smart this is … better if the devices decides?
         frameDuration  = 1.0f / (frame_rate ? std::stof(frame_rate) : 30.0f);
         fIsInitialized = true;
@@ -289,7 +290,9 @@ namespace umgebung {
                 if (available()) {
                     if (processFrame()) {
                         // TODO flag that a texture reload is required
-                        // TODO callback with `CaptureListener`
+                        if (listener) {
+                            listener->captureEvent(this);
+                        }
                     }
                 }
 
@@ -343,10 +346,6 @@ namespace umgebung {
                           convertedFrame->linesize);
 
                 av_frame_unref(frame);
-
-                if (listener) {
-                    listener->captureEvent(this);
-                }
 
                 fVideoFrameAvailable = false;
                 return true;
