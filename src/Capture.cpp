@@ -42,6 +42,17 @@ extern "C" {
 namespace umgebung {
 #ifndef DISABLE_GRAPHICS
 #ifndef DISABLE_VIDEO
+
+    static const char* get_platform_inputformat() {
+#ifdef _WIN32
+        return "dshow";
+#elif __linux__
+        return "v4l2";
+#elif __APPLE__
+        return "avfoundation";
+#endif
+    }
+
     Capture::Capture(const char* device_name,
                      const char* resolution,
                      const char* frame_rate,
@@ -81,15 +92,12 @@ namespace umgebung {
         register_all_devices();
 
         // Set the input format for your platform:
-        const AVInputFormat* inputFormat = nullptr;
+        const AVInputFormat* inputFormat = av_find_input_format(get_platform_inputformat());
 #ifdef _WIN32
-        inputFormat              = av_find_input_format("dshow"); // For Windows
         auto default_device_name = "video=Integrated Camera";
 #elif __linux__
-        inputFormat              = av_find_input_format("v4l2"); // For Linux
         auto default_device_name = "/dev/video0";
 #elif __APPLE__
-        inputFormat              = av_find_input_format("avfoundation"); // For macOS
         auto default_device_name = "0";
 #endif
 
@@ -400,16 +408,6 @@ namespace umgebung {
         logStream << message;
     }
 
-    static const char* get_platform_inputformat() {
-#ifdef _WIN32
-        return "dshow";
-#elif __linux__
-        return "v4l2";
-#elif __APPLE__
-        return "avfoundation";
-#endif
-    }
-
     void Capture::list_capabilities(const std::string& device_name) {
         if (device_name.empty()) {
             std::cerr << "No device name provided" << std::endl;
@@ -428,13 +426,13 @@ namespace umgebung {
                         << std::endl;
                 }
                 std::cout
-                    << "    " << capability.width << "x" << capability.height << "px";
+                    << "    " << capability.width << "x" << capability.height << " (px)";
                 if (capability.minimum_frame_rate == capability.maximum_frame_rate) {
                     std::cout
-                        << "\t" << capability.minimum_frame_rate << "FPS";
+                        << "\t" << capability.minimum_frame_rate << " (FPS)";
                 } else {
                     std::cout
-                        << "\t" << capability.minimum_frame_rate << "–" << capability.maximum_frame_rate << "FPS";
+                        << "\t" << capability.minimum_frame_rate << "–" << capability.maximum_frame_rate << " (FPS)";
                 }
                 std::cout
                     << "\t" << capability.pixel_format;
