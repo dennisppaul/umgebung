@@ -122,3 +122,12 @@ this will set the `$LIBRARY_PATH` in your *zsh* profile file.
 
 - [Examples](https://github.com/dennisppaul/umgebung-examples)
 - Additional [Libraries](https://github.com/dennisppaul/umgebung-libraries)
+
+examples and library examples assume that all repositories are located on the same level:
+
+```
+.
+├── umgebung
+├── umgebung-examples
+└── umgebung-libraries
+```
