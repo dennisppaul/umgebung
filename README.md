@@ -117,3 +117,8 @@ $ source "$HOME/.zshrc"
 ```
 
 this will set the `$LIBRARY_PATH` in your *zsh* profile file.
+
+## Resources
+
+- [Examples](https://github.com/dennisppaul/umgebung-examples)
+- Additional [Libraries](https://github.com/dennisppaul/umgebung-libraries)
