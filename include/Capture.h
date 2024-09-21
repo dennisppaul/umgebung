@@ -19,9 +19,7 @@
 
 #pragma once
 
-#ifndef DISABLE_GRAPHICS
-#ifndef DISABLE_VIDEO
-
+#if defined(ENABLE_CAPTURE) && !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,9 +30,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#endif // DISABLE_VIDEO
-#endif // DISABLE_GRAPHICS
+#endif // ENABLE_CAPTURE && !DISABLE_GRAPHICS && !DISABLE_VIDEO
 
 #include <vector>
 #include <string>
@@ -92,8 +88,7 @@ namespace umgebung {
         std::atomic<bool> isPlaying{};
         double            frameDuration{};
         CaptureListener*  listener = nullptr;
-#ifndef DISABLE_GRAPHICS
-#ifndef DISABLE_VIDEO
+#if defined(ENABLE_CAPTURE) && !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
         uint8_t*         buffer{};
         AVFormatContext* formatContext{};
         AVCodecContext*  codecContext     = nullptr;
@@ -104,8 +99,7 @@ namespace umgebung {
         AVDictionary*    options          = nullptr;
         int              videoStreamIndex = -1;
         int              fFrameCounter    = 0;
-#endif // DISABLE_VIDEO
-#endif // DISABLE_GRAPHICS
+#endif // ENABLE_CAPTURE && !DISABLE_GRAPHICS && !DISABLE_VIDEO
 
         bool processFrame();
         void playbackLoop();

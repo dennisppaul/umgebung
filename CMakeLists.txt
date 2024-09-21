@@ -19,7 +19,7 @@ message(STATUS "UMGEBUNG_APP  : ${PROJECT_NAME}")
 ##########################################################################################################
 # NOTE can and should be set in root cmake script
 function(set_umgebung_compiler_flags)
-    #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION")
@@ -138,6 +138,12 @@ if (ENABLE_PORTAUDIO)
     target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_PORTAUDIO)
     message(STATUS "ENABLING      : Portaudio Driver")
 endif (ENABLE_PORTAUDIO)
+
+if (ENABLE_CAPTURE)
+    target_compile_definitions(umgebung-lib-interface INTERFACE ENABLE_CAPTURE)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_CAPTURE)
+    message(STATUS "ENABLING      : Capture")
+endif (ENABLE_CAPTURE)
 
 ##########################################################################################################
 ### CREATE EXECUTABLE                                                                                  ###

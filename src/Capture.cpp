@@ -17,11 +17,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef DISABLE_GRAPHICS
+#error "DISABLE_GRAPHICS must be set to ON"
+#endif
+
 #include "Capture.h"
 
-#ifndef DISABLE_GRAPHICS
-#ifndef DISABLE_VIDEO
-
+#if defined(ENABLE_CAPTURE) && !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,9 +37,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#endif // DISABLE_VIDEO
-#endif // DISABLE_GRAPHICS
+#endif // ENABLE_CAPTURE && !DISABLE_GRAPHICS && !DISABLE_VIDEO
 
 #include <iostream>
 #include <vector>
@@ -46,9 +46,7 @@ extern "C" {
 #include <thread>
 
 namespace umgebung {
-#ifndef DISABLE_GRAPHICS
-#ifndef DISABLE_VIDEO
-
+#if defined(ENABLE_CAPTURE) && !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
     static const char* get_platform_inputformat() {
 #ifdef _WIN32
         return "dshow";
@@ -522,7 +520,7 @@ namespace umgebung {
 
         return devices;
     }
-#else
+#else  // ENABLE_CAPTURE && !DISABLE_GRAPHICS && !DISABLE_VIDEO
     Capture::Capture() {}
 
     bool Capture::init(const char* device_name,
@@ -544,9 +542,9 @@ namespace umgebung {
         return false;
     }
 
-    void Capture::play() {}
+    void Capture::start() {}
 
-    void Capture::pause() {}
+    void Capture::stop() {}
 
     void Capture::reload() {}
 
@@ -560,8 +558,5 @@ namespace umgebung {
         std::vector<std::string> devices;
         return devices;
     }
-
-#endif // DISABLE_VIDEO
-#endif // DISABLE_GRAPHICS
-
+#endif // ENABLE_CAPTURE && !DISABLE_GRAPHICS && !DISABLE_VIDEO
 } // namespace umgebung
