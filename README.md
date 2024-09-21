@@ -1,4 +1,4 @@
-*Umgebung* is a light-weight C++ environment for small audio and graphics based applications. it is somewhat inspired by [Processing.org](https://processing.org) and similar environments. 
+*Umgebung* is a light-weight C++ environment for small audio and graphics based applications. it is inspired by [Processing.org](https://processing.org) and similar environments. 
 
 well, *Umgebung* is actually imitating [Processing.org](https://processing.org) quite bluntly ( e.g the main application class is called `PApplet` ).
 
