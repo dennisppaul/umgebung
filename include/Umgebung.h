@@ -56,7 +56,7 @@
 #endif                               // RENDER_INTO_FRAMEBUFFER
 
 namespace umgebung {
-    static const int DEFAULT_AUDIO_DEVICE = -1;
+    static constexpr int DEFAULT_AUDIO_DEVICE = -1;
 #define DEFAULT_AUDIO_SAMPLE_RATE 48000     // TODO make this configurable
 #define DEFAULT_FRAMES_PER_BUFFER 2048      // TODO make this configurable
 #define DEFAULT_NUMBER_OF_INPUT_CHANNELS 1  // TODO make this configurable

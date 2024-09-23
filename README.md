@@ -65,7 +65,21 @@ $ sudo apt-get install git clang mesa-utils # optional -y
 $ sudo apt-get install cmake pkg-config libsdl2-dev libftgl-dev libglew-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev -y
 ```
 
-alternatively, run installer script `./install-linux.sh` to install packages with [Linuxbrew](https://docs.brew.sh/Homebrew-on-Linux) ( linux version of Homebrew ).
+alternatively, run installer script `./install-linux.sh` to install packages with [Linuxbrew](https://docs.brew.sh/Homebrew-on-Linux) ( linux version of Homebrew, currently not supported on Raspberry Pi OS ).
+
+#### Raspberry Pi OS (RPI)
+
+RPI currently uses X11 as the rendering system. 
+
+also, RPI does not support antialiasing i.e make sure to set the value to `0` in `settings`:
+
+```cpp
+void settings(){
+    antialiasing = 0;
+}
+```
+
+*Umgebung* was tested on Raspberry Pi 4 ( Model B ) with Raspberry Pi OS (64-bit) "Bookworm" ( Release 2024-07-04 ). however, it has not been tested carefully. there might be glitches …
 
 ### Windows
 
