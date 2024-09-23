@@ -72,9 +72,16 @@ endif (APPLE)
 ##########################################################################################################
 
 # Add library target
-if (APPLE OR UNIX)
+if (APPLE)
     file(GLOB UMGEBUNG_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.mm
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
+    )
+elseif (UNIX)
+    file(GLOB UMGEBUNG_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
