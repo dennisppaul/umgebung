@@ -336,8 +336,6 @@ if (NOT DISABLE_GRAPHICS)
                 ${AVUTIL_LIBRARIES}
                 ${SWSCALE_LIBRARIES}
                 ${AVDEVICE_LIBRARIES}
-                "-framework AVFoundation"
-                "-framework Foundation"
         )
         target_include_directories(${PROJECT_NAME} PUBLIC ${AVCODEC_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVUTIL_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS})
         if (APPLE)
