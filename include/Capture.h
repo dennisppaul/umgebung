@@ -32,6 +32,7 @@ extern "C" {
 #endif
 #endif // ENABLE_CAPTURE && !DISABLE_GRAPHICS && !DISABLE_VIDEO
 
+#include <atomic>
 #include <vector>
 #include <string>
 #include <sstream>
