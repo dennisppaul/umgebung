@@ -85,7 +85,7 @@ the setup is exclusively for the `MSYS2 UCRT64` branch ( and not for `MSYS2 MING
 example applications can be found in the `example` folder. to run example `umgebung-app` do the following:
 
 ```
-$ cd ./umgebung/examples/umgebung-app/
+$ cd ./umgebung-examples/examples/umgebung-app/
 $ cmake -B build .
 $ cmake --build build
 $ ./build/umgebung-app
