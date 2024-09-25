@@ -41,6 +41,11 @@ jobs:
         eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
         brew bundle --file=Brewfile
 
+    - name: Set PKG_CONFIG_PATH for Homebrew Libraries
+      run: |
+        # Set the PKG_CONFIG_PATH so pkg-config can find the libraries
+        echo "export PKG_CONFIG_PATH=$(brew --prefix)/lib/pkgconfig:$(brew --prefix sdl2)/lib/pkgconfig:$(brew --prefix glew)/lib/pkgconfig:$(brew --prefix ftgl)/lib/pkgconfig" >> $GITHUB_ENV
+
     - name: Configure CMake
       run: cmake -B build -DBUILD_TESTING=ON -DSET_COMPILER_FLAGS=ON
 
