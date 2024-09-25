@@ -21,19 +21,21 @@ jobs:
       run: |
         sudo apt-get update -y
         sudo apt-get upgrade -y
-        sudo apt-get install git clang mesa-utils xvfb pulseaudio \
-                             cmake pkg-config libsdl2-dev libftgl-dev libglew-dev ffmpeg \
-                             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
-                             libavdevice-dev librtmidi-dev libgl1-mesa-glx libgl1-mesa-dri -y
+        sudo apt-get install -y \
+          git clang cmake pkg-config ffmpeg \
+          libsdl2-dev libftgl-dev libglew-dev \
+          libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
+          libavdevice-dev librtmidi-dev libgl1-mesa-dev libgl1-mesa-dri \
+          libglu1-mesa-dev mesa-utils libegl1-mesa-dev libgbm-dev
 
-    - name: Start Xvfb with GLX and DRI support
+    - name: Set Environment Variables
       run: |
-        Xvfb :99 -screen 0 1024x768x24 +iglx -noreset &  # Start virtual framebuffer with GLX
-        export DISPLAY=:99  # Set display to the virtual framebuffer
-
-    - name: Configure Dummy Audio for SDL2
-      run: |
-        export SDL_AUDIODRIVER=dummy  # Set SDL2 audio driver to dummy to avoid real hardware issues
+        echo "LIBGL_ALWAYS_SOFTWARE=1" >> $GITHUB_ENV
+        echo "SDL_VIDEODRIVER=x11" >> $GITHUB_ENV
+        echo "SDL_AUDIODRIVER=dummy" >> $GITHUB_ENV
+        echo "SDL_VIDEO_X11_FORCE_EGL=1" >> $GITHUB_ENV
+        echo "MESA_GL_VERSION_OVERRIDE=3.3" >> $GITHUB_ENV
+        echo "MESA_GLSL_VERSION_OVERRIDE=330" >> $GITHUB_ENV
 
     - name: Configure CMake
       run: cmake -B build -DBUILD_TESTING=ON -DSET_COMPILER_FLAGS=ON
@@ -41,9 +43,11 @@ jobs:
     - name: Build Project
       run: cmake --build build
 
-    - name: Run Tests with Xvfb
+    - name: Run Tests with xvfb-run
       run: |
-        export DISPLAY=:99  # Ensure tests run with virtual framebuffer
-        export SDL_AUDIODRIVER=dummy  # Use dummy audio for SDL2
-        glxinfo | grep "OpenGL"  # Check if OpenGL is set up correctly (optional)
-        ctest --test-dir build --rerun-failed --output-on-failure  # Run tests and display failure logs
+        xvfb-run -a -s "-screen 0 1024x768x24" ctest --test-dir build --rerun-failed --output-on-failure
+
+    - name: Check Available Visuals (Optional)
+      run: |
+        xvfb-run -a -s "-screen 0 1024x768x24" xdpyinfo
+        xvfb-run -a -s "-screen 0 1024x768x24" glxinfo
