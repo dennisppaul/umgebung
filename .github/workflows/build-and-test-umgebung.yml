@@ -21,10 +21,19 @@ jobs:
       run: |
         sudo apt-get update -y
         sudo apt-get upgrade -y
-        sudo apt-get install git clang mesa-utils -y  # Optional
-        sudo apt-get install cmake pkg-config libsdl2-dev libftgl-dev libglew-dev ffmpeg \
+        sudo apt-get install git clang mesa-utils xvfb pulseaudio \
+                             cmake pkg-config libsdl2-dev libftgl-dev libglew-dev ffmpeg \
                              libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
                              libavdevice-dev librtmidi-dev -y
+
+    - name: Start Xvfb
+      run: |
+        Xvfb :99 -screen 0 1024x768x24 &  # Start virtual framebuffer
+        export DISPLAY=:99  # Set display to the virtual framebuffer
+
+    - name: Configure Dummy Audio for SDL2
+      run: |
+        export SDL_AUDIODRIVER=dummy  # Set SDL2 audio driver to dummy to avoid real hardware issues
 
     - name: Configure CMake
       run: cmake -B build -DBUILD_TESTING=ON -DSET_COMPILER_FLAGS=ON
@@ -32,5 +41,8 @@ jobs:
     - name: Build Project
       run: cmake --build build
 
-    - name: Run Tests
-      run: ctest --test-dir build
+    - name: Run Tests with Xvfb
+      run: |
+        export DISPLAY=:99  # Ensure tests run with virtual framebuffer
+        export SDL_AUDIODRIVER=dummy  # Use dummy audio for SDL2
+        ctest --test-dir build --rerun-failed --output-on-failure  # Run tests and display failure logs
