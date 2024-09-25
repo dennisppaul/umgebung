@@ -26,9 +26,9 @@ jobs:
                              libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
                              libavdevice-dev librtmidi-dev libgl1-mesa-glx libgl1-mesa-dri -y
 
-    - name: Start Xvfb
+    - name: Start Xvfb with GLX and DRI support
       run: |
-        Xvfb :99 -screen 0 1024x768x24 &  # Start virtual framebuffer
+        Xvfb :99 -screen 0 1024x768x24 +iglx -noreset &  # Start virtual framebuffer with GLX
         export DISPLAY=:99  # Set display to the virtual framebuffer
 
     - name: Configure Dummy Audio for SDL2
