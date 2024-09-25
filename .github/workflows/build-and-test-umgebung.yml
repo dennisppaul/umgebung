@@ -1,0 +1,36 @@
+name: Build and Test Umgebung
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Dependencies via APT
+      run: |
+        sudo apt-get update -y
+        sudo apt-get upgrade -y
+        sudo apt-get install git clang mesa-utils -y  # Optional
+        sudo apt-get install cmake pkg-config libsdl2-dev libftgl-dev libglew-dev ffmpeg \
+                             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
+                             libavdevice-dev librtmidi-dev -y
+
+    - name: Configure CMake
+      run: cmake -B build -DBUILD_TESTING=ON -DSET_COMPILER_FLAGS=ON
+
+    - name: Build Project
+      run: cmake --build build
+
+    - name: Run Tests
+      run: ctest --test-dir build
