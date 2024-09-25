@@ -24,7 +24,7 @@ jobs:
         sudo apt-get install git clang mesa-utils xvfb pulseaudio \
                              cmake pkg-config libsdl2-dev libftgl-dev libglew-dev ffmpeg \
                              libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
-                             libavdevice-dev librtmidi-dev -y
+                             libavdevice-dev librtmidi-dev libgl1-mesa-glx libgl1-mesa-dri -y
 
     - name: Start Xvfb
       run: |
@@ -45,4 +45,5 @@ jobs:
       run: |
         export DISPLAY=:99  # Ensure tests run with virtual framebuffer
         export SDL_AUDIODRIVER=dummy  # Use dummy audio for SDL2
+        glxinfo | grep "OpenGL"  # Check if OpenGL is set up correctly (optional)
         ctest --test-dir build --rerun-failed --output-on-failure  # Run tests and display failure logs
