@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TODO this is not testet on RPI
+# TODO this is not tested on RPI
 
 echo "+++ setting up umgebung      +++"
 

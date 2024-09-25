@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(umgebung-lib)
 
-option(SET_COMPILER_FLAGS "Set Compiler Flags to C++17" OFF)
+#option(SET_COMPILER_FLAGS "Set Compiler Flags to C++17" OFF)
 
 message(STATUS "----------------------------------------")
 message(STATUS "UMGEBUNG_APP  : ${PROJECT_NAME}")
@@ -17,24 +17,36 @@ message(STATUS "UMGEBUNG_APP  : ${PROJECT_NAME}")
 ##########################################################################################################
 ### COMPILER FLAGS                                                                                     ###
 ##########################################################################################################
-# NOTE can and should be set in root cmake script
 function(set_umgebung_compiler_flags)
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-    set(CMAKE_CXX_STANDARD 17)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++17-extensions")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
-    #set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X")
+    set(CMAKE_CXX_STANDARD 17 PARENT_SCOPE)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON PARENT_SCOPE)
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION" PARENT_SCOPE)
+    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
 endfunction()
 
-if (SET_COMPILER_FLAGS)
-    message(STATUS "COMPILER_FLAGS: Umgebung is setting compiler flags")
-    # TODO check if this is necessary or if they can be inherited from the parent project
-    set_umgebung_compiler_flags()
-else (SET_COMPILER_FLAGS)
-    message(STATUS "COMPILER_FLAGS: Umgebung is expecting compiler flags to be set by root script")
-endif (SET_COMPILER_FLAGS)
+# TODO somehow this does not work?!?
+## NOTE can and should be set in root cmake script
+#function(set_umgebung_compiler_flags)
+#    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+#    set(CMAKE_CXX_STANDARD 17)
+#    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION")
+#    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++17-extensions")
+#    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
+#    #set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X")
+#endfunction()
+
+#if (SET_COMPILER_FLAGS)
+#    message(STATUS "COMPILER_FLAGS: Umgebung is setting compiler flags")
+#    # TODO check if this is necessary or if they can be inherited from the parent project
+#    # TODO does not work if called via function … investigate
+##    set_umgebung_compiler_flags()
+#    set(CMAKE_CXX_STANDARD 17)
+#    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X")
+#else (SET_COMPILER_FLAGS)
+#    message(STATUS "COMPILER_FLAGS: Umgebung is expecting compiler flags to be set by root script")
+#endif (SET_COMPILER_FLAGS)
 
 ##########################################################################################################
 ### CHECK FOR HOMEBREW                                                                                 ###
@@ -103,6 +115,8 @@ else ()
     )
 endif ()
 add_library(umgebung-lib ${UMGEBUNG_SOURCE_FILES})
+target_compile_features(umgebung-lib PUBLIC cxx_std_17)
+target_compile_options(umgebung-lib PUBLIC -std=c++17)
 
 # Specify include directories for the library
 target_include_directories(umgebung-lib PUBLIC
@@ -396,7 +410,6 @@ endfunction()
 #if (WIN32)
 #    target_link_libraries(${PROJECT_NAME} PUBLIC pdcurses)
 #endif (WIN32)
-message(STATUS "----------------------------------------")
 
 ##########################################################################################################
 ### NOTE                                                                                               ###
@@ -405,3 +418,35 @@ message(STATUS "----------------------------------------")
 # use these in projects:
 # - prepare umgebung ( before `add_executable` ): `include(${UMGEBUNG_PATH}/cmake/default-pre.cmake)`
 # - prepare umgebung ( after `add_executable` ): `include(${UMGEBUNG_PATH}/cmake/default-post.cmake)`
+
+##########################################################################################################
+### TEST                                                                                               ###
+##########################################################################################################
+
+option(BUILD_TESTING "Enable tests" OFF)
+
+if (BUILD_TESTING)
+    message(STATUS "TESTING       : enabled")
+
+    enable_testing()
+
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X")
+
+    add_executable(umgebung-tests test/umgebung_test.cpp)
+    target_link_libraries(umgebung-tests umgebung-lib umgebung-lib-interface)
+
+    add_test(NAME UmgebungTest COMMAND umgebung-tests)
+else ()
+    message(STATUS "TESTING       : disabled")
+endif ()
+
+# run test from CLI with `cmake -B build -DBUILD_TESTING=ON -DSET_COMPILER_FLAGS=ON; cmake --build build ; ctest --test-dir build`
+# run test from CLI with `cmake -B build -DBUILD_TESTING=ON ; cmake --build build ; ctest --test-dir build`
+
+##########################################################################################################
+### END OF SCRIPT                                                                                      ###
+##########################################################################################################
+
+message(STATUS "----------------------------------------")

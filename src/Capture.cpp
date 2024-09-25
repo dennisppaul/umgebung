@@ -520,8 +520,28 @@ namespace umgebung {
 
         return devices;
     }
-#else  // ENABLE_CAPTURE && !DISABLE_GRAPHICS && !DISABLE_VIDEO
-    Capture::Capture() {}
+#else // ENABLE_CAPTURE && !DISABLE_GRAPHICS && !DISABLE_VIDEO
+
+#ifndef CAPTURE_PRINT_WARNING
+#define CAPTURE_PRINT_WARNING 1
+#endif
+
+    static bool capture_warning_printed = false;
+
+    static void print_warning() {
+#if CAPTURE_PRINT_WARNING
+        if (!capture_warning_printed) {
+            capture_warning_printed = true;
+            std::cout << "+++ WARNING / Capture is disabled. this might be intentional." << std::endl;
+            std::cout << "    if not make sure to enable Capture in CMake script: `option(ENABLE_CAPTURE \"Enable camera capture\" ON)`" << std::endl;
+            std::cout << "    or enable as compile option                       : `-DENABLE_CAPTURE=ON`" << std::endl;
+        }
+#endif // CAPTURE_PRINT_WARNING
+    }
+
+    Capture::Capture() {
+        print_warning();
+    }
 
     bool Capture::init(const char* device_name,
                        const char* resolution,
@@ -531,6 +551,7 @@ namespace umgebung {
         (void) resolution;
         (void) frame_rate;
         (void) pixel_format;
+        print_warning();
         return false;
     }
 
@@ -555,6 +576,7 @@ namespace umgebung {
     }
 
     std::vector<std::string> Capture::list() {
+        print_warning();
         std::vector<std::string> devices;
         return devices;
     }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TODO this is not testet on linux
+# TODO this is not tested on linux
 
 check_brew() {
     if command -v brew >/dev/null 2>&1; then
