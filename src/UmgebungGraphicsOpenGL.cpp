@@ -195,8 +195,8 @@ namespace umgebung {
             if (window != nullptr) {
                 SDL_GL_SetSwapInterval(1); // Enable vsync (1 means on, 0 means off)
             }
+            fApplet->init_graphics();
         }
-        fApplet->init_graphics();
         if (!headless) {
             fApplet->pre_draw();
             set_default_graphics_state();
@@ -210,7 +210,7 @@ namespace umgebung {
     }
 
     void handle_draw(APP_WINDOW* window) {
-        /* timer begin  */
+        /* timer begin */
         static std::chrono::high_resolution_clock::time_point
             startTime = std::chrono::high_resolution_clock::now(),
             endTime;

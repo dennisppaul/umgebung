@@ -442,7 +442,6 @@ else ()
     message(STATUS "TESTING       : disabled")
 endif ()
 
-# run test from CLI with `cmake -B build -DBUILD_TESTING=ON -DSET_COMPILER_FLAGS=ON; cmake --build build ; ctest --test-dir build`
 # run test from CLI with `cmake -B build -DBUILD_TESTING=ON ; cmake --build build ; ctest --test-dir build`
 
 ##########################################################################################################

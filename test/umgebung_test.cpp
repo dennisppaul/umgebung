@@ -33,13 +33,17 @@ class UmgebungApp : public PApplet {
         resizable             = false;
         always_on_top         = true;
         enable_retina_support = true;
-        headless              = false;
+        headless              = true;
         no_audio              = false;
     }
 
     void setup() override {
         println("width : ", width);
         println("height: ", height);
+        if (headless) {
+            println("headless mode");
+            exit();
+        }
     }
 
     void draw() override {
