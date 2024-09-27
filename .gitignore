@@ -2,4 +2,3 @@ build/
 cmake-build-debug/
 .idea/
 Brewfile.lock.json
-Testing/
