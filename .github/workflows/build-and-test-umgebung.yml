@@ -21,36 +21,16 @@ jobs:
       run: |
         sudo apt-get update -y
         sudo apt-get upgrade -y
-        sudo apt-get install -y \
-          git clang cmake pkg-config ffmpeg \
-          libsdl2-dev libftgl-dev libglew-dev \
-          libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
-          libavdevice-dev librtmidi-dev libgl1-mesa-dev libgl1-mesa-dri \
-          libglu1-mesa-dev mesa-utils
-
-    - name: Set Environment Variables
-      run: |
-        echo "LIBGL_ALWAYS_SOFTWARE=1" >> $GITHUB_ENV
-        echo "SDL_VIDEODRIVER=x11" >> $GITHUB_ENV
-        echo "SDL_AUDIODRIVER=dummy" >> $GITHUB_ENV
-        # Removed SDL_VIDEO_X11_FORCE_EGL=1 to prevent forcing EGL
-        echo "MESA_GL_VERSION_OVERRIDE=3.3" >> $GITHUB_ENV
-        echo "MESA_GLSL_VERSION_OVERRIDE=330" >> $GITHUB_ENV
-        echo "LIBGL_DEBUG=verbose" >> $GITHUB_ENV
-        echo "SDL_LOG_PRIORITY=1" >> $GITHUB_ENV  # Enable SDL verbose logging
+        sudo apt-get install git clang mesa-utils -y  # Optional
+        sudo apt-get install cmake pkg-config libsdl2-dev libftgl-dev libglew-dev ffmpeg \
+                             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
+                             libavdevice-dev librtmidi-dev -y
 
     - name: Configure CMake
-      run: cmake -B build -DBUILD_TESTING=ON -DSET_COMPILER_FLAGS=ON
+      run: cmake -B build -DBUILD_TESTING=ON
 
     - name: Build Project
       run: cmake --build build
 
-    - name: Run Tests with xvfb-run
-      run: |
-        xvfb-run -a -s "-screen 0 1024x768x24" \
-        ctest --test-dir build --rerun-failed --output-on-failure
-
-    - name: Check Available Visuals (Optional)
-      run: |
-        xvfb-run -a -s "-screen 0 1024x768x24" xdpyinfo
-        xvfb-run -a -s "-screen 0 1024x768x24" glxinfo
+    - name: Run Tests
+      run: ctest --test-dir build
