@@ -34,7 +34,7 @@ class UmgebungApp : public PApplet {
         always_on_top         = true;
         enable_retina_support = true;
         headless              = true;
-        no_audio              = false;
+        no_audio              = true;
     }
 
     void setup() override {
