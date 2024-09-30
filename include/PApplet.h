@@ -26,6 +26,8 @@
 #include <vector>
 #include <filesystem>
 
+#include "PGraphics.h"
+
 namespace umgebung {
     class PApplet : public virtual PGraphics {
     public:
@@ -397,32 +399,19 @@ namespace umgebung {
 #endif // DISABLE_GRAPHICS
         }
 
-        virtual void finish() {
+        virtual void        finish() {}
+        virtual void        audioblock(float** input, float** output, int length) {}
+        virtual void        beat(uint32_t beat_count) {}
+        virtual void        mouseMoved() {}
+        virtual void        mouseDragged() {}
+        virtual void        mousePressed() {}
+        virtual void        mouseReleased() {}
+        virtual void        keyPressed() {}
+        virtual void        keyReleased() {}
+        virtual void        dropped(const std::string& file_name) {}
+        virtual const char* name() {
+            return UMGEBUNG_WINDOW_TITLE;
         }
-
-        virtual void audioblock(float** input, float** output, int length){};
-
-        virtual void mouseMoved() {
-        }
-
-        virtual void mouseDragged() {
-        }
-
-        virtual void mousePressed() {
-        }
-
-        virtual void mouseReleased() {
-        }
-
-        virtual void keyPressed() {
-        }
-
-        virtual void keyReleased() {
-        }
-
-        virtual void dropped(std::string file_name) {
-        }
-
 
         void init(uint32_t* pixels, const int width, const int height, const int format) override {
             PImage::init(pixels, width, height, format);

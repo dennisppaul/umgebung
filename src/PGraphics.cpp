@@ -469,6 +469,83 @@ void PGraphics::scale(const float x, const float y, const float z) {
     glScalef(x, y, z);
 }
 
+#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+void PGraphics::beginDraw() {
+    /* save state */
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fPreviousFBO);
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glPushMatrix();
+
+    // bind the FBO for offscreen rendering
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glViewport(0, 0, fbo_width, fbo_height);
+
+    /* setup projection and modelview matrices */
+
+    glMatrixMode(GL_PROJECTION);
+    // save the current projection matrix
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, fbo_width, 0, fbo_height, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
+    // save the current modelview matrix
+    glPushMatrix();
+    glLoadIdentity();
+}
+
+void PGraphics::endDraw() const {
+    // restore projection and modelview matrices
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    /* restore state */
+    glBindFramebuffer(GL_FRAMEBUFFER, fPreviousFBO); // Restore the previously bound FBO
+    glPopMatrix();
+    glPopAttrib();
+}
+
+void PGraphics::bind() const {
+    glBindTexture(GL_TEXTURE_2D, fbo_texture);
+}
+
+void PGraphics::init(uint32_t* pixels, const int width, const int height, int format) {
+    this->width  = width;
+    this->height = height;
+    fbo_width    = width;
+    fbo_height   = height;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glGenTextures(1, &fbo_texture);
+    glBindTexture(GL_TEXTURE_2D, fbo_texture);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA,
+                 fbo_width,
+                 fbo_height,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_texture, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        // Handle framebuffer incomplete error
+        std::cerr << "ERROR Framebuffer is not complete!" << std::endl;
+    }
+    glViewport(0, 0, fbo_width, fbo_height);
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+
 #else  // DISABLE_GRAPHICS
 void PGraphics::popMatrix() {
 }

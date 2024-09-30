@@ -391,6 +391,7 @@ function(add_umgebung_libs)
     endif ()
 
     # Link the libraries if they exist
+    set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
     target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib-interface)
     target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib)
 endfunction()
