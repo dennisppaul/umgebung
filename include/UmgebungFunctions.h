@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -112,4 +111,9 @@ namespace umgebung {
         (oss << ... << args);
         return oss.str();
     }
+
+    std::string get_executable_location();
+    std::string find_file_in_paths(const std::vector<std::string>& paths, const std::string& filename);
+    std::string find_in_environment_path(const std::string& filename);
+
 } // namespace umgebung
