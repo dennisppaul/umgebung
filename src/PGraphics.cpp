@@ -456,6 +456,19 @@ void PGraphics::text_str(const std::string& text, const float x, const float y, 
 #endif // DISABLE_GRAPHICS
 }
 
+float PGraphics::textWidth(const std::string& text) {
+    if (fCurrentFont == nullptr) {
+        return 0;
+    }
+    if (!fill_color.active) {
+        return 0;
+    }
+
+#ifndef DISABLE_GRAPHICS
+    return fCurrentFont->textWidth(text.c_str());
+#endif // DISABLE_GRAPHICS
+}
+
 void PGraphics::text(const char* value, const float x, const float y, const float z) const {
     text_str(value, x, y, z);
 }

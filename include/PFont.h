@@ -65,20 +65,34 @@ namespace umgebung {
 
         void size(float size) {
 #ifndef DISABLE_GRAPHICS
-            if (font == nullptr) return;
+            if (font == nullptr) {
+                return;
+            }
             font->FaceSize((int) size);
 #endif
         }
 
         void draw(const char* text, float x, float y, float z) {
 #ifndef DISABLE_GRAPHICS
-            if (font == nullptr) return;
+            if (font == nullptr) {
+                return;
+            }
             glPushMatrix();
             glTranslatef(x, y, z);
             const float scaleFactor = 1.f / PIXEL_DENSITY;
             glScalef(scaleFactor, -scaleFactor, scaleFactor);
             font->Render(text, -1, FTPoint(0, 0));
             glPopMatrix();
+#endif
+        }
+
+        float textWidth(const char* text) {
+#ifndef DISABLE_GRAPHICS
+            if (font == nullptr) {
+                return 0;
+            }
+
+            return font->Advance(text, -1, FTPoint(0, 0));
 #endif
         }
 
