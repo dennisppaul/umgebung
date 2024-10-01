@@ -326,8 +326,7 @@ namespace umgebung {
 #endif // DISABLE_GRAPHICS
         }
 
-        virtual void draw() {
-        }
+        virtual void draw() {}
 
         virtual void post_draw() {
 #ifndef DISABLE_GRAPHICS
@@ -409,9 +408,11 @@ namespace umgebung {
         virtual void        keyPressed() {}
         virtual void        keyReleased() {}
         virtual void        dropped(const std::string& file_name) {}
+        virtual void        event(float* data, uint32_t length) {}
         virtual const char* name() {
             return UMGEBUNG_WINDOW_TITLE;
         }
+
 
         void init(uint32_t* pixels, const int width, const int height, const int format) override {
             PImage::init(pixels, width, height, format);

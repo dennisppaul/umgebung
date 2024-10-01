@@ -27,17 +27,19 @@ using namespace umgebung;
 
 extern "C" {
 
-void die() { 
+void die() {
 #if DEBUG_UMGEBUNG_ADAPTER
-    std::cout << "UmgebungAdapter: application is nullptr" << std::endl; 
+    std::cout << "UmgebungAdapter: application is nullptr" << std::endl;
 #endif
 }
 
 PApplet*    create_umgebung() { return instance(); }
 void        destroy_umgebung(PApplet* application) { delete application; }
+void        settings(PApplet* application) { application != nullptr ? application->settings() : die(); }
 void        setup(PApplet* application) { application != nullptr ? application->setup() : die(); }
 void        draw(PApplet* application) { application != nullptr ? application->draw() : die(); }
 void        beat(PApplet* application, uint32_t beat_count) { application != nullptr ? application->beat(beat_count) : die(); }
 void        audioblock(PApplet* application, float** input, float** output, const int length) { application != nullptr ? application->audioblock(input, output, length) : die(); }
 const char* name(PApplet* application) { return application != nullptr ? application->name() : "null"; }
+void        event(PApplet* application, float* data, uint32_t length) {application != nullptr ? application->event(data, length) : die();}
 }
