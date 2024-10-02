@@ -265,7 +265,8 @@ namespace umgebung {
                 fApplet->isMousePressed = true;
                 break;
             case SDL_MOUSEBUTTONUP:
-                fMouseIsPressed = false;
+                fMouseIsPressed      = false;
+                fApplet->mouseButton = -1;
                 fApplet->mouseReleased();
                 fApplet->isMousePressed = false;
                 break;
