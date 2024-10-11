@@ -17,7 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef PVECTOR_H
+#define PVECTOR_H
 
 #include <cmath>
 #include <random>
@@ -245,3 +246,5 @@ namespace umgebung {
         }
     };
 } // namespace umgebung
+
+#endif // PVECTOR_H

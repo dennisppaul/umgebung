@@ -258,10 +258,12 @@ namespace umgebung {
                 fApplet->mouseButton = event.button.button;
                 fMouseIsPressed      = true;
                 fApplet->mousePressed();
+                fApplet->isMousePressed = true;
                 break;
             case SDL_MOUSEBUTTONUP:
                 fMouseIsPressed = false;
                 fApplet->mouseReleased();
+                fApplet->isMousePressed = false;
                 break;
             case SDL_MOUSEMOTION:
                 fApplet->mouseX = static_cast<float>(event.motion.x);
@@ -271,8 +273,6 @@ namespace umgebung {
                 } else {
                     fApplet->mouseMoved();
                 }
-                fApplet->pmouseX = fApplet->mouseX;
-                fApplet->pmouseY = fApplet->mouseY;
                 break;
             case SDL_DROPFILE: {
                 char* dropped_filedir = event.drop.file;

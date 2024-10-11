@@ -265,6 +265,7 @@ namespace umgebung {
         float      pmouseX;
         float      pmouseY;
         int        mouseButton;
+        bool       isMousePressed; // in processing this is `mousePressed` … however this does not work in C++ as it conflicts with the function name
         int        key;
         int        frameCount;
         float      frameRate;
@@ -329,6 +330,9 @@ namespace umgebung {
         virtual void draw() {}
 
         virtual void post_draw() {
+            pmouseX = mouseX;
+            pmouseY = mouseY;
+
 #ifndef DISABLE_GRAPHICS
             //        glFlush();
             //        glFinish();
