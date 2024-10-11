@@ -57,16 +57,22 @@ namespace umgebung {
     public:
         float x, y, z;
 
-        // Constructors
         PVector() : x(0), y(0), z(0) {}
+
+        PVector(const PVector& p) = default;
 
         PVector(const float x, const float y, const float z = 0) : x(x), y(y), z(z) {}
 
-        // Set the components of the vector
         void set(const float _x, const float _y, const float _z = 0) {
             x = _x;
             y = _y;
             z = _z;
+        }
+
+        void set(const PVector& v) {
+            x = v.x;
+            y = v.y;
+            z = v.z;
         }
 
         // Make a new 2D unit vector with a random direction
@@ -179,6 +185,10 @@ namespace umgebung {
         // Calculate the dot product of two vectors
         static float dot(const PVector& v1, const PVector& v2) {
             return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+        }
+
+        float dot(const PVector& v) const {
+            return x * v.x + y * v.y + z * v.z;
         }
 
         // Calculate and return the cross product

@@ -228,11 +228,14 @@ namespace umgebung {
         }
 
         /* timer end */
-        endTime                                           = std::chrono::high_resolution_clock::now();
-        const std::chrono::duration<double> frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
-            endTime - startTime);
-        const double frameTime = frameDuration.count();
-        fApplet->frameRate     = static_cast<float>(1.0 / frameTime);
+        endTime                    = std::chrono::high_resolution_clock::now();
+        const auto   frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(endTime - startTime);
+        const double frameTime     = frameDuration.count();
+        if (frameTime == 0) {
+            fApplet->frameRate = 1;
+        } else {
+            fApplet->frameRate = static_cast<float>(1.0 / frameTime);
+        }
         fApplet->frameCount++;
         startTime = std::chrono::high_resolution_clock::now();
     }

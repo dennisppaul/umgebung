@@ -274,6 +274,7 @@ namespace umgebung {
         PApplet()
             : framebuffer_width(0),
               framebuffer_height(0),
+              isMousePressed(false),
               g(nullptr),
               framebuffer(0),
               framebuffer_texture(0) {
@@ -286,7 +287,7 @@ namespace umgebung {
             this->mouseButton = -1;
             this->key         = -1;
             this->frameCount  = 0;
-            this->frameRate   = 0;
+            this->frameRate   = 30;
         }
 
         void size(const int width, const int height) {
