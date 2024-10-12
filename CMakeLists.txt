@@ -115,8 +115,8 @@ else ()
     )
 endif ()
 add_library(umgebung-lib ${UMGEBUNG_SOURCE_FILES})
-target_compile_features(umgebung-lib PUBLIC cxx_std_17)
-target_compile_options(umgebung-lib PUBLIC -std=c++17)
+#target_compile_features(umgebung-lib PUBLIC cxx_std_17)
+#target_compile_options(umgebung-lib PUBLIC -std=c++17)
 
 # Specify include directories for the library
 target_include_directories(umgebung-lib PUBLIC
