@@ -427,7 +427,7 @@ void PGraphics::vertex(const float x, const float y, const float z, const float 
 /* font */
 
 PFont* PGraphics::loadFont(const std::string& file, const float size) {
-    auto* font = new PFont(file.c_str(), size);
+    auto* font = new PFont(file.c_str(), size, fPixelDensity);
     return font;
 }
 
