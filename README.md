@@ -111,12 +111,19 @@ if changes are made to `umgebung-app.cpp` ( or any other file in that folder ) i
 $ $ make -C build ; ./build/umgebung-app
 ```
 
+## Known Differences
+
+Java and C++ are similar in some aspects, but are very different in many others. A lot of the syntactic differences between *Processing* and *Umgebung* stem from these difference, while a few others are more or less developer decisions.
+
+- elements in `println()`  must be concatenated with `,` rather than `+` e.g `println("hello ", 23, " world");` @reason(strings cannot be concatenated with a `+` in C++ as they can be in Java)
+- the equivalent property to `mousePressed()` is renamed to `isMousePressed` @reason(in *Processing* the property `mousePressed` and the callback method `mousePressed` carry the same name. in C++ it is not allowed to have a field or property and a method with the same name)
+- `fill(float)` must be explicitly differentiated from `fill(uint32_t)` e.g `fill(1.0f)` or `fill(0xFF44FF88)` ( the same is true for `stroke(...)` ) @reason(in a different way from Java, C++ finds two methods that only differ in their parameter types i.e `float` and `uint32_t` ambiguous)
+
 ## Known Issues
 
 - a LOT of functions + methods + strategies are not yet implemented (the goal is to implement these on demand).
 - color system is fixed to range from `0.0 ... 1.0` and only works with RGB(A) and uses RGBA internally always
-- elements in `println()`  must be concatenated with `,` rather than `+` e.g `println("hello ", 23, " world");`
-- only tested on macOS + Raspberry Pi OS + Windows 11 + Ubuntu. although theoretically the external libraries as well as the build system should be cross-platform ( i.e macOS, Windows and any UNIX-like system ) it, however, may require some tweaking.
+- only tested on macOS + Raspberry Pi OS + Windows 11 + Ubuntu. although theoretically the external libraries as well as the build system should be cross-platform ( i.e macOS, Windows and any UNIX-like system ) it may, however, require some tweaking.
 
 ### Setting up Homebrew on macOS
 

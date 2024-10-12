@@ -391,13 +391,6 @@ void PGraphics::text_str(const std::string& text, const float x, const float y, 
 #endif // DISABLE_GRAPHICS
 }
 
-template<typename T>
-void PGraphics::text(const T& value, const float x, const float y, const float z) const {
-    std::ostringstream ss;
-    ss << value;
-    text_str(ss.str(), x, y, z);
-}
-
 void PGraphics::text(const char* value, const float x, const float y, const float z) const {
     text_str(value, x, y, z);
 }
