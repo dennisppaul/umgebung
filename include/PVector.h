@@ -22,6 +22,7 @@
 
 #include <cmath>
 #include <random>
+#include <chrono>
 
 namespace umgebung {
 
@@ -57,9 +58,8 @@ namespace umgebung {
     public:
         float x, y, z;
 
+        // Constructors
         PVector() : x(0), y(0), z(0) {}
-
-        PVector(const PVector& p) = default;
 
         PVector(const float x, const float y, const float z = 0) : x(x), y(y), z(z) {}
 
@@ -77,25 +77,24 @@ namespace umgebung {
 
         // Make a new 2D unit vector with a random direction
         static PVector random2D() {
-            static std::default_random_engine            generator;
+            static std::default_random_engine            generator(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
             static std::uniform_real_distribution<float> distribution(0.0, 1.0);
-            float                                        angle = distribution(generator) * 2 * M_PI;
-            return {(float) cos(angle), (float) sin(angle)};
+            const auto                                   angle = static_cast<float>(distribution(generator) * 2 * M_PI);
+            return {(cos(angle)), (sin(angle))};
         }
 
         // Make a new 3D unit vector with a random direction
         static PVector random3D() {
-            static std::default_random_engine            generator;
+            static std::default_random_engine            generator(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
             static std::uniform_real_distribution<float> distribution(0.0, 1.0);
-            auto                                         angle1 = (float) (distribution(generator) * 2 * M_PI);
-            auto                                         angle2 = (float) (distribution(generator) * 2 * M_PI);
-            return {(float) cos(angle1) * (float) sin(angle2), (float) sin(angle1) * (float) sin(angle2),
-                    (float) cos(angle2)};
+            const auto                                   angle1 = static_cast<float>(distribution(generator) * 2 * M_PI);
+            const auto                                   angle2 = static_cast<float>(distribution(generator) * 2 * M_PI);
+            return {cos(angle1) * sin(angle2), sin(angle1) * sin(angle2), (cos(angle2))};
         }
 
         // Make a new 2D unit vector from an angle
         static PVector fromAngle(float angle) {
-            return {(float) cos(angle), (float) sin(angle)};
+            return {(cos(angle)), (sin(angle))};
         }
 
         // Get a copy of the vector
@@ -176,9 +175,9 @@ namespace umgebung {
 
         // Calculate the distance between two points
         static float dist(const PVector& v1, const PVector& v2) {
-            float dx = v2.x - v1.x;
-            float dy = v2.y - v1.y;
-            float dz = v2.z - v1.z;
+            const float dx = v2.x - v1.x;
+            const float dy = v2.y - v1.y;
+            const float dz = v2.z - v1.z;
             return sqrt(dx * dx + dy * dy + dz * dz);
         }
 
@@ -198,7 +197,7 @@ namespace umgebung {
 
         // Normalize the vector to a length of 1
         void normalize() {
-            float m = mag();
+            const float m = mag();
             if (m != 0) {
                 div(m);
             }
@@ -225,10 +224,10 @@ namespace umgebung {
 
         // Rotate the vector by an angle (2D only)
         void rotate(float angle) {
-            float new_x = x * (float) cos(angle) - y * (float) sin(angle);
-            float new_y = x * (float) sin(angle) + y * (float) cos(angle);
-            x           = new_x;
-            y           = new_y;
+            const float new_x = x * cos(angle) - y * sin(angle);
+            const float new_y = x * sin(angle) + y * cos(angle);
+            x                 = new_x;
+            y                 = new_y;
         }
 
         // Linear interpolate the vector to another vector
@@ -240,9 +239,9 @@ namespace umgebung {
 
         // Calculate and return the angle between two vectors
         static float angleBetween(const PVector& v1, const PVector& v2) {
-            float dotProduct = dot(v1, v2);
-            float magV1      = v1.mag();
-            float magV2      = v2.mag();
+            const float dotProduct = dot(v1, v2);
+            const float magV1      = v1.mag();
+            const float magV2      = v2.mag();
             return acos(dotProduct / (magV1 * magV2));
         }
 
