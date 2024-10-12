@@ -32,9 +32,13 @@ namespace umgebung {
 
     /* static functions for PApplet */
 
+    void color_inv(uint32_t color, float& r, float& g, float& b, float& a);
+
     uint32_t color(float r, float g, float b, float a);
 
     uint32_t color(float r, float g, float b);
+
+    uint32_t color(float c, float a);
 
     float red(uint32_t color);
 

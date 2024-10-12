@@ -54,11 +54,22 @@ namespace umgebung {
         return random(0, max);
     }
 
+    void color_inv(const uint32_t color, float& r, float& g, float& b, float& a) {
+        a = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
+        b = static_cast<float>((color >> 16) & 0xFF) / 255.0f;
+        g = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
+        r = static_cast<float>(color & 0xFF) / 255.0f;
+    }
+
     uint32_t color(const float r, const float g, const float b, const float a) {
         return static_cast<uint32_t>(a * 255) << 24 |
                static_cast<uint32_t>(b * 255) << 16 |
                static_cast<uint32_t>(g * 255) << 8 |
                static_cast<uint32_t>(r * 255);
+    }
+
+    uint32_t color(const float c, const float a) {
+        return color(c, c, c, a);
     }
 
     uint32_t color(const float r, const float g, const float b) {
@@ -163,8 +174,8 @@ namespace umgebung {
         uint32_t          size = 1024;
         std::vector<char> buf(size);
         if (_NSGetExecutablePath(buf.data(), &size) == 0) {
-            std::filesystem::path exePath(buf.data());
-            std::filesystem::path dirPath = exePath.parent_path();
+            const std::filesystem::path exePath(buf.data());
+            const std::filesystem::path dirPath = exePath.parent_path();
             return dirPath.string() + std::string("/");
         } else {
             std::cerr << "Error retrieving path" << std::endl;

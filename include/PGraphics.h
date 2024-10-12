@@ -63,32 +63,34 @@ namespace umgebung {
         void   stroke(float r, float g, float b, float a = 1.0);
         void   stroke(float brightness, float a);
         void   stroke(float a);
+        void   stroke(uint32_t c);
         void   noStroke();
         void   fill(float r, float g, float b, float a = 1.0);
         void   fill(float brightness, float a);
         void   fill(float a);
+        void   fill(uint32_t c);
         void   noFill();
         void   background(float a, float b, float c, float d = 1.0);
         void   background(float a);
-        void   rect(float x, float y, float width, float height);
-        void   ellipse(float x, float y, float width, float height);
-        void   circle(float x, float y, float radius);
+        void   rect(float x, float y, float width, float height) const;
+        void   ellipse(float x, float y, float width, float height) const;
+        void   circle(float x, float y, float radius) const;
         void   ellipseDetail(int detail);
-        void   line(float x1, float y1, float x2, float y2);
+        void   line(float x1, float y1, float x2, float y2) const;
         void   pointSize(float point_size);
         void   point(float x, float y, float z = 0.0) const;
         void   beginShape(int shape = POLYGON);
         void   endShape();
         void   vertex(float x, float y, float z = 0.0);
         void   vertex(float x, float y, float z, float u, float v);
-        PFont* loadFont(std::string file, float size); // @development maybe use smart pointers here
+        PFont* loadFont(const std::string& file, float size); // @development maybe use smart pointers here
         void   textFont(PFont* font);
-        void   textSize(float size);
-        void   text(const std::string& text, float x, float y, float z = 0.0);
+        void   textSize(float size) const;
         template<typename T>
-        void    text(const T& value, float x, float y, float z);
+        void    text(const T& value, float x, float y, float z = 0.0f) const;
+        void    text(const char* value, float x, float y, float z = 0.0f) const;
         PImage* loadImage(const std::string& filename);
-        void    image(PImage* img, float x, float y, float w, float h) const;
+        void    image(const PImage* img, float x, float y, float w, float h) const;
         void    image(PImage* img, float x, float y);
         void    texture(const PImage* img);
         void    popMatrix();
@@ -121,6 +123,8 @@ namespace umgebung {
         } fill_color, stroke_color;
 
         static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
+
+        void text_str(const std::string& text, float x, float y, float z = 0.0f) const;
 
 #ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
     private:

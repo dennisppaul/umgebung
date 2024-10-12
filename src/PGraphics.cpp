@@ -21,6 +21,7 @@
 
 #include "PGraphics.h"
 #include "PFont.h"
+#include "UmgebungFunctions.h"
 
 using namespace umgebung;
 
@@ -32,8 +33,8 @@ PGraphics::PGraphics() : PImage(0, 0, 0) {
     bufferInitialized = false;
     setupEllipseBuffer(ELLIPSE_NUM_SEGMENTS);
 #endif // PGRAPHICS_USE_VBO
-    fill(1);
-    stroke(0);
+    fill(1.0f);
+    stroke(0.0f);
 }
 
 PGraphics::~PGraphics() {
@@ -57,6 +58,15 @@ void PGraphics::stroke(const float brightness, const float a) {
     stroke_color.g      = brightness;
     stroke_color.b      = brightness;
     stroke_color.a      = a;
+    stroke_color.active = true;
+}
+
+void PGraphics::stroke(const uint32_t c) {
+    color_inv(c, stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
+    // stroke_color.r      = static_cast<float>(c >> 16 & 0xFF) / 255.0f;
+    // stroke_color.g      = static_cast<float>(c >> 8 & 0xFF) / 255.0f;
+    // stroke_color.b      = static_cast<float>(c & 0xFF) / 255.0f;
+    // stroke_color.a      = static_cast<float>(c >> 24 & 0xFF) / 255.0f;
     stroke_color.active = true;
 }
 
@@ -88,6 +98,15 @@ void PGraphics::fill(const float a) {
     fill(a, a, a);
 }
 
+void PGraphics::fill(const uint32_t c) {
+    color_inv(c, fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+    // fill_color.r      = static_cast<float>(c >> 16 & 0xFF) / 255.0f;
+    // fill_color.g      = static_cast<float>(c >> 8 & 0xFF) / 255.0f;
+    // fill_color.b      = static_cast<float>(c & 0xFF) / 255.0f;
+    // fill_color.a      = static_cast<float>(c >> 24 & 0xFF) / 255.0f;
+    fill_color.active = true;
+}
+
 void PGraphics::noFill() {
     fill_color.active = false;
 }
@@ -99,11 +118,11 @@ void PGraphics::background(const float a, const float b, const float c, const fl
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void PGraphics::background(float a) {
+void PGraphics::background(const float a) {
     background(a, a, a);
 }
 
-void PGraphics::rect(const float x, const float y, const float width, const float height) {
+void PGraphics::rect(const float x, const float y, const float width, const float height) const {
     if (fill_color.active) {
         glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
         glBegin(GL_QUADS);
@@ -221,7 +240,7 @@ static void draw_ellipse(const GLenum shape,
     glEnd();
 }
 
-void PGraphics::ellipse(const float x, const float y, const float width, const float height) {
+void PGraphics::ellipse(const float x, const float y, const float width, const float height) const {
     if (fill_color.active) {
         glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
         draw_ellipse(GL_TRIANGLE_FAN, fEllipseDetail, x, y, width, height);
@@ -234,15 +253,15 @@ void PGraphics::ellipse(const float x, const float y, const float width, const f
 }
 #endif // PGRAPHICS_USE_VBO
 
-void PGraphics::circle(const float x, const float y, const float diameter) {
+void PGraphics::circle(const float x, const float y, const float diameter) const {
     ellipse(x, y, diameter, diameter);
 }
 
-void PGraphics::ellipseDetail(int detail) {
+void PGraphics::ellipseDetail(const int detail) {
     fEllipseDetail = detail;
 }
 
-void PGraphics::line(const float x1, const float y1, const float x2, const float y2) {
+void PGraphics::line(const float x1, const float y1, const float x2, const float y2) const {
     if (!stroke_color.active) {
         return;
     }
@@ -342,7 +361,7 @@ void PGraphics::vertex(const float x, const float y, const float z, const float 
 
 /* font */
 
-PFont* PGraphics::loadFont(std::string file, const float size) {
+PFont* PGraphics::loadFont(const std::string& file, const float size) {
     auto* font = new PFont(file.c_str(), size);
     return font;
 }
@@ -351,14 +370,14 @@ void PGraphics::textFont(PFont* font) {
     fCurrentFont = font;
 }
 
-void PGraphics::textSize(const float size) {
+void PGraphics::textSize(const float size) const {
     if (fCurrentFont == nullptr) {
         return;
     }
     fCurrentFont->size(size);
 }
 
-void PGraphics::text(const std::string& text, float x, float y, float z) {
+void PGraphics::text_str(const std::string& text, const float x, const float y, const float z) const {
     if (fCurrentFont == nullptr) {
         return;
     }
@@ -373,10 +392,14 @@ void PGraphics::text(const std::string& text, float x, float y, float z) {
 }
 
 template<typename T>
-void PGraphics::text(const T& value, float x, float y, float z) {
+void PGraphics::text(const T& value, const float x, const float y, const float z) const {
     std::ostringstream ss;
     ss << value;
-    text(ss.str(), x, y, z);
+    text_str(ss.str(), x, y, z);
+}
+
+void PGraphics::text(const char* value, const float x, const float y, const float z) const {
+    text_str(value, x, y, z);
 }
 
 PImage* PGraphics::loadImage(const std::string& filename) {
@@ -384,7 +407,7 @@ PImage* PGraphics::loadImage(const std::string& filename) {
     return img;
 }
 
-void PGraphics::image(PImage* img, float x, float y, float w, float h) const {
+void PGraphics::image(const PImage* img, const float x, const float y, const float w, const float h) const {
 #ifndef DISABLE_GRAPHICS
     glEnable(GL_TEXTURE_2D);
     glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
@@ -407,7 +430,7 @@ void PGraphics::image(PImage* img, float x, float y, float w, float h) const {
 #endif // DISABLE_GRAPHICS
 }
 
-void PGraphics::image(PImage* img, float x, float y) {
+void PGraphics::image(PImage* img, const float x, const float y) {
     image(img, x, y, img->width, img->height);
 }
 
@@ -586,17 +609,17 @@ void PGraphics::background(float a, float b, float c, float d) {
 void PGraphics::background(float a) {
 }
 
-void PGraphics::rect(float x, float y, float _width, float _height) {
+void PGraphics::rect(float x, float y, float _width, float _height) const {
 }
 
-void PGraphics::line(float x1, float y1, float x2, float y2) {
+void PGraphics::line(float x1, float y1, float x2, float y2) const {
 }
 
 
 void PGraphics::pointSize(float point_size) {
 }
 
-void PGraphics::point(float x, float y, float z) {
+void PGraphics::point(float x, float y, float z) const {
 }
 
 void PGraphics::beginShape(int shape) {
