@@ -603,6 +603,9 @@ namespace umgebung {
         handle_setup(window);
         fAppIsInitialized = true;
 
+        // enable modern trackpad events aka SDL_FINGERDOWN and SDL_FINGERUP
+        SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
+
         /* loop */
         std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
         while (fAppIsRunning) {

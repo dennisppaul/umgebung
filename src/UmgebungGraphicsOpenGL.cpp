@@ -242,6 +242,7 @@ namespace umgebung {
     }
 
     void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed) {
+        fApplet->sdlEvent(event);
         switch (event.type) {
             case SDL_QUIT:
                 fAppIsRunning = false;
@@ -273,12 +274,23 @@ namespace umgebung {
             case SDL_MOUSEMOTION:
                 fApplet->mouseX = static_cast<float>(event.motion.x);
                 fApplet->mouseY = static_cast<float>(event.motion.y);
+
                 if (fMouseIsPressed) {
                     fApplet->mouseDragged();
                 } else {
                     fApplet->mouseMoved();
                 }
                 break;
+                // case SDL_MULTIGESTURE:
+            case SDL_MOUSEWHEEL:
+                // fApplet->mouseWheel(event.wheel.preciseX, event.wheel.preciseY);
+                break;
+            // case SDL_MULTIGESTURE:
+            //     if (event.mgesture.numFingers == 2 && !fMouseIsPressed) {
+            //         println("sensor update", event.mgesture.x);
+            //         fApplet->mouseWheel(event.mgesture.x * 100.f, event.mgesture.y * 100.f);
+            //     }
+            //     break;
             case SDL_DROPFILE: {
                 char* dropped_filedir = event.drop.file;
                 fApplet->dropped(dropped_filedir);

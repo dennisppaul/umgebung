@@ -456,7 +456,7 @@ void PGraphics::text_str(const std::string& text, const float x, const float y, 
 #endif // DISABLE_GRAPHICS
 }
 
-float PGraphics::textWidth(const std::string& text) {
+float PGraphics::textWidth(const std::string& text) const {
     if (fCurrentFont == nullptr) {
         return 0;
     }
@@ -466,9 +466,9 @@ float PGraphics::textWidth(const std::string& text) {
 #endif // DISABLE_GRAPHICS
 }
 
-void PGraphics::pixelDensity(const int density) {
-    if (density > 0 && density <= 3) {
-        fPixelDensity = density;
+void PGraphics::pixelDensity(const int value) {
+    if (value > 0 && value <= 3) {
+        fPixelDensity = value;
     } else {
         std::cerr << "PixelDensity can only be between 1 and 3.";
     }

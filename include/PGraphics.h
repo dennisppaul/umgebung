@@ -97,7 +97,7 @@ namespace umgebung {
         void    textFont(PFont* font);
         void    textSize(float size) const;
         void    text(const char* value, float x, float y, float z = 0.0f) const;
-        float   textWidth(const std::string& text);
+        float   textWidth(const std::string& text) const;
         PImage* loadImage(const std::string& filename);
         void    image(const PImage* img, float x, float y, float w, float h) const;
         void    image(PImage* img, float x, float y);
