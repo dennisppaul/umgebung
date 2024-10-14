@@ -57,8 +57,15 @@
 
 namespace umgebung {
     static constexpr int DEFAULT_AUDIO_DEVICE = -1;
-#define DEFAULT_AUDIO_SAMPLE_RATE 48000     // TODO make this configurable
-#define DEFAULT_FRAMES_PER_BUFFER 2048      // TODO make this configurable
+
+#ifndef DEFAULT_AUDIO_SAMPLE_RATE
+#define DEFAULT_AUDIO_SAMPLE_RATE 48000 // TODO make this configurable
+#endif
+
+#ifndef DEFAULT_FRAMES_PER_BUFFER
+#define DEFAULT_FRAMES_PER_BUFFER 2048 // TODO make this configurable
+#endif
+
 #define DEFAULT_NUMBER_OF_INPUT_CHANNELS 1  // TODO make this configurable
 #define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2 // TODO make this configurable
 #define DEFAULT (-1)

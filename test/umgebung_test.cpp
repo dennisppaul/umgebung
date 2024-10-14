@@ -47,9 +47,9 @@ class UmgebungApp : public PApplet {
     }
 
     void draw() override {
-        background(1);
+        background(1.0f);
 
-        stroke(0);
+        stroke(0.0f);
         noFill();
         rect(10, 10, width / 2 - 20, height / 2 - 20);
 

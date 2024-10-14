@@ -17,12 +17,12 @@ message(STATUS "UMGEBUNG_APP  : ${PROJECT_NAME}")
 ##########################################################################################################
 ### COMPILER FLAGS                                                                                     ###
 ##########################################################################################################
-function(set_umgebung_compiler_flags)
-    set(CMAKE_CXX_STANDARD 17 PARENT_SCOPE)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON PARENT_SCOPE)
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION" PARENT_SCOPE)
-    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
-endfunction()
+#function(set_umgebung_compiler_flags)
+#    set(CMAKE_CXX_STANDARD 17 PARENT_SCOPE)
+#    set(CMAKE_CXX_STANDARD_REQUIRED ON PARENT_SCOPE)
+##    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION" PARENT_SCOPE)
+#    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
+#endfunction()
 
 # TODO somehow this does not work?!?
 ## NOTE can and should be set in root cmake script
@@ -440,7 +440,6 @@ if (BUILD_TESTING)
 
     add_test(NAME UmgebungTest COMMAND umgebung-tests)
 else ()
-    message(STATUS "TESTING       : disabled")
 endif ()
 
 # run test from CLI with `cmake -B build -DBUILD_TESTING=ON ; cmake --build build ; ctest --test-dir build`

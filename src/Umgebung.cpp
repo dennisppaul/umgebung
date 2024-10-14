@@ -44,19 +44,21 @@
 namespace umgebung {
     /* public */
 
-    int  audio_input_device    = DEFAULT_AUDIO_DEVICE;
-    int  audio_output_device   = DEFAULT_AUDIO_DEVICE;
-    int  audio_input_channels  = DEFAULT_NUMBER_OF_INPUT_CHANNELS;
-    int  audio_output_channels = DEFAULT_NUMBER_OF_OUTPUT_CHANNELS;
-    int  monitor               = DEFAULT;
-    bool fullscreen            = false;
-    bool borderless            = false;
-    int  antialiasing          = DEFAULT;
-    bool resizable             = false;
-    bool always_on_top         = false;
-    bool enable_retina_support = true;
-    bool headless              = false;
-    bool no_audio              = false;
+    int  audio_input_device      = DEFAULT_AUDIO_DEVICE;
+    int  audio_output_device     = DEFAULT_AUDIO_DEVICE;
+    int  audio_input_channels    = DEFAULT_NUMBER_OF_INPUT_CHANNELS;
+    int  audio_output_channels   = DEFAULT_NUMBER_OF_OUTPUT_CHANNELS;
+    int  audio_sample_rate       = DEFAULT_AUDIO_SAMPLE_RATE;
+    int  audio_samples_per_frame = DEFAULT_FRAMES_PER_BUFFER;
+    int  monitor                 = DEFAULT;
+    bool fullscreen              = false;
+    bool borderless              = false;
+    int  antialiasing            = DEFAULT;
+    bool resizable               = false;
+    bool always_on_top           = false;
+    bool enable_retina_support   = true;
+    bool headless                = false;
+    bool no_audio                = false;
 
     /* private */
 
@@ -84,8 +86,8 @@ namespace umgebung {
 #define FIXED_MEMORY_ALLOCATION
 #ifdef FIXED_MEMORY_ALLOCATION
 
-#define MAX_CHANNELS 8                       // TODO make this configurable
-#define MAX_FRAMES DEFAULT_FRAMES_PER_BUFFER // TODO make this configurable
+    // #define MAX_CHANNELS 8                       // TODO make this configurable
+    // #define MAX_FRAMES DEFAULT_FRAMES_PER_BUFFER // TODO make this configurable
 
     void audioOutputCallback(void* userdata, Uint8* stream, int len) {
         (void) userdata;
@@ -101,7 +103,7 @@ namespace umgebung {
             std::fill_n(output_buffer, samples, 0);
             return;
         }
-        int mIterationGuard = DEFAULT_AUDIO_SAMPLE_RATE / DEFAULT_FRAMES_PER_BUFFER;
+        int mIterationGuard = audio_sample_rate / audio_samples_per_frame;
         while (!audio_input_ready && mIterationGuard-- > 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
@@ -110,7 +112,10 @@ namespace umgebung {
             return;
         }
 
-        const int frames = (audio_output_channels == 0) ? (samples / audio_input_channels) : (samples / audio_output_channels);
+        // TODO this needs to be tested and cleaned up
+        const int frames       = (audio_output_channels == 0) ? (samples / audio_input_channels) : (samples / audio_output_channels);
+        const int MAX_FRAMES   = audio_samples_per_frame;
+        const int MAX_CHANNELS = audio_output_channels > audio_input_channels ? audio_output_channels : audio_input_channels;
 
         // Ensure that frames and channels do not exceed maximum allowed values
         if (audio_input_channels > MAX_CHANNELS || audio_output_channels > MAX_CHANNELS || frames > MAX_FRAMES) {
@@ -155,7 +160,7 @@ namespace umgebung {
         if (!audio_was_initialized) {
             audio_was_initialized = true;
             for (int i = 0; i < samples; ++i) {
-                output_buffer[i] *= static_cast<float>(i) / (float) samples;
+                output_buffer[i] *= static_cast<float>(i) / static_cast<float>(samples);
             }
         }
     }
@@ -173,7 +178,7 @@ namespace umgebung {
             std::fill(output_buffer, output_buffer + samples, 0);
             return;
         }
-        int mIterationGuard = DEFAULT_AUDIO_SAMPLE_RATE / DEFAULT_FRAMES_PER_BUFFER;
+        int mIterationGuard = audio_sample_rate / audio_samples_per_frame;
         while (!audio_input_ready && mIterationGuard-- > 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
@@ -290,10 +295,10 @@ namespace umgebung {
         if (output_channels > 0) {
             SDL_AudioSpec audio_output_spec, audio_output_obtained_spec;
             SDL_zero(audio_output_spec);
-            audio_output_spec.freq     = DEFAULT_AUDIO_SAMPLE_RATE; // @TODO make this adjustable
-            audio_output_spec.format   = AUDIO_F32;                 // @TODO make this adjustable
+            audio_output_spec.freq     = audio_sample_rate; // @TODO make this adjustable
+            audio_output_spec.format   = AUDIO_F32;         // @TODO make this adjustable
             audio_output_spec.channels = output_channels;
-            audio_output_spec.samples  = DEFAULT_FRAMES_PER_BUFFER; // @TODO make this adjustable
+            audio_output_spec.samples  = audio_samples_per_frame; // @TODO make this adjustable
             audio_output_spec.callback = audioOutputCallback;
 
             audio_output_stream = SDL_OpenAudioDevice(
@@ -320,10 +325,10 @@ namespace umgebung {
         if (input_channels > 0) {
             SDL_AudioSpec audio_input_spec, audio_input_obtained_spec;
             SDL_zero(audio_input_spec);
-            audio_input_spec.freq     = DEFAULT_AUDIO_SAMPLE_RATE; // @TODO make this adjustable
-            audio_input_spec.format   = AUDIO_F32;                 // @TODO make this adjustable
+            audio_input_spec.freq     = audio_sample_rate; // @TODO make this adjustable
+            audio_input_spec.format   = AUDIO_F32;         // @TODO make this adjustable
             audio_input_spec.channels = input_channels;
-            audio_input_spec.samples  = DEFAULT_FRAMES_PER_BUFFER; // @TODO make this adjustable
+            audio_input_spec.samples  = audio_samples_per_frame; // @TODO make this adjustable
             audio_input_spec.callback = audioInputCallback;
             audio_input_stream        = SDL_OpenAudioDevice(
                 audio_input_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_input_device, 1),
@@ -336,7 +341,7 @@ namespace umgebung {
                 return;
             }
 
-            input_buffer = new float[DEFAULT_FRAMES_PER_BUFFER * input_channels];
+            input_buffer = new float[audio_samples_per_frame * input_channels];
             SDL_PauseAudioDevice(audio_input_stream, 0);
         }
 
@@ -458,8 +463,8 @@ namespace umgebung {
                                        input_channels,
                                        output_channels,
                                        paFloat32,
-                                       DEFAULT_AUDIO_SAMPLE_RATE,
-                                       DEFAULT_FRAMES_PER_BUFFER,
+                                       audio_sample_rate,
+                                       audio_samples_per_frame,
                                        audioCallback,
                                        nullptr);
         } else {
@@ -500,8 +505,8 @@ namespace umgebung {
             err = Pa_OpenStream(&stream,
                                 &inputParameters,
                                 &outputParameters,
-                                DEFAULT_AUDIO_SAMPLE_RATE,
-                                DEFAULT_FRAMES_PER_BUFFER,
+                                audio_sample_rate,
+                                audio_samples_per_frame,
                                 paClipOff,
                                 audioCallback,
                                 nullptr);
@@ -574,7 +579,6 @@ namespace umgebung {
         fApplet->settings();
 
 #ifndef DISABLE_GRAPHICS
-
         APP_WINDOW* window;
         if (headless) {
             window = nullptr;
@@ -585,7 +589,6 @@ namespace umgebung {
                 return -1;
             }
         }
-
 #endif // DISABLE_GRAPHICS
 
 #ifndef DISABLE_AUDIO
@@ -608,7 +611,7 @@ namespace umgebung {
                 handle_event(e, fAppIsRunning, fMouseIsPressed);
             }
             std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double>                  frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
+            auto                                           frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
                 currentTime - lastFrameTime);
             double frameTime = frameDuration.count();
             if (frameTime >= fTargetFrameTime) {
