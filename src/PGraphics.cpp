@@ -470,7 +470,8 @@ void PGraphics::pixelDensity(const int value) {
     if (value > 0 && value <= 3) {
         fPixelDensity = value;
     } else {
-        std::cerr << "PixelDensity can only be between 1 and 3.";
+        std::cerr << "PixelDensity can only be between 1 and 3."
+                  << "\n";
     }
 }
 

@@ -21,12 +21,7 @@
 #ifndef DISABLE_GRAPHICS
 
 #include <GL/glew.h>
-
-#ifdef ENABLE_IMGUI
-#include "imgui.h"
-#include "imgui_impl_sdl2.h"
-#include "imgui_impl_opengl2.h"
-#endif
+#include "InitIMGui.h"
 
 namespace umgebung {
     static PApplet*      fApplet   = nullptr;
@@ -160,37 +155,20 @@ namespace umgebung {
             SDL_DestroyWindow(window);
             return nullptr;
         }
-#ifdef ENABLE_IMGUI
-        // Setup Dear ImGui context
-        std::cout << "create imgui context"
-                  << "\n";
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO();
-        (void) io;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-        // Setup Dear ImGui style
-        // ImGui::StyleColorsDark();
-        ImGui::StyleColorsLight();
-
-        // Setup Platform/Renderer backends
-        ImGui_ImplSDL2_InitForOpenGL(window, glContext);
-        ImGui_ImplOpenGL2_Init();
-
-#endif
 
         int framebufferWidth, framebufferHeight;
         SDL_GL_GetDrawableSize(window, &framebufferWidth, &framebufferHeight);
+        int dpi = 1;
         if (fApplet->width != framebufferWidth || fApplet->height != framebufferHeight) {
-            std::cout << "+++ retina display detected" << std::endl;
-            fApplet->pixelDensity(2);
+            dpi = framebufferWidth / fApplet->width;
+            std::cout << "+++ retina display detected. dpi: " << dpi << "\n";
+            fApplet->pixelDensity(dpi);
         }
         fApplet->framebuffer_width  = framebufferWidth;
         fApplet->framebuffer_height = framebufferHeight;
+
+        imgui_init(window, glContext, dpi);
+
 
         set_default_graphics_state();
 
@@ -214,11 +192,7 @@ namespace umgebung {
 
     void handle_shutdown(APP_WINDOW* window) {
         if (!headless) {
-#ifdef ENABLE_IMGUI
-            ImGui_ImplOpenGL2_Shutdown();
-            ImGui_ImplSDL2_Shutdown();
-            ImGui::DestroyContext();
-#endif
+            imgui_destroy();
             SDL_GL_DeleteContext(glContext);
             SDL_DestroyWindow(window);
         }
@@ -252,33 +226,14 @@ namespace umgebung {
         if (headless) {
             fApplet->draw();
         } else {
-#ifdef ENABLE_IMGUI
             // Start the Dear ImGui frame
-            ImGui_ImplOpenGL2_NewFrame();
-            ImGui_ImplSDL2_NewFrame();
-            ImGui::NewFrame();
-#endif
+            imgui_prerender();
             /* draw */
             fApplet->pre_draw();
             fApplet->draw();
             fApplet->post_draw();
 
-#ifdef ENABLE_IMGUI
-            ImGuiIO& io = ImGui::GetIO();
-            (void) io;
-            ImGui::Render();
-            // glUseProgram(0);
-            ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-            // Update and Render additional Platform Windows
-            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-                SDL_Window*   backup_current_window  = SDL_GL_GetCurrentWindow();
-                SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-                ImGui::UpdatePlatformWindows();
-                ImGui::RenderPlatformWindowsDefault();
-                SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
-                // TODO for OpenGL: restore current GL context.
-            }
-#endif
+            imgui_postrender();
             /* swap front and back buffers */
             SDL_GL_SwapWindow(window);
         }
@@ -297,12 +252,22 @@ namespace umgebung {
     }
 
     void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed) {
-#ifdef ENABLE_IMGUI
-        ImGui_ImplSDL2_ProcessEvent(&event);
-#endif
+        imgui_processevent(event);
+        // dont handle events which come not from the main window
+        if (event.window.windowID != 1) {
+            return;
+        }
 
+        // generic sdl event handler
         fApplet->sdlEvent(event);
+
         switch (event.type) {
+
+            case SDL_WINDOWEVENT:
+                if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
+                    fAppIsRunning = false;
+                }
+                break;
             case SDL_QUIT:
                 fAppIsRunning = false;
                 break;
