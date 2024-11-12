@@ -159,11 +159,27 @@ namespace umgebung {
     void imgui_processevent(const SDL_Event& event) {
         ImGui_ImplSDL2_ProcessEvent(&event);
     }
+
+
+    bool imgui_is_keyboard_captured() {
+        ImGuiIO& io = ImGui::GetIO();
+        return io.WantCaptureKeyboard;
+    }
+    bool imgui_is_mouse_captured() {
+        ImGuiIO& io = ImGui::GetIO();
+        return io.WantCaptureMouse;
+    }
 #else
     void imgui_init(APP_WINDOW* window, SDL_GLContext glContext, int dpi) {}
     void imgui_destroy() {}
     void imgui_prerender() {}
     void imgui_postrender() {}
     void imgui_processevent(const SDL_Event& event) {}
+    bool imgui_is_keyboard_captured() {
+        return false;
+    }
+    bool imgui_is_mouse_captured() {
+        return false;
+    }
 #endif
 } // namespace umgebung

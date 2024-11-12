@@ -16,6 +16,8 @@ namespace umgebung {
     void imgui_prerender();
     void imgui_postrender();
     void imgui_processevent(const SDL_Event& event);
+    bool imgui_is_keyboard_captured();
+    bool imgui_is_mouse_captured();
 } // namespace umgebung
 
 #endif //IMGUI_H
