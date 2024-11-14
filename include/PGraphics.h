@@ -65,6 +65,7 @@ namespace umgebung {
         void    stroke(float a);
         void    stroke(uint32_t c);
         void    noStroke();
+        void    strokeWeight(float weight);
         void    fill(float r, float g, float b, float a = 1.0);
         void    fill(float brightness, float a);
         void    fill(float a);
@@ -77,6 +78,15 @@ namespace umgebung {
         void    circle(float x, float y, float radius) const;
         void    ellipseDetail(int detail);
         void    line(float x1, float y1, float x2, float y2) const;
+        void    bezier(float x1, float y1,
+                       float x2, float y2,
+                       float x3, float y3,
+                       float x4, float y4) const;
+        void    bezier(float x1, float y1, float z1,
+                       float x2, float y2, float z2,
+                       float x3, float y3, float z3,
+                       float x4, float y4, float z4) const;
+        void    bezierDetail(int detail);
         void    pointSize(float point_size);
         void    point(float x, float y, float z = 0.0) const;
         void    beginShape(int shape = POLYGON);
@@ -118,6 +128,7 @@ namespace umgebung {
         bool   fEnabledTextureInShape = false;
         bool   fShapeBegun            = false;
         int    fEllipseDetail         = 32;
+        int    fBezierDetail          = 20;
 
         struct {
             float r      = 0;

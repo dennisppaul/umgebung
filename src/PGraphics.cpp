@@ -78,6 +78,10 @@ void PGraphics::noStroke() {
     stroke_color.active = false;
 }
 
+void PGraphics::strokeWeight(float weight) {
+    glLineWidth(weight);
+}
+
 void PGraphics::fill(const float r, const float g, const float b, const float a) {
     fill_color.r      = r;
     fill_color.g      = g;
@@ -272,6 +276,67 @@ void PGraphics::line(const float x1, const float y1, const float x2, const float
     glEnd();
 }
 
+void PGraphics::bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) const {
+    if (!stroke_color.active) {
+        return;
+    }
+    glColor4f(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
+
+    const int   segments = fBezierDetail;
+    const float step     = 1.0f / segments;
+
+    glBegin(GL_LINE_STRIP);
+    for (int i = 0; i <= segments; ++i) {
+        const float t = i * step;
+        const float u = 1.0f - t;
+
+        const float b0 = u * u * u;
+        const float b1 = 3 * u * u * t;
+        const float b2 = 3 * u * t * t;
+        const float b3 = t * t * t;
+
+        const float x = b0 * x1 + b1 * x2 + b2 * x3 + b3 * x4;
+        const float y = b0 * y1 + b1 * y2 + b2 * y3 + b3 * y4;
+
+        glVertex2f(x, y);
+    }
+    glEnd();
+}
+
+void PGraphics::bezier(float x1, float y1, float z1,
+                       float x2, float y2, float z2,
+                       float x3, float y3, float z3,
+                       float x4, float y4, float z4) const {
+    if (!stroke_color.active) {
+        return;
+    }
+    glColor4f(stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
+
+    const int   segments = fBezierDetail;
+    const float step     = 1.0f / segments;
+
+    glBegin(GL_LINE_STRIP);
+    for (int i = 0; i <= segments; ++i) {
+        float t = i * step;
+        float u = 1.0f - t;
+
+        float b0 = u * u * u;
+        float b1 = 3 * u * u * t;
+        float b2 = 3 * u * t * t;
+        float b3 = t * t * t;
+
+        float x = b0 * x1 + b1 * x2 + b2 * x3 + b3 * x4;
+        float y = b0 * y1 + b1 * y2 + b2 * y3 + b3 * y4;
+        float z = b0 * z1 + b1 * z2 + b2 * z3 + b3 * z4;
+
+        glVertex3f(x, y, z);
+    }
+    glEnd();
+}
+
+void PGraphics::bezierDetail(int detail) {
+    fBezierDetail = detail;
+}
 
 void PGraphics::pointSize(const float point_size) {
     fPointSize = point_size;
@@ -562,7 +627,7 @@ void PGraphics::init(uint32_t* pixels, const int width, const int height, int fo
 }
 #endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
 
-#else  // DISABLE_GRAPHICS
+#else // DISABLE_GRAPHICS
 void PGraphics::popMatrix() {
 }
 
@@ -608,6 +673,17 @@ void PGraphics::rect(float x, float y, float _width, float _height) const {
 void PGraphics::line(float x1, float y1, float x2, float y2) const {
 }
 
+void PGraphics::bezier(float x1, float y1,
+                       float x2, float y2,
+                       float x3, float y3,
+                       float x4, float y4) const {}
+
+void PGraphics::bezier(float x1, float y1, float z1,
+                       float x2, float y2, float z2,
+                       float x3, float y3, float z3,
+                       float x4, float y4, float z4) const {}
+
+void PGraphics::bezierDetail(int detail) {}
 
 void PGraphics::pointSize(float point_size) {
 }
@@ -626,4 +702,7 @@ void PGraphics::vertex(float x, float y, float z) {
 
 void PGraphics::vertex(float x, float y, float z, float u, float v) {
 }
+
+void PGraphics::strokeWeight(float weight) {}
+
 #endif // DISABLE_GRAPHICS
