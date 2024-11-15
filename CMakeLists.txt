@@ -161,10 +161,14 @@ if (ENABLE_PORTAUDIO)
 endif (ENABLE_PORTAUDIO)
 
 if (ENABLE_IMGUI)
+    if (NOT DEFINED IMGUI_PATH)
+        message(FATAL_ERROR "IMGUI_PATH must be set in CMakeLists.txt")
+    elseif (NOT EXISTS ${IMGUI_PATH})
+        message(FATAL_ERROR "IMGUI_PATH does not point to valid directory")
+    endif ()
+
     target_compile_definitions(umgebung-lib-interface INTERFACE ENABLE_IMGUI)
     target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_IMGUI)
-    # Set where the ImGui files are stored
-    set(IMGUI_PATH "../imgui")
     # Compile as static library
     file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)
     file(GLOB IMGUI_SOURCE_FILES
@@ -178,6 +182,7 @@ if (ENABLE_IMGUI)
     target_include_directories("ImGui" PUBLIC ${IMGUI_PATH})
     target_include_directories("ImGui" PUBLIC ${IMGUI_PATH}/backends)
     message(STATUS "ENABLING      : IMGui")
+
 endif (ENABLE_IMGUI)
 
 
