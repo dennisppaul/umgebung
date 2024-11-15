@@ -113,6 +113,7 @@ namespace umgebung {
         void    scale(float x);
         void    scale(float x, float y);
         void    scale(float x, float y, float z);
+        void    pixelDensity(int density);
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) const {
@@ -130,6 +131,7 @@ namespace umgebung {
         bool   fShapeBegun            = false;
         int    fEllipseDetail         = 32;
         int    fBezierDetail          = 20;
+        int    fPixelDensity          = 1;
 
         struct {
             float r      = 0;

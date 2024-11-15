@@ -159,6 +159,7 @@ namespace umgebung {
         SDL_GL_GetDrawableSize(window, &framebufferWidth, &framebufferHeight);
         if (fApplet->width != framebufferWidth || fApplet->height != framebufferHeight) {
             std::cout << "+++ retina display detected" << std::endl;
+            fApplet->pixelDensity(2);
         }
         fApplet->framebuffer_width  = framebufferWidth;
         fApplet->framebuffer_height = framebufferHeight;
