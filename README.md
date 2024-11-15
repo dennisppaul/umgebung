@@ -4,7 +4,7 @@ well, *Umgebung* is actually imitating [Processing.org](https://processing.org) 
 
 this project aims to supply a framework that allows writing applications that more or less look like original [Processing.org](https://processing.org) sketches. note the character of this project is that features will be added as they are needed. it might partly replicate but not fully emulate the original [Processing.org](https://processing.org) environment.
 
-*Umgebung* may also function as a statement on what is good and valueable about the [Processing.org](https://processing.org) *idiom* while at the same time suggesting disconnecting it from one specific group, application or project … maybe a bit like markdown in that sense.
+*Umgebung* may also function as a statement on what is good and valuable about the [Processing.org](https://processing.org) *idiom* while at the same time suggesting disconnecting it from one specific group, application or project … maybe a bit like markdown in that sense.
 
 see [DOCUMENTATION](./DOCUMENTATION.md) for usage information and [examples](https://github.com/dennisppaul/umgebung-examples) for applications.
 
@@ -12,11 +12,11 @@ see [DOCUMENTATION](./DOCUMENTATION.md) for usage information and [examples](htt
 
 *Umgebung* is yet another programming environment for designers, makers, and artists. so why does it exist? and why not use [Processing.org](https://processing.org), [OpenFrameworks](https://openframeworks.cc), [Cinder](https://libcinder.org) or any of the other frameworks out there?
 
-well, the main reason why we even created *Umgebung* was basically to have a C++ derivative of Processing.org that stays very close to the *original* idiom. While Cinder and OpenFrameworks, for example, are fantastic projects, they differ quite a lot from the *Processing.org Idiom* ( i.e a `setup()-draw()` structure, `stroke()+fill()` and shape-based drawing, etcetera ). *Umgebung*, however, literally imitates core Processing classes and functions.
+well, the main reason why we even created *Umgebung* was basically to have a C++ derivative of Processing.org that stays very close to the *original* idiom. while Cinder and OpenFrameworks, for example, are fantastic projects, they differ quite a lot from the *Processing.org Idiom* ( i.e a `setup()-draw()` structure, `stroke()+fill()` and shape-based drawing, etcetera ). *Umgebung*, however, literally imitates core Processing classes and functions.
 
 why not use the original Java-based *Processing.org* then? there are a few key aspects that just cannot and probably will never be resolved due to limitations imposed by Java. while Java is a very well-designed language and does many things better than C/C++, it has some drawbacks.
 
-the most important benefit of moving to C/C++ is the availability of many extremely powerful and widespread libraries and APIs ( e.g OpenGL, OpenCV, FFmpeg, PortAudio ) that can be natively used and integrated into applications and sketches without the need for a native binding library. while many of these libraries have been fully or partly made accessible in Processing through native bindings, oftentimes these libraries or their bindings introduce significant overhead (technically, administratively, etcetera), are not at the current version, are incompatible with newer versions of OSes, or do not expose all functionality (e.g., unstable webcam support on macOS). while this also happens with C/C++ libraries and APIs, the problems are greatly reduced. also, there is still a significant number of libraries and APIs not available for Java-based Processing or that are impossible to port because of limitations posed by Java VM implementations ( e.g multi-channel audio ).
+the most important benefit of moving to C/C++ is the availability of many extremely powerful and widespread libraries and APIs ( e.g OpenGL, OpenCV, FFmpeg, PortAudio ) that can be natively used and integrated into applications and sketches without the need for a native binding library. while many of these libraries have been fully or partly made accessible in Processing through native bindings, oftentimes these libraries or their bindings introduce significant overhead ( technically, administratively, etcetera ), are not at the current version, are incompatible with newer versions of OSes, or do not expose all functionality ( e.g unstable webcam support on macOS ). while this also happens with C/C++ libraries and APIs, the problems are greatly reduced. also, there is still a significant number of libraries and APIs not available for Java-based Processing or that are impossible to port because of limitations posed by Java VM implementations ( e.g multi-channel audio ).
 
 in addition to this, due to the nature of C/C++ and the way *Umgebung* is implemented, applications and sketches developed with *Umgebung* can be built and deployed with a very(!) small memory and CPU footprint. this means that applications and sketches can potentially run on smaller or older hardware like, e.g Raspberry Pi. some modules can even be excluded from a build to reduce the footprint even more. *Umgebung* can even run *truly* headless ( i.e it does not require any virtual offscreen graphics driver if no window is required ).
 
@@ -108,14 +108,14 @@ $ ./build/umgebung-app
 if changes are made to `umgebung-app.cpp` ( or any other file in that folder ) it is enough to just run:
 
 ```
-$ $ make -C build ; ./build/umgebung-app
+$ make -C build ; ./build/umgebung-app
 ```
 
 ## Known Differences
 
-Java and C++ are similar in some aspects, but are very different in many others. A lot of the syntactic differences between *Processing* and *Umgebung* stem from these difference, while a few others are more or less developer decisions.
+Java and C++ are similar in some aspects, but are very different in many others. a lot of the syntactic differences between *Processing* and *Umgebung* stem from these differences, while a few others are more or less developer decisions.
 
-- elements in `println()`  must be concatenated with `,` rather than `+` e.g `println("hello ", 23, " world");` @reason(strings cannot be concatenated with a `+` in C++ as they can be in Java)
+- elements in `println()` must be concatenated with `,` rather than `+` e.g `println("hello ", 23, " world");` @reason(strings cannot be concatenated with a `+` in C++ as they can be in Java)
 - the equivalent property to `mousePressed()` is renamed to `isMousePressed` @reason(in *Processing* the property `mousePressed` and the callback method `mousePressed` carry the same name. in C++ it is not allowed to have a field or property and a method with the same name)
 - `fill(float)` must be explicitly differentiated from `fill(uint32_t)` e.g `fill(1.0f)` or `fill(0xFF44FF88)` ( the same is true for `stroke(...)` ) @reason(in a different way from Java, C++ finds two methods that only differ in their parameter types i.e `float` and `uint32_t` ambiguous)
 
