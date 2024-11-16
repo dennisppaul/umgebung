@@ -1,4 +1,4 @@
-# Generated from CLion C/C++ Code Style settings
+# umgebung C/C++ Code style
 BasedOnStyle: LLVM
 AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
@@ -6,6 +6,7 @@ AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveDeclarations: Consecutive
 AlignOperands: Align
 AlignTrailingComments: true
+AlignConsecutiveMacros: true
 AllowAllArgumentsOnNextLine: false
 AllowAllConstructorInitializersOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
