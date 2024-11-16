@@ -96,7 +96,7 @@ the setup is exclusively for the `MSYS2 UCRT64` branch ( and not for `MSYS2 MING
 
 ## Building Applications with *Umgebung*
 
-example applications can be found in the `example` folder. to run example `umgebung-app` do the following:
+example applications can be found in the dedicated repository [umgebung-examples](https://github.com/dennisppaul/umgebung-examples). to run example `umgebung-app` do the following:
 
 ```
 $ cd ./umgebung-examples/examples/umgebung-app/
@@ -141,8 +141,8 @@ this will set the `$LIBRARY_PATH` in your *zsh* profile file.
 
 ## Resources
 
-- [Examples](https://github.com/dennisppaul/umgebung-examples)
-- Additional [Libraries](https://github.com/dennisppaul/umgebung-libraries)
+- Umgebung [examples](https://github.com/dennisppaul/umgebung-examples)
+- Additional [libraries](https://github.com/dennisppaul/umgebung-libraries)
 
 examples and library examples assume that all repositories are located on the same level:
 
