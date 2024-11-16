@@ -160,6 +160,32 @@ if (ENABLE_PORTAUDIO)
     message(STATUS "ENABLING      : Portaudio Driver")
 endif (ENABLE_PORTAUDIO)
 
+if (ENABLE_IMGUI)
+    if (NOT DEFINED IMGUI_PATH)
+        message(FATAL_ERROR "IMGUI_PATH must be set in CMakeLists.txt")
+    elseif (NOT EXISTS ${IMGUI_PATH})
+        message(FATAL_ERROR "IMGUI_PATH does not point to valid directory")
+    endif ()
+
+    target_compile_definitions(umgebung-lib-interface INTERFACE ENABLE_IMGUI)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_IMGUI)
+    # Compile as static library
+    file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)
+    file(GLOB IMGUI_SOURCE_FILES
+            ${IMGUI_PATH}/*.cpp
+            ${IMGUI_PATH}/*.h
+            ${IMGUI_PATH}/backends/imgui_impl_opengl2.h
+            ${IMGUI_PATH}/backends/imgui_impl_opengl2.cpp
+            ${IMGUI_PATH}/backends/imgui_impl_sdl2.cpp
+            ${IMGUI_PATH}/backends/imgui_impl_sdl2.h)
+    add_library("ImGui" STATIC ${IMGUI_SOURCE_FILES})
+    target_include_directories("ImGui" PUBLIC ${IMGUI_PATH})
+    target_include_directories("ImGui" PUBLIC ${IMGUI_PATH}/backends)
+    message(STATUS "ENABLING      : IMGui")
+
+endif (ENABLE_IMGUI)
+
+
 if (ENABLE_CAPTURE)
     target_compile_definitions(umgebung-lib-interface INTERFACE ENABLE_CAPTURE)
     target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_CAPTURE)
@@ -329,8 +355,17 @@ if (NOT DISABLE_AUDIO)
 endif (NOT DISABLE_AUDIO)
 
 if (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
+    find_package(SDL2 CONFIG REQUIRED)
     target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
+
+    # IMGUI
+    if (ENABLE_IMGUI)
+        target_link_libraries(ImGui PRIVATE SDL2::SDL2)
+        target_link_libraries(${PROJECT_NAME} ImGui)
+        target_include_directories(${PROJECT_NAME} PUBLIC ImGui)
+    endif (ENABLE_IMGUI)
+
 endif (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
 
 if (NOT DISABLE_GRAPHICS)
@@ -341,6 +376,7 @@ if (NOT DISABLE_GRAPHICS)
     target_include_directories(${PROJECT_NAME} PUBLIC ${FTGL_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${GLEW_INCLUDE_DIRS})
+
 
     # FFMPEG
     if (NOT DISABLE_VIDEO)

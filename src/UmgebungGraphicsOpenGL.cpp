@@ -21,6 +21,7 @@
 #ifndef DISABLE_GRAPHICS
 
 #include <GL/glew.h>
+#include "InitIMGui.h"
 
 namespace umgebung {
     static PApplet*      fApplet   = nullptr;
@@ -148,6 +149,9 @@ namespace umgebung {
             return nullptr;
         }
 
+        // bring window to front
+        SDL_RaiseWindow(window);
+
         glContext = SDL_GL_CreateContext(window);
         if (glContext == nullptr) {
             std::cerr << "+++ error: could not create OpenGL context: " << SDL_GetError() << std::endl;
@@ -157,11 +161,17 @@ namespace umgebung {
 
         int framebufferWidth, framebufferHeight;
         SDL_GL_GetDrawableSize(window, &framebufferWidth, &framebufferHeight);
+        int dpi = 1;
         if (fApplet->width != framebufferWidth || fApplet->height != framebufferHeight) {
-            std::cout << "+++ retina display detected" << std::endl;
+            dpi = framebufferWidth / fApplet->width;
+            std::cout << "+++ retina display detected. dpi: " << dpi << "\n";
+            fApplet->pixelDensity(dpi);
         }
         fApplet->framebuffer_width  = framebufferWidth;
         fApplet->framebuffer_height = framebufferHeight;
+
+        imgui_init(window, glContext, dpi);
+
 
         set_default_graphics_state();
 
@@ -185,6 +195,7 @@ namespace umgebung {
 
     void handle_shutdown(APP_WINDOW* window) {
         if (!headless) {
+            imgui_destroy();
             SDL_GL_DeleteContext(glContext);
             SDL_DestroyWindow(window);
         }
@@ -218,11 +229,14 @@ namespace umgebung {
         if (headless) {
             fApplet->draw();
         } else {
+            // Start the Dear ImGui frame
+            imgui_prerender();
             /* draw */
             fApplet->pre_draw();
             fApplet->draw();
             fApplet->post_draw();
 
+            imgui_postrender();
             /* swap front and back buffers */
             SDL_GL_SwapWindow(window);
         }
@@ -241,7 +255,17 @@ namespace umgebung {
     }
 
     void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed) {
+        imgui_processevent(event);
+
+        // generic sdl event handler
+        fApplet->sdlEvent(event);
+
         switch (event.type) {
+            case SDL_WINDOWEVENT:
+                if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
+                    fAppIsRunning = false;
+                }
+                break;
             case SDL_QUIT:
                 fAppIsRunning = false;
                 break;
@@ -250,34 +274,53 @@ namespace umgebung {
                 if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
                     fAppIsRunning = false;
                 } else {
-                    fApplet->keyPressed();
+                    if (!imgui_is_keyboard_captured()) {
+                        fApplet->keyPressed();
+                    }
                 }
                 break;
             case SDL_KEYUP:
+                if (imgui_is_keyboard_captured()) { break; }
                 fApplet->key = event.key.keysym.sym;
                 fApplet->keyReleased();
+
                 break;
             case SDL_MOUSEBUTTONDOWN:
+                if (imgui_is_mouse_captured()) { break; }
                 fApplet->mouseButton = event.button.button;
                 fMouseIsPressed      = true;
                 fApplet->mousePressed();
                 fApplet->isMousePressed = true;
                 break;
             case SDL_MOUSEBUTTONUP:
-                fMouseIsPressed = false;
+                if (imgui_is_mouse_captured()) { break; }
+                fMouseIsPressed      = false;
+                fApplet->mouseButton = -1;
                 fApplet->mouseReleased();
                 fApplet->isMousePressed = false;
                 break;
             case SDL_MOUSEMOTION:
+                if (imgui_is_mouse_captured()) { break; }
+
                 fApplet->mouseX = static_cast<float>(event.motion.x);
                 fApplet->mouseY = static_cast<float>(event.motion.y);
+
                 if (fMouseIsPressed) {
                     fApplet->mouseDragged();
                 } else {
                     fApplet->mouseMoved();
                 }
                 break;
+                // case SDL_MULTIGESTURE:
+            case SDL_MOUSEWHEEL:
+                if (imgui_is_mouse_captured()) { break; }
+                fApplet->mouseWheel(event.wheel.preciseX, event.wheel.preciseY);
+                break;
+
             case SDL_DROPFILE: {
+                // only allow drag and drop on main window
+                if (event.drop.windowID != 1) { break; }
+
                 char* dropped_filedir = event.drop.file;
                 fApplet->dropped(dropped_filedir);
                 SDL_free(dropped_filedir);

@@ -97,6 +97,7 @@ namespace umgebung {
         void    textFont(PFont* font);
         void    textSize(float size) const;
         void    text(const char* value, float x, float y, float z = 0.0f) const;
+        float   textWidth(const std::string& text) const;
         PImage* loadImage(const std::string& filename);
         void    image(const PImage* img, float x, float y, float w, float h) const;
         void    image(PImage* img, float x, float y);
@@ -112,6 +113,7 @@ namespace umgebung {
         void    scale(float x);
         void    scale(float x, float y);
         void    scale(float x, float y, float z);
+        void    pixelDensity(int density);
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) const {
@@ -129,6 +131,7 @@ namespace umgebung {
         bool   fShapeBegun            = false;
         int    fEllipseDetail         = 32;
         int    fBezierDetail          = 20;
+        int    fPixelDensity          = 1;
 
         struct {
             float r      = 0;

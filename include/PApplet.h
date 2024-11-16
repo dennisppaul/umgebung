@@ -410,6 +410,8 @@ namespace umgebung {
         virtual void        mouseDragged() {}
         virtual void        mousePressed() {}
         virtual void        mouseReleased() {}
+        virtual void        mouseWheel(float precise_x, float precise_y) {}
+        virtual void        sdlEvent(const SDL_Event& sdl_event) {}
         virtual void        keyPressed() {}
         virtual void        keyReleased() {}
         virtual void        dropped(const std::string& file_name) {}

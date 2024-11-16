@@ -40,8 +40,7 @@ std::vector<DeviceCapability> getDeviceCapabilities() {
 
     @autoreleasepool {
         NSArray *deviceTypes = @[
-            AVCaptureDeviceTypeBuiltInWideAngleCamera,
-            AVCaptureDeviceTypeExternal
+            AVCaptureDeviceTypeBuiltInWideAngleCamera
         ];
 
         AVCaptureDeviceDiscoverySession *discoverySession = [AVCaptureDeviceDiscoverySession

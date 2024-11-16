@@ -33,8 +33,10 @@
 //    textLeading() :: Sets the spacing between lines of text in units of pixels
 //    textMode() :: Sets the way text draws to the screen
 //    //textSize() :: Sets the current font size
-//    textWidth() :: Calculates and returns the width of any character or text string
+//    //textWidth() :: Calculates and returns the width of any character or text string
 
+#include <sys/_types/_u_int.h>
+#include <sys/_types/_u_int8_t.h>
 #ifndef DISABLE_GRAPHICS
 
 #include <GL/glew.h>
@@ -48,7 +50,7 @@ namespace umgebung {
 
     class PFont {
     public:
-        PFont(const char* file, float size) {
+        PFont(const char* file, float size, float pixelDensity = 1) {
 #ifndef DISABLE_GRAPHICS
             font = new FTTextureFont(file);
             if (font->Error()) {
@@ -56,31 +58,48 @@ namespace umgebung {
                 delete font;
                 return;
             }
-            font->FaceSize((int) size);
+            fPixelDensity = pixelDensity;
+            font->FaceSize((int) size * fPixelDensity);
 #endif // DISABLE_GRAPHICS
         }
 
         void size(float size) {
 #ifndef DISABLE_GRAPHICS
-            if (font == nullptr) return;
+            if (font == nullptr) {
+                return;
+            }
             font->FaceSize((int) size);
 #endif
         }
 
         void draw(const char* text, float x, float y, float z) {
 #ifndef DISABLE_GRAPHICS
-            if (font == nullptr) return;
+            if (font == nullptr) {
+                return;
+            }
             glPushMatrix();
             glTranslatef(x, y, z);
-            glScalef(1, -1, 1);
+            const float scaleFactor = 1.f / fPixelDensity;
+            glScalef(scaleFactor, -scaleFactor, scaleFactor);
             font->Render(text, -1, FTPoint(0, 0));
             glPopMatrix();
 #endif
         }
 
+        float textWidth(const char* text) {
+#ifndef DISABLE_GRAPHICS
+            if (font == nullptr) {
+                return 0;
+            }
+
+            return font->Advance(text, -1, FTPoint(0, 0)) / fPixelDensity;
+#endif
+        }
+
     private:
 #ifndef DISABLE_GRAPHICS
-        FTTextureFont* font = nullptr;
+        FTTextureFont* font          = nullptr;
+        int            fPixelDensity = 1;
 #endif
     };
 

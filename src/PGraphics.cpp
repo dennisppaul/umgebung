@@ -427,7 +427,7 @@ void PGraphics::vertex(const float x, const float y, const float z, const float 
 /* font */
 
 PFont* PGraphics::loadFont(const std::string& file, const float size) {
-    auto* font = new PFont(file.c_str(), size);
+    auto* font = new PFont(file.c_str(), size, fPixelDensity);
     return font;
 }
 
@@ -454,6 +454,25 @@ void PGraphics::text_str(const std::string& text, const float x, const float y, 
     glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
     fCurrentFont->draw(text.c_str(), x, y, z);
 #endif // DISABLE_GRAPHICS
+}
+
+float PGraphics::textWidth(const std::string& text) const {
+    if (fCurrentFont == nullptr) {
+        return 0;
+    }
+
+#ifndef DISABLE_GRAPHICS
+    return fCurrentFont->textWidth(text.c_str());
+#endif // DISABLE_GRAPHICS
+}
+
+void PGraphics::pixelDensity(const int value) {
+    if (value > 0 && value <= 3) {
+        fPixelDensity = value;
+    } else {
+        std::cerr << "PixelDensity can only be between 1 and 3."
+                  << "\n";
+    }
 }
 
 void PGraphics::text(const char* value, const float x, const float y, const float z) const {
