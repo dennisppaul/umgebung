@@ -404,7 +404,6 @@ namespace umgebung {
         }
 
         virtual void        finish() {}
-        virtual void        audioblock(float** input, float** output, int length) {}
         virtual void        beat(uint32_t beat_count) {}
         virtual void        mouseMoved() {}
         virtual void        mouseDragged() {}
@@ -419,7 +418,13 @@ namespace umgebung {
         virtual const char* name() {
             return UMGEBUNG_WINDOW_TITLE;
         }
-
+        virtual void audioblock(float** input, float** output, int length) {
+            for (int i = 0; i < length; i++) {
+                for (int j = 0; j < audio_output_channels; ++j) {
+                    output[j][i] = 0.0;
+                }
+            }
+        }
 
         void init(uint32_t* pixels, const int width, const int height, const int format) override {
             PImage::init(pixels, width, height, format);

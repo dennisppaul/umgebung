@@ -27,9 +27,9 @@
 #ifndef DISABLE_GRAPHICS
 #ifndef DISABLE_VIDEO
 extern "C" {
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-#include <libswscale/swscale.h>
+#include "libavformat/avformat.h"
+#include "libavcodec/avcodec.h"
+#include "libswscale/swscale.h"
 }
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
