@@ -64,9 +64,10 @@ namespace umgebung {
 
     static PApplet*         fApplet           = nullptr;
     static bool             fAppIsRunning     = true;
-    static constexpr double fTargetFrameTime  = 1.0 / 60.0; // @development make this adjustable
+    static constexpr double fTargetFrameTime  = 1.0 / 120.0; // @development make this adjustable
     static bool             fAppIsInitialized = false;
     static bool             fMouseIsPressed   = false;
+    static bool             fWindowIsResized  = false;
 
 #ifndef DISABLE_AUDIO
 
@@ -611,7 +612,11 @@ namespace umgebung {
         while (fAppIsRunning) {
             SDL_Event e;
             while (SDL_PollEvent(&e) != 0) {
-                handle_event(e, fAppIsRunning, fMouseIsPressed);
+                handle_event(e, fAppIsRunning, fMouseIsPressed, fWindowIsResized);
+            }
+            if (fWindowIsResized) {
+                fWindowIsResized = false;
+                handle_window_resized(window);
             }
             std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
             auto                                           frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
