@@ -60,11 +60,13 @@ namespace umgebung {
         startTime = std::chrono::high_resolution_clock::now();
     }
 
-    void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed) {
+    void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed, bool& fWindowIsResized) {
     }
 
     void handle_shutdown(APP_WINDOW* window) {
     }
+
+    void handle_window_resized(APP_WINDOW* window) {}
 } // namespace umgebung
 
 #endif // DISABLE_GRAPHICS
