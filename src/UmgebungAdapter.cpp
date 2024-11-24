@@ -25,6 +25,8 @@ using namespace umgebung;
 
 #define DEBUG_UMGEBUNG_ADAPTER 1
 
+#ifdef UMGEBUNG_ENABLE_ADAPTER
+
 extern "C" {
 
 void die() {
@@ -43,3 +45,5 @@ void        audioblock(PApplet* application, float** input, float** output, cons
 const char* name(PApplet* application) { return application != nullptr ? application->name() : "null"; }
 void        event(PApplet* application, float* data, uint32_t length) {application != nullptr ? application->event(data, length) : die();}
 }
+
+#endif // UMGEBUNG_ENABLE_ADAPTER
