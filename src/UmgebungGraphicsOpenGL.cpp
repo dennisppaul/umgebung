@@ -164,7 +164,7 @@ namespace umgebung {
         int dpi = 1;
         if (fApplet->width != framebufferWidth || fApplet->height != framebufferHeight) {
             dpi = framebufferWidth / fApplet->width;
-            std::cout << "+++ retina display detected. dpi: " << dpi << "\n";
+            // std::cout << "+++ retina display detected. dpi: " << dpi << "\n";
             fApplet->pixelDensity(dpi);
         }
         fApplet->framebuffer_width  = framebufferWidth;

@@ -476,7 +476,7 @@ namespace umgebung {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer_texture, 0);
             if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
                 // Handle framebuffer incomplete error
-                std::cerr << "ERROR Framebuffer is not complete!" << std::endl;
+                std::cerr << "error: Framebuffer is not complete!" << std::endl;
             }
             glViewport(0, 0, framebuffer_width, framebuffer_height);
             glClearColor(0, 0, 0, 0);
