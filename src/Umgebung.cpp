@@ -529,6 +529,20 @@ namespace umgebung {
 
 #endif // DISABLE_AUDIO
 
+    // this callback is called in a seperate thread on resize events,
+    // because the default resize event blocks the render thread
+    static int handle_resize_event_in_thread(void* data, SDL_Event* event) {
+        if (event->type == SDL_WINDOWEVENT &&
+            event->window.event == SDL_WINDOWEVENT_RESIZED) {
+            if (SDL_Window* window = SDL_GetWindowFromID(event->window.windowID); window == static_cast<SDL_Window*>(data)) {
+                if (handle_window_resized(window)) {
+                    handle_draw(window);
+                }
+            }
+        }
+        return 0;
+    }
+
     static int run_application(std::vector<std::string> args) {
         // std::cout << "+++ current working directory: " << sketchPath() << std::endl;
 
@@ -606,6 +620,9 @@ namespace umgebung {
 
         // enable modern trackpad events aka SDL_FINGERDOWN and SDL_FINGERUP
         SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
+        if (!headless) {
+            SDL_AddEventWatch(handle_resize_event_in_thread, window);
+        }
 
         /* loop */
         std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
@@ -616,7 +633,9 @@ namespace umgebung {
             }
             if (fWindowIsResized) {
                 fWindowIsResized = false;
-                handle_window_resized(window);
+                if (!headless) {
+                    handle_window_resized(window);
+                }
             }
             std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
             auto                                           frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(

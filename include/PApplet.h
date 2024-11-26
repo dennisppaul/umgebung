@@ -468,6 +468,27 @@ namespace umgebung {
             glGenFramebuffers(1, &framebuffer);
             glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
             glGenTextures(1, &framebuffer_texture);
+            setup_framebuffer_texture();
+#endif // RENDER_INTO_FRAMEBUFFER
+            g = this;
+#endif // DISABLE_GRAPHICS
+        }
+
+#ifndef DISABLE_GRAPHICS
+#if RENDER_INTO_FRAMEBUFFER
+        void resize_framebuffer() const {
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+            setup_framebuffer_texture();
+        }
+#endif // RENDER_INTO_FRAMEBUFFER
+#endif // DISABLE_GRAPHICS
+
+    private:
+#ifndef DISABLE_GRAPHICS
+#if RENDER_INTO_FRAMEBUFFER
+        GLuint framebuffer, framebuffer_texture;
+
+        void setup_framebuffer_texture() const {
             glBindTexture(GL_TEXTURE_2D, framebuffer_texture);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebuffer_width, framebuffer_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                          nullptr);
@@ -483,15 +504,7 @@ namespace umgebung {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
-#endif // RENDER_INTO_FRAMEBUFFER
-            g = this;
-#endif // DISABLE_GRAPHICS
         }
-
-    private:
-#ifndef DISABLE_GRAPHICS
-#if RENDER_INTO_FRAMEBUFFER
-        GLuint framebuffer, framebuffer_texture;
 #endif // RENDER_INTO_FRAMEBUFFER
 #endif // DISABLE_GRAPHICS
     };
