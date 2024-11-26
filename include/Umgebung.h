@@ -116,7 +116,7 @@ namespace umgebung {
 
     void handle_shutdown(APP_WINDOW* window);
 
-    void handle_window_resized(APP_WINDOW* window);
+    bool handle_window_resized(APP_WINDOW* window);
 
     int print_audio_devices();
 } // namespace umgebung

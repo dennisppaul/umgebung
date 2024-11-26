@@ -74,17 +74,12 @@ namespace umgebung {
     //        }
     //    }
 
-    static void set_framebuffer_dimensions(APP_WINDOW* window, int& dpi_out) {
+    static void set_framebuffer_dimensions(APP_WINDOW* window) {
         int framebufferWidth, framebufferHeight;
         SDL_GL_GetDrawableSize(window, &framebufferWidth, &framebufferHeight);
-        if (fApplet->width != framebufferWidth || fApplet->height != framebufferHeight) {
-            dpi_out = framebufferWidth / fApplet->width;
-            fApplet->pixelDensity(dpi_out);
-        }
         fApplet->framebuffer_width  = framebufferWidth;
         fApplet->framebuffer_height = framebufferHeight;
     }
-
 
     APP_WINDOW* init_graphics(int width, int height, const char* title) {
         fApplet->width  = width;
@@ -171,9 +166,14 @@ namespace umgebung {
             return nullptr;
         }
 
+        set_framebuffer_dimensions(window);
 
-        int dpi;
-        set_framebuffer_dimensions(window, dpi);
+        // update dpi settings
+        int dpi = 1;
+        if (fApplet->width != fApplet->framebuffer_width || fApplet->height != fApplet->framebuffer_height) {
+            dpi = fApplet->framebuffer_width / fApplet->width;
+            fApplet->pixelDensity(dpi);
+        }
 
         imgui_init(window, glContext, dpi);
 
@@ -336,15 +336,25 @@ namespace umgebung {
         }
     }
 
-    void handle_window_resized(APP_WINDOW* window) {
-        int dpi, width, height;
+
+    bool handle_window_resized(APP_WINDOW* window) {
+        int width, height;
         SDL_GetWindowSize(window, &width, &height);
-        fApplet->width  = width;
-        fApplet->height = height;
-        set_framebuffer_dimensions(window, dpi);
+        if (width == fApplet->width && height == fApplet->height) {
+            return false;
+        }
+        set_framebuffer_dimensions(window);
+
+        fApplet->width   = width;
+        fApplet->height  = height;
+        fApplet->mouseX  = 0;
+        fApplet->mouseY  = 0;
+        fApplet->pmouseX = 0;
+        fApplet->pmouseY = 0;
 #if RENDER_INTO_FRAMEBUFFER
-        fApplet->init_graphics();
+        fApplet->resize_framebuffer();
 #endif
+        return true;
     }
 } // namespace umgebung
 #endif // DISABLE_GRAPHICS
