@@ -31,9 +31,9 @@
 
 #include <chrono>
 #include <thread>
-#include <utility>
 
 #if (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_PORTAUDIO)
+#include <utility>
 #include "portaudio.h"
 #endif // UMGEBUNG_AUDIO_DRIVER
 
