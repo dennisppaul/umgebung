@@ -66,12 +66,12 @@ namespace umgebung {
 #define DEFAULT_FRAMES_PER_BUFFER 2048 // TODO make this configurable
 #endif
 
-#define DEFAULT_NUMBER_OF_INPUT_CHANNELS 1  // TODO make this configurable
+#define DEFAULT_NUMBER_OF_INPUT_CHANNELS  1 // TODO make this configurable
 #define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2 // TODO make this configurable
-#define DEFAULT (-1)
-#define DEFAULT_WINDOW_WIDTH 1024
-#define DEFAULT_WINDOW_HEIGHT 768
-#define DEFAULT_WINDOW_TITLE "Umgebung"
+#define DEFAULT                           (-1)
+#define DEFAULT_WINDOW_WIDTH              1024
+#define DEFAULT_WINDOW_HEIGHT             768
+#define DEFAULT_WINDOW_TITLE              "Umgebung"
 #ifndef UMGEBUNG_WINDOW_TITLE // can be set in `CMakeLists.txt`
 #define UMGEBUNG_WINDOW_TITLE DEFAULT_WINDOW_TITLE
 #endif
@@ -112,9 +112,11 @@ namespace umgebung {
 
     void handle_draw(APP_WINDOW* window);
 
-    void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed);
+    void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed, bool& fWindowIsResized);
 
     void handle_shutdown(APP_WINDOW* window);
+
+    bool handle_window_resized(APP_WINDOW* window);
 
     int print_audio_devices();
 } // namespace umgebung

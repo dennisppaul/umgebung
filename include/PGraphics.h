@@ -58,6 +58,9 @@ namespace umgebung {
 
     class PGraphics : public virtual PImage {
     public:
+        static constexpr uint16_t ENABLE_SMOOTH_LINES  = 0;
+        static constexpr uint16_t DISABLE_SMOOTH_LINES = 1;
+
         PGraphics();
 
         void    stroke(float r, float g, float b, float a = 1.0);
@@ -158,6 +161,21 @@ namespace umgebung {
         void bind() const override;
         void init(uint32_t* pixels, int width, int height, int format) override;
 #endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+
+        static void hint(const uint16_t property) {
+            switch (property) {
+                case ENABLE_SMOOTH_LINES:
+                    glEnable(GL_LINE_SMOOTH);
+                    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+                    break;
+                case DISABLE_SMOOTH_LINES:
+                    glDisable(GL_LINE_SMOOTH);
+                    glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
+                    break;
+                default:
+                    break;
+            }
+        }
 
 #ifdef PGRAPHICS_USE_VBO
         GLuint ellipseVBO;

@@ -74,6 +74,13 @@ namespace umgebung {
     //        }
     //    }
 
+    static void set_framebuffer_dimensions(APP_WINDOW* window) {
+        int framebufferWidth, framebufferHeight;
+        SDL_GL_GetDrawableSize(window, &framebufferWidth, &framebufferHeight);
+        fApplet->framebuffer_width  = framebufferWidth;
+        fApplet->framebuffer_height = framebufferHeight;
+    }
+
     APP_WINDOW* init_graphics(int width, int height, const char* title) {
         fApplet->width  = width;
         fApplet->height = height;
@@ -159,19 +166,16 @@ namespace umgebung {
             return nullptr;
         }
 
-        int framebufferWidth, framebufferHeight;
-        SDL_GL_GetDrawableSize(window, &framebufferWidth, &framebufferHeight);
+        set_framebuffer_dimensions(window);
+
+        // update dpi settings
         int dpi = 1;
-        if (fApplet->width != framebufferWidth || fApplet->height != framebufferHeight) {
-            dpi = framebufferWidth / fApplet->width;
-            std::cout << "+++ retina display detected. dpi: " << dpi << "\n";
+        if (fApplet->width != fApplet->framebuffer_width || fApplet->height != fApplet->framebuffer_height) {
+            dpi = fApplet->framebuffer_width / fApplet->width;
             fApplet->pixelDensity(dpi);
         }
-        fApplet->framebuffer_width  = framebufferWidth;
-        fApplet->framebuffer_height = framebufferHeight;
 
         imgui_init(window, glContext, dpi);
-
 
         set_default_graphics_state();
 
@@ -254,7 +258,7 @@ namespace umgebung {
         startTime = std::chrono::high_resolution_clock::now();
     }
 
-    void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed) {
+    void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed, bool& fWindowIsResized) {
         imgui_processevent(event);
 
         // generic sdl event handler
@@ -264,6 +268,8 @@ namespace umgebung {
             case SDL_WINDOWEVENT:
                 if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
                     fAppIsRunning = false;
+                } else if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && event.window.windowID == 1) {
+                    fWindowIsResized = true;
                 }
                 break;
             case SDL_QUIT:
@@ -328,6 +334,27 @@ namespace umgebung {
             }
             default: break;
         }
+    }
+
+
+    bool handle_window_resized(APP_WINDOW* window) {
+        int width, height;
+        SDL_GetWindowSize(window, &width, &height);
+        if (width == fApplet->width && height == fApplet->height) {
+            return false;
+        }
+        set_framebuffer_dimensions(window);
+
+        fApplet->width   = width;
+        fApplet->height  = height;
+        fApplet->mouseX  = 0;
+        fApplet->mouseY  = 0;
+        fApplet->pmouseX = 0;
+        fApplet->pmouseY = 0;
+#if RENDER_INTO_FRAMEBUFFER
+        fApplet->resize_framebuffer();
+#endif
+        return true;
     }
 } // namespace umgebung
 #endif // DISABLE_GRAPHICS

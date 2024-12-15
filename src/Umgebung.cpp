@@ -31,9 +31,9 @@
 
 #include <chrono>
 #include <thread>
-#include <utility>
 
 #if (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_PORTAUDIO)
+#include <utility>
 #include "portaudio.h"
 #endif // UMGEBUNG_AUDIO_DRIVER
 
@@ -64,9 +64,10 @@ namespace umgebung {
 
     static PApplet*         fApplet           = nullptr;
     static bool             fAppIsRunning     = true;
-    static constexpr double fTargetFrameTime  = 1.0 / 60.0; // @development make this adjustable
+    static constexpr double fTargetFrameTime  = 1.0 / 120.0; // @development make this adjustable
     static bool             fAppIsInitialized = false;
     static bool             fMouseIsPressed   = false;
+    static bool             fWindowIsResized  = false;
 
 #ifndef DISABLE_AUDIO
 
@@ -528,6 +529,20 @@ namespace umgebung {
 
 #endif // DISABLE_AUDIO
 
+    // this callback is called in a seperate thread on resize events,
+    // because the default resize event blocks the render thread
+    static int handle_resize_event_in_thread(void* data, SDL_Event* event) {
+        if (event->type == SDL_WINDOWEVENT &&
+            event->window.event == SDL_WINDOWEVENT_RESIZED) {
+            if (SDL_Window* window = SDL_GetWindowFromID(event->window.windowID); window == static_cast<SDL_Window*>(data)) {
+                if (handle_window_resized(window)) {
+                    handle_draw(window);
+                }
+            }
+        }
+        return 0;
+    }
+
     static int run_application(std::vector<std::string> args) {
         // std::cout << "+++ current working directory: " << sketchPath() << std::endl;
 
@@ -605,13 +620,22 @@ namespace umgebung {
 
         // enable modern trackpad events aka SDL_FINGERDOWN and SDL_FINGERUP
         SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
+        if (!headless) {
+            SDL_AddEventWatch(handle_resize_event_in_thread, window);
+        }
 
         /* loop */
         std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
         while (fAppIsRunning) {
             SDL_Event e;
             while (SDL_PollEvent(&e) != 0) {
-                handle_event(e, fAppIsRunning, fMouseIsPressed);
+                handle_event(e, fAppIsRunning, fMouseIsPressed, fWindowIsResized);
+            }
+            if (fWindowIsResized) {
+                fWindowIsResized = false;
+                if (!headless) {
+                    handle_window_resized(window);
+                }
             }
             std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
             auto                                           frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(

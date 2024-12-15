@@ -137,20 +137,28 @@ a build system instead of `make` ( which is the default on linux + macOS ).
 ## Building Applications with *Umgebung*
 
 example applications can be found in the dedicated
-repository [umgebung-examples](https://github.com/dennisppaul/umgebung-examples). to run example `umgebung-app` do the
+repository [umgebung-examples](https://github.com/dennisppaul/umgebung-examples). first, make sure that both repositories are cloned into the same location, next to each other ( the examples assume umgebung library to be next to the examples folder. this can be changed in the `CMakeLists.txt` of each example )
+
+```
+.
+├── umgebung
+└── umgebung-examples
+```
+
+to run example `umgebung-simple` do the
 following:
 
 ```
-$ cd ./umgebung-examples/examples/umgebung-app/
-$ cmake -B build .
-$ cmake --build build
-$ ./build/umgebung-app
+$ cd ./umgebung-examples/examples/umgebung-simple/
+$ cmake -B build .         # prepare build system
+$ cmake --build build      # build application
+$ ./build/umgebung-simple  # run application 
 ```
 
-if changes are made to `umgebung-app.cpp` ( or any other file in that folder ) it is enough to just run:
+if changes are made to `umgebung-simple.cpp` ( or any other file in that folder ) it is enough to just run:
 
 ```
-$ make -C build ; ./build/umgebung-app
+$ make -C build ; ./build/umgebung-simple
 ```
 
 ## Known Differences

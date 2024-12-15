@@ -35,6 +35,8 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libavutil/imgutils.h>
 #include <libavutil/pixdesc.h>
+#include <libavutil/channel_layout.h>
+#include <libavutil/samplefmt.h>
 }
 
 Movie::Movie(const std::string& filename, const int channels) {
@@ -258,11 +260,74 @@ bool Movie::available() {
         } else if (packet->stream_index == audioStreamIndex) {
             // Decode audio frame
             avcodec_send_packet(audioCodecContext, packet);
-            // TODO implement audio processing
-            //            while (avcodec_receive_frame(audioCodecContext, frame) == 0) {
-            //                process_audio_frame(frame);
-            //                av_frame_unref(frame);
-            //            }
+            while (avcodec_receive_frame(audioCodecContext, frame) == 0) {
+                if (!swrCtx) {
+                    AVChannelLayout in_ch_layout, out_ch_layout;
+
+                    // Copy input channel layout
+                    if (av_channel_layout_copy(&in_ch_layout, &audioCodecContext->ch_layout) < 0) {
+                        fprintf(stderr, "Failed to copy input channel layout\n");
+                        break;
+                    }
+
+                    // Set default output channel layout with same number of channels
+                    av_channel_layout_default(&out_ch_layout, audioCodecContext->ch_layout.nb_channels);
+
+                    // Allocate and configure SwrContext
+                    if (swr_alloc_set_opts2(
+                            &swrCtx,
+                            &out_ch_layout, AV_SAMPLE_FMT_FLT, audioCodecContext->sample_rate,
+                            &in_ch_layout, (AVSampleFormat) frame->format, frame->sample_rate,
+                            0, NULL) < 0) {
+                        fprintf(stderr, "Failed to allocate and configure SwrContext\n");
+                        av_channel_layout_uninit(&in_ch_layout);
+                        av_channel_layout_uninit(&out_ch_layout);
+                        break;
+                    }
+
+                    if (swr_init(swrCtx) < 0) {
+                        fprintf(stderr, "Failed to initialize SwrContext\n");
+                        av_channel_layout_uninit(&in_ch_layout);
+                        av_channel_layout_uninit(&out_ch_layout);
+                        break;
+                    }
+
+                    av_channel_layout_uninit(&in_ch_layout);
+                    av_channel_layout_uninit(&out_ch_layout);
+                }
+
+                int channels    = audioCodecContext->ch_layout.nb_channels;
+                int out_samples = av_rescale_rnd(
+                    swr_get_delay(swrCtx, frame->sample_rate) + frame->nb_samples,
+                    frame->sample_rate, frame->sample_rate, AV_ROUND_UP);
+
+                float*   output_buffer = (float*) av_malloc(out_samples * channels * sizeof(float));
+                uint8_t* out[]         = {(uint8_t*) output_buffer};
+
+                int samples_converted = swr_convert(
+                    swrCtx, out, out_samples,
+                    (const uint8_t**) frame->extended_data, frame->nb_samples);
+
+                if (samples_converted < 0) {
+                    fprintf(stderr, "Error while converting audio\n");
+                    av_free(output_buffer);
+                    break;
+                }
+
+                // Process the float audio samples
+                // process_audio_samples(output_buffer, samples_converted, frame->ch_layout.nb_channels);
+                // std::cout << "+++ audio samples : " << samples_converted << std::endl;
+                // std::cout << "+++       channels: " << frame->ch_layout.nb_channels << std::endl;
+
+                if (fListener) {
+                    fListener->movieAudioEvent(this, output_buffer, samples_converted, frame->ch_layout.nb_channels);
+                }
+
+                // Free the output buffer
+                av_free(output_buffer);
+
+                av_frame_unref(frame);
+            }
         }
         av_packet_unref(packet);
     } else if (ret == AVERROR_EOF) {

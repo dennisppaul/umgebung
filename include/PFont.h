@@ -35,9 +35,10 @@
 //    //textSize() :: Sets the current font size
 //    //textWidth() :: Calculates and returns the width of any character or text string
 
-#include <sys/_types/_u_int.h>
-#include <sys/_types/_u_int8_t.h>
+
 #ifndef DISABLE_GRAPHICS
+
+#include <stdint.h>
 
 #include <GL/glew.h>
 #include <FTGL/ftgl.h>

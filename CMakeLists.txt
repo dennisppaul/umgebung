@@ -297,6 +297,7 @@ if (NOT DISABLE_GRAPHICS)
         pkg_search_module(AVFORMAT REQUIRED libavformat)
         pkg_search_module(AVUTIL REQUIRED libavutil)
         pkg_search_module(SWSCALE REQUIRED libswscale)
+        pkg_check_modules(SWRESAMPLE REQUIRED libswresample)
         pkg_check_modules(AVDEVICE REQUIRED libavdevice)
         if (APPLE)
         elseif (UNIX)
@@ -386,6 +387,7 @@ if (NOT DISABLE_GRAPHICS)
                 ${AVUTIL_LIBRARIES}
                 ${SWSCALE_LIBRARIES}
                 ${AVDEVICE_LIBRARIES}
+                ${SWRESAMPLE_LIBRARIES}
         )
         target_include_directories(${PROJECT_NAME} PUBLIC ${AVCODEC_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVUTIL_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS})
         if (APPLE)

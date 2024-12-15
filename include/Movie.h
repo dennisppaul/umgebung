@@ -30,6 +30,7 @@ extern "C" {
 #include "libavformat/avformat.h"
 #include "libavcodec/avcodec.h"
 #include "libswscale/swscale.h"
+#include "libswresample/swresample.h"
 }
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
@@ -40,8 +41,10 @@ namespace umgebung {
 
     class MovieListener {
     public:
-        virtual ~    MovieListener()     = default;
-        virtual void movieEvent(Movie m) = 0;
+        virtual ~MovieListener() = default;
+        // virtual void movieEvent(Movie m)                                                     = 0;
+        virtual void movieVideoEvent(Movie* m, float* audio_buffer, int length, int channels) = 0;
+        virtual void movieAudioEvent(Movie* m, float* audio_buffer, int length, int channels) = 0;
     };
 
     class Movie final : public PImage {
@@ -61,6 +64,7 @@ namespace umgebung {
         void  stop() { pause(); }
         float time() const;
         void  reload();
+        void  set_listener(MovieListener* listener) { fListener = listener; }
 
         ~Movie() override;
 
@@ -81,9 +85,11 @@ namespace umgebung {
         AVFormatContext* formatContext{};
         AVPacket*        packet{};
         SwsContext*      swsContext{};
+        SwrContext*      swrCtx{};
         int              videoStreamIndex{};
         int              audioStreamIndex{};
         int              mFrameCounter = 0;
+        MovieListener*   fListener{};
 #endif // DISABLE_VIDEO
 #endif // DISABLE_GRAPHICS
 
