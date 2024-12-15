@@ -389,6 +389,8 @@ void Movie::reload() {
     update_full_internal();
 }
 
+void  Movie::set_listener(MovieListener* listener) { fListener = listener; }
+
 bool Movie::read() {
     if (!processFrame()) {
         return false; // No frame available or error processing frame

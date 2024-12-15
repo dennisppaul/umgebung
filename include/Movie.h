@@ -64,7 +64,7 @@ namespace umgebung {
         void  stop() { pause(); }
         float time() const;
         void  reload();
-        void  set_listener(MovieListener* listener) { fListener = listener; }
+        void  set_listener(MovieListener* listener);
 
         ~Movie() override;
 
