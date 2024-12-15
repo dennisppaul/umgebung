@@ -23,9 +23,9 @@
 
 using namespace umgebung;
 
-#define DEBUG_UMGEBUNG_ADAPTER 1
-
 #ifdef UMGEBUNG_ENABLE_ADAPTER
+
+#define DEBUG_UMGEBUNG_ADAPTER 1
 
 extern "C" {
 

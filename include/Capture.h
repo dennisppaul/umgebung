@@ -65,6 +65,7 @@ namespace umgebung {
     public:
         Capture();
 
+        // TODO check if this conflicts with init in PImage `warning: 'umgebung::Capture::init' hides overloaded virtual function [-Woverloaded-virtual]`
         bool        init(const char* device_name,
                          const char* resolution,
                          const char* frame_rate,
