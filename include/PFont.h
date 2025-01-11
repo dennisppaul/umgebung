@@ -35,7 +35,6 @@
 //    //textSize() :: Sets the current font size
 //    //textWidth() :: Calculates and returns the width of any character or text string
 
-
 #ifndef DISABLE_GRAPHICS
 
 #include <stdint.h>
@@ -60,7 +59,7 @@ namespace umgebung {
                 return;
             }
             fPixelDensity = pixelDensity;
-            font->FaceSize((int) size * fPixelDensity);
+            font->FaceSize(static_cast<int>(size) * fPixelDensity);
 #endif // DISABLE_GRAPHICS
         }
 
@@ -69,7 +68,7 @@ namespace umgebung {
             if (font == nullptr) {
                 return;
             }
-            font->FaceSize((int) size);
+            font->FaceSize(static_cast<int>(size));
 #endif
         }
 
