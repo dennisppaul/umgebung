@@ -8,7 +8,7 @@
 #error "DISABLE_GRAPHICS must be set to ON"
 #endif
 
-#include "InitIMGui.h"
+#include "UmgebungImGui.h"
 
 #if defined(ENABLE_IMGUI) && !defined(DISABLE_GRAPHICS)
 #include "imgui.h"
@@ -16,8 +16,19 @@
 #include "imgui_impl_opengl2.h"
 #endif
 
-
 namespace umgebung {
+    static std::string fFontPath = sketchPath() + "../JetBrainsMono-Regular.ttf";
+    static float       fFontSize = 16;
+
+    std::string imgui_font() {
+        return fFontPath;
+    }
+
+    void imgui_font(const std::string& file_path, const float font_size) {
+        fFontPath = file_path;
+        fFontSize = font_size;
+    }
+
 #if defined(ENABLE_IMGUI) && !defined(DISABLE_GRAPHICS)
 
     void setup_default_style() {
@@ -113,7 +124,12 @@ namespace umgebung {
         // ImGui::StyleColorsDark();
         ImFontConfig config;
         config.RasterizerDensity = dpi;
-        io.Fonts->AddFontFromFileTTF("../JetBrainsMono-Regular.ttf", 18, &config);
+        if (exists(imgui_font())) {
+            io.Fonts->AddFontFromFileTTF(imgui_font().c_str(), fFontSize, &config);
+        } else {
+            std::cerr << "+++ ERROR @ ImGui :: font for GUI not found: " << imgui_font() << std::endl;
+            std::cerr << "                     using default font for now. use `imgui_font(string)` to set it." << std::endl;
+        }
 
         // ImGui::StyleColorsLight();
         setup_default_style();
@@ -155,20 +171,20 @@ namespace umgebung {
         }
     }
 
-
     void imgui_processevent(const SDL_Event& event) {
         ImGui_ImplSDL2_ProcessEvent(&event);
     }
-
 
     bool imgui_is_keyboard_captured() {
         ImGuiIO& io = ImGui::GetIO();
         return io.WantCaptureKeyboard;
     }
+
     bool imgui_is_mouse_captured() {
         ImGuiIO& io = ImGui::GetIO();
         return io.WantCaptureMouse;
     }
+
 #else
     void imgui_init(APP_WINDOW* window, SDL_GLContext glContext, int dpi) {}
     void imgui_destroy() {}
@@ -182,4 +198,5 @@ namespace umgebung {
         return false;
     }
 #endif
+
 } // namespace umgebung

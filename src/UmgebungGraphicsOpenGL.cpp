@@ -21,7 +21,7 @@
 #ifndef DISABLE_GRAPHICS
 
 #include <GL/glew.h>
-#include "InitIMGui.h"
+#include "UmgebungImGui.h"
 
 namespace umgebung {
     static PApplet*      fApplet   = nullptr;

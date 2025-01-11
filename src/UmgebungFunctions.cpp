@@ -195,7 +195,6 @@ namespace umgebung {
         return sketchPath_impl();
     }
 
-
     std::string find_file_in_paths(const std::vector<std::string>& paths, const std::string& filename) {
         for (const auto& path: paths) {
             std::filesystem::path full_path = std::filesystem::path(path) / filename;
