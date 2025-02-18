@@ -1,10 +1,20 @@
 # SDL3 Transition Roadmap
 
-- read the [SDL3 Wiki](https://wiki.libsdl.org/SDL3/FrontPage)
-- create simple examples for graphics (OpenGL + SDL drawing lib), audio, camera etcetera
-- apply *core changes* ( see below )
+1. clean up core Umgebung and merge with PApplet
+2. implement flexible renderer selection. future renders may include:
+    1. OpenGL 2.0 ( fixed function pipeline )
+    2. OpenGL 3.3
+    3. OpenGL ES 3.0
+    4. SDL_gpu ( Vulkan, Metal + maybe Direct3D )
+    5. SDL_render ( 2D only )
+3. port current *OpenGL 2.0* to *OpenGL 3.3*
+4. transition to SDL3
 
-consult [Migrating to SDL 3.0](https://github.com/libsdl-org/SDL/blob/main/docs/README-migration.md).
+## notes
+
+- consult [SDL3 Wiki](https://wiki.libsdl.org/SDL3/FrontPage)
+- consult [Migrating to SDL 3.0](https://github.com/libsdl-org/SDL/blob/main/docs/README-migration.md).
+- apply *core changes* ( see below )
 
 ## core changes
 
