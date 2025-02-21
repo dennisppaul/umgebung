@@ -29,33 +29,37 @@
 
 UMGEBUNG_NAMESPACE_BEGIN
 
-inline bool               always_on_top       = false;
-inline int                antialiasing        = DEFAULT;
-inline int                audio_input_device  = DEFAULT_AUDIO_DEVICE;
-inline int                audio_output_device = DEFAULT_AUDIO_DEVICE;
-inline bool               borderless          = false;
-inline bool               retina_support      = true;
-inline int                width               = 1024;
-inline int                height              = 768;
-inline int                framebuffer_width   = width;
-inline int                framebuffer_height  = height;
-inline bool               fullscreen          = false;
-inline int                frameCount          = 0;
-inline float              frameRate           = 60;
-inline int                key                 = 0;
-inline int                display             = DEFAULT;
-inline float              mouseX              = 0;
-inline float              mouseY              = 0;
-inline float              pmouseX             = 0;
-inline float              pmouseY             = 0;
-inline int                pixelHeight         = 1;
-inline int                pixelWidth          = 1;
-inline bool               resizable           = false;
-inline SubsystemGraphics* subsystem_graphics  = nullptr;
-inline SubsystemAudio*    subsystem_audio     = nullptr;
-inline bool               vsync               = false;
+inline bool                    always_on_top       = false;
+inline int                     antialiasing        = DEFAULT;
+inline int                     audio_input_device  = DEFAULT_AUDIO_DEVICE;
+inline int                     audio_output_device = DEFAULT_AUDIO_DEVICE;
+inline bool                    borderless          = false;
+inline bool                    retina_support      = true;
+inline int                     width               = 1024;
+inline int                     height              = 768;
+inline int                     framebuffer_width   = width;
+inline int                     framebuffer_height  = height;
+inline bool                    fullscreen          = false;
+inline int                     frameCount          = 0;
+inline float                   frameRate           = 60;
+inline int                     key                 = 0;
+inline int                     display             = DEFAULT;
+inline int                     mouseButton         = DEFAULT;
+inline bool                    isMousePressed      = false;
+inline float                   mouseX              = 0;
+inline float                   mouseY              = 0;
+inline float                   pmouseX             = 0;
+inline float                   pmouseY             = 0;
+inline int                     pixelHeight         = 1;
+inline int                     pixelWidth          = 1;
+inline bool                    resizable           = false;
+inline bool                    vsync               = false;
+inline SubsystemGraphics*      subsystem_graphics  = nullptr;
+inline SubsystemAudio*         subsystem_audio     = nullptr;
+inline std::vector<Subsystem*> subsystems;
 
 bool        is_initialized();
 std::string get_window_title();
+void        set_frame_rate(float fps);
 
 UMGEBUNG_NAMESPACE_END

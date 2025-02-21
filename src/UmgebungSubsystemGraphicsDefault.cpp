@@ -76,10 +76,11 @@ void subsystem_graphics_default_set_flags(uint32_t& subsystem_flags) {
     subsystem_flags |= SDL_INIT_VIDEO;
 }
 
-PGraphicsOpenGL2* subsystem_graphics_default_create_graphics() {
-    auto* graphics = new PGraphicsOpenGL2();
-    graphics->init(nullptr, umgebung::width, umgebung::height, 4);
-    return graphics;
+PGraphics* subsystem_graphics_default_create_graphics() {
+    // auto* graphics = new PGraphicsOpenGL2();
+    // graphics->init(nullptr, umgebung::width, umgebung::height, 4);
+    // return graphics;
+    return nullptr;
 }
 UMGEBUNG_NAMESPACE_END
 

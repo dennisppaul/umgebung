@@ -19,6 +19,8 @@
 
 #pragma once
 
+// #include <SDL3/SDL.h>
+
 #include <vector>
 #include "UmgebungDefines.h"
 
@@ -26,3 +28,17 @@ WEAK void arguments(const std::vector<std::string>& args);
 WEAK void settings();
 WEAK void setup();
 WEAK void draw();
+WEAK void shutdown();
+
+WEAK void keyPressed();
+WEAK void keyReleased();
+WEAK void mousePressed();
+WEAK void mouseReleased();
+WEAK void mouseDragged();
+WEAK void mouseMoved();
+WEAK void mouseWheel(float x, float y);
+
+/* --- additional callbacks --- */
+
+WEAK void dropped(const char* dropped_filedir);
+// WEAK bool sdl_event(SDL_Event* event);

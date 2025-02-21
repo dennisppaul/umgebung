@@ -325,8 +325,8 @@ static void subsystem_graphics_opengl2_set_flags(uint32_t& subsystem_flags) {
     subsystem_flags |= SDL_INIT_VIDEO;
 }
 
-static PGraphicsOpenGL2* subsystem_graphics_opengl2_create_graphics() {
-    auto* graphics = new PGraphicsOpenGL2(); // TODO this needs to renderer specific i.e OpenGL 2.0
+static PGraphics* subsystem_graphics_opengl2_create_graphics() {
+    auto* graphics = new PGraphics(); // TODO this needs to renderer specific i.e OpenGL 2.0
     return graphics;
 }
 UMGEBUNG_NAMESPACE_END

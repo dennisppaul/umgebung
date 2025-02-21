@@ -25,3 +25,14 @@ WEAK void arguments(const std::vector<std::string>& args) { SDL_Log("default arg
 WEAK void settings() { SDL_Log("default settings"); }
 WEAK void setup() { SDL_Log("default setup"); }
 WEAK void draw() { SDL_Log("default draw"); }
+
+WEAK void keyPressed() { SDL_Log("default keyPressed"); }
+WEAK void keyReleased() { SDL_Log("default keyReleased"); }
+WEAK void mousePressed() { SDL_Log("default mousePressed"); }
+WEAK void mouseReleased() { SDL_Log("default mouseReleased"); }
+WEAK void mouseDragged() { SDL_Log("default mouseDragged"); }
+WEAK void mouseMoved() { SDL_Log("default mouseMoved"); }
+WEAK void mouseWheel(const float x, const float y) { SDL_Log("default mouseWheel: %f, %f", x, y); }
+
+WEAK void dropped(const char* dropped_filedir) { SDL_Log("default dropped: %s", dropped_filedir); }
+WEAK bool sdl_event(SDL_Event* event) { return false; }

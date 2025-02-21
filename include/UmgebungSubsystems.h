@@ -19,33 +19,30 @@
 
 #pragma once
 
+#include <SDL3/SDL.h>
+
 #include "UmgebungDefines.h"
 #include "PGraphics.h"
 
 UMGEBUNG_NAMESPACE_BEGIN
 
-struct SubsystemGeneric {
+struct Subsystem {
     bool (*init)();
     void (*setup_pre)();
     void (*setup_post)();
     void (*draw_pre)();
     void (*draw_post)();
     void (*shutdown)();
+    void (*event)(SDL_Event* event);
 };
 
-// struct SubsystemGraphics : SubsystemGeneric {}
-struct SubsystemGraphics {
+struct SubsystemGraphics : Subsystem {
     bool (*init)(int width, int height);
-    void (*setup_pre)();
-    void (*setup_post)();
-    void (*draw_pre)();
-    void (*draw_post)();
-    void (*shutdown)();
     void (*set_flags)(uint32_t& subsystem_flags);
-    PGraphicsOpenGL2* (*create_graphics)();
+    PGraphics* (*create_graphics)();
 };
 
-struct SubsystemAudio {
+struct SubsystemAudio : Subsystem {
     bool (*init)(int input_device,
                  int output_device,
                  int sample_rate,
