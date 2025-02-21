@@ -42,7 +42,6 @@ sphere() A sphere is a hollow ball made from tessellated triangles
 #define PGRAPHICS_RENDER_INTO_FRAMEBUFFER
 
 #include <sstream>
-#include <GL/glew.h>
 
 #endif // DISABLE_GRAPHICS
 
@@ -56,24 +55,23 @@ namespace umgebung {
     class PImage;
     class PFont;
 
-    class PGraphics : public virtual PImage {
+    class PGraphicsOpenGL2 : public virtual PImage {
     public:
         static constexpr uint16_t ENABLE_SMOOTH_LINES  = 0;
         static constexpr uint16_t DISABLE_SMOOTH_LINES = 1;
 
-        PGraphics();
+        PGraphicsOpenGL2();
 
-        void    stroke(float r, float g, float b, float a = 1.0);
-        void    stroke(float brightness, float a);
+        void    fill(float r, float g, float b, float alpha = 1.0);
+        void    fill(float gray, float alpha = 1.0);
+        void    fill_i(uint32_t c);
+        void    noFill();
+        void    stroke(float r, float g, float b, float alpha = 1.0);
+        void    stroke(float gray, float alpha);
         void    stroke(float a);
-        void    stroke(uint32_t c);
+        void    stroke_i(uint32_t c);
         void    noStroke();
         void    strokeWeight(float weight);
-        void    fill(float r, float g, float b, float a = 1.0);
-        void    fill(float brightness, float a);
-        void    fill(float a);
-        void    fill(uint32_t c);
-        void    noFill();
         void    background(float a, float b, float c, float d = 1.0);
         void    background(float a);
         void    rect(float x, float y, float width, float height) const;
@@ -125,7 +123,7 @@ namespace umgebung {
             text_str(ss.str(), x, y, z);
         }
 
-        ~PGraphics() override;
+        ~PGraphicsOpenGL2() override;
 
     private:
         PFont* fCurrentFont           = nullptr;
@@ -149,33 +147,27 @@ namespace umgebung {
         void text_str(const std::string& text, float x, float y, float z = 0.0f) const;
 
 #ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-    private:
-        GLuint fbo{}, fbo_texture{};
-        int    fbo_width{};
-        int    fbo_height{};
-        GLint  fPreviousFBO = 0;
+        struct FBO {
+            unsigned int id{};
+            unsigned int texture{};
+            // GLuint id{};
+            // GLuint texture{};
+            int width{};
+            int height{};
+        };
+        int fPreviousFBO{};
+        // GLint fPreviousFBO = 0;
 
     public:
+        FBO framebuffer{};
+
         void beginDraw();
         void endDraw() const;
         void bind() const override;
         void init(uint32_t* pixels, int width, int height, int format) override;
 #endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
 
-        static void hint(const uint16_t property) {
-            switch (property) {
-                case ENABLE_SMOOTH_LINES:
-                    glEnable(GL_LINE_SMOOTH);
-                    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-                    break;
-                case DISABLE_SMOOTH_LINES:
-                    glDisable(GL_LINE_SMOOTH);
-                    glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
-                    break;
-                default:
-                    break;
-            }
-        }
+        void hint(uint16_t property);
 
 #ifdef PGRAPHICS_USE_VBO
         GLuint ellipseVBO;

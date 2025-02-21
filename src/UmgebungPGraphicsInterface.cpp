@@ -20,7 +20,6 @@
 #include "UmgebungPGraphicsInterface.h"
 
 namespace umgebung {
-
     void background(const float a) {
         if (g == nullptr) {
             return;
@@ -28,18 +27,88 @@ namespace umgebung {
         g->background(a);
     }
 
-    void stroke(const float a) {
+    void background(const float a, const float b, const float c, const float d) {
         if (g == nullptr) {
             return;
         }
-        g->stroke(a);
+        g->background(a, b, c, d);
     }
 
-    void noFill() {
+    void beginShape(const int shape) {
         if (g == nullptr) {
             return;
         }
-        g->noFill();
+        g->beginShape(shape);
+    }
+
+    void endShape() {
+        if (g == nullptr) {
+            return;
+        }
+        g->endShape();
+    }
+
+    void bezier(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4) {
+        if (g == nullptr) {
+            return;
+        }
+        g->bezier(x1, y1, x2, y2, x3, y3, x4, y4);
+    }
+
+    void bezier(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2, const float x3, const float y3, const float z3, const float x4, const float y4, const float z4) {
+        if (g == nullptr) {
+            return;
+        }
+        g->bezier(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
+    }
+
+    void bezierDetail(const int detail) {
+        if (g == nullptr) {
+            return;
+        }
+        g->bezierDetail(detail);
+    }
+
+    void pointSize(const float point_size) {
+        if (g == nullptr) {
+            return;
+        }
+        g->pointSize(point_size);
+    }
+
+    void circle(const float x, const float y, const float radius) {
+        if (g == nullptr) {
+            return;
+        }
+        g->circle(x, y, radius);
+    }
+
+    void ellipse(const float x, const float y, const float width, const float height) {
+        if (g == nullptr) {
+            return;
+        }
+        g->ellipse(x, y, width, height);
+    }
+
+    void ellipseDetail(const int detail) {
+        if (g == nullptr) {
+            return;
+        }
+        g->ellipseDetail(detail);
+    }
+
+    void fill(const float r, const float g, const float b, const float a) {
+        if (umgebung::g == nullptr) {
+            return;
+        }
+        umgebung::g->fill(r, g, b, a);
+    }
+
+    void fill(const float brightness, const float a) {
+        if (g == nullptr) {
+            return;
+        }
+        g->fill(brightness, a);
     }
 
     void fill(const float a) {
@@ -49,11 +118,60 @@ namespace umgebung {
         g->fill(a);
     }
 
-    void noStroke() {
+    void fill(const uint32_t c) {
         if (g == nullptr) {
             return;
         }
-        g->noStroke();
+        g->fill(c);
+    }
+
+    void noFill() {
+        if (g == nullptr) {
+            return;
+        }
+        g->noFill();
+    }
+
+    void image(const PImage* img, const float x, const float y, const float w, const float h) {
+        if (g == nullptr) {
+            return;
+        }
+        g->image(img, x, y, w, h);
+    }
+
+    void image(PImage* img, const float x, const float y) {
+        if (g == nullptr) {
+            return;
+        }
+        g->image(img, x, y);
+    }
+
+    void texture(const PImage* img) {
+        if (g == nullptr) {
+            return;
+        }
+        g->texture(img);
+    }
+
+    PImage* loadImage(const std::string& filename) {
+        if (g == nullptr) {
+            return nullptr;
+        }
+        return g->loadImage(filename);
+    }
+
+    void line(const float x1, const float y1, const float x2, const float y2) {
+        if (g == nullptr) {
+            return;
+        }
+        g->line(x1, y1, x2, y2);
+    }
+
+    void point(const float x, const float y, const float z) {
+        if (g == nullptr) {
+            return;
+        }
+        g->point(x, y, z);
     }
 
     void rect(const float x, const float y, const float width, const float height) {
@@ -62,4 +180,138 @@ namespace umgebung {
         }
         g->rect(x, y, width, height);
     }
+
+    void stroke(const float r, const float g, const float b, const float a) {
+        if (umgebung::g == nullptr) {
+            return;
+        }
+        umgebung::g->stroke(r, g, b, a);
+    }
+
+    void stroke(const float brightness, const float a) {
+        if (g == nullptr) {
+            return;
+        }
+        g->stroke(brightness, a);
+    }
+
+    void stroke(const float a) {
+        if (g == nullptr) {
+            return;
+        }
+        g->stroke(a);
+    }
+
+    void stroke(const uint32_t c) {
+        if (g == nullptr) {
+            return;
+        }
+        g->stroke(c);
+    }
+
+    void noStroke() {
+        if (g == nullptr) {
+            return;
+        }
+        g->noStroke();
+    }
+
+    void strokeWeight(const float weight) {
+        if (g == nullptr) {
+            return;
+        }
+        g->strokeWeight(weight);
+    }
+
+    void vertex(const float x, const float y, const float z) {
+        if (g == nullptr) {
+            return;
+        }
+        g->vertex(x, y, z);
+    }
+
+    void vertex(const float x, const float y, const float z, const float u, const float v) {
+        if (g == nullptr) {
+            return;
+        }
+        g->vertex(x, y, z, u, v);
+    }
+
+    PFont* loadFont(const std::string& file, const float size) {
+        if (g == nullptr) {
+            return nullptr;
+        }
+        return g->loadFont(file, size);
+    }
+
+    void textFont(PFont* font) {
+        if (g == nullptr) {
+            return;
+        }
+        g->textFont(font);
+    }
+
+    void textSize(const float size) {
+        if (g == nullptr) {
+            return;
+        }
+        g->textSize(size);
+    }
+
+    void text(const char* value, const float x, const float y, const float z) {
+        if (g == nullptr) {
+            return;
+        }
+        g->text(value, x, y, z);
+    }
+
+    float textWidth(const std::string& text) {
+        if (g == nullptr) {
+            return 0.0f;
+        }
+        return g->textWidth(text);
+    }
+
+    void popMatrix() {
+        if (g == nullptr) {
+            return;
+        }
+        g->popMatrix();
+    }
+
+    void pushMatrix() {
+        if (g == nullptr) {
+            return;
+        }
+        g->pushMatrix();
+    }
+
+    void translate(const float x, const float y, const float z) {
+        if (g == nullptr) {
+            return;
+        }
+        g->translate(x, y, z);
+    }
+
+    void rotateX(const float angle) {
+        if (g == nullptr) {
+            return;
+        }
+        g->rotateX(angle);
+    }
+
+    void rotateY(const float angle) {
+        if (g == nullptr) {
+            return;
+        }
+        g->rotateY(angle);
+    }
+
+    void rotateZ(const float angle) {
+        if (g == nullptr) {
+            return;
+        }
+        g->rotateZ(angle);
+    }
+
 } // namespace umgebung
