@@ -19,65 +19,43 @@
 
 #pragma once
 
+#include <cstdint>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-// TODO check if these functions should be moved to PApplet?
+#include "UmgebungFunctionsAdditional.h"
 
 namespace umgebung {
-    void exit();
 
-    void audio_devices(int input_device, int output_device);
+    uint32_t color(float gray);
+    uint32_t color(float gray, float alpha);
+    uint32_t color(float v1, float v2, float v3);              // TODO correct parameter name
+    uint32_t color(float v1, float v2, float v3, float alpha); // TODO correct parameter name
 
-    /* static functions for PApplet */
-
-    void color_inv(uint32_t color, float& r, float& g, float& b, float& a);
-
-    uint32_t color(float r, float g, float b, float a);
-
-    uint32_t color(float r, float g, float b);
-
-    uint32_t color(float c, float a);
+    uint32_t color_i(uint32_t gray);
+    uint32_t color_i(uint32_t gray, uint32_t alpha);
+    uint32_t color_i(uint32_t v1, uint32_t v2, uint32_t v3);
+    uint32_t color_i(uint32_t v1, uint32_t v2, uint32_t v3, uint32_t alpha);
 
     float red(uint32_t color);
-
     float green(uint32_t color);
-
     float blue(uint32_t color);
-
     float alpha(uint32_t color);
 
-    float random(float min, float max);
-
-    float random(float max);
-
-    std::string nf(int number, int width);
-
-    float noise(float x);
-
-    float noise(float x, float y);
-
-    float noise(float x, float y, float z);
-
+    float degrees(float radians);
     float radians(float degrees);
 
-    float degrees(float radians);
+    void exit();
 
-    bool exists(const std::string& file_path);
+    std::string nf(int num, int digits); // TODO add variants for other types
 
-    std::string sketchPath();
+    float noise(float x);
+    float noise(float x, float y);
+    float noise(float x, float y, float z);
+    void  noiseSeed(int seed);
 
 #define FLUSH_PRINT
-
-    template<typename T>
-    static auto to_printable(const T& value) -> typename std::conditional<std::is_same<T, uint8_t>::value, int, const T&>::type {
-        if constexpr (std::is_same<T, uint8_t>::value) {
-            return static_cast<int>(value);
-        } else {
-            return value;
-        }
-    }
 
     template<typename... Args>
     void print(const Args&... args) {
@@ -109,15 +87,10 @@ namespace umgebung {
 #endif
     }
 
-    template<typename... Args>
-    std::string to_string(const Args&... args) {
-        std::ostringstream oss;
-        (oss << ... << args);
-        return oss.str();
-    }
+    float random(float max);
+    float random(float min, float max);
 
-    std::string get_executable_location();
-    std::string find_file_in_paths(const std::vector<std::string>& paths, const std::string& filename);
-    std::string find_in_environment_path(const std::string& filename);
+    void size(int width, int height);
 
+    std::string sketchPath();
 } // namespace umgebung
