@@ -26,7 +26,7 @@
 
 namespace umgebung {
     /* --- fields --- */
-    inline PGraphicsOpenGL2* g = nullptr;
+    inline PGraphics* g = nullptr;
 
     /* --- functions --- */
     void    background(float a);

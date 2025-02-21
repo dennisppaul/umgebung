@@ -55,12 +55,12 @@ namespace umgebung {
     class PImage;
     class PFont;
 
-    class PGraphicsOpenGL2 : public virtual PImage {
+    class PGraphics : public virtual PImage {
     public:
         static constexpr uint16_t ENABLE_SMOOTH_LINES  = 0;
         static constexpr uint16_t DISABLE_SMOOTH_LINES = 1;
 
-        PGraphicsOpenGL2();
+        PGraphics();
 
         void    fill(float r, float g, float b, float alpha = 1.0);
         void    fill(float gray, float alpha = 1.0);
@@ -115,6 +115,7 @@ namespace umgebung {
         void    scale(float x, float y);
         void    scale(float x, float y, float z);
         void    pixelDensity(int density);
+        void    hint(uint16_t property);
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) const {
@@ -123,7 +124,7 @@ namespace umgebung {
             text_str(ss.str(), x, y, z);
         }
 
-        ~PGraphicsOpenGL2() override;
+        ~PGraphics() override;
 
     private:
         PFont* fCurrentFont           = nullptr;
@@ -166,8 +167,6 @@ namespace umgebung {
         void bind() const override;
         void init(uint32_t* pixels, int width, int height, int format) override;
 #endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-
-        void hint(uint16_t property);
 
 #ifdef PGRAPHICS_USE_VBO
         GLuint ellipseVBO;

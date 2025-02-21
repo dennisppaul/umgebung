@@ -21,13 +21,14 @@
 #include <SDL3/SDL_main.h>
 
 #include <iostream>
-#include <sstream>
 #include <string>
 
 #include "Umgebung.h"
 
 namespace umgebung {
-    static bool initialized = false;
+    static std::chrono::high_resolution_clock::time_point lastFrameTime         = {};
+    static bool                                           initialized           = false;
+    static double                                         target_frame_duration = 1.0 / frameRate;
 
     bool is_initialized() {
         return initialized;
@@ -37,6 +38,9 @@ namespace umgebung {
         return UMGEBUNG_WINDOW_TITLE;
     }
 
+    void set_frame_rate(const float fps) {
+        target_frame_duration = 1.0 / fps;
+    }
 } // namespace umgebung
 
 // TODO move the functions to the respective subsystems
@@ -133,10 +137,20 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     SDL_SetAppMetadata("Umgebung Application", "1.0", "de.dennisppaul.umgebung.application");
 
     /* 3. initialize graphics */
+    // - init
     if (umgebung::subsystem_graphics->init != nullptr) {
         if (!umgebung::subsystem_graphics->init(umgebung::width, umgebung::height)) {
             SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
             return SDL_APP_FAILURE;
+        }
+    }
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem->init != nullptr) {
+            if (!subsystem->init()) {
+                umgebung::warning("Couldn't initialize subsystem.");
+                return SDL_APP_FAILURE;
+            }
         }
     }
 
@@ -146,35 +160,158 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     umgebung::initialized = true;
 
+    // - setup_pre
+
     if (umgebung::subsystem_graphics->setup_pre != nullptr) {
         umgebung::subsystem_graphics->setup_pre();
     }
 
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem->setup_pre != nullptr) {
+            subsystem->setup_pre();
+        }
+    }
+
     setup();
+
+    // - setup_post
 
     if (umgebung::subsystem_graphics->setup_post != nullptr) {
         umgebung::subsystem_graphics->setup_post();
     }
 
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem->setup_post != nullptr) {
+            subsystem->setup_post();
+        }
+    }
+
+    umgebung::lastFrameTime = std::chrono::high_resolution_clock::now();
+
     return SDL_APP_CONTINUE;
 }
 
+static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed, bool& fWindowIsResized) {
+    // imgui_processevent(event);
+    //
+    // // generic sdl event handler
+    // sdlEvent(event);
+
+    switch (event.type) {
+        // case SDL_EVENT_WINDOW_EVENT:
+        //     if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
+        //         fAppIsRunning = false;
+        //     } else if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && event.window.windowID == 1) {
+        //         fWindowIsResized = true;
+        //     }
+        //     break;
+        case SDL_EVENT_WINDOW_RESIZED:
+            fWindowIsResized = true;
+            break;
+        case SDL_EVENT_QUIT:
+            fAppIsRunning = false;
+            break;
+        case SDL_EVENT_KEY_DOWN:
+            umgebung::key = static_cast<int>(event.key.key);
+            if (event.key.scancode == SDL_SCANCODE_ESCAPE) {
+                fAppIsRunning = false;
+            } else {
+                // if (!imgui_is_keyboard_captured()) {
+                keyPressed();
+                // }
+            }
+            break;
+        case SDL_EVENT_KEY_UP:
+            // if (imgui_is_keyboard_captured()) { break; }
+            umgebung::key = static_cast<int>(event.key.key);
+            keyReleased();
+
+            break;
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+            // if (imgui_is_mouse_captured()) { break; }
+            umgebung::mouseButton = event.button.button;
+            fMouseIsPressed       = true;
+            mousePressed();
+            umgebung::isMousePressed = true;
+            break;
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+            // if (imgui_is_mouse_captured()) { break; }
+            fMouseIsPressed       = false;
+            umgebung::mouseButton = -1;
+            mouseReleased();
+            umgebung::isMousePressed = false;
+            break;
+        case SDL_EVENT_MOUSE_MOTION:
+            // if (imgui_is_mouse_captured()) { break; }
+            umgebung::mouseX = static_cast<float>(event.motion.x);
+            umgebung::mouseY = static_cast<float>(event.motion.y);
+
+            if (fMouseIsPressed) {
+                mouseDragged();
+            } else {
+                mouseMoved();
+            }
+            break;
+            // case SDL_MULTIGESTURE:
+        case SDL_EVENT_MOUSE_WHEEL:
+            // if (imgui_is_mouse_captured()) { break; }
+            mouseWheel(event.wheel.mouse_x, event.wheel.mouse_y);
+            break;
+
+        case SDL_EVENT_DROP_FILE: {
+            // only allow drag and drop on main window
+            // if (event.drop.windowID != 1) { break; }
+            const char* dropped_filedir = event.drop.data;
+            dropped(dropped_filedir);
+            break;
+        }
+        default: break;
+    }
+}
+
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem->event != nullptr) {
+            subsystem->event(event);
+        }
+    }
+
+    // if (sdl_event(event)) {
+    //     if (event->type == SDL_EVENT_QUIT) {
+    //         return SDL_APP_SUCCESS;
+    //     }
+    //     return SDL_APP_CONTINUE;
+    // }
+
     /*
      * 1. mouse events
      * 2. key events
      * 3. quit events
      */
-    if (event->type == SDL_EVENT_KEY_DOWN ||
-        event->type == SDL_EVENT_QUIT) {
+    // TODO this need to be handled differently
+    static bool fAppIsRunning    = true;
+    static bool fMouseIsPressed  = false;
+    static bool fWindowIsResized = false;
+    handle_event(*event, fAppIsRunning, fMouseIsPressed, fWindowIsResized);
+    if (!fAppIsRunning) {
         return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
     }
+    // if (event->type == SDL_EVENT_KEY_DOWN ||
+    //     event->type == SDL_EVENT_QUIT) {
+    //     return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
+    // }
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppIterate(void* appstate) {
+static void handle_draw() {
     if (umgebung::subsystem_graphics->draw_pre != nullptr) {
         umgebung::subsystem_graphics->draw_pre();
+    }
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem->draw_pre != nullptr) {
+            subsystem->draw_pre();
+        }
     }
 
     draw();
@@ -183,10 +320,35 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
         umgebung::subsystem_graphics->draw_post();
     }
 
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem->draw_post != nullptr) {
+            subsystem->draw_post();
+        }
+    }
+}
+
+using namespace std::chrono;
+
+SDL_AppResult SDL_AppIterate(void* appstate) {
+    const high_resolution_clock::time_point currentFrameTime = high_resolution_clock::now();
+    const auto                              frameDuration    = duration_cast<duration<double>>(currentFrameTime - umgebung::lastFrameTime);
+    const double                            frame_duration   = frameDuration.count();
+    if (frame_duration >= umgebung::target_frame_duration) {
+        handle_draw();
+
+        if (frame_duration == 0) {
+            umgebung::frameRate = 1;
+        } else {
+            umgebung::frameRate = static_cast<float>(1.0 / frame_duration);
+        }
+
+        umgebung::frameCount++;
+        umgebung::lastFrameTime = currentFrameTime;
+    }
+
     return SDL_APP_CONTINUE;
 }
 
-/* This function runs once at shutdown. */
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
     /*
      * 1. call `void umgebung::quit()`(?)
@@ -195,6 +357,14 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result) {
     if (umgebung::subsystem_graphics->shutdown != nullptr) {
         umgebung::subsystem_graphics->shutdown();
     }
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem->shutdown != nullptr) {
+            subsystem->shutdown();
+        }
+    }
+
+    shutdown();
 
     delete umgebung::subsystem_graphics;
     SDL_Quit();

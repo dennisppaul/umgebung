@@ -62,7 +62,6 @@ namespace umgebung {
     std::string nf(int num, int digits = 2);
     std::string nfc(int num);
     std::string nfc(float num, int right);
-    std::string nfc(int num);
     std::string nfp(float num, int digits = 2);
     std::string nfp(float num, int left, int right);
     std::string nfs(float num, int left, int right);

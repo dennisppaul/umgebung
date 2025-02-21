@@ -97,7 +97,7 @@ namespace umgebung {
 
     void exit() {
         // TODO handle exit
-        console("exit");
+        console("TODO handle exit");
     }
 
     float degrees(const float radians) {
@@ -170,7 +170,7 @@ namespace umgebung {
         out << std::fixed << std::setprecision(right);
         std::string numStr          = out.str();
         numStr                      = std::to_string(static_cast<int>(num)) + numStr.substr(numStr.find('.'));
-        const int integerPartLength = numStr.find('.');
+        const int integerPartLength = static_cast<int>(numStr.find('.'));
         if (integerPartLength < left) {
             numStr.insert(0, left - integerPartLength, '0');
         }

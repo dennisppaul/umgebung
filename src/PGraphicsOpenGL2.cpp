@@ -32,7 +32,7 @@ static_assert(std::is_same_v<GLuint, unsigned int>,
 using namespace umgebung;
 
 // TODO look into OpenGL 3 e.g https://github.com/opengl-tutorials/ogl/
-PGraphicsOpenGL2::PGraphicsOpenGL2() : PImage(0, 0, 0) {
+PGraphics::PGraphics() : PImage(0, 0, 0) {
 #ifdef PGRAPHICS_USE_VBO
     ellipseVBO        = 0;
     ellipseSegments   = 0;
@@ -43,7 +43,7 @@ PGraphicsOpenGL2::PGraphicsOpenGL2() : PImage(0, 0, 0) {
     stroke(0.0f);
 }
 
-PGraphicsOpenGL2::~PGraphicsOpenGL2() {
+PGraphics::~PGraphics() {
 #ifdef PGRAPHICS_USE_VBO
     if (bufferInitialized) {
         glDeleteBuffers(1, &ellipseVBO);
@@ -51,7 +51,7 @@ PGraphicsOpenGL2::~PGraphicsOpenGL2() {
 #endif // PGRAPHICS_USE_VBO
 }
 
-void PGraphicsOpenGL2::stroke(const float r, const float g, const float b, const float alpha) {
+void PGraphics::stroke(const float r, const float g, const float b, const float alpha) {
     stroke_color.r      = r;
     stroke_color.g      = g;
     stroke_color.b      = b;
@@ -59,7 +59,7 @@ void PGraphicsOpenGL2::stroke(const float r, const float g, const float b, const
     stroke_color.active = true;
 }
 
-void PGraphicsOpenGL2::stroke(const float gray, const float alpha) {
+void PGraphics::stroke(const float gray, const float alpha) {
     stroke_color.r      = gray;
     stroke_color.g      = gray;
     stroke_color.b      = gray;
@@ -67,7 +67,7 @@ void PGraphicsOpenGL2::stroke(const float gray, const float alpha) {
     stroke_color.active = true;
 }
 
-void PGraphicsOpenGL2::stroke_i(const uint32_t c) {
+void PGraphics::stroke_i(const uint32_t c) {
     color_inv(c, stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
     // stroke_color.r      = static_cast<float>(c >> 16 & 0xFF) / 255.0f;
     // stroke_color.g      = static_cast<float>(c >> 8 & 0xFF) / 255.0f;
@@ -76,19 +76,19 @@ void PGraphicsOpenGL2::stroke_i(const uint32_t c) {
     stroke_color.active = true;
 }
 
-void PGraphicsOpenGL2::stroke(const float a) {
+void PGraphics::stroke(const float a) {
     stroke(a, a, a);
 }
 
-void PGraphicsOpenGL2::noStroke() {
+void PGraphics::noStroke() {
     stroke_color.active = false;
 }
 
-void PGraphicsOpenGL2::strokeWeight(float weight) {
+void PGraphics::strokeWeight(float weight) {
     glLineWidth(weight);
 }
 
-void PGraphicsOpenGL2::fill(const float r, const float g, const float b, const float alpha) {
+void PGraphics::fill(const float r, const float g, const float b, const float alpha) {
     fill_color.r      = r;
     fill_color.g      = g;
     fill_color.b      = b;
@@ -96,11 +96,11 @@ void PGraphicsOpenGL2::fill(const float r, const float g, const float b, const f
     fill_color.active = true;
 }
 
-void PGraphicsOpenGL2::fill(const float gray, const float alpha) {
+void PGraphics::fill(const float gray, const float alpha) {
     fill(gray, gray, gray, alpha);
 }
 
-void PGraphicsOpenGL2::fill_i(const uint32_t c) {
+void PGraphics::fill_i(const uint32_t c) {
     color_inv(c, fill_color.r, fill_color.g, fill_color.b, fill_color.a);
     // fill_color.r      = static_cast<float>(c >> 16 & 0xFF) / 255.0f;
     // fill_color.g      = static_cast<float>(c >> 8 & 0xFF) / 255.0f;
@@ -109,22 +109,22 @@ void PGraphicsOpenGL2::fill_i(const uint32_t c) {
     fill_color.active = true;
 }
 
-void PGraphicsOpenGL2::noFill() {
+void PGraphics::noFill() {
     fill_color.active = false;
 }
 
 #ifndef DISABLE_GRAPHICS
 
-void PGraphicsOpenGL2::background(const float a, const float b, const float c, const float d) {
+void PGraphics::background(const float a, const float b, const float c, const float d) {
     glClearColor(a, b, c, d);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void PGraphicsOpenGL2::background(const float a) {
+void PGraphics::background(const float a) {
     background(a, a, a);
 }
 
-void PGraphicsOpenGL2::rect(const float x, const float y, const float width, const float height) const {
+void PGraphics::rect(const float x, const float y, const float width, const float height) const {
     if (fill_color.active) {
         glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
         glBegin(GL_QUADS);
@@ -242,7 +242,7 @@ static void draw_ellipse(const GLenum shape,
     glEnd();
 }
 
-void PGraphicsOpenGL2::ellipse(const float x, const float y, const float width, const float height) const {
+void PGraphics::ellipse(const float x, const float y, const float width, const float height) const {
     if (fill_color.active) {
         glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
         draw_ellipse(GL_TRIANGLE_FAN, fEllipseDetail, x, y, width, height);
@@ -255,15 +255,15 @@ void PGraphicsOpenGL2::ellipse(const float x, const float y, const float width, 
 }
 #endif // PGRAPHICS_USE_VBO
 
-void PGraphicsOpenGL2::circle(const float x, const float y, const float diameter) const {
+void PGraphics::circle(const float x, const float y, const float diameter) const {
     ellipse(x, y, diameter, diameter);
 }
 
-void PGraphicsOpenGL2::ellipseDetail(const int detail) {
+void PGraphics::ellipseDetail(const int detail) {
     fEllipseDetail = detail;
 }
 
-void PGraphicsOpenGL2::line(const float x1, const float y1, const float x2, const float y2) const {
+void PGraphics::line(const float x1, const float y1, const float x2, const float y2) const {
     if (!stroke_color.active) {
         return;
     }
@@ -274,7 +274,7 @@ void PGraphicsOpenGL2::line(const float x1, const float y1, const float x2, cons
     glEnd();
 }
 
-void PGraphicsOpenGL2::bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) const {
+void PGraphics::bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) const {
     if (!stroke_color.active) {
         return;
     }
@@ -301,10 +301,10 @@ void PGraphicsOpenGL2::bezier(float x1, float y1, float x2, float y2, float x3, 
     glEnd();
 }
 
-void PGraphicsOpenGL2::bezier(float x1, float y1, float z1,
-                       float x2, float y2, float z2,
-                       float x3, float y3, float z3,
-                       float x4, float y4, float z4) const {
+void PGraphics::bezier(float x1, float y1, float z1,
+                              float x2, float y2, float z2,
+                              float x3, float y3, float z3,
+                              float x4, float y4, float z4) const {
     if (!stroke_color.active) {
         return;
     }
@@ -332,15 +332,15 @@ void PGraphicsOpenGL2::bezier(float x1, float y1, float z1,
     glEnd();
 }
 
-void PGraphicsOpenGL2::bezierDetail(int detail) {
+void PGraphics::bezierDetail(int detail) {
     fBezierDetail = detail;
 }
 
-void PGraphicsOpenGL2::pointSize(const float point_size) {
+void PGraphics::pointSize(const float point_size) {
     fPointSize = point_size;
 }
 
-void PGraphicsOpenGL2::point(const float x, const float y, const float z) const {
+void PGraphics::point(const float x, const float y, const float z) const {
     if (!stroke_color.active) {
         return;
     }
@@ -357,7 +357,7 @@ void PGraphicsOpenGL2::point(const float x, const float y, const float z) const 
     glEnd();
 }
 
-void PGraphicsOpenGL2::beginShape(const int shape) {
+void PGraphics::beginShape(const int shape) {
     if (!fill_color.active) {
         return;
     }
@@ -401,7 +401,7 @@ void PGraphicsOpenGL2::beginShape(const int shape) {
     glBegin(mShape);
 }
 
-void PGraphicsOpenGL2::endShape() {
+void PGraphics::endShape() {
     glEnd();
     if (fEnabledTextureInShape) {
         glDisable(GL_TEXTURE_2D);
@@ -410,12 +410,12 @@ void PGraphicsOpenGL2::endShape() {
     fShapeBegun = false;
 }
 
-void PGraphicsOpenGL2::vertex(const float x, const float y, const float z) {
+void PGraphics::vertex(const float x, const float y, const float z) {
     glVertex3f(x, y, z);
 }
 
 
-void PGraphicsOpenGL2::vertex(const float x, const float y, const float z, const float u, const float v) {
+void PGraphics::vertex(const float x, const float y, const float z, const float u, const float v) {
     glTexCoord2f(u, v);
     glVertex3f(x, y, z);
 }
@@ -424,23 +424,23 @@ void PGraphicsOpenGL2::vertex(const float x, const float y, const float z, const
 
 /* font */
 
-PFont* PGraphicsOpenGL2::loadFont(const std::string& file, const float size) {
+PFont* PGraphics::loadFont(const std::string& file, const float size) {
     auto* font = new PFont(file.c_str(), size, fPixelDensity);
     return font;
 }
 
-void PGraphicsOpenGL2::textFont(PFont* font) {
+void PGraphics::textFont(PFont* font) {
     fCurrentFont = font;
 }
 
-void PGraphicsOpenGL2::textSize(const float size) const {
+void PGraphics::textSize(const float size) const {
     if (fCurrentFont == nullptr) {
         return;
     }
     fCurrentFont->size(size);
 }
 
-void PGraphicsOpenGL2::text_str(const std::string& text, const float x, const float y, const float z) const {
+void PGraphics::text_str(const std::string& text, const float x, const float y, const float z) const {
     if (fCurrentFont == nullptr) {
         return;
     }
@@ -454,7 +454,7 @@ void PGraphicsOpenGL2::text_str(const std::string& text, const float x, const fl
 #endif // DISABLE_GRAPHICS
 }
 
-float PGraphicsOpenGL2::textWidth(const std::string& text) const {
+float PGraphics::textWidth(const std::string& text) const {
     if (fCurrentFont == nullptr) {
         return 0;
     }
@@ -464,7 +464,7 @@ float PGraphicsOpenGL2::textWidth(const std::string& text) const {
 #endif // DISABLE_GRAPHICS
 }
 
-void PGraphicsOpenGL2::pixelDensity(const int value) {
+void PGraphics::pixelDensity(const int value) {
     if (value > 0 && value <= 3) {
         fPixelDensity = value;
     } else {
@@ -472,16 +472,16 @@ void PGraphicsOpenGL2::pixelDensity(const int value) {
     }
 }
 
-void PGraphicsOpenGL2::text(const char* value, const float x, const float y, const float z) const {
+void PGraphics::text(const char* value, const float x, const float y, const float z) const {
     text_str(value, x, y, z);
 }
 
-PImage* PGraphicsOpenGL2::loadImage(const std::string& filename) {
+PImage* PGraphics::loadImage(const std::string& filename) {
     auto* img = new PImage(filename);
     return img;
 }
 
-void PGraphicsOpenGL2::image(const PImage* img, const float x, const float y, const float w, const float h) const {
+void PGraphics::image(const PImage* img, const float x, const float y, const float w, const float h) const {
 #ifndef DISABLE_GRAPHICS
     glEnable(GL_TEXTURE_2D);
     glColor4f(fill_color.r, fill_color.g, fill_color.b, fill_color.a);
@@ -504,11 +504,11 @@ void PGraphicsOpenGL2::image(const PImage* img, const float x, const float y, co
 #endif // DISABLE_GRAPHICS
 }
 
-void PGraphicsOpenGL2::image(PImage* img, const float x, const float y) {
+void PGraphics::image(PImage* img, const float x, const float y) {
     image(img, x, y, img->width, img->height);
 }
 
-void PGraphicsOpenGL2::texture(const PImage* img) {
+void PGraphics::texture(const PImage* img) {
 #ifndef DISABLE_GRAPHICS
     if (fShapeBegun) {
         std::cerr << "texture must be set before `beginShape()`" << std::endl;
@@ -522,52 +522,52 @@ void PGraphicsOpenGL2::texture(const PImage* img) {
 
 #ifndef DISABLE_GRAPHICS
 
-void PGraphicsOpenGL2::popMatrix() {
+void PGraphics::popMatrix() {
     glPopMatrix();
 }
 
-void PGraphicsOpenGL2::pushMatrix() {
+void PGraphics::pushMatrix() {
     glPushMatrix();
 }
 
-void PGraphicsOpenGL2::translate(const float x, const float y, const float z) {
+void PGraphics::translate(const float x, const float y, const float z) {
     glTranslatef(x, y, z);
 }
 
-void PGraphicsOpenGL2::rotateX(const float angle) {
+void PGraphics::rotateX(const float angle) {
     glRotatef(degrees(angle), 1.0f, 0.0f, 0.0f);
 }
 
-void PGraphicsOpenGL2::rotateY(const float angle) {
+void PGraphics::rotateY(const float angle) {
     glRotatef(degrees(angle), 0.0f, 1.0f, 0.0f);
 }
 
-void PGraphicsOpenGL2::rotateZ(const float angle) {
+void PGraphics::rotateZ(const float angle) {
     glRotatef(degrees(angle), 0.0f, 0.0f, 1.0f);
 }
 
-void PGraphicsOpenGL2::rotate(const float angle) {
+void PGraphics::rotate(const float angle) {
     glRotatef(degrees(angle), 0.0f, 0.0f, 1.0f);
 }
 
-void PGraphicsOpenGL2::rotate(const float angle, const float x, const float y, const float z) {
+void PGraphics::rotate(const float angle, const float x, const float y, const float z) {
     glRotatef(degrees(angle), x, y, z);
 }
 
-void PGraphicsOpenGL2::scale(const float x) {
+void PGraphics::scale(const float x) {
     glScalef(x, x, x);
 }
 
-void PGraphicsOpenGL2::scale(const float x, const float y) {
+void PGraphics::scale(const float x, const float y) {
     glScalef(x, y, 1.0f);
 }
 
-void PGraphicsOpenGL2::scale(const float x, const float y, const float z) {
+void PGraphics::scale(const float x, const float y, const float z) {
     glScalef(x, y, z);
 }
 
 #ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-void PGraphicsOpenGL2::beginDraw() {
+void PGraphics::beginDraw() {
     /* save state */
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fPreviousFBO);
     glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -591,7 +591,7 @@ void PGraphicsOpenGL2::beginDraw() {
     glLoadIdentity();
 }
 
-void PGraphicsOpenGL2::endDraw() const {
+void PGraphics::endDraw() const {
     // restore projection and modelview matrices
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
@@ -605,11 +605,11 @@ void PGraphicsOpenGL2::endDraw() const {
     glPopAttrib();
 }
 
-void PGraphicsOpenGL2::bind() const {
+void PGraphics::bind() const {
     glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
 }
 
-void PGraphicsOpenGL2::init(uint32_t* pixels, const int width, const int height, int format) {
+void PGraphics::init(uint32_t* pixels, const int width, const int height, int format) {
     this->width        = width;
     this->height       = height;
     framebuffer.width  = width;
@@ -642,7 +642,7 @@ void PGraphicsOpenGL2::init(uint32_t* pixels, const int width, const int height,
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 #endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-void PGraphicsOpenGL2::hint(const uint16_t property) {
+void PGraphics::hint(const uint16_t property) {
     switch (property) {
         case ENABLE_SMOOTH_LINES:
             glEnable(GL_LINE_SMOOTH);
