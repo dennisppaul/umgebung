@@ -32,7 +32,6 @@
 
 namespace umgebung {
 
-
     uint32_t color(const float gray) {
         return color(gray, gray, gray, 1);
     }
@@ -98,7 +97,155 @@ namespace umgebung {
 
     void exit() {
         // TODO handle exit
-        umgebung::println("exit");
+        console("exit");
+    }
+
+    float degrees(const float radians) {
+        return static_cast<float>(radians * 180.0f / M_PI);
+    }
+
+    float radians(const float degrees) {
+        return M_PI * degrees / 180.0f;
+    }
+
+    std::string join(const std::vector<std::string>& strings, const std::string& separator) {
+        std::string result;
+        for (size_t i = 0; i < strings.size(); ++i) {
+            result += strings[i];
+            if (i < strings.size() - 1) {
+                result += separator;
+            }
+        }
+        return result;
+    }
+
+    float map(const float value,
+              const float start0,
+              const float stop0,
+              const float start1,
+              const float stop1) {
+        const float a = value - start0;
+        const float b = stop0 - start0;
+        const float c = stop1 - start1;
+        const float d = a / b;
+        const float e = d * c;
+        return e + start1;
+    }
+
+    std::vector<std::string> match(const std::string& text, const std::regex& regexp) {
+        std::vector<std::string> groups;
+        std::smatch              match;
+        if (std::regex_search(text, match, regexp)) {
+            for (size_t i = 1; i < match.size(); ++i) {
+                groups.push_back(match[i]);
+            }
+        }
+        return groups;
+    }
+
+    std::vector<std::vector<std::string>> matchAll(const std::string& text, const std::regex& regexp) {
+        std::vector<std::vector<std::string>> matches;
+        std::sregex_iterator                  begin(text.begin(), text.end(), regexp), end;
+        for (auto i = begin; i != end; ++i) {
+            std::vector<std::string> matchGroup;
+            matchGroup.push_back(i->str()); // Full match
+
+            for (size_t j = 1; j < i->size(); ++j) { // Capturing groups
+                matchGroup.push_back((*i)[j]);
+            }
+
+            matches.push_back(matchGroup);
+        }
+        return matches;
+    }
+
+    std::string nf(const float num, const int digits) {
+        std::ostringstream out;
+        out << std::fixed << std::setprecision(digits) << num;
+        return out.str();
+    }
+
+    std::string nf(const float num, const int left, const int right) {
+        std::ostringstream out;
+        out << std::fixed << std::setprecision(right);
+        std::string numStr          = out.str();
+        numStr                      = std::to_string(static_cast<int>(num)) + numStr.substr(numStr.find('.'));
+        const int integerPartLength = numStr.find('.');
+        if (integerPartLength < left) {
+            numStr.insert(0, left - integerPartLength, '0');
+        }
+        return numStr;
+    }
+
+    std::string nfc(const int num) {
+        std::ostringstream out;
+        out.imbue(std::locale("")); // Use system's locale for thousands separator
+        out << num;
+        return out.str();
+    }
+
+    std::string nfc(const float num, const int right) {
+        std::ostringstream out;
+        out.imbue(std::locale(""));
+        out << std::fixed << std::setprecision(right) << num;
+        return out.str();
+    }
+
+    std::string nfc(const float number) {
+        std::stringstream ss;
+        ss.imbue(std::locale(""));
+        ss << std::fixed << number;
+        return ss.str();
+    }
+
+    std::string nfp(const float num, const int digits) {
+        std::ostringstream out;
+        if (num >= 0) {
+            out << "+";
+        }
+        out << std::fixed << std::setprecision(digits) << num;
+        return out.str();
+    }
+
+    std::string nfp(const float num, const int left, const int right) {
+        std::ostringstream out;
+        out << std::fixed << std::setprecision(right);
+        if (num >= 0) {
+            out << "+";
+        }
+        out << std::setw(left + right + 1) << std::setfill('0') << num;
+        return out.str();
+    }
+
+    std::string nfs(const float num, const int left, const int right) {
+        std::ostringstream out;
+        out << std::fixed << std::setprecision(right); // Ensure right decimal places
+
+        if (num >= 0) {
+            out << " "; // Space for positive numbers
+        }
+
+        out << std::setw(left + right + 1) << std::setfill('0') << num; // Ensure left digits
+
+        return out.str();
+    }
+
+    std::string nfs(const float num, const int digits) {
+        std::ostringstream out;
+        if (num >= 0) {
+            out << " ";
+        }
+        out << std::fixed << std::setprecision(digits) << num;
+        return out.str();
+    }
+
+    std::string nfs(const int num, const int digits) {
+        std::ostringstream out;
+        if (num >= 0) {
+            out << " ";
+        }
+        out << std::setw(digits) << std::setfill('0') << num;
+        return out.str();
     }
 
     static unsigned int fRandomSeed = static_cast<unsigned int>(std::time(nullptr));
@@ -114,8 +261,8 @@ namespace umgebung {
     }
 
     void size(const int width, const int height) {
-        if (initilized) {
-            umgebung::warning("`size()` must be called before or within `settings()`.");
+        if (is_initialized()) {
+            warning("`size()` must be called before or within `settings()`.");
             return;
         }
         umgebung::width  = width;
@@ -145,14 +292,6 @@ namespace umgebung {
 
     float noise(const float x, const float y, const float z) {
         return SimplexNoise::noise(x, y, z);
-    }
-
-    float radians(const float degrees) {
-        return M_PI * degrees / 180.0f;
-    }
-
-    float degrees(const float radians) {
-        return static_cast<float>(radians * 180.0f / M_PI);
     }
 
 #if defined(SYSTEM_WIN32)
@@ -221,4 +360,40 @@ namespace umgebung {
         return sketchPath_impl();
     }
 
+    std::vector<std::string> split(const std::string& str, const std::string& delimiter) {
+        std::vector<std::string> result;
+        size_t                   start = 0, end;
+        while ((end = str.find(delimiter, start)) != std::string::npos) {
+            result.push_back(str.substr(start, end - start));
+            start = end + delimiter.length();
+        }
+        if (start < str.length()) {
+            result.push_back(str.substr(start));
+        }
+        return result;
+    }
+
+    std::vector<std::string> splitTokens(const std::string& str, const std::string& tokens) {
+        std::vector<std::string> result;
+        size_t                   start = 0, end;
+        while ((end = str.find_first_of(tokens, start)) != std::string::npos) {
+            if (end != start) {
+                result.push_back(str.substr(start, end - start));
+            }
+            start = end + 1;
+        }
+        if (start < str.length()) {
+            result.push_back(str.substr(start));
+        }
+        return result;
+    }
+
+    std::string trim(const std::string& str) {
+        const size_t first = str.find_first_not_of(" \t\n\r\f\v");
+        if (first == std::string::npos) {
+            return "";
+        }
+        const size_t last = str.find_last_not_of(" \t\n\r\f\v");
+        return str.substr(first, (last - first + 1));
+    }
 } // namespace umgebung

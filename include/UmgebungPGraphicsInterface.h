@@ -25,28 +25,14 @@
 #include "PFont.h"
 
 namespace umgebung {
-    /* fields */
-    inline PGraphics* g = nullptr;
+    /* --- fields --- */
+    inline PGraphicsOpenGL2* g = nullptr;
 
-    /* functions */
-    void    stroke(float r, float g, float b, float a = 1.0);
-    void    stroke(float brightness, float a);
-    void    stroke(float a);
-    void    stroke(uint32_t c);
-    void    noStroke();
-    void    strokeWeight(float weight);
-    void    fill(float r, float g, float b, float a = 1.0);
-    void    fill(float brightness, float a);
-    void    fill(float a);
-    void    fill(uint32_t c);
-    void    noFill();
-    void    background(float a, float b, float c, float d = 1.0);
+    /* --- functions --- */
     void    background(float a);
-    void    rect(float x, float y, float width, float height);
-    void    ellipse(float x, float y, float width, float height);
-    void    circle(float x, float y, float radius);
-    void    ellipseDetail(int detail);
-    void    line(float x1, float y1, float x2, float y2);
+    void    background(float a, float b, float c, float d = 1.0);
+    void    beginShape(int shape = POLYGON);
+    void    endShape();
     void    bezier(float x1, float y1,
                    float x2, float y2,
                    float x3, float y3,
@@ -57,9 +43,27 @@ namespace umgebung {
                    float x4, float y4, float z4);
     void    bezierDetail(int detail);
     void    pointSize(float point_size);
+    void    circle(float x, float y, float radius);
+    void    ellipse(float x, float y, float width, float height);
+    void    ellipseDetail(int detail);
+    void    fill(float r, float g, float b, float a = 1.0);
+    void    fill(float brightness, float a);
+    void    fill(float a);
+    void    fill(uint32_t c);
+    void    noFill();
+    void    image(const PImage* img, float x, float y, float w, float h);
+    void    image(PImage* img, float x, float y);
+    void    texture(const PImage* img);
+    PImage* loadImage(const std::string& filename);
+    void    line(float x1, float y1, float x2, float y2);
     void    point(float x, float y, float z = 0.0);
-    void    beginShape(int shape = POLYGON);
-    void    endShape();
+    void    rect(float x, float y, float width, float height);
+    void    stroke(float r, float g, float b, float a = 1.0);
+    void    stroke(float brightness, float a);
+    void    stroke(float a);
+    void    stroke(uint32_t c);
+    void    noStroke();
+    void    strokeWeight(float weight);
     void    vertex(float x, float y, float z = 0.0);
     void    vertex(float x, float y, float z, float u, float v);
     PFont*  loadFont(const std::string& file, float size); // @development maybe use smart pointers here
@@ -67,10 +71,6 @@ namespace umgebung {
     void    textSize(float size);
     void    text(const char* value, float x, float y, float z = 0.0f);
     float   textWidth(const std::string& text);
-    PImage* loadImage(const std::string& filename);
-    void    image(const PImage* img, float x, float y, float w, float h);
-    void    image(PImage* img, float x, float y);
-    void    texture(const PImage* img);
     void    popMatrix();
     void    pushMatrix();
     void    translate(float x, float y, float z = 0);

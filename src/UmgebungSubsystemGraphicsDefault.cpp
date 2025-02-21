@@ -19,15 +19,24 @@
 
 #include <SDL3/SDL.h>
 
+#include "UmgebungConstants.h"
 #include "UmgebungPGraphicsInterface.h"
-#include "UmgebungSubsystemGraphicsDefault.h"
+#include "UmgebungSubsystems.h"
 
+UMGEBUNG_NAMESPACE_BEGIN
 // TODO Ref https://github.com/libsdl-org/SDL/blob/main/docs/hello.c
 
 static SDL_Window*   window   = nullptr;
 static SDL_Renderer* renderer = nullptr;
 
-bool umgebung_subsystem_graphics_default_init(const int width, const int height) {
+bool subsystem_graphics_default_init(int width, int height);
+void subsystem_graphics_default_setup_pre() { printf("Setup Pre\n"); }
+void subsystem_graphics_default_setup_post() { printf("Setup Post\n"); }
+void subsystem_graphics_default_draw_pre();
+void subsystem_graphics_default_draw_post();
+void subsystem_graphics_default_shutdown() { printf("Shutdown\n"); }
+
+bool subsystem_graphics_default_init(const int width, const int height) {
     SDL_Log("Graphics Init: %d x %d\n", width, height);
     if (!SDL_CreateWindowAndRenderer("Hello World",
                                      umgebung::width,
@@ -41,7 +50,7 @@ bool umgebung_subsystem_graphics_default_init(const int width, const int height)
     return true;
 }
 
-void umgebung_subsystem_graphics_default_draw_pre() {
+void subsystem_graphics_default_draw_pre() {
     const char* message = "Hello World!";
     int         w = 0, h = 0;
     float       x, y;
@@ -61,10 +70,28 @@ void umgebung_subsystem_graphics_default_draw_pre() {
     SDL_RenderPresent(renderer);
 }
 
-void umgebung_subsystem_graphics_draw_default_post() {}
+void subsystem_graphics_default_draw_post() {}
 
-umgebung::PGraphics* create_graphics() {
-    auto* graphics = new umgebung::PGraphics();
+void subsystem_graphics_default_set_flags(uint32_t& subsystem_flags) {
+    subsystem_flags |= SDL_INIT_VIDEO;
+}
+
+PGraphicsOpenGL2* subsystem_graphics_default_create_graphics() {
+    auto* graphics = new PGraphicsOpenGL2();
     graphics->init(nullptr, umgebung::width, umgebung::height, 4);
+    return graphics;
+}
+UMGEBUNG_NAMESPACE_END
+
+umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_default() {
+    auto* graphics            = new umgebung::SubsystemGraphics{};
+    graphics->init            = umgebung::subsystem_graphics_default_init;
+    graphics->setup_pre       = umgebung::subsystem_graphics_default_setup_pre;
+    graphics->setup_post      = umgebung::subsystem_graphics_default_setup_post;
+    graphics->draw_pre        = umgebung::subsystem_graphics_default_draw_pre;
+    graphics->draw_post       = umgebung::subsystem_graphics_default_draw_post;
+    graphics->shutdown        = umgebung::subsystem_graphics_default_shutdown;
+    graphics->set_flags       = umgebung::subsystem_graphics_default_set_flags;
+    graphics->create_graphics = umgebung::subsystem_graphics_default_create_graphics;
     return graphics;
 }

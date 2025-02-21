@@ -30,6 +30,21 @@
 
 namespace umgebung {
 
+    void                     audio_devices(int input_device, int output_device);
+    bool                     begins_with(const std::string& str, const std::string& prefix);
+    void                     color_inv(uint32_t color, float& r, float& g, float& b, float& a);
+    bool                     exists(const std::string& file_path);
+    std::string              find_file_in_paths(const std::vector<std::string>& paths, const std::string& filename);
+    std::string              find_in_environment_path(const std::string& filename);
+    std::string              get_executable_location();
+    std::vector<std::string> get_files(const std::string& directory, const std::string& extension = "");
+    int                      get_int_from_argument(const std::string& argument);
+    std::string              get_string_from_argument(const std::string& argument);
+    std::string              timestamp();
+
+
+    /* --- templated functions --- */
+
     template<typename T>
     static auto to_printable(const T& value) -> typename std::conditional<std::is_same<T, uint8_t>::value, int, const T&>::type {
         if constexpr (std::is_same_v<T, uint8_t>) {
@@ -43,19 +58,6 @@ namespace umgebung {
     std::string to_string(const Args&... args) {
         std::ostringstream oss;
         (oss << ... << args);
-        return oss.str();
-    }
-
-    void audio_devices(int input_device, int output_device);
-
-    void color_inv(uint32_t color, float& r, float& g, float& b, float& a);
-
-    inline std::string timestamp() {
-        auto               now   = std::chrono::system_clock::now();
-        auto               ms    = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
-        auto               timer = std::chrono::system_clock::to_time_t(now);
-        std::ostringstream oss;
-        oss << std::put_time(std::localtime(&timer), "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0') << std::setw(3) << ms.count();
         return oss.str();
     }
 
@@ -87,10 +89,17 @@ namespace umgebung {
 #endif
     }
 
-    bool exists(const std::string& file_path);
-
-    std::string get_executable_location();
-    std::string find_file_in_paths(const std::vector<std::string>& paths, const std::string& filename);
-    std::string find_in_environment_path(const std::string& filename);
-
+    template<typename... Args>
+    void console(const Args&... args) {
+#if (UMGEBUNG_PRINT_CONSOLE)
+        std::ostringstream os;
+        ((os << to_printable(args)), ...);
+        std::cout
+            << timestamp() << " "
+            << "UMG.CONSOLE : "
+            << os.str()
+            << std::endl;
+        std::flush(std::cout);
+#endif
+    }
 } // namespace umgebung

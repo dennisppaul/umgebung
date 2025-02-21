@@ -17,7 +17,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
@@ -26,7 +25,19 @@
 #include <string>
 
 #include "Umgebung.h"
-#include "UmgebungSubsystemGraphicsDefault.h"
+
+namespace umgebung {
+    static bool initialized = false;
+
+    bool is_initialized() {
+        return initialized;
+    }
+
+    std::string get_window_title() {
+        return UMGEBUNG_WINDOW_TITLE;
+    }
+
+} // namespace umgebung
 
 // TODO move the functions to the respective subsystems
 void umgebung_subsystem_audio_init();
@@ -34,8 +45,7 @@ void umgebung_subsystem_audio_poll_devices();
 void umgebung_subsystem_events_init();
 
 // TODO add console ( e.g SDL_log )
-// TODO add debug_text ( i.e `SDL_RenderDebugText(renderer, x, y, message);` )
-
+// TODO not in umgebung namespace?
 static void handle_arguments(int argc, char* argv[]) {
     std::vector<std::string> args;
     if (argc > 1) {
@@ -47,35 +57,6 @@ static void handle_arguments(int argc, char* argv[]) {
 }
 
 static uint32_t compile_subsystems_flag() {
-    uint32_t subsystem_flags = 0;
-    subsystem_flags |= SDL_INIT_VIDEO;
-    subsystem_flags |= SDL_INIT_AUDIO;
-    subsystem_flags |= SDL_INIT_EVENTS;
-    return subsystem_flags;
-}
-
-SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
-    /* initialize default graphics subsystem */
-    if (umgebung::subsystem_graphics == nullptr) {
-        umgebung::subsystem_graphics = create_graphics_subsystem();
-    }
-
-    /*
-     * 1. prepare umgebung ( e.g args, settings ) e.g
-     *     - `void arguments(std::vector<std::string> args)`
-     * 2. initialize SDL
-     * 3. initialize graphics
-     * 4. initialize audio
-     * 5. setup application
-     */
-
-    /* 1. prepare umgebung application */
-
-    handle_arguments(argc, argv);
-    settings();
-
-    /* 2. initialize SDL */
-
     /* from `SDL.h`:
      * - `SDL_INIT_TIMER`: timer subsystem
      * - `SDL_INIT_AUDIO`: audio subsystem
@@ -90,13 +71,66 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
      * - `SDL_INIT_EVERYTHING`: all of the above subsystems
      * - `SDL_INIT_NOPARACHUTE`: compatibility; this flag is ignored
      */
+    uint32_t subsystem_flags = 0;
+    subsystem_flags |= SDL_INIT_AUDIO; // TODO move this to device?
+    subsystem_flags |= SDL_INIT_EVENTS;
+    return subsystem_flags;
+}
 
-    const uint32_t subsystem_flags = compile_subsystems_flag();
+SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
+
+    /* check graphics subsystem */
+
+    if (umgebung::subsystem_graphics == nullptr) {
+        if (umgebung::create_subsystem_graphics != nullptr) {
+            umgebung::subsystem_graphics = umgebung::create_subsystem_graphics();
+        } else {
+            umgebung::console("No graphics subsystem provided, using default.");
+            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_default();
+            umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_opengl2();
+        }
+        if (umgebung::subsystem_graphics == nullptr) {
+            umgebung::console("Couldn't create graphics subsystem.");
+            return SDL_APP_FAILURE;
+        }
+    }
+
+    /* check graphics subsystem */
+    if (umgebung::subsystem_audio == nullptr) {
+        if (umgebung::create_subsystem_audio != nullptr) {
+            umgebung::subsystem_audio = umgebung::create_subsystem_audio();
+        } else {
+            umgebung::console("No audio subsystem provided, using default.");
+            // umgebung::subsystem_audio = umgebung_create_audio_subsystem_default();
+        }
+    }
+
+    /*
+     * 1. prepare umgebung application ( e.g args, settings )
+     * 2. initialize SDL
+     * 3. initialize graphics
+     * 4. initialize audio
+     * 5. setup application
+     */
+
+    /* 1. prepare umgebung application */
+
+    handle_arguments(argc, argv);
+    settings();
+
+    /* 2. initialize SDL */
+
+    uint32_t subsystem_flags = compile_subsystems_flag();
+    if (umgebung::subsystem_graphics->set_flags != nullptr) {
+        umgebung::subsystem_graphics->set_flags(subsystem_flags);
+    }
 
     if (!SDL_Init(subsystem_flags)) {
         SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
+
+    SDL_SetAppMetadata("Umgebung Application", "1.0", "de.dennisppaul.umgebung.application");
 
     /* 3. initialize graphics */
     if (umgebung::subsystem_graphics->init != nullptr) {
@@ -106,13 +140,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         }
     }
 
-    // if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0) {
-    //     SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
-    //     return SDL_APP_FAILURE;
-    // }
-    // SDL_SetAppMetadata("Example Renderer Primitives", "1.0", "com.example.renderer-primitives");
+    if (umgebung::subsystem_graphics->create_graphics != nullptr) {
+        umgebung::g = umgebung::subsystem_graphics->create_graphics();
+    }
 
-    umgebung::initilized = true;
+    umgebung::initialized = true;
 
     if (umgebung::subsystem_graphics->setup_pre != nullptr) {
         umgebung::subsystem_graphics->setup_pre();
@@ -164,8 +196,6 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result) {
         umgebung::subsystem_graphics->shutdown();
     }
 
-    if (umgebung::subsystem_graphics != nullptr) {
-        delete umgebung::subsystem_graphics;
-    }
-    SDL_Quit(); // TODO is this necessary?
+    delete umgebung::subsystem_graphics;
+    SDL_Quit();
 }

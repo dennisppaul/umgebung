@@ -34,6 +34,13 @@ namespace umgebung {
         audio_output_device = output_device;
     }
 
+    bool begins_with(const std::string& str, const std::string& prefix) {
+        if (prefix.size() > str.size()) {
+            return false;
+        }
+        return str.substr(0, prefix.size()) == prefix;
+    }
+
     void color_inv(const uint32_t color, float& r, float& g, float& b, float& a) {
         a = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
         b = static_cast<float>((color >> 16) & 0xFF) / 255.0f;
@@ -107,4 +114,42 @@ namespace umgebung {
 #endif
     }
 
+    std::vector<std::string> get_files(const std::string& directory, const std::string& extension) {
+        std::vector<std::string> files;
+        for (const auto& entry: std::filesystem::directory_iterator(directory)) {
+            if (entry.path().extension() == extension || extension == "*" || extension == "*.*" || extension.empty()) {
+                files.push_back(entry.path().string());
+            }
+        }
+        return files;
+    }
+
+    int get_int_from_argument(const std::string& argument) {
+        /* get an int value from an argument formated like e.g this "value=23" */
+        const std::size_t pos = argument.find('=');
+        if (pos == std::string::npos) {
+            throw std::invalid_argument("no '=' character found in argument.");
+        }
+        const std::string valueStr = argument.substr(pos + 1);
+        return std::stoi(valueStr);
+    }
+
+    std::string get_string_from_argument(const std::string& argument) {
+        /* get a string value from an argument formated like e.g this "value=twentythree" */
+        std::size_t pos = argument.find('=');
+        if (pos == std::string::npos) {
+            throw std::invalid_argument("no '=' character found in argument.");
+        }
+        std::string valueStr = argument.substr(pos + 1);
+        return valueStr;
+    }
+
+    std::string timestamp() {
+        const auto         now   = std::chrono::system_clock::now();
+        const auto         ms    = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+        const auto         timer = std::chrono::system_clock::to_time_t(now);
+        std::ostringstream oss;
+        oss << std::put_time(std::localtime(&timer), "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0') << std::setw(3) << ms.count();
+        return oss.str();
+    }
 } // namespace umgebung

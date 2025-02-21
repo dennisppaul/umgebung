@@ -23,6 +23,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
+#include <regex>
 
 #include "UmgebungFunctionsAdditional.h"
 
@@ -48,7 +50,24 @@ namespace umgebung {
 
     void exit();
 
-    std::string nf(int num, int digits); // TODO add variants for other types
+    std::string join(const std::vector<std::string>& strings, const std::string& separator);
+
+    float map(float value, float start0, float stop0, float start1, float stop1);
+
+    std::vector<std::string>              match(const std::string& text, const std::regex& regexp);
+    std::vector<std::vector<std::string>> matchAll(const std::string& text, const std::regex& regexp);
+
+    std::string nf(float num, int digits = 2);
+    std::string nf(float num, int left, int right);
+    std::string nf(int num, int digits = 2);
+    std::string nfc(int num);
+    std::string nfc(float num, int right);
+    std::string nfc(int num);
+    std::string nfp(float num, int digits = 2);
+    std::string nfp(float num, int left, int right);
+    std::string nfs(float num, int left, int right);
+    std::string nfs(float num, int digits = 2);
+    std::string nfs(int num, int digits = 2);
 
     float noise(float x);
     float noise(float x, float y);
@@ -93,4 +112,9 @@ namespace umgebung {
     void size(int width, int height);
 
     std::string sketchPath();
+
+    std::vector<std::string> split(const std::string& str, const std::string& delimiter);
+    std::vector<std::string> splitTokens(const std::string& str, const std::string& tokens);
+
+    std::string trim(const std::string& str);
 } // namespace umgebung
