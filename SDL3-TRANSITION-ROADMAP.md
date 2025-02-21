@@ -10,7 +10,7 @@
 3. port current *OpenGL 2.0* to *OpenGL 3.3*
 4. transition to SDL3
 
-## notes
+## References
 
 - consult [SDL3 Wiki](https://wiki.libsdl.org/SDL3/FrontPage)
 - consult [Migrating to SDL 3.0](https://github.com/libsdl-org/SDL/blob/main/docs/README-migration.md).
@@ -35,7 +35,11 @@ with
 
 there is an inconsistency with the way functions and graphics ( contexts ) are handled in the *original* processing. BTW to a lesser degree the same is true for the audio context. there it would also be nice to more or less seamless switch between drivers ( e.g SDL or portaudio ).
 
-## Transition to OpenGL 3 and/or SDL_gpu
+### main function
+
+see [Where an SDL program starts running.](https://github.com/libsdl-org/SDL/blob/main/docs/README-main-functions.md)
+
+## Transition to OpenGL 3.3 and/or SDL_gpu
 
 consider transitioning to OpenGL 3.3 ( including OpenGL ES for mobile platforms ) but also consider the option to completely stay away from OpenGL and revert to SDL3_gpu in order to make the render pipeline more futureproof ( apple might abandon OpenGL some time soon ) as well as potentially more platform independent.
 
@@ -58,7 +62,7 @@ see [New Features in SDL3](https://wiki.libsdl.org/SDL3/NewFeatures)
     - `install-RPI.sh`
     - `DOCUMENTATION.md`
     - `README.md`
-    
+
 ## improvements or non-SDL3 related changes
 
 ### en-/disabling features

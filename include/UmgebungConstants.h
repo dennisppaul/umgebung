@@ -19,27 +19,25 @@
 
 #pragma once
 
-// TODO consider using namespace here `namespace umgebung {}`
+#include "UmgebungDefines.h"
 
 namespace umgebung {
-    static const float PI = 3.14159265358979323846f;
-
-    static const float HALF_PI    = PI / 2;
-    static const float QUARTER_PI = PI / 4;
-    static const float TWO_PI     = PI * 2;
-    static const float TAU        = TWO_PI;
-
-    static const int TRIANGLES      = 0;
-    static const int TRIANGLE_STRIP = 1;
-    static const int TRIANGLE_FAN   = 2;
-    static const int QUADS          = 3;
-    static const int QUAD_STRIP     = 4;
-    static const int POLYGON        = 5;
-    static const int POINTS         = 6;
-    static const int LINES          = 7;
-    static const int LINE_STRIP     = 8;
-
-    static const int LEFT   = 0;
-    static const int RIGHT  = 1;
-    static const int MIDDLE = 2;
+    static constexpr int   DEFAULT_AUDIO_DEVICE = -1;
+    static constexpr float PI                   = 3.14159265358979323846f;
+    static constexpr float HALF_PI              = PI / 2;
+    static constexpr float QUARTER_PI           = PI / 4;
+    static constexpr float TWO_PI               = PI * 2;
+    static constexpr float TAU                  = TWO_PI;
+    static constexpr int   TRIANGLES            = 0;
+    static constexpr int   TRIANGLE_STRIP       = 1;
+    static constexpr int   TRIANGLE_FAN         = 2;
+    static constexpr int   QUADS                = 3;
+    static constexpr int   QUAD_STRIP           = 4;
+    static constexpr int   POLYGON              = 5;
+    static constexpr int   POINTS               = 6;
+    static constexpr int   LINES                = 7;
+    static constexpr int   LINE_STRIP           = 8;
+    static constexpr int   LEFT                 = 0;
+    static constexpr int   RIGHT                = 1;
+    static constexpr int   MIDDLE               = 2;
 } // namespace umgebung

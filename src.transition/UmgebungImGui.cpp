@@ -4,11 +4,13 @@
 // Created by LMBU on 11.11.24.
 //
 
+#ifdef UMGEBUNG_ADD_IMGUI
+
 #ifdef DISABLE_GRAPHICS
 #error "DISABLE_GRAPHICS must be set to ON"
 #endif
 
-#include "UmgebungImGui.h"
+// #include "UmgebungImGui.h"
 
 #if defined(ENABLE_IMGUI) && !defined(DISABLE_GRAPHICS)
 #include "imgui.h"
@@ -200,3 +202,5 @@ namespace umgebung {
 #endif
 
 } // namespace umgebung
+
+#endif // UMGEBUNG_ADD_IMGUI

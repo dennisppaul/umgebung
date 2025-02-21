@@ -136,6 +136,10 @@ target_include_directories(umgebung-lib PUBLIC
 
 add_library(umgebung-lib-interface INTERFACE)
 
+if (NOT DISABLE_MAIN)
+target_compile_definitions(${PROJECT_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)
+endif (NOT DISABLE_MAIN)
+
 if (DISABLE_GRAPHICS)
     target_compile_definitions(umgebung-lib-interface INTERFACE DISABLE_GRAPHICS)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DISABLE_GRAPHICS)
@@ -277,17 +281,23 @@ if (NOT DISABLE_GRAPHICS)
     pkg_search_module(GLEW REQUIRED glew)
     pkg_search_module(FTGL REQUIRED ftgl)
     if (APPLE)
-        pkg_search_module(SDL2 REQUIRED sdl2)
+        #        pkg_search_module(SDL3 REQUIRED sdl3)
+        find_package(SDL3 REQUIRED)
+#        find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared) # TODO maybe use more specific find_package
+#        message(STATUS "SDL3_LIBRARIES: ${SDL3_LIBRARIES}")
+#        message(STATUS "SDL3_INCLUDE……: ${SDL3_INCLUDE_DIRS}")
         find_package(OpenGL REQUIRED) # or `OPENGL`
     elseif (UNIX)
-        pkg_search_module(SDL2 REQUIRED sdl2)
+        #        pkg_search_module(SDL3 REQUIRED sdl3)
+        find_package(SDL3 REQUIRED)
         find_package(OpenGL REQUIRED)
     elseif (WIN32)
         find_package(OpenGL REQUIRED)
-        find_package(SDL2 REQUIRED)
+        find_package(SDL3 REQUIRED)
     else ()
         message(STATUS "plattform may not be supported.")
-        pkg_search_module(SDL2 REQUIRED sdl2)
+        #        pkg_search_module(SDL3 REQUIRED sdl3)
+        find_package(SDL3 REQUIRED)
         find_package(OpenGL REQUIRED)
     endif ()
 
@@ -313,7 +323,8 @@ if (NOT DISABLE_AUDIO)
     if (ENABLE_PORTAUDIO)
         pkg_search_module(PORTAUDIO REQUIRED portaudio-2.0)
     else (ENABLE_PORTAUDIO)
-        pkg_search_module(SDL2 REQUIRED sdl2)
+        #        pkg_search_module(SDL3 REQUIRED sdl3)
+        find_package(SDL3 REQUIRED)
     endif (ENABLE_PORTAUDIO)
 endif (NOT DISABLE_AUDIO)
 
@@ -356,13 +367,13 @@ if (NOT DISABLE_AUDIO)
 endif (NOT DISABLE_AUDIO)
 
 if (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
-    find_package(SDL2 CONFIG REQUIRED)
-    target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES})
-    target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
+    find_package(SDL3 CONFIG REQUIRED)
+    target_link_libraries(${PROJECT_NAME} ${SDL3_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${SDL3_INCLUDE_DIRS})
 
     # IMGUI
     if (ENABLE_IMGUI)
-        target_link_libraries(ImGui PRIVATE SDL2::SDL2)
+        target_link_libraries(ImGui PRIVATE ${SDL3_LIBRARIES})
         target_link_libraries(${PROJECT_NAME} ImGui)
         target_include_directories(${PROJECT_NAME} PUBLIC ImGui)
     endif (ENABLE_IMGUI)
@@ -377,7 +388,6 @@ if (NOT DISABLE_GRAPHICS)
     target_include_directories(${PROJECT_NAME} PUBLIC ${FTGL_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${GLEW_INCLUDE_DIRS})
-
 
     # FFMPEG
     if (NOT DISABLE_VIDEO)
@@ -416,7 +426,6 @@ endif (NOT DISABLE_MIDI)
 ##########################################################################################################
 ### COMPILER FLAGS                                                                                     ###
 ##########################################################################################################
-
 function(add_umgebung_libs)
     # Check if umgebung-lib-interface target already exists
     if (NOT TARGET umgebung-lib-interface)

@@ -25,40 +25,24 @@
 #include <iostream>
 #include <vector>
 
-#if defined(__APPLE__) || defined(__linux__)
-#include <dlfcn.h>
-#elif defined(_WIN32)
-#include <windows.h>
-#endif
-
 #include "Umgebung.h"
 #include "SimplexNoise.h"
 #include "UmgebungFunctions.h"
+#include "UmgebungFunctionsAdditional.h"
 
 namespace umgebung {
 
-    void audio_devices(const int input_device, const int output_device) {
-        audio_input_device  = input_device;
-        audio_output_device = output_device;
+
+    uint32_t color(const float gray) {
+        return color(gray, gray, gray, 1);
     }
 
-    static unsigned int fRandomSeed = static_cast<unsigned int>(std::time(nullptr));
-    static std::mt19937 gen(fRandomSeed); // Create a Mersenne Twister pseudo-random number generator with the specified seed
-
-    float random(const float min, const float max) {
-        std::uniform_real_distribution<float> distribution(min, max);
-        return distribution(gen);
+    uint32_t color(const float gray, const float alpha) {
+        return color(gray, gray, gray, alpha);
     }
 
-    float random(const float max) {
-        return random(0, max);
-    }
-
-    void color_inv(const uint32_t color, float& r, float& g, float& b, float& a) {
-        a = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
-        b = static_cast<float>((color >> 16) & 0xFF) / 255.0f;
-        g = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
-        r = static_cast<float>(color & 0xFF) / 255.0f;
+    uint32_t color(const float r, const float g, const float b) {
+        return color(r, g, b, 1);
     }
 
     uint32_t color(const float r, const float g, const float b, const float a) {
@@ -68,12 +52,32 @@ namespace umgebung {
                static_cast<uint32_t>(r * 255);
     }
 
-    uint32_t color(const float c, const float a) {
-        return color(c, c, c, a);
+    uint32_t color_i(const uint32_t gray) {
+        return gray << 24 |
+               gray << 16 |
+               gray << 8 |
+               255;
     }
 
-    uint32_t color(const float r, const float g, const float b) {
-        return color(r, g, b, 1);
+    uint32_t color_i(const uint32_t gray, const uint32_t alpha) {
+        return gray << 24 |
+               gray << 16 |
+               gray << 8 |
+               alpha;
+    }
+
+    uint32_t color_i(const uint32_t v1, const uint32_t v2, const uint32_t v3) {
+        return 255 << 24 |
+               v3 << 16 |
+               v2 << 8 |
+               v1;
+    }
+
+    uint32_t color_i(const uint32_t v1, const uint32_t v2, const uint32_t v3, const uint32_t alpha) {
+        return alpha << 24 |
+               v3 << 16 |
+               v2 << 8 |
+               v1;
     }
 
     float red(const uint32_t color) {
@@ -92,9 +96,36 @@ namespace umgebung {
         return static_cast<float>((color & 0xFF000000) >> 24) / 255.0f;
     }
 
-    std::string nf(const int number, const int width) {
+    void exit() {
+        // TODO handle exit
+        umgebung::println("exit");
+    }
+
+    static unsigned int fRandomSeed = static_cast<unsigned int>(std::time(nullptr));
+    static std::mt19937 gen(fRandomSeed); // Create a Mersenne Twister pseudo-random number generator with the specified seed
+
+    float random(const float max) {
+        return random(0, max);
+    }
+
+    float random(const float min, const float max) {
+        std::uniform_real_distribution<float> distribution(min, max);
+        return distribution(gen);
+    }
+
+    void size(const int width, const int height) {
+        if (initilized) {
+            umgebung::warning("`size()` must be called before or within `settings()`.");
+            return;
+        }
+        umgebung::width  = width;
+        umgebung::height = height;
+        // TODO create graphics object?
+    }
+
+    std::string nf(const int num, const int digits) {
         std::ostringstream oss;
-        oss << std::setw(width) << std::setfill('0') << number;
+        oss << std::setw(digits) << std::setfill('0') << num;
         return oss.str();
     }
 
@@ -122,11 +153,6 @@ namespace umgebung {
 
     float degrees(const float radians) {
         return static_cast<float>(radians * 180.0f / M_PI);
-    }
-
-    bool exists(const std::string& file_path) {
-        const std::filesystem::path path(file_path);
-        return std::filesystem::exists(path);
     }
 
 #if defined(SYSTEM_WIN32)
@@ -195,64 +221,4 @@ namespace umgebung {
         return sketchPath_impl();
     }
 
-    std::string find_file_in_paths(const std::vector<std::string>& paths, const std::string& filename) {
-        for (const auto& path: paths) {
-            std::filesystem::path full_path = std::filesystem::path(path) / filename;
-            if (std::filesystem::exists(full_path)) {
-                return full_path.string();
-            }
-        }
-        return "";
-    }
-
-    std::string find_in_environment_path(const std::string& filename) {
-        std::string path;
-        char*       env = getenv("PATH");
-        if (env != nullptr) {
-            std::string path_env(env);
-            // On Windows, PATH entries are separated by ';', on Linux/macOS by ':'
-#if defined(_WIN32)
-            char path_separator = ';';
-#else
-            char path_separator = ':';
-#endif
-
-            std::istringstream ss(path_env);
-            std::string        token;
-
-            while (std::getline(ss, token, path_separator)) {
-                std::filesystem::path candidate = std::filesystem::path(token) / filename;
-                if (std::filesystem::exists(candidate)) {
-                    path = candidate.string();
-                    break;
-                }
-            }
-        }
-        return path;
-    }
-
-    std::string get_executable_location() {
-#if defined(__APPLE__) || defined(__linux__)
-        Dl_info info;
-        // Get the address of a function within the library (can be any function)
-        if (dladdr((void*) &get_executable_location, &info)) {
-            std::filesystem::path lib_path(info.dli_fname);                                      // Full path to the library
-            return lib_path.parent_path().string() + std::filesystem::path::preferred_separator; // Return the directory without the library name
-        } else {
-            std::cerr << "Could not retrieve library location (dladdr)" << std::endl;
-            return "";
-        }
-#elif defined(_WIN32)
-        HMODULE hModule = nullptr; // Handle to the DLL
-        char    path[MAX_PATH];
-
-        if (GetModuleFileNameA(hModule, path, MAX_PATH) != 0) {
-            std::filesystem::path lib_path(path);                                                // Full path to the DLL
-            return lib_path.parent_path().string() + std::filesystem::path::preferred_separator; // Add the separator
-        } else {
-            std::cerr << "Could not retrieve library location (GetModuleFileName)" << std::endl;
-            return "";
-        }
-#endif
-    }
 } // namespace umgebung
