@@ -1,151 +1,20 @@
-#include <SDL3/SDL.h>
-#include <GL/glew.h>
-#include "glm/glm.hpp"
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <iostream>
 #include <vector>
+#include <iostream>
+
+// #define IMGUI_IMPL_OPENGL_LOADER_GLEW
+// #include "imgui.h"
+// #include "imgui_impl_sdl3.h"
+// #include "imgui_impl_opengl3.h"
+
+#include <GL/glew.h>
+#include <SDL3/SDL.h>
+#include "glm/glm.hpp"
 
 #include "Renderer.h"
 
 // Window dimensions
-static const int width  = 800;
-static const int height = 600;
-
-// Vertex Shader source
-const char* vertexShaderSource = R"(
-#version 330 core
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec3 aColor;
-
-out vec3 vColor;
-
-uniform mat4 uProjection;   // Can be either perspective or ortho
-uniform mat4 uModelMatrix;
-uniform mat4 uViewMatrix;
-
-void main() {
-    gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
-    vColor = aColor;
-}
-)";
-
-// Fragment Shader source
-const char* fragmentShaderSource = R"(
-#version 330 core
-in vec3 vColor;       // Interpolated color from vertex shader
-out vec4 FragColor;   // Final fragment color
-
-void main() {
-    FragColor = vec4(vColor, 1.0); // Set the fragment color
-}
-)";
-
-void checkShaderCompileStatus(GLuint shader) {
-    GLint success;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-}
-
-void checkProgramLinkStatus(GLuint program) {
-    GLint success;
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetProgramInfoLog(program, 512, nullptr, infoLog);
-        std::cerr << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-}
-
-glm::mat4 translate(const glm::mat4& model, const glm::vec3& offset) { return glm::translate(model, offset); }
-
-glm::mat4 scale(const glm::mat4& model, const glm::vec3& factors) { return glm::scale(model, factors); }
-
-glm::mat4 rotate(const glm::mat4& model, float angleInDegrees, const glm::vec3& axis) {
-    float angleInRadians = glm::radians(angleInDegrees);
-    return glm::rotate(model, angleInRadians, axis);
-}
-
-// void resizeBuffer(GLuint buffer, size_t newSize, std::vector<float>& vertexData) {
-//     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-//
-//     // Create a new buffer with the larger size
-//     GLuint newBuffer;
-//     glGenBuffers(1, &newBuffer);
-//     glBindBuffer(GL_ARRAY_BUFFER, newBuffer);
-//     glBufferData(GL_ARRAY_BUFFER, newSize, nullptr, GL_DYNAMIC_DRAW);
-//
-//     // Copy the old data
-//     glBufferSubData(GL_ARRAY_BUFFER, 0, vertexData.size() * sizeof(float), vertexData.data());
-//
-//     // Delete the old buffer
-//     glDeleteBuffers(1, &buffer);
-//
-//     // Update buffer reference
-//     buffer = newBuffer;
-// }
-//
-// void resizeBuffer(size_t newSize) {
-//     std::vector<float> newVertices;
-//     newVertices.reserve(newSize);
-//
-//     // Copy existing vertices to the new buffer
-//     newVertices.insert(newVertices.end(), vertices.begin(), vertices.end());
-//
-//     // Swap the old buffer with the new buffer
-//     vertices.swap(newVertices);
-//     maxBufferSize = newSize * sizeof(float);
-// }
-//
-// void addVertex(float x, float y, glm::vec3 color) {
-//     if (vertices.size() + 6 > maxBufferSize / sizeof(float)) {
-//         resizeBuffer(vertices.size() * 1.5); // Resize to 1.5x current size
-//     }
-//
-//     vertices.push_back(x);
-//     vertices.push_back(y);
-//     vertices.push_back(0.0f); // z
-//     vertices.push_back(color.r);
-//     vertices.push_back(color.g);
-//     vertices.push_back(color.b);
-//     numVertices++;
-// }
-//
-// void addVertex(float x, float y, glm::vec3 color) {
-//     if (vertices.size() + 6 > maxBufferSize / sizeof(float)) {
-//         flush(); // Flush when buffer is full
-//     }
-//
-//     vertices.push_back(x);
-//     vertices.push_back(y);
-//     vertices.push_back(0.0f); // z
-//     vertices.push_back(color.r);
-//     vertices.push_back(color.g);
-//     vertices.push_back(color.b);
-//     numVertices++;
-// }
-//
-// void flush() {
-//     if (numVertices == 0) return;
-//
-//     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-//     glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
-//
-//     glUseProgram(shaderProgram);
-//     GLint matrixLoc = glGetUniformLocation(shaderProgram, "uModelMatrix");
-//     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(currentMatrix));
-//
-//     glBindVertexArray(VAO);
-//     glDrawArrays(GL_LINES, 0, numVertices);
-//     glBindVertexArray(0);
-//
-//     vertices.clear();
-//     numVertices = 0;
-// }
+static constexpr int width  = 800;
+static constexpr int height = 600;
 
 int main(int argc, char* argv[]) {
     // Initialize SDL
@@ -155,12 +24,11 @@ int main(int argc, char* argv[]) {
     }
 
     // Set OpenGL attributes
-    //     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
-
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    //     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+    // SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -189,6 +57,16 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    // IMGUI_CHECKVERSION();
+    // ImGui::CreateContext();
+    //
+    // // Setup Dear ImGui style
+    // ImGui::StyleColorsDark();
+    //
+    // // // Initialize SDL3 + OpenGL backend
+    // ImGui_ImplSDL3_InitForOpenGL(window, glContext);
+    // ImGui_ImplOpenGL3_Init("#version 330 core");
+
     // Initialize GLEW
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
@@ -199,73 +77,21 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    glViewport(0, 0, width, height);
-
-    // Build shaders
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-    glCompileShader(vertexShader);
-    checkShaderCompileStatus(vertexShader);
-
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-    glCompileShader(fragmentShader);
-    checkShaderCompileStatus(fragmentShader);
-
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    checkProgramLinkStatus(shaderProgram);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    Renderer renderer(shaderProgram, width, height);
-
-    //     // Triangle data
-    //     float vertices[] = {
-    //         0.0f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
-    //        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
-    //         0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f
-    //     };
-    //
-    //     // Setup VAO and VBO
-    //     GLuint VAO, VBO;
-    //     glGenVertexArrays(1, &VAO);
-    //     glGenBuffers(1, &VBO);
-    //
-    //     glBindVertexArray(VAO);
-    //
-    //     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    //     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    //
-    //     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    //     glEnableVertexAttribArray(0);
-    //
-    //     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    //     glEnableVertexAttribArray(1);
-    //
-    //     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //     glBindVertexArray(0);
-    //
-    //     // Main loop
-    //     glm::mat4 modelMatrix = glm::mat4(1.0f); // Identity matrix
-    //     modelMatrix = translate(modelMatrix, glm::vec3(0.5f, 0.0f, 0.0f));
-    //     modelMatrix = rotate(modelMatrix, 45.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-    //     modelMatrix = scale(modelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
-
+    Renderer  renderer(width, height);
     bool      running = true;
     int       mouseX  = 0;
     int       mouseY  = 0;
     SDL_Event event;
     float     rotations = 0.0f;
+
+    const GLuint texture_id = renderer.loadTexture("../256.png");
+
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_KEY_DOWN) { running = false; }
-            if (SDL_EVENT_MOUSE_MOTION) {
-                mouseX = static_cast<float>(event.motion.x);
-                mouseY = static_cast<float>(event.motion.y);
+            if (event.type == SDL_EVENT_MOUSE_MOTION) {
+                mouseX = event.motion.x;
+                mouseY = event.motion.y;
             }
         }
 
@@ -274,53 +100,49 @@ int main(int argc, char* argv[]) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Start a frame
-        // float aspectRatio = (float)width / (float)height;
-        // renderer.pushMatrix();
-        // renderer.translate(
-        //     ((float)mouseX / (float)width) * 2 - 1,
-        //     (1.0 - ((float)mouseY / (float)height)) * 2 - 1);
-        // renderer.scale(1.0f / aspectRatio, 1.0f); // Fix distortion
-        // rotations += 0.01f;
-        // renderer.rotate(rotations);
-        // renderer.rect(-0.5f, -0.5f, 1.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-        // renderer.popMatrix();
-
         renderer.pushMatrix();
 
         renderer.translate(mouseX, mouseY);
-        // renderer.translate(
-        //     ((float)mouseX / (float)width) * 2 - 1,
-        //     (1.0 - ((float)mouseY / (float)height)) * 2 - 1);
-        rotations += 0.01f;
-        renderer.rotate(glm::radians(rotations));
-        // renderer.print_matrix();
+        // rotations += 0.01f;
+        // renderer.rotate(glm::radians(rotations));
+#ifdef __USE_TEXTURE__
+        renderer.rect_textured(-30, -30, 60, 60, texture_id);
+        // renderer.rect(-20, -20, 40, 40, glm::vec3(1.0f, 0.5f, 0.0f));
+#else
         renderer.line(-20, -20, 20, 20, glm::vec3(1.0f, 0.0f, 0.0f));
         renderer.rect(-30, -30, 60, 60, glm::vec3(0.0f, 1.0f, 0.0f));
         renderer.rotate(3.141f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
         renderer.translate(30, 0, 30);
         renderer.rect(-30, -30, 60, 60, glm::vec3(0.0f, 0.0f, 1.0f));
         renderer.line(-20, -20, 20, 20, glm::vec3(1.0f, 0.0f, 0.0f));
+        renderer.line(-20, -20, 20, 20, glm::vec3(1.0f, 0.0f, 0.0f));
+#endif
         renderer.popMatrix();
-
         // Render everything
         renderer.flush();
 
-        //         // Render the triangle
-        //         glUseProgram(shaderProgram);
-        //         GLuint modelLoc = glGetUniformLocation(shaderProgram, "uModelMatrix");
-        //         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        // // Start ImGui frame
+        // ImGui_ImplOpenGL3_NewFrame();
+        // ImGui_ImplSDL3_NewFrame();
+        // ImGui::NewFrame();
         //
-        //         glBindVertexArray(VAO);
-        //         glDrawArrays(GL_TRIANGLES, 0, 3);
+        // // Draw ImGui UI
+        // ImGui::Begin("Debug Window");
+        // ImGui::Text("Hello, SDL3 + OpenGL 3.3!");
+        // ImGui::End();
+        //
+        // // Render ImGui
+        // ImGui::Render();
+        // ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         SDL_GL_SwapWindow(window);
     }
 
     // Cleanup
-    //     glDeleteVertexArrays(1, &VAO);
-    //     glDeleteBuffers(1, &VBO);
+    // ImGui_ImplOpenGL3_Shutdown();
+    // ImGui_ImplSDL3_Shutdown();
+    // ImGui::DestroyContext();
     renderer.cleanup();
-    glDeleteProgram(shaderProgram);
     SDL_GL_DestroyContext(glContext);
     SDL_DestroyWindow(window);
     SDL_Quit();
