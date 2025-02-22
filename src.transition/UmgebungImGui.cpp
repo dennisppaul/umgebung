@@ -4,8 +4,6 @@
 // Created by LMBU on 11.11.24.
 //
 
-#ifdef UMGEBUNG_ADD_IMGUI
-
 #ifdef DISABLE_GRAPHICS
 #error "DISABLE_GRAPHICS must be set to ON"
 #endif
@@ -202,5 +200,3 @@ namespace umgebung {
 #endif
 
 } // namespace umgebung
-
-#endif // UMGEBUNG_ADD_IMGUI

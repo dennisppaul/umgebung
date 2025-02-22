@@ -8,8 +8,6 @@
 #ifndef IMGUI_H
 #define IMGUI_H
 
-#ifdef UMGEBUNG_ADD_IMGUI
-
 #include "Umgebung.h"
 #include "imgui.h"
 
@@ -25,7 +23,5 @@ namespace umgebung {
     void        imgui_font(const std::string& file_path, float font_size);
 
 } // namespace umgebung
-
-#endif // UMGEBUNG_ADD_IMGUI
 
 #endif //IMGUI_H

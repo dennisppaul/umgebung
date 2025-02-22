@@ -1,14 +1,14 @@
 # SDL3 Transition Roadmap
 
-1. clean up core Umgebung and merge with PApplet
-2. implement flexible renderer selection. future renders may include:
-    1. OpenGL 2.0 ( fixed function pipeline )
-    2. OpenGL 3.3
-    3. OpenGL ES 3.0
-    4. SDL_gpu ( Vulkan, Metal + maybe Direct3D )
-    5. SDL_render ( 2D only )
-3. port current *OpenGL 2.0* to *OpenGL 3.3*
-4. transition to SDL3
+1. [x] clean up core Umgebung and merge with PApplet
+2. [ ] implement flexible renderer selection. future renders may include:
+    1. [ ] OpenGL 2.0 ( fixed function pipeline )
+    2. [ ] OpenGL 3.3
+    3. [ ] OpenGL ES 3.0
+    4. [ ] SDL_gpu ( Vulkan, Metal + maybe Direct3D )
+    5. [ ] SDL_render ( 2D only )
+3. [ ] port current *OpenGL 2.0* to *OpenGL 3.3*
+4. [x] transition to SDL3
 
 ## References
 

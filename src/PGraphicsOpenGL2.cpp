@@ -17,17 +17,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <GL/glew.h>
 #include <vector>
 #include <type_traits>
+#include <GL/glew.h>
 
 #include "PGraphics.h"
 #include "PFont.h"
 #include "UmgebungFunctions.h"
 #include "UmgebungFunctionsAdditional.h"
 
+// TODO not sure if this is the best way to handle this
 static_assert(std::is_same_v<GLuint, unsigned int>,
-              "`GLuint` is not an `unsigned int`. change the FBO types in PGraphics.h and remove this line.");
+              "`GLuint` is not an `unsigned int`. change the FBO types in `PGraphics.h` and remove this line.");
+static_assert(std::is_same_v<GLfloat, float>,
+              "`GLfloat` is not a `float`. change float types e.g in `PShape.h` and remove this line.");
 
 using namespace umgebung;
 
@@ -302,9 +305,9 @@ void PGraphics::bezier(float x1, float y1, float x2, float y2, float x3, float y
 }
 
 void PGraphics::bezier(float x1, float y1, float z1,
-                              float x2, float y2, float z2,
-                              float x3, float y3, float z3,
-                              float x4, float y4, float z4) const {
+                       float x2, float y2, float z2,
+                       float x3, float y3, float z3,
+                       float x4, float y4, float z4) const {
     if (!stroke_color.active) {
         return;
     }
