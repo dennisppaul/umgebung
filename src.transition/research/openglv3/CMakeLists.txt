@@ -23,7 +23,19 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${GLEW_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${GLM_INCLUDE_DIRS})
 
+#add_library(imgui STATIC
+#        imgui/imgui.cpp
+#        imgui/imgui_demo.cpp
+#        imgui/imgui_draw.cpp
+#        imgui/imgui_tables.cpp
+#        imgui/imgui_widgets.cpp
+#        imgui/backends/imgui_impl_sdl3.cpp
+#        imgui/backends/imgui_impl_opengl3.cpp
+#)
+#target_include_directories(imgui PUBLIC imgui imgui/backends)
+
 # Link libraries
 target_link_libraries(${PROJECT_NAME} ${SDL3_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES})
+#target_link_libraries(${PROJECT_NAME} imgui)
