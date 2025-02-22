@@ -24,6 +24,8 @@ using namespace umgebung;
 
 #ifndef DISABLE_GRAPHICS
 
+#include <GL/glew.h>
+
 void PShape::beginShape(int shape) {
     isRecording = true;
     fShape      = shape; // TODO implement

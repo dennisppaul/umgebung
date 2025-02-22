@@ -17,8 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <SDL3/SDL.h>
 #include <GL/glew.h>
+#include <SDL3/SDL.h>
 
 #include "Umgebung.h"
 #include "UmgebungPGraphicsInterface.h"
@@ -326,7 +326,8 @@ static void subsystem_graphics_opengl2_set_flags(uint32_t& subsystem_flags) {
 }
 
 static PGraphics* subsystem_graphics_opengl2_create_graphics() {
-    auto* graphics = new PGraphics(); // TODO this needs to renderer specific i.e OpenGL 2.0
+    // TODO this needs to be renderer specific i.e OpenGL 2.0 e.g `new PGraphicsOpenGLv2();`
+    auto* graphics = new PGraphics();
     return graphics;
 }
 UMGEBUNG_NAMESPACE_END

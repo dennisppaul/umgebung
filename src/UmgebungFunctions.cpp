@@ -267,7 +267,6 @@ namespace umgebung {
         }
         umgebung::width  = width;
         umgebung::height = height;
-        // TODO create graphics object?
     }
 
     std::string nf(const int num, const int digits) {

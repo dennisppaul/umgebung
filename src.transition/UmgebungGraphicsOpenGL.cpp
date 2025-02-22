@@ -17,8 +17,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef UMGEBUNG_ADD_IMGUI
-
 #include "Umgebung.h"
 #ifndef DISABLE_GRAPHICS
 
@@ -360,5 +358,3 @@ namespace umgebung {
     }
 } // namespace umgebung
 #endif // DISABLE_GRAPHICS
-
-#endif // UMGEBUNG_ADD_IMGUI
