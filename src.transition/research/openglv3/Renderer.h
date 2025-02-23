@@ -16,8 +16,8 @@
 class Renderer {
 public:
     Renderer(const int width, const int height) : currentMatrix(glm::mat4(1.0f)) {
-        build_shader();
-        initBuffers();
+        shaderProgram = build_shader(vertexShaderSource(), fragmentShaderSource());
+        init_buffers_vertex_xyz_rgba_uv();
         createDummyTexture();
 
         glViewport(0, 0, width, height);
@@ -74,9 +74,9 @@ public:
         currentMatrix = glm::rotate(currentMatrix, angle, axis);
     }
 
-    void line(const float x1, const float y1, const float x2, const float y2, const glm::vec3 color) {
-        addVertex(x1, y1, color);
-        addVertex(x2, y2, color);
+    void line(const float x1, const float y1, const float x2, const float y2, const glm::vec4 color) {
+        addVertex(x1, y1, 0, color.r, color.g, color.b, color.a);
+        addVertex(x2, y2, 0, color.r, color.g, color.b, color.a);
         numVertices += 2;
     }
 
@@ -93,15 +93,15 @@ public:
     void image(const PImage& img, float x, float y, float w = -1, float h = -1);
 
 #ifdef __USE_TEXTURE__
-    void rect(const float x, const float y, const float w, const float h, const glm::vec3 color) {
+    void rect(const float x, const float y, const float w, const float h, const glm::vec4 color) {
         constexpr int RECT_NUM_VERTICES = 6;
-        addVertex(x, y, color);
-        addVertex(x + w, y, color);
-        addVertex(x + w, y + h, color);
+        addVertex(x, y, 0, color.r, color.g, color.b, color.a);
+        addVertex(x + w, y, 0, color.r, color.g, color.b, color.a);
+        addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a);
 
-        addVertex(x + w, y + h, color);
-        addVertex(x, y + h, color);
-        addVertex(x, y, color);
+        addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a);
+        addVertex(x, y + h, 0, color.r, color.g, color.b, color.a);
+        addVertex(x, y, 0, color.r, color.g, color.b, color.a);
 
         numVertices += RECT_NUM_VERTICES;
 
@@ -113,14 +113,15 @@ public:
     }
 
     void rect_textured(const float x, const float y, const float w, const float h, GLuint textureID) {
-        constexpr int RECT_NUM_VERTICES = 6;
-        addVertex(x, y, glm::vec3(1.0f, 1.0f, 1.0f), 0.0f, 0.0f);
-        addVertex(x + w, y, glm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 0.0f);
-        addVertex(x + w, y + h, glm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 1.0f);
+        constexpr int  RECT_NUM_VERTICES = 6;
+        constexpr auto color             = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        addVertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
+        addVertex(x + w, y, 0, color.r, color.g, color.b, color.a, 1.0f, 0.0f);
+        addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
 
-        addVertex(x + w, y + h, glm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 1.0f);
-        addVertex(x, y + h, glm::vec3(1.0f, 1.0f, 1.0f), 0.0f, 1.0f);
-        addVertex(x, y, glm::vec3(1.0f, 1.0f, 1.0f), 0.0f, 0.0f);
+        addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
+        addVertex(x, y + h, 0, color.r, color.g, color.b, color.a, 0.0f, 1.0f);
+        addVertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
 
         numVertices += RECT_NUM_VERTICES;
 
@@ -135,6 +136,9 @@ public:
         if (numVertices == 0) {
             return;
         }
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
@@ -155,51 +159,19 @@ public:
         glBindVertexArray(VAO);
         for (const auto& batch: renderBatches) {
             glBindTexture(GL_TEXTURE_2D, batch.textureID);
-            glDrawArrays(GL_TRIANGLE_FAN, batch.startIndex, batch.numVertices);
+            glDrawArrays(GL_TRIANGLES, batch.startIndex, batch.numVertices);
+            // glDrawArrays(GL_TRIANGLE_FAN, batch.startIndex, batch.numVertices);
         }
         glBindVertexArray(0);
 
         vertices.clear();
         numVertices = 0;
-        renderBatches.clear(); // Clear for the next frame
+        renderBatches.clear();
     }
 
 private:
-    // Vertex Shader source
-    const char* vertexShaderSource = R"(
-#version 330 core
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec3 aColor;
-layout(location = 2) in vec2 aTexCoord;
-
-out vec3 vColor;
-out vec2 vTexCoord;
-
-uniform mat4 uProjection;
-uniform mat4 uViewMatrix;
-uniform mat4 uModelMatrix;
-
-void main() {
-    gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
-    vColor = aColor;
-    vTexCoord = aTexCoord;
-}
-)";
-
-    // Fragment Shader source
-    const char* fragmentShaderSource = R"(
-#version 330 core
-in vec3 vColor;
-in vec2 vTexCoord;
-
-out vec4 FragColor;
-
-uniform sampler2D uTexture;  // Bound texture
-
-void main() {
-    FragColor = texture(uTexture, vTexCoord) * vec4(vColor, 1.0);
-}
-)";
+    const char* vertexShaderSource();
+    const char* fragmentShaderSource();
 
     void resizeBuffer(const uint32_t newSize) {
         // Create a new buffer
@@ -220,32 +192,23 @@ void main() {
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
     }
 
-    void addVertex(const float x, const float y, const glm::vec3 color, const float u = 0.0f, const float v = 0.0f) {
-        // Each vertex consists of 8 floats (x, y, z, r, g, b, u, v)
-        // constexpr uint32_t vertexSize = 8 * sizeof(float);
-        if ((vertices.size() + 8) * sizeof(float) > maxBufferSize) {
-            resizeBuffer(maxBufferSize + VBO_BUFFER_CHUNK_SIZE); // Increase size by 1.5x
-        }
+    const uint8_t NUM_VERTEX_ATTRIBUTES = 9;
 
-        const glm::vec4 transformed = currentMatrix * glm::vec4(x, y, 0.0f, 1.0f); // Apply transformation
-
-        vertices.push_back(transformed.x); // Position
-        vertices.push_back(transformed.y); // Position
-        vertices.push_back(transformed.z); // Position
-        vertices.push_back(color.r);       // Color
-        vertices.push_back(color.g);       // Color
-        vertices.push_back(color.b);       // Color
-        vertices.push_back(u);             // Texture
-        vertices.push_back(v);             // Texture
+    void addVertex(const glm::vec3 position,
+                   const glm::vec4 color,
+                   const glm::vec2 tex_coords) {
+        addVertex(position.x, position.y, position.z,
+                  color.r, color.g, color.b, color.a,
+                  tex_coords.x, tex_coords.y);
     }
 
     void addVertex(const float x, const float y, const float z,
                    const float r, const float g, const float b, const float a = 1.0f,
                    const float u = 0.0f, const float v = 0.0f) {
-        // Each vertex consists of 8 floats (x, y, z, r, g, b, u, v)
-        // uint32_t vertexSize = 8 * sizeof(float);
-        if ((vertices.size() + 8) * sizeof(float) > maxBufferSize) {
-            resizeBuffer(maxBufferSize * 3 / 2); // Increase size by 1.5x
+        // Each vertex consists of 9 floats (x, y, z, r, g, b, u, v)
+        // uint32_t vertexSize = NUM_VERTEX_ATTRIBUTES * sizeof(float);
+        if ((vertices.size() + NUM_VERTEX_ATTRIBUTES) * sizeof(float) > maxBufferSize) {
+            resizeBuffer(maxBufferSize + VBO_BUFFER_CHUNK_SIZE);
         }
 
         const glm::vec4 transformed = currentMatrix * glm::vec4(x, y, z, 1.0f); // Apply transformation
@@ -256,12 +219,12 @@ void main() {
         vertices.push_back(r);             // Color
         vertices.push_back(g);             // Color
         vertices.push_back(b);             // Color
-        // vertices.push_back(a);             // Color // TODO add alpha
-        vertices.push_back(u); // Texture
-        vertices.push_back(v); // Texture
+        vertices.push_back(a);             // Color
+        vertices.push_back(u);             // Texture
+        vertices.push_back(v);             // Texture
     }
 
-    void initBuffers() {
+    void init_buffers_vertex_xyz_rgba_uv() {
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
 
@@ -271,16 +234,21 @@ void main() {
         // Allocate buffer memory (maxBufferSize = 1024 KB) but don't fill it yet
         glBufferData(GL_ARRAY_BUFFER, maxBufferSize, nullptr, GL_DYNAMIC_DRAW);
 
+        const int STRIDE = NUM_VERTEX_ATTRIBUTES * sizeof(float);
+
         // Position Attribute (Location 0) -> 3 floats (x, y, z)
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), static_cast<void*>(0));
+        constexpr int NUM_POSITION_ATTRIBUTES = 3;
+        glVertexAttribPointer(0, NUM_POSITION_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, static_cast<void*>(0));
         glEnableVertexAttribArray(0);
 
-        // Color Attribute (Location 1) -> 3 floats (r, g, b)
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (3 * sizeof(float)));
+        // Color Attribute (Location 1) -> 4 floats (r, g, b, a)
+        constexpr int NUM_COLOR_ATTRIBUTES = 4;
+        glVertexAttribPointer(1, NUM_COLOR_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, (void*) (NUM_POSITION_ATTRIBUTES * sizeof(float)));
         glEnableVertexAttribArray(1);
 
         // Texture Coordinate Attribute (Location 2) -> 2 floats (u, v)
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (6 * sizeof(float)));
+        constexpr int NUM_TEXTURE_ATTRIBUTES = 2;
+        glVertexAttribPointer(2, NUM_TEXTURE_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, (void*) ((NUM_POSITION_ATTRIBUTES + NUM_COLOR_ATTRIBUTES) * sizeof(float)));
         glEnableVertexAttribArray(2);
 
         glBindVertexArray(0);
@@ -331,14 +299,15 @@ private:
     // Vertex Shader source ( without texture )
     const char* vertexShaderSource = R"(
 #version 330 core
+
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aColor;
 
 out vec3 vColor;
 
-uniform mat4 uProjection;   // Can be either perspective or ortho
-uniform mat4 uModelMatrix;
+uniform mat4 uProjection;
 uniform mat4 uViewMatrix;
+uniform mat4 uModelMatrix;
 
 void main() {
     gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
@@ -349,11 +318,13 @@ void main() {
     // Fragment Shader source ( without texture )
     const char* fragmentShaderSource = R"(
 #version 330 core
-in vec3 vColor;       // Interpolated color from vertex shader
-out vec4 FragColor;   // Final fragment color
+
+in vec4 vColor;
+
+out vec4 FragColor;
 
 void main() {
-    FragColor = vec4(vColor, 1.0); // Set the fragment color
+    FragColor = vec4(vColor);
 }
 )";
 
@@ -409,6 +380,10 @@ private:
     glm::mat4                projection3D{};
     glm::mat4                viewMatrix{};
     std::vector<RenderBatch> renderBatches;
+    glm::vec4                fill_color     = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    bool                     fill_enabled   = true;
+    glm::vec4                stroke_color   = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    bool                     stroke_enabled = true;
 
     const uint32_t VBO_BUFFER_CHUNK_SIZE = 1024 * 1024;           // 1MB
     const float    DEFAULT_FOV           = 2.0f * atan(0.5f);     // = 53.1301f;
@@ -438,7 +413,7 @@ private:
         std::cout << std::endl;
     }
 
-    void build_shader() {
+    GLuint build_shader(const char* vertexShaderSource, const char* fragmentShaderSource) {
         // Build shaders
         const GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
@@ -450,14 +425,16 @@ private:
         glCompileShader(fragmentShader);
         checkShaderCompileStatus(fragmentShader);
 
-        shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, vertexShader);
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);
-        checkProgramLinkStatus(shaderProgram);
+        GLuint mShaderProgram = glCreateProgram();
+        glAttachShader(mShaderProgram, vertexShader);
+        glAttachShader(mShaderProgram, fragmentShader);
+        glLinkProgram(mShaderProgram);
+        checkProgramLinkStatus(mShaderProgram);
 
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
+
+        return mShaderProgram;
     }
 
     void checkShaderCompileStatus(const GLuint shader) {

@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
         renderer.image(image, image.width / -2, image.height / -2);
         rotations += 0.01f;
         renderer.rotate(glm::radians(rotations));
-        renderer.rect(-20, -20, 40, 40, glm::vec3(1.0f, 0.5f, 0.0f));
+        renderer.rect(-20, -20, 40, 40, glm::vec4(1.0f, 0.5f, 0.0f, 0.5f));
         renderer.image(image, -15, -15, 30, 30);
 #else
         renderer.line(-20, -20, 20, 20, glm::vec3(1.0f, 0.0f, 0.0f));
