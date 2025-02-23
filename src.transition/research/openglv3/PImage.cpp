@@ -6,9 +6,8 @@
 
 PImage::PImage(const std::string& filename) {
     GLuint mTextureID;
-    Renderer::loadTexture(filename.c_str(), mTextureID, width, height, channels);
+    Renderer::load_texture(filename.c_str(), mTextureID, width, height, channels);
     textureID = mTextureID;
-    std::cout << "Loaded texture: " << filename << " with ID: " << textureID << std::endl;
 }
 
 void PImage::bind() const {

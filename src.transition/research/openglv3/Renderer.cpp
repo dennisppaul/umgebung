@@ -4,24 +4,28 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-void Renderer::loadTexture(const char* file_path,
-                           GLuint&     textureID,
-                           int&        width,
-                           int&        height,
-                           int&        channels) {
+bool Renderer::generate_texture_mipmapped = true;
+
+void Renderer::load_texture(const char* file_path,
+                            GLuint&     textureID,
+                            int&        width,
+                            int&        height,
+                            int&        channels) {
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     // Set texture parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    if (generate_texture_mipmapped) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
 
     // Load image data
     unsigned char* data = stbi_load(file_path, &width, &height, &channels, 4);
@@ -35,33 +39,33 @@ void Renderer::loadTexture(const char* file_path,
     stbi_image_free(data);
 }
 
-void Renderer::image(const PImage& img, const float x, const float y, float w, float h) {
-    // PImage img = *image;
+void Renderer::image(const PImage* image, const float x, const float y, float w, float h) {
+    const PImage& img = *image;
     if (w == -1) {
-        w = img.width;
+        w = static_cast<float>(img.width);
     }
     if (h == -1) {
-        h = img.height;
+        h = static_cast<float>(img.height);
     }
-    constexpr auto color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    add_vertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
-    add_vertex(x + w, y, 0, color.r, color.g, color.b, color.a, 1.0f, 0.0f);
-    add_vertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
+    const auto color = fill_color;
+    add_fill_vertex_xyz_rgba_uv(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
+    add_fill_vertex_xyz_rgba_uv(x + w, y, 0, color.r, color.g, color.b, color.a, 1.0f, 0.0f);
+    add_fill_vertex_xyz_rgba_uv(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
 
-    add_vertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
-    add_vertex(x, y + h, 0, color.r, color.g, color.b, color.a, 0.0f, 1.0f);
-    add_vertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
+    add_fill_vertex_xyz_rgba_uv(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
+    add_fill_vertex_xyz_rgba_uv(x, y + h, 0, color.r, color.g, color.b, color.a, 0.0f, 1.0f);
+    add_fill_vertex_xyz_rgba_uv(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
 
-    constexpr int RECT_NUM_VERTICES = 6;
+    constexpr int       RECT_NUM_VERTICES               = 6;
+    const unsigned long fill_vertices_count_xyz_rgba_uv = fill_vertices_xyz_rgba_uv.size() / NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV;
     if (renderBatches.empty() || renderBatches.back().textureID != img.textureID) {
-        renderBatches.emplace_back(numVertices - RECT_NUM_VERTICES, RECT_NUM_VERTICES, img.textureID);
+        renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - RECT_NUM_VERTICES, RECT_NUM_VERTICES, img.textureID);
     } else {
         renderBatches.back().numVertices += RECT_NUM_VERTICES;
     }
 }
 
-
-const char* Renderer::vertexShaderSource() {
+const char* Renderer::vertex_shader_source_texture() {
     const char* vertexShaderSource = R"(
 #version 330 core
 
@@ -85,7 +89,7 @@ void main() {
     return vertexShaderSource;
 }
 
-const char* Renderer::fragmentShaderSource() {
+const char* Renderer::fragment_shader_source_texture() {
     const char* fragmentShaderSource = R"(
 #version 330 core
 
@@ -98,6 +102,44 @@ uniform sampler2D uTexture;
 
 void main() {
     FragColor = texture(uTexture, vTexCoord) * vColor;
+}
+)";
+    return fragmentShaderSource;
+}
+
+const char* Renderer::vertex_shader_source_simple() {
+    // Vertex Shader source ( without texture )
+    const char* vertexShaderSource = R"(
+#version 330 core
+
+layout(location = 0) in vec3 aPosition;
+layout(location = 1) in vec4 aColor;
+
+out vec4 vColor;
+
+uniform mat4 uProjection;
+uniform mat4 uViewMatrix;
+uniform mat4 uModelMatrix;
+
+void main() {
+    gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
+    vColor = aColor;
+}
+)";
+    return vertexShaderSource;
+}
+
+const char* Renderer::fragment_shader_source_simple() {
+    // Fragment Shader source ( without texture )
+    const char* fragmentShaderSource = R"(
+#version 330 core
+
+in vec4 vColor;
+
+out vec4 FragColor;
+
+void main() {
+    FragColor = vec4(vColor);
 }
 )";
     return fragmentShaderSource;

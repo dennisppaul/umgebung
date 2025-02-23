@@ -18,45 +18,54 @@ static constexpr int height = 600;
 int                  mouseX = 0;
 int                  mouseY = 0;
 
-// PImage* image;
-// float   rotations = 0.0f;
-//
-// void setup() {
-//     image = new PImage("../256.png");
-// }
-//
-// void pre_draw() {
-//     // Clear screen
-//     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-//     glClear(GL_COLOR_BUFFER_BIT);
-// }
-//
-// void draw(Renderer& renderer) {
-//     renderer.image(image, 10, 10);
-//
-//     renderer.pushMatrix();
-//     renderer.translate(mouseX, mouseY);
-// #ifdef __USE_TEXTURE__
-//     rotations += 0.01f;
-//     renderer.rotate(glm::radians(rotations));
-//     renderer.fill(1.0f, 0.5f, 0.0f, 0.5f);
-//     renderer.rect(-20, -20, 40, 40);
-//     renderer.image(image, -15, -15, 30, 30);
-// #else
-//     renderer.line(-20, -20, 20, 20, glm::vec3(1.0f, 0.0f, 0.0f));
-//     renderer.rect(-30, -30, 60, 60, glm::vec3(0.0f, 1.0f, 0.0f));
-//     renderer.rotate(3.141f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-//     renderer.translate(30, 0, 30);
-//     renderer.rect(-30, -30, 60, 60, glm::vec3(0.0f, 0.0f, 1.0f));
-//     renderer.line(-20, -20, 20, 20, glm::vec3(1.0f, 0.0f, 0.0f));
-//     renderer.line(-20, -20, 20, 20, glm::vec3(1.0f, 0.0f, 0.0f));
-// #endif
-//     renderer.popMatrix();
-// }
-//
-// void post_draw(Renderer& renderer) {
-//     renderer.flush();
-// }
+PImage* image;
+float   rotations = 0.0f;
+
+void setup() {
+    image = new PImage("../256.png");
+}
+
+void pre_draw() {
+    // Clear screen
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void draw(Renderer& renderer) {
+    renderer.noStroke();
+    renderer.fill(1.0f, 1.0f, 1.0f, 0.5f);
+    renderer.image(image, 10, 10);
+
+    renderer.pushMatrix();
+    renderer.translate(mouseX, mouseY);
+
+    // rotations += 0.01f;
+    // renderer.rotate(glm::radians(rotations));
+    // renderer.fill(1.0f, 0.5f, 0.0f, 0.5f);
+    // renderer.rect(-20, -20, 40, 40);
+    // renderer.fill(1.0f, 1.0f, 1.0f, 1.0f);
+    // renderer.image(image, -15, -15, 30, 30);
+
+    renderer.noFill();
+    renderer.stroke(1.0f, 0.0f, 0.0f);
+    renderer.line(-20, -20, 20, 20);
+    renderer.line(-20, 20, 20, -20);
+    renderer.rect(-30, -30, 60, 60);
+
+    renderer.stroke(0.0f, 0.0f, 1.0f);
+    renderer.rotate(3.141f / 2.0f, glm::vec3(0, 1, 0));
+    renderer.translate(15, 0, 0);
+    renderer.line(-20, -20, 20, 20);
+    renderer.line(-20, 20, 20, -20);
+    renderer.rect(-30, -30, 60, 60);
+
+    renderer.popMatrix();
+}
+
+void post_draw(Renderer& renderer) {
+    renderer.flush_fill();
+    renderer.flush_stroke();
+}
 
 int main(int argc, char* argv[]) {
     // Initialize SDL
@@ -123,49 +132,20 @@ int main(int argc, char* argv[]) {
     SDL_Event event;
     bool      running = true;
 
-    // setup();
-    PImage image("../256.png");
-    float  rotations = 0.0f;
+    setup();
 
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT || event.type == SDL_EVENT_KEY_DOWN) { running = false; }
             if (event.type == SDL_EVENT_MOUSE_MOTION) {
-                mouseX = event.motion.x;
-                mouseY = event.motion.y;
+                mouseX = static_cast<int>(event.motion.x);
+                mouseY = static_cast<int>(event.motion.y);
             }
         }
 
-        // pre_draw();
-        // draw(renderer);
-        // post_draw(renderer);
-
-        // Clear screen
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        renderer.image(image, 10, 10);
-
-        renderer.pushMatrix();
-        renderer.translate(mouseX, mouseY);
-#ifdef __USE_TEXTURE__
-        rotations += 0.01f;
-        renderer.rotate(glm::radians(rotations));
-        renderer.fill(1.0f, 0.5f, 0.0f, 0.5f);
-        renderer.rect(-20, -20, 40, 40);
-        renderer.image(image, -15, -15, 30, 30);
-#else
-        renderer.line(-20, -20, 20, 20, glm::vec3(1.0f, 0.0f, 0.0f));
-        renderer.rect(-30, -30, 60, 60, glm::vec3(0.0f, 1.0f, 0.0f));
-        renderer.rotate(3.141f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-        renderer.translate(30, 0, 30);
-        renderer.rect(-30, -30, 60, 60, glm::vec3(0.0f, 0.0f, 1.0f));
-        renderer.line(-20, -20, 20, 20, glm::vec3(1.0f, 0.0f, 0.0f));
-        renderer.line(-20, -20, 20, 20, glm::vec3(1.0f, 0.0f, 0.0f));
-#endif
-        renderer.popMatrix();
-
-        renderer.flush();
+        pre_draw();
+        draw(renderer);
+        post_draw(renderer);
 
         // // Start ImGui frame
         // ImGui_ImplOpenGL3_NewFrame();
