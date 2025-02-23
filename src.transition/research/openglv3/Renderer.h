@@ -74,10 +74,29 @@ public:
         currentMatrix = glm::rotate(currentMatrix, angle, axis);
     }
 
-    void line(const float x1, const float y1, const float x2, const float y2, const glm::vec4 color) {
-        addVertex(x1, y1, 0, color.r, color.g, color.b, color.a);
-        addVertex(x2, y2, 0, color.r, color.g, color.b, color.a);
-        numVertices += 2;
+    void line(const float x1, const float y1, const float x2, const float y2) {
+        if (stroke_enabled) {
+            add_vertex(x1, y1, 0, stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
+            add_vertex(x2, y2, 0, stroke_color.r, stroke_color.g, stroke_color.b, stroke_color.a);
+        }
+    }
+
+    void fill(float r, float g, float b, float a) {
+        fill_enabled = true;
+        fill_color   = glm::vec4(r, g, b, a);
+    }
+
+    void noFill() {
+        fill_enabled = false;
+    }
+
+    void stroke(float r, float g, float b, float a) {
+        stroke_enabled = true;
+        stroke_color   = glm::vec4(r, g, b, a);
+    }
+
+    void noStroke() {
+        stroke_enabled = false;
     }
 
     void print_matrix() {
@@ -93,18 +112,16 @@ public:
     void image(const PImage& img, float x, float y, float w = -1, float h = -1);
 
 #ifdef __USE_TEXTURE__
-    void rect(const float x, const float y, const float w, const float h, const glm::vec4 color) {
+    void rect(const float x, const float y, const float w, const float h) {
+        add_vertex(x, y, 0, fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+        add_vertex(x + w, y, 0, fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+        add_vertex(x + w, y + h, 0, fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+
+        add_vertex(x + w, y + h, 0, fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+        add_vertex(x, y + h, 0, fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+        add_vertex(x, y, 0, fill_color.r, fill_color.g, fill_color.b, fill_color.a);
+
         constexpr int RECT_NUM_VERTICES = 6;
-        addVertex(x, y, 0, color.r, color.g, color.b, color.a);
-        addVertex(x + w, y, 0, color.r, color.g, color.b, color.a);
-        addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a);
-
-        addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a);
-        addVertex(x, y + h, 0, color.r, color.g, color.b, color.a);
-        addVertex(x, y, 0, color.r, color.g, color.b, color.a);
-
-        numVertices += RECT_NUM_VERTICES;
-
         if (renderBatches.empty() || renderBatches.back().textureID != dummyTexture) {
             renderBatches.emplace_back(numVertices - RECT_NUM_VERTICES, RECT_NUM_VERTICES, dummyTexture);
         } else {
@@ -112,25 +129,23 @@ public:
         }
     }
 
-    void rect_textured(const float x, const float y, const float w, const float h, GLuint textureID) {
-        constexpr int  RECT_NUM_VERTICES = 6;
-        constexpr auto color             = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-        addVertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
-        addVertex(x + w, y, 0, color.r, color.g, color.b, color.a, 1.0f, 0.0f);
-        addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
-
-        addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
-        addVertex(x, y + h, 0, color.r, color.g, color.b, color.a, 0.0f, 1.0f);
-        addVertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
-
-        numVertices += RECT_NUM_VERTICES;
-
-        if (renderBatches.empty() || renderBatches.back().textureID != textureID) {
-            renderBatches.emplace_back(numVertices - RECT_NUM_VERTICES, RECT_NUM_VERTICES, textureID);
-        } else {
-            renderBatches.back().numVertices += RECT_NUM_VERTICES;
-        }
-    }
+    // void rect_textured(const float x, const float y, const float w, const float h, GLuint textureID) {
+    //     constexpr auto color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    //     add_vertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
+    //     add_vertex(x + w, y, 0, color.r, color.g, color.b, color.a, 1.0f, 0.0f);
+    //     add_vertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
+    //
+    //     add_vertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
+    //     add_vertex(x, y + h, 0, color.r, color.g, color.b, color.a, 0.0f, 1.0f);
+    //     add_vertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
+    //
+    //     constexpr int RECT_NUM_VERTICES = 6;
+    //     if (renderBatches.empty() || renderBatches.back().textureID != textureID) {
+    //         renderBatches.emplace_back(numVertices - RECT_NUM_VERTICES, RECT_NUM_VERTICES, textureID);
+    //     } else {
+    //         renderBatches.back().numVertices += RECT_NUM_VERTICES;
+    //     }
+    // }
 
     void flush() {
         if (numVertices == 0) {
@@ -160,7 +175,6 @@ public:
         for (const auto& batch: renderBatches) {
             glBindTexture(GL_TEXTURE_2D, batch.textureID);
             glDrawArrays(GL_TRIANGLES, batch.startIndex, batch.numVertices);
-            // glDrawArrays(GL_TRIANGLE_FAN, batch.startIndex, batch.numVertices);
         }
         glBindVertexArray(0);
 
@@ -194,17 +208,17 @@ private:
 
     const uint8_t NUM_VERTEX_ATTRIBUTES = 9;
 
-    void addVertex(const glm::vec3 position,
-                   const glm::vec4 color,
-                   const glm::vec2 tex_coords) {
-        addVertex(position.x, position.y, position.z,
-                  color.r, color.g, color.b, color.a,
-                  tex_coords.x, tex_coords.y);
+    void add_vertex(const glm::vec3 position,
+                    const glm::vec4 color,
+                    const glm::vec2 tex_coords) {
+        add_vertex(position.x, position.y, position.z,
+                   color.r, color.g, color.b, color.a,
+                   tex_coords.x, tex_coords.y);
     }
 
-    void addVertex(const float x, const float y, const float z,
-                   const float r, const float g, const float b, const float a = 1.0f,
-                   const float u = 0.0f, const float v = 0.0f) {
+    void add_vertex(const float x, const float y, const float z,
+                    const float r, const float g, const float b, const float a = 1.0f,
+                    const float u = 0.0f, const float v = 0.0f) {
         // Each vertex consists of 9 floats (x, y, z, r, g, b, u, v)
         // uint32_t vertexSize = NUM_VERTEX_ATTRIBUTES * sizeof(float);
         if ((vertices.size() + NUM_VERTEX_ATTRIBUTES) * sizeof(float) > maxBufferSize) {
@@ -222,6 +236,7 @@ private:
         vertices.push_back(a);             // Color
         vertices.push_back(u);             // Texture
         vertices.push_back(v);             // Texture
+        numVertices++;
     }
 
     void init_buffers_vertex_xyz_rgba_uv() {
