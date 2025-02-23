@@ -36,24 +36,23 @@ void Renderer::loadTexture(const char* file_path,
 }
 
 void Renderer::image(const PImage& img, const float x, const float y, float w, float h) {
+    // PImage img = *image;
     if (w == -1) {
-        w = static_cast<int>(img.width);
+        w = img.width;
     }
     if (h == -1) {
-        h = static_cast<int>(img.height);
+        h = img.height;
     }
-    constexpr int  RECT_NUM_VERTICES = 6;
-    constexpr auto color             = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    addVertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
-    addVertex(x + w, y, 0, color.r, color.g, color.b, color.a, 1.0f, 0.0f);
-    addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
+    constexpr auto color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    add_vertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
+    add_vertex(x + w, y, 0, color.r, color.g, color.b, color.a, 1.0f, 0.0f);
+    add_vertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
 
-    addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
-    addVertex(x, y + h, 0, color.r, color.g, color.b, color.a, 0.0f, 1.0f);
-    addVertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
+    add_vertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
+    add_vertex(x, y + h, 0, color.r, color.g, color.b, color.a, 0.0f, 1.0f);
+    add_vertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
 
-    numVertices += RECT_NUM_VERTICES;
-
+    constexpr int RECT_NUM_VERTICES = 6;
     if (renderBatches.empty() || renderBatches.back().textureID != img.textureID) {
         renderBatches.emplace_back(numVertices - RECT_NUM_VERTICES, RECT_NUM_VERTICES, img.textureID);
     } else {
@@ -63,7 +62,6 @@ void Renderer::image(const PImage& img, const float x, const float y, float w, f
 
 
 const char* Renderer::vertexShaderSource() {
-    // Vertex Shader source
     const char* vertexShaderSource = R"(
 #version 330 core
 
@@ -88,8 +86,6 @@ void main() {
 }
 
 const char* Renderer::fragmentShaderSource() {
-
-    // Fragment Shader source
     const char* fragmentShaderSource = R"(
 #version 330 core
 
