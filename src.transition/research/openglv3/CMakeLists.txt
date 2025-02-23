@@ -16,7 +16,11 @@ message(STATUS "OPENGL INCLUDE: ${OPENGL_INCLUDE_DIRS}")
 message(STATUS "GLM INCLUDE   : ${GLM_INCLUDE_DIRS}")
 
 # Add executable
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME}
+        main.cpp
+        Renderer.cpp
+        PImage.cpp
+)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${SDL3_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${GLEW_INCLUDE_DIRS})
