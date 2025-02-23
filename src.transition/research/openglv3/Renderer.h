@@ -1,16 +1,17 @@
 #pragma once
 
+#include <iostream>
+#include <GL/glew.h>
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #define __USE_TEXTURE__
 
 // TODO add alpha to vertices
+
+#include "PImage.h"
 
 class Renderer {
 public:
@@ -26,8 +27,8 @@ public:
         // Orthographic projection
         projection2D = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
 
-        const float fov            = glm::radians(90.0f);
-        const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f);
+        const float fov            = DEFAULT_FOV;                       // distance from the camera = screen height
+        const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f); // 1 unit = 1 pixel
 
         // Perspective projection
         projection3D = glm::perspective(fov, static_cast<float>(width) / static_cast<float>(height), 0.1f, 10000.0f);
@@ -39,30 +40,12 @@ public:
         );
     }
 
-    GLuint loadTexture(const char* filePath) {
-        GLuint textureID;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
+    static void loadTexture(const char* file_path,
+                            GLuint&     textureID,
+                            int&        width,
+                            int&        height,
+                            int&        channels);
 
-        // Set texture parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        // Load image data
-        int            width, height, nrChannels;
-        unsigned char* data = stbi_load(filePath, &width, &height, &nrChannels, 4);
-        if (data) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        } else {
-            std::cerr << "Failed to load texture: " << filePath << std::endl;
-        }
-        stbi_image_free(data);
-
-        return textureID;
-    }
 
     void pushMatrix() {
         matrixStack.push_back(currentMatrix);
@@ -106,6 +89,8 @@ public:
         glDeleteBuffers(1, &VBO);
         glDeleteProgram(shaderProgram);
     }
+
+    void image(const PImage& img, float x, float y, float w = -1, float h = -1);
 
 #ifdef __USE_TEXTURE__
     void rect(const float x, const float y, const float w, const float h, const glm::vec3 color) {
@@ -216,7 +201,7 @@ void main() {
 }
 )";
 
-    void resizeBuffer(const size_t newSize) {
+    void resizeBuffer(const uint32_t newSize) {
         // Create a new buffer
         GLuint newVBO;
         glGenBuffers(1, &newVBO);
@@ -237,9 +222,9 @@ void main() {
 
     void addVertex(const float x, const float y, const glm::vec3 color, const float u = 0.0f, const float v = 0.0f) {
         // Each vertex consists of 8 floats (x, y, z, r, g, b, u, v)
-        constexpr size_t vertexSize = 8 * sizeof(float);
+        // constexpr uint32_t vertexSize = 8 * sizeof(float);
         if ((vertices.size() + 8) * sizeof(float) > maxBufferSize) {
-            resizeBuffer(maxBufferSize * 1.5); // Increase size by 1.5x
+            resizeBuffer(maxBufferSize + VBO_BUFFER_CHUNK_SIZE); // Increase size by 1.5x
         }
 
         const glm::vec4 transformed = currentMatrix * glm::vec4(x, y, 0.0f, 1.0f); // Apply transformation
@@ -258,9 +243,9 @@ void main() {
                    const float r, const float g, const float b, const float a = 1.0f,
                    const float u = 0.0f, const float v = 0.0f) {
         // Each vertex consists of 8 floats (x, y, z, r, g, b, u, v)
-        size_t vertexSize = 8 * sizeof(float);
+        // uint32_t vertexSize = 8 * sizeof(float);
         if ((vertices.size() + 8) * sizeof(float) > maxBufferSize) {
-            resizeBuffer(maxBufferSize * 1.5); // Increase size by 1.5x
+            resizeBuffer(maxBufferSize * 3 / 2); // Increase size by 1.5x
         }
 
         const glm::vec4 transformed = currentMatrix * glm::vec4(x, y, z, 1.0f); // Apply transformation
@@ -271,7 +256,7 @@ void main() {
         vertices.push_back(r);             // Color
         vertices.push_back(g);             // Color
         vertices.push_back(b);             // Color
-        // vertices.push_back(a);             // Color // TODO add this
+        // vertices.push_back(a);             // Color // TODO add alpha
         vertices.push_back(u); // Texture
         vertices.push_back(v); // Texture
     }
@@ -287,7 +272,7 @@ void main() {
         glBufferData(GL_ARRAY_BUFFER, maxBufferSize, nullptr, GL_DYNAMIC_DRAW);
 
         // Position Attribute (Location 0) -> 3 floats (x, y, z)
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), static_cast<void*>(0));
         glEnableVertexAttribArray(0);
 
         // Color Attribute (Location 1) -> 3 floats (r, g, b)
@@ -413,19 +398,21 @@ private:
 
     GLuint                   VAO = 0;
     GLuint                   VBO = 0;
-    GLuint                   shaderProgram;
-    GLuint                   dummyTexture;
+    GLuint                   shaderProgram{};
+    GLuint                   dummyTexture{};
     glm::mat4                currentMatrix;
     std::vector<glm::mat4>   matrixStack;
     std::vector<float>       vertices;
     int                      numVertices = 0;
     float                    aspectRatio;
-    glm::mat4                projection2D;
-    glm::mat4                projection3D;
-    glm::mat4                viewMatrix;
+    glm::mat4                projection2D{};
+    glm::mat4                projection3D{};
+    glm::mat4                viewMatrix{};
     std::vector<RenderBatch> renderBatches;
 
-    size_t maxBufferSize = 1024 * 1024; // Initial size (1MB)
+    const uint32_t VBO_BUFFER_CHUNK_SIZE = 1024 * 1024;           // 1MB
+    const float    DEFAULT_FOV           = 2.0f * atan(0.5f);     // = 53.1301f;
+    uint32_t       maxBufferSize         = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
 
     void createDummyTexture() {
         GLuint textureID;

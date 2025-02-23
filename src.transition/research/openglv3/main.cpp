@@ -11,6 +11,7 @@
 #include "glm/glm.hpp"
 
 #include "Renderer.h"
+#include "PImage.h"
 
 // Window dimensions
 static constexpr int width  = 800;
@@ -49,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     SDL_ShowWindow(window);
 
-    SDL_GLContext glContext = SDL_GL_CreateContext(window);
+    const SDL_GLContext glContext = SDL_GL_CreateContext(window);
     if (!glContext) {
         std::cerr << "Failed to create OpenGL context: " << SDL_GetError() << std::endl;
         SDL_DestroyWindow(window);
@@ -84,7 +85,7 @@ int main(int argc, char* argv[]) {
     SDL_Event event;
     float     rotations = 0.0f;
 
-    const GLuint texture_id = renderer.loadTexture("../256.png");
+    const PImage image("../256.png");
 
     while (running) {
         while (SDL_PollEvent(&event)) {
@@ -103,11 +104,12 @@ int main(int argc, char* argv[]) {
         renderer.pushMatrix();
 
         renderer.translate(mouseX, mouseY);
-        // rotations += 0.01f;
-        // renderer.rotate(glm::radians(rotations));
 #ifdef __USE_TEXTURE__
-        renderer.rect_textured(-30, -30, 60, 60, texture_id);
-        // renderer.rect(-20, -20, 40, 40, glm::vec3(1.0f, 0.5f, 0.0f));
+        renderer.image(image, image.width / -2, image.height / -2);
+        rotations += 0.01f;
+        renderer.rotate(glm::radians(rotations));
+        renderer.rect(-20, -20, 40, 40, glm::vec3(1.0f, 0.5f, 0.0f));
+        renderer.image(image, -15, -15, 30, 30);
 #else
         renderer.line(-20, -20, 20, 20, glm::vec3(1.0f, 0.0f, 0.0f));
         renderer.rect(-30, -30, 60, 60, glm::vec3(0.0f, 1.0f, 0.0f));
