@@ -18,6 +18,11 @@ void Renderer::loadTexture(const char* file_path,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     // Load image data
     unsigned char* data = stbi_load(file_path, &width, &height, &channels, 4);
     if (data) {
@@ -28,11 +33,6 @@ void Renderer::loadTexture(const char* file_path,
         std::cerr << "Failed to load image: " << file_path << std::endl;
     }
     stbi_image_free(data);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 void Renderer::image(const PImage& img, const float x, const float y, float w, float h) {
@@ -42,14 +42,15 @@ void Renderer::image(const PImage& img, const float x, const float y, float w, f
     if (h == -1) {
         h = static_cast<int>(img.height);
     }
-    constexpr int RECT_NUM_VERTICES = 6;
-    addVertex(x, y, glm::vec3(1.0f, 1.0f, 1.0f), 0.0f, 0.0f);
-    addVertex(x + w, y, glm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 0.0f);
-    addVertex(x + w, y + h, glm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 1.0f);
+    constexpr int  RECT_NUM_VERTICES = 6;
+    constexpr auto color             = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    addVertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
+    addVertex(x + w, y, 0, color.r, color.g, color.b, color.a, 1.0f, 0.0f);
+    addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
 
-    addVertex(x + w, y + h, glm::vec3(1.0f, 1.0f, 1.0f), 1.0f, 1.0f);
-    addVertex(x, y + h, glm::vec3(1.0f, 1.0f, 1.0f), 0.0f, 1.0f);
-    addVertex(x, y, glm::vec3(1.0f, 1.0f, 1.0f), 0.0f, 0.0f);
+    addVertex(x + w, y + h, 0, color.r, color.g, color.b, color.a, 1.0f, 1.0f);
+    addVertex(x, y + h, 0, color.r, color.g, color.b, color.a, 0.0f, 1.0f);
+    addVertex(x, y, 0, color.r, color.g, color.b, color.a, 0.0f, 0.0f);
 
     numVertices += RECT_NUM_VERTICES;
 
@@ -58,4 +59,50 @@ void Renderer::image(const PImage& img, const float x, const float y, float w, f
     } else {
         renderBatches.back().numVertices += RECT_NUM_VERTICES;
     }
+}
+
+
+const char* Renderer::vertexShaderSource() {
+    // Vertex Shader source
+    const char* vertexShaderSource = R"(
+#version 330 core
+
+layout(location = 0) in vec3 aPosition;
+layout(location = 1) in vec4 aColor;
+layout(location = 2) in vec2 aTexCoord;
+
+out vec4 vColor;
+out vec2 vTexCoord;
+
+uniform mat4 uProjection;
+uniform mat4 uViewMatrix;
+uniform mat4 uModelMatrix;
+
+void main() {
+    gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
+    vColor = aColor;
+    vTexCoord = aTexCoord;
+}
+)";
+    return vertexShaderSource;
+}
+
+const char* Renderer::fragmentShaderSource() {
+
+    // Fragment Shader source
+    const char* fragmentShaderSource = R"(
+#version 330 core
+
+in vec4 vColor;
+in vec2 vTexCoord;
+
+out vec4 FragColor;
+
+uniform sampler2D uTexture;
+
+void main() {
+    FragColor = texture(uTexture, vTexCoord) * vColor;
+}
+)";
+    return fragmentShaderSource;
 }
