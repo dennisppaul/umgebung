@@ -11,13 +11,13 @@
 
 #include "PImage.h"
 
-class Renderer {
+class PGraphicsOpenGLv33 {
 public:
     static bool generate_texture_mipmapped;
     int         width;
     int         height;
 
-    Renderer(const int width, const int height) : width(width),
+    PGraphicsOpenGLv33(const int width, const int height) : width(width),
                                                   height(height),
                                                   currentMatrix(glm::mat4(1.0f)) {
         stroke_shader_program = build_shader(vertex_shader_source_simple(), fragment_shader_source_simple());

@@ -1,12 +1,12 @@
 #include <iostream>
-#include "Renderer.h"
+#include "PGraphicsOpenGLv33.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-bool Renderer::generate_texture_mipmapped = true;
+bool PGraphicsOpenGLv33::generate_texture_mipmapped = true;
 
-void Renderer::load_texture(const char* file_path,
+void PGraphicsOpenGLv33::load_texture(const char* file_path,
                             GLuint&     textureID,
                             int&        width,
                             int&        height,
@@ -39,7 +39,7 @@ void Renderer::load_texture(const char* file_path,
     stbi_image_free(data);
 }
 
-void Renderer::image(const PImage* image, const float x, const float y, float w, float h) {
+void PGraphicsOpenGLv33::image(const PImage* image, const float x, const float y, float w, float h) {
     const PImage& img = *image;
     if (w == -1) {
         w = static_cast<float>(img.width);
@@ -65,7 +65,7 @@ void Renderer::image(const PImage* image, const float x, const float y, float w,
     }
 }
 
-const char* Renderer::vertex_shader_source_texture() {
+const char* PGraphicsOpenGLv33::vertex_shader_source_texture() {
     const char* vertexShaderSource = R"(
 #version 330 core
 
@@ -89,7 +89,7 @@ void main() {
     return vertexShaderSource;
 }
 
-const char* Renderer::fragment_shader_source_texture() {
+const char* PGraphicsOpenGLv33::fragment_shader_source_texture() {
     const char* fragmentShaderSource = R"(
 #version 330 core
 
@@ -107,7 +107,7 @@ void main() {
     return fragmentShaderSource;
 }
 
-const char* Renderer::vertex_shader_source_simple() {
+const char* PGraphicsOpenGLv33::vertex_shader_source_simple() {
     // Vertex Shader source ( without texture )
     const char* vertexShaderSource = R"(
 #version 330 core
@@ -129,7 +129,7 @@ void main() {
     return vertexShaderSource;
 }
 
-const char* Renderer::fragment_shader_source_simple() {
+const char* PGraphicsOpenGLv33::fragment_shader_source_simple() {
     // Fragment Shader source ( without texture )
     const char* fragmentShaderSource = R"(
 #version 330 core

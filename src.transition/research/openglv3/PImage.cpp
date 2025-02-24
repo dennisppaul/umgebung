@@ -2,11 +2,11 @@
 #include <GL/glew.h>
 
 #include "PImage.h"
-#include "Renderer.h"
+#include "PGraphicsOpenGLv33.h"
 
 PImage::PImage(const std::string& filename) {
     GLuint mTextureID;
-    Renderer::load_texture(filename.c_str(), mTextureID, width, height, channels);
+    PGraphicsOpenGLv33::load_texture(filename.c_str(), mTextureID, width, height, channels);
     textureID = mTextureID;
 }
 
