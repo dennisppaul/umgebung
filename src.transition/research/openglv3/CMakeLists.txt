@@ -18,7 +18,7 @@ message(STATUS "GLM INCLUDE   : ${GLM_INCLUDE_DIRS}")
 # Add executable
 add_executable(${PROJECT_NAME}
         main.cpp
-        Renderer.cpp
+        PGraphicsOpenGLv33.cpp
         PImage.cpp
 )
 

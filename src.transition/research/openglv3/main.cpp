@@ -10,7 +10,7 @@
 #include <SDL3/SDL.h>
 #include "glm/glm.hpp"
 
-#include "Renderer.h"
+#include "PGraphicsOpenGLv33.h"
 #include "PImage.h"
 
 static constexpr int width  = 800;
@@ -31,7 +31,7 @@ void pre_draw() {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void draw(Renderer& renderer) {
+void draw(PGraphicsOpenGLv33& renderer) {
     renderer.noStroke();
     renderer.fill(1.0f, 1.0f, 1.0f, 0.5f);
     renderer.image(image, 10, 10);
@@ -62,7 +62,7 @@ void draw(Renderer& renderer) {
     renderer.popMatrix();
 }
 
-void post_draw(Renderer& renderer) {
+void post_draw(PGraphicsOpenGLv33& renderer) {
     renderer.flush_fill();
     renderer.flush_stroke();
 }
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    Renderer  renderer(width, height);
+    PGraphicsOpenGLv33  renderer(width, height);
     SDL_Event event;
     bool      running = true;
 
