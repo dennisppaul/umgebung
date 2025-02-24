@@ -13,6 +13,14 @@
 #include "PGraphicsOpenGLv33.h"
 #include "PImage.h"
 
+#include "PVector.h"
+#include "PMatrix2D.h"
+#include "PMatrix3D.h"
+
+PVector   v(10, 20, 30);
+PMatrix2D m2;
+PMatrix3D m3;
+
 static constexpr int width  = 800;
 static constexpr int height = 600;
 int                  mouseX = 0;
@@ -21,7 +29,90 @@ int                  mouseY = 0;
 PImage* image;
 float   rotations = 0.0f;
 
+void testPVector() {
+    std::cout << "=== Testing PVector ===" << std::endl;
+
+    PVector v1(1.0f, 2.0f, 3.0f);
+    std::cout << "v1: (" << v1.x << ", " << v1.y << ", " << v1.z << ")" << std::endl;
+
+    PVector v2 = v1.copy();
+    std::cout << "v2 (copy of v1): (" << v2.x << ", " << v2.y << ", " << v2.z << ")" << std::endl;
+
+    v2.set(4.0f, 5.0f, 6.0f);
+    std::cout << "v2 after set(): (" << v2.x << ", " << v2.y << ", " << v2.z << ")" << std::endl;
+
+    PVector v3;
+    PVector::add(v1, v2, v3);
+    std::cout << "v3 (v1 + v2): (" << v3.x << ", " << v3.y << ", " << v3.z << ")" << std::endl;
+
+    PVector v4;
+    PVector::mult(v1, 2.0f, v4);
+    std::cout << "v4 (v1 * 2): (" << v4.x << ", " << v4.y << ", " << v4.z << ")" << std::endl;
+
+    v1.add(v2);
+    std::cout << "v1 after += v2: (" << v1.x << ", " << v1.y << ", " << v1.z << ")" << std::endl;
+
+    std::cout << std::endl;
+}
+
+void testPMatrix2D() {
+    std::cout << "=== Testing PMatrix2D ===" << std::endl;
+
+    PMatrix2D m1;
+    std::cout << "m1 (default, should be identity matrix):\n";
+    std::cout << m1.m00 << " " << m1.m01 << " " << m1.m02 << "\n";
+    std::cout << m1.m10 << " " << m1.m11 << " " << m1.m12 << "\n";
+
+    PMatrix2D m2(1, 2, 3, 4, 5, 6);
+    std::cout << "m2 (custom values):\n";
+    std::cout << m2.m00 << " " << m2.m01 << " " << m2.m02 << "\n";
+    std::cout << m2.m10 << " " << m2.m11 << " " << m2.m12 << "\n";
+
+    PMatrix2D m3(m2);
+    std::cout << "m3 (copy of m2):\n";
+    std::cout << m3.m00 << " " << m3.m01 << " " << m3.m02 << "\n";
+    std::cout << m3.m10 << " " << m3.m11 << " " << m3.m12 << "\n";
+
+    m3.reset();
+    std::cout << "m3 after reset (should be identity matrix):\n";
+    std::cout << m3.m00 << " " << m3.m01 << " " << m3.m02 << "\n";
+    std::cout << m3.m10 << " " << m3.m11 << " " << m3.m12 << "\n";
+
+    std::cout << std::endl;
+}
+
+void testPMatrix3D() {
+    std::cout << "=== Testing PMatrix3D ===" << std::endl;
+
+    PMatrix3D m1;
+    std::cout << "m1 (default, should be identity matrix):\n";
+    std::cout << m1.m00 << " " << m1.m01 << " " << m1.m02 << " " << m1.m03 << "\n";
+    std::cout << m1.m10 << " " << m1.m11 << " " << m1.m12 << " " << m1.m13 << "\n";
+    std::cout << m1.m20 << " " << m1.m21 << " " << m1.m22 << " " << m1.m23 << "\n";
+    std::cout << m1.m30 << " " << m1.m31 << " " << m1.m32 << " " << m1.m33 << "\n";
+
+    PMatrix3D m2(m1);
+    std::cout << "m2 (copy of m1):\n";
+    std::cout << m2.m00 << " " << m2.m01 << " " << m2.m02 << " " << m2.m03 << "\n";
+    std::cout << m2.m10 << " " << m2.m11 << " " << m2.m12 << " " << m2.m13 << "\n";
+    std::cout << m2.m20 << " " << m2.m21 << " " << m2.m22 << " " << m2.m23 << "\n";
+    std::cout << m2.m30 << " " << m2.m31 << " " << m2.m32 << " " << m2.m33 << "\n";
+
+    m2.reset();
+    std::cout << "m2 after reset (should be identity matrix):\n";
+    std::cout << m2.m00 << " " << m2.m01 << " " << m2.m02 << " " << m2.m03 << "\n";
+    std::cout << m2.m10 << " " << m2.m11 << " " << m2.m12 << " " << m2.m13 << "\n";
+    std::cout << m2.m20 << " " << m2.m21 << " " << m2.m22 << " " << m2.m23 << "\n";
+    std::cout << m2.m30 << " " << m2.m31 << " " << m2.m32 << " " << m2.m33 << "\n";
+
+    std::cout << std::endl;
+}
+
 void setup() {
+    testPVector();
+    testPMatrix2D();
+    testPMatrix3D();
+
     image = new PImage("../256.png");
 }
 
@@ -128,9 +219,9 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    PGraphicsOpenGLv33  renderer(width, height);
-    SDL_Event event;
-    bool      running = true;
+    PGraphicsOpenGLv33 renderer(width, height);
+    SDL_Event          event;
+    bool               running = true;
 
     setup();
 
