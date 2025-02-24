@@ -1,5 +1,5 @@
 /*
-* Umgebung
+ * Umgebung
  *
  * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
  * Copyright (c) 2025 Dennis P Paul.
@@ -26,8 +26,7 @@
 
 UMGEBUNG_NAMESPACE_BEGIN
 
-static SDL_Window* window = nullptr;
-// static SDL_Renderer* renderer   = nullptr;
+static SDL_Window*   window     = nullptr;
 static SDL_GLContext gl_context = nullptr;
 
 // TODO implement set_resizable and fullscreen() (at runtime) and is_minimized()
@@ -35,6 +34,7 @@ static SDL_GLContext gl_context = nullptr;
 //    SDL_SetWindowResizable(window?!?, SDL_TRUE);
 //    if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) {}
 
+// TODO these functions below should go into a more generic place
 void set_window_position(const int x, const int y) {
     if (window == nullptr) {
         return;
@@ -84,13 +84,13 @@ void center_display() {
 
 /* --- private functions --- */
 
-static bool subsystem_graphics_opengl2_init(int width, int height);
-static void subsystem_graphics_opengl2_setup_pre();
-static void subsystem_graphics_opengl2_setup_post();
-static void subsystem_graphics_opengl2_draw_pre();
-static void subsystem_graphics_opengl2_draw_post();
+static bool init(int width, int height);
+static void setup_pre();
+static void setup_post();
+static void draw_pre();
+static void draw_post();
 
-static void subsystem_graphics_opengl2_shutdown() {
+static void shutdown() {
     SDL_GL_DestroyContext(gl_context);
     // SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -143,7 +143,7 @@ static void set_default_graphics_state() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-static bool subsystem_graphics_opengl2_init(const int width, const int height) {
+static bool init(const int width, const int height) {
     /* setup opengl */
     // see https://github.com/ocornut/imgui/blob/master/examples/example_sdl3_opengl3/main.cpp
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
@@ -203,7 +203,7 @@ static bool subsystem_graphics_opengl2_init(const int width, const int height) {
     return true;
 }
 
-static void subsystem_graphics_opengl2_setup_pre() {
+static void setup_pre() {
     SDL_GetWindowSizeInPixels(window, &framebuffer_width, &framebuffer_height);
     console("framebuffer size: ", framebuffer_width, " x ", framebuffer_height);
 
@@ -213,14 +213,14 @@ static void subsystem_graphics_opengl2_setup_pre() {
     g->width  = width;
     g->height = height;
     set_default_graphics_state();
-    subsystem_graphics_opengl2_draw_pre();
+    draw_pre();
 }
 
-static void subsystem_graphics_opengl2_setup_post() {
-    subsystem_graphics_opengl2_draw_post();
+static void setup_post() {
+    draw_post();
 }
 
-static void subsystem_graphics_opengl2_draw_pre() {
+static void draw_pre() {
     set_default_graphics_state(); // TODO this is not nevessary as the FBO is drawn fullscreen
 
     glBindFramebuffer(GL_FRAMEBUFFER, g->framebuffer.id);
@@ -254,7 +254,7 @@ static void subsystem_graphics_opengl2_draw_pre() {
     // SDL_RenderPresent(renderer);
 }
 
-static void subsystem_graphics_opengl2_draw_post() {
+static void draw_post() {
     if (window == nullptr) {
         return;
     }
@@ -321,26 +321,26 @@ static void subsystem_graphics_opengl2_draw_post() {
     SDL_GL_SwapWindow(window);
 }
 
-static void subsystem_graphics_opengl2_set_flags(uint32_t& subsystem_flags) {
+static void set_flags(uint32_t& subsystem_flags) {
     subsystem_flags |= SDL_INIT_VIDEO;
 }
 
-static PGraphics* subsystem_graphics_opengl2_create_graphics() {
+static PGraphics* create_graphics() {
     // TODO this needs to be renderer specific i.e OpenGL 2.0 e.g `new PGraphicsOpenGLv2();`
     auto* graphics = new PGraphics();
     return graphics;
 }
 UMGEBUNG_NAMESPACE_END
 
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_opengl2() {
+umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv20() {
     auto* graphics            = new umgebung::SubsystemGraphics{};
-    graphics->init            = umgebung::subsystem_graphics_opengl2_init;
-    graphics->setup_pre       = umgebung::subsystem_graphics_opengl2_setup_pre;
-    graphics->setup_post      = umgebung::subsystem_graphics_opengl2_setup_post;
-    graphics->draw_pre        = umgebung::subsystem_graphics_opengl2_draw_pre;
-    graphics->draw_post       = umgebung::subsystem_graphics_opengl2_draw_post;
-    graphics->shutdown        = umgebung::subsystem_graphics_opengl2_shutdown;
-    graphics->set_flags       = umgebung::subsystem_graphics_opengl2_set_flags;
-    graphics->create_graphics = umgebung::subsystem_graphics_opengl2_create_graphics;
+    graphics->init            = umgebung::init;
+    graphics->setup_pre       = umgebung::setup_pre;
+    graphics->setup_post      = umgebung::setup_post;
+    graphics->draw_pre        = umgebung::draw_pre;
+    graphics->draw_post       = umgebung::draw_post;
+    graphics->shutdown        = umgebung::shutdown;
+    graphics->set_flags       = umgebung::set_flags;
+    graphics->create_graphics = umgebung::create_graphics;
     return graphics;
 }

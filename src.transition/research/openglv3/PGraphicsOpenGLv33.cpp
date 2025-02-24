@@ -6,13 +6,53 @@
 
 bool PGraphicsOpenGLv33::generate_texture_mipmapped = true;
 
-void PGraphicsOpenGLv33::load_texture(const char* file_path,
-                            GLuint&     textureID,
-                            int&        width,
-                            int&        height,
-                            int&        channels) {
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+PImage* PGraphicsOpenGLv33::loadImage(const char* file_path) {
+    int      width;
+    int      height;
+    int      channels;
+    uint8_t* data = stbi_load(file_path, &width, &height, &channels, 4);
+    if (!data) {
+        std::cerr << "No pixels loaded. Failed to load image: " << file_path << std::endl;
+        return nullptr;
+    }
+    if (width * height <= 0) {
+        std::cerr << "Dimensions are <= 0. Failed to load image: " << file_path << std::endl;
+        return nullptr;
+    }
+    if (channels != 4) {
+        std::cerr << "Number of channels are != 4. Forcing 4 channels i.e RGBA " << std::endl;
+        channels = 4;
+        // return nullptr;
+    }
+
+    const auto image = new PImage();
+    image->width     = width;
+    image->height    = height;
+    image->channels  = channels;
+    // image->pixels    = (uint32_t*)(data);
+    image->pixels    = reinterpret_cast<uint32_t*>(data);
+
+    return image;
+
+    // stbi_image_free(data); // do not free pixels. they are owned by PImage now
+}
+
+bool PGraphicsOpenGLv33::upload_texture(PImage* image) {
+    if (image->pixels == nullptr) {
+        std::cerr << "Failed to upload texture. Pixels are null" << std::endl;
+        return false;
+    }
+
+    GLuint mTextureID;
+    glGenTextures(1, &mTextureID);
+
+    if (mTextureID == 0) {
+        std::cerr << "Failed to generate texture ID" << std::endl;
+        return false;
+    }
+
+    image->textureID = mTextureID;
+    glBindTexture(GL_TEXTURE_2D, image->textureID);
 
     // Set texture parameters
     if (generate_texture_mipmapped) {
@@ -28,19 +68,46 @@ void PGraphicsOpenGLv33::load_texture(const char* file_path,
     }
 
     // Load image data
-    unsigned char* data = stbi_load(file_path, &width, &height, &channels, 4);
-    if (data) {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA,
+                 image->width,
+                 image->height,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 image->pixels);
+    if (generate_texture_mipmapped) {
         glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-        std::cerr << "Failed to load image: " << file_path << std::endl;
     }
-    stbi_image_free(data);
+    return true;
 }
 
-void PGraphicsOpenGLv33::image(const PImage* image, const float x, const float y, float w, float h) {
+void PGraphicsOpenGLv33::delete_texture(const GLuint textureID) {
+    if (textureID) {
+        const GLuint mTextureID = textureID;
+        glDeleteTextures(1, &mTextureID);
+    }
+}
+
+void PGraphicsOpenGLv33::bind_texture(const GLuint textureID) {
+    if (textureID) {
+        glBindTexture(GL_TEXTURE_2D, textureID);
+    }
+}
+
+void PGraphicsOpenGLv33::image(PImage* image, const float x, const float y, float w, float h) {
+    if (!fill_enabled) {
+        return;
+    }
     const PImage& img = *image;
+
+    if (img.textureID == -1) {
+        std::cout << "PImage has not been uploaded. Trying to upload image as texture." << std::endl;
+        upload_texture(image);
+    }
+
     if (w == -1) {
         w = static_cast<float>(img.width);
     }
