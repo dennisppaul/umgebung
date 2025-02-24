@@ -84,14 +84,14 @@ static uint32_t compile_subsystems_flag() {
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     /* check graphics subsystem */
-    umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
     if (umgebung::subsystem_graphics == nullptr) {
         if (umgebung::create_subsystem_graphics != nullptr) {
             umgebung::subsystem_graphics = umgebung::create_subsystem_graphics();
         } else {
             umgebung::console("No graphics subsystem provided, using default.");
             // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_default();
-            umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
+            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
+            umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
         }
         if (umgebung::subsystem_graphics == nullptr) {
             umgebung::console("Couldn't create graphics subsystem.");
@@ -141,7 +141,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     /* 3. initialize graphics */
     // - init
     if (umgebung::subsystem_graphics->init != nullptr) {
-        if (!umgebung::subsystem_graphics->init(umgebung::width, umgebung::height)) {
+        if (!umgebung::subsystem_graphics->init()) {
             SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
             return SDL_APP_FAILURE;
         }
