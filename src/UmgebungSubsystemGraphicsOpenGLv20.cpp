@@ -23,6 +23,7 @@
 #include "Umgebung.h"
 #include "UmgebungPGraphicsInterface.h"
 #include "UmgebungSubsystems.h"
+#include "PGraphicsOpenGLv20.h"
 
 UMGEBUNG_NAMESPACE_BEGIN
 
@@ -143,7 +144,7 @@ static void set_default_graphics_state() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-static bool init(const int width, const int height) {
+static bool init() {
     /* setup opengl */
     // see https://github.com/ocornut/imgui/blob/master/examples/example_sdl3_opengl3/main.cpp
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
@@ -178,6 +179,7 @@ static bool init(const int width, const int height) {
     gl_context = SDL_GL_CreateContext(window);
     if (gl_context == nullptr) {
         error("Couldn't create OpenGL context: ", SDL_GetError());
+        SDL_DestroyWindow(window);
         return false;
     }
 
@@ -197,6 +199,8 @@ static bool init(const int width, const int height) {
     const GLenum glewInitResult = glewInit();
     if (GLEW_OK != glewInitResult) {
         error("problem initializing GLEW: ", glewGetErrorString(glewInitResult));
+        SDL_GL_DestroyContext(gl_context);
+        SDL_DestroyWindow(window);
         return false;
     }
 
@@ -326,9 +330,7 @@ static void set_flags(uint32_t& subsystem_flags) {
 }
 
 static PGraphics* create_graphics() {
-    // TODO this needs to be renderer specific i.e OpenGL 2.0 e.g `new PGraphicsOpenGLv2();`
-    auto* graphics = new PGraphics();
-    return graphics;
+    return new PGraphicsOpenGLv20();
 }
 UMGEBUNG_NAMESPACE_END
 

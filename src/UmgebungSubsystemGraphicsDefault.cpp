@@ -36,7 +36,7 @@ void subsystem_graphics_default_draw_pre();
 void subsystem_graphics_default_draw_post();
 void subsystem_graphics_default_shutdown() { printf("Shutdown\n"); }
 
-bool subsystem_graphics_default_init(const int width, const int height) {
+bool subsystem_graphics_default_init() {
     SDL_Log("Graphics Init: %d x %d\n", width, height);
     if (!SDL_CreateWindowAndRenderer("Hello World",
                                      umgebung::width,

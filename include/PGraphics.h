@@ -39,20 +39,17 @@ sphere() A sphere is a hollow ball made from tessellated triangles
 */
 
 #ifndef DISABLE_GRAPHICS
-#define PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+#endif // DISABLE_GRAPHICS
 
 #include <sstream>
-
-#endif // DISABLE_GRAPHICS
 
 #include "UmgebungConstants.h"
 #include "PImage.h"
 
-// #define PGRAPHICS_USE_VBO
+#define PGRAPHICS_RENDER_INTO_FRAMEBUFFER
 
 namespace umgebung {
 
-    class PImage;
     class PFont;
 
     class PGraphics : public virtual PImage {
@@ -62,60 +59,64 @@ namespace umgebung {
 
         PGraphics();
 
-        void    fill(float r, float g, float b, float alpha = 1.0);
-        void    fill(float gray, float alpha = 1.0);
-        void    fill_i(uint32_t c);
-        void    noFill();
-        void    stroke(float r, float g, float b, float alpha = 1.0);
-        void    stroke(float gray, float alpha);
-        void    stroke(float a);
-        void    stroke_i(uint32_t c);
-        void    noStroke();
-        void    strokeWeight(float weight);
-        void    background(float a, float b, float c, float d = 1.0);
-        void    background(float a);
-        void    rect(float x, float y, float width, float height) const;
-        void    ellipse(float x, float y, float width, float height) const;
-        void    circle(float x, float y, float radius) const;
-        void    ellipseDetail(int detail);
-        void    line(float x1, float y1, float x2, float y2) const;
-        void    bezier(float x1, float y1,
-                       float x2, float y2,
-                       float x3, float y3,
-                       float x4, float y4) const;
-        void    bezier(float x1, float y1, float z1,
-                       float x2, float y2, float z2,
-                       float x3, float y3, float z3,
-                       float x4, float y4, float z4) const;
-        void    bezierDetail(int detail);
-        void    pointSize(float point_size);
-        void    point(float x, float y, float z = 0.0) const;
-        void    beginShape(int shape = POLYGON);
-        void    endShape();
-        void    vertex(float x, float y, float z = 0.0);
-        void    vertex(float x, float y, float z, float u, float v);
-        PFont*  loadFont(const std::string& file, float size); // @development maybe use smart pointers here
-        void    textFont(PFont* font);
-        void    textSize(float size) const;
-        void    text(const char* value, float x, float y, float z = 0.0f) const;
-        float   textWidth(const std::string& text) const;
-        PImage* loadImage(const std::string& filename);
-        void    image(const PImage* img, float x, float y, float w, float h) const;
-        void    image(PImage* img, float x, float y);
-        void    texture(const PImage* img);
-        void    popMatrix();
-        void    pushMatrix();
-        void    translate(float x, float y, float z = 0);
-        void    rotateX(float angle);
-        void    rotateY(float angle);
-        void    rotateZ(float angle);
-        void    rotate(float angle);
-        void    rotate(float angle, float x, float y, float z);
-        void    scale(float x);
-        void    scale(float x, float y);
-        void    scale(float x, float y, float z);
-        void    pixelDensity(int density);
-        void    hint(uint16_t property);
+        virtual void fill(float r, float g, float b, float alpha = 1.0f);
+        virtual void fill(float gray, float alpha = 1.0f);
+        virtual void fill_i(uint32_t c);
+        virtual void noFill();
+        virtual void stroke(float r, float g, float b, float alpha = 1.0f);
+        virtual void stroke(float gray, float alpha);
+        virtual void stroke(float a);
+        virtual void stroke_i(uint32_t c);
+        virtual void noStroke();
+
+        virtual void    strokeWeight(float weight)                                                = 0;
+        virtual void    background(float a, float b, float c, float d = 1.0f)                     = 0;
+        virtual void    background(float a)                                                       = 0;
+        virtual void    rect(float x, float y, float width, float height) const                   = 0;
+        virtual void    ellipse(float x, float y, float width, float height) const                = 0;
+        virtual void    circle(float x, float y, float radius) const                              = 0;
+        virtual void    ellipseDetail(int detail)                                                 = 0;
+        virtual void    line(float x1, float y1, float x2, float y2) const                        = 0;
+        virtual void    bezier(float x1, float y1,
+                               float x2, float y2,
+                               float x3, float y3,
+                               float x4, float y4) const                                          = 0;
+        virtual void    bezier(float x1, float y1, float z1,
+                               float x2, float y2, float z2,
+                               float x3, float y3, float z3,
+                               float x4, float y4, float z4) const                                = 0;
+        virtual void    bezierDetail(int detail)                                                  = 0;
+        virtual void    pointSize(float point_size)                                               = 0;
+        virtual void    point(float x, float y, float z = 0.0f) const                             = 0;
+        virtual void    beginShape(int shape = POLYGON)                                           = 0;
+        virtual void    endShape()                                                                = 0;
+        virtual void    vertex(float x, float y, float z = 0.0f)                                  = 0;
+        virtual void    vertex(float x, float y, float z, float u, float v)                       = 0;
+        virtual PFont*  loadFont(const std::string& file, float size)                             = 0; // @development maybe use smart pointers here
+        virtual void    textFont(PFont* font)                                                     = 0;
+        virtual void    textSize(float size) const                                                = 0;
+        virtual void    text(const char* value, float x, float y, float z = 0.0f) const           = 0;
+        virtual float   textWidth(const std::string& text) const                                  = 0;
+        virtual PImage* loadImage(const std::string& filename)                                    = 0;
+        virtual void    image(const PImage* img, float x, float y, float w, float h) const        = 0;
+        virtual void    image(PImage* img, float x, float y)                                      = 0;
+        virtual void    texture(const PImage* img)                                                = 0;
+        virtual void    popMatrix()                                                               = 0;
+        virtual void    pushMatrix()                                                              = 0;
+        virtual void    translate(float x, float y, float z = 0.0f)                               = 0;
+        virtual void    rotateX(float angle)                                                      = 0;
+        virtual void    rotateY(float angle)                                                      = 0;
+        virtual void    rotateZ(float angle)                                                      = 0;
+        virtual void    rotate(float angle)                                                       = 0;
+        virtual void    rotate(float angle, float x, float y, float z)                            = 0;
+        virtual void    scale(float x)                                                            = 0;
+        virtual void    scale(float x, float y)                                                   = 0;
+        virtual void    scale(float x, float y, float z)                                          = 0;
+        virtual void    pixelDensity(int density)                                                 = 0;
+        virtual void    hint(uint16_t property)                                                   = 0;
+        virtual void    text_str(const std::string& text, float x, float y, float z = 0.0f) const = 0;
+        virtual void    beginDraw()                                                               = 0;
+        virtual void    endDraw() const                                                           = 0;
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) const {
@@ -124,55 +125,24 @@ namespace umgebung {
             text_str(ss.str(), x, y, z);
         }
 
-        ~PGraphics() override;
+        struct FBO {
+            unsigned int id{};
+            unsigned int texture{};
+            int          width{};
+            int          height{};
+        };
 
-    private:
-        PFont* fCurrentFont           = nullptr;
-        float  fPointSize             = 1;
-        bool   fEnabledTextureInShape = false;
-        bool   fShapeBegun            = false;
-        int    fEllipseDetail         = 32;
-        int    fBezierDetail          = 20;
-        int    fPixelDensity          = 1;
+        FBO framebuffer{};
 
-        struct {
+    protected:
+        struct Color {
             float r      = 0;
             float g      = 0;
             float b      = 0;
             float a      = 1;
             bool  active = false;
-        } fill_color, stroke_color;
-
-        static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
-
-        void text_str(const std::string& text, float x, float y, float z = 0.0f) const;
-
-#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-        struct FBO {
-            unsigned int id{};
-            unsigned int texture{};
-            // GLuint id{};
-            // GLuint texture{};
-            int width{};
-            int height{};
         };
-        int fPreviousFBO{};
-        // GLint fPreviousFBO = 0;
-
-    public:
-        FBO framebuffer{};
-
-        void beginDraw();
-        void endDraw() const;
-        void bind() const override;
-        void init(uint32_t* pixels, int width, int height, int format) override;
-#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-
-#ifdef PGRAPHICS_USE_VBO
-        GLuint ellipseVBO;
-        int    ellipseSegments;
-        bool   bufferInitialized;
-        void   setupEllipseBuffer(int num_segments);
-#endif // PGRAPHICS_USE_VBO
+        Color fill_color{};
+        Color stroke_color{};
     };
 } // namespace umgebung

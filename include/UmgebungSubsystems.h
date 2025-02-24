@@ -37,7 +37,6 @@ struct Subsystem {
 };
 
 struct SubsystemGraphics : Subsystem {
-    bool (*init)(int width, int height);
     void (*set_flags)(uint32_t& subsystem_flags);
     PGraphics* (*create_graphics)();
 };
