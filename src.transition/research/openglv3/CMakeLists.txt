@@ -20,6 +20,9 @@ add_executable(${PROJECT_NAME}
         main.cpp
         PGraphicsOpenGLv33.cpp
         PImage.cpp
+        PVector.cpp
+        PMatrix2D.cpp
+        PMatrix3D.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${SDL3_INCLUDE_DIRS})
