@@ -87,6 +87,10 @@ public:
         }
     }
 
+    void linse(const float x1, const float y1, const float x2, const float y2) {
+        line(x1, y1, x2, y2);
+    }
+
     void fill(const float r, const float g, const float b, const float a = 1.0f) {
         fill_enabled = true;
         fill_color   = glm::vec4(r, g, b, a);
