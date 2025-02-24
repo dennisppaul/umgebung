@@ -1,5 +1,5 @@
 /*
-* Umgebung
+ * Umgebung
  *
  * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
  * Copyright (c) 2025 Dennis P Paul.
@@ -84,19 +84,21 @@ static uint32_t compile_subsystems_flag() {
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     /* check graphics subsystem */
-
+    umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
     if (umgebung::subsystem_graphics == nullptr) {
         if (umgebung::create_subsystem_graphics != nullptr) {
             umgebung::subsystem_graphics = umgebung::create_subsystem_graphics();
         } else {
             umgebung::console("No graphics subsystem provided, using default.");
             // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_default();
-            umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_opengl2();
+            umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
         }
         if (umgebung::subsystem_graphics == nullptr) {
             umgebung::console("Couldn't create graphics subsystem.");
             return SDL_APP_FAILURE;
         }
+    } else {
+        umgebung::console("Custom graphics subsystem provided.");
     }
 
     /* check graphics subsystem */

@@ -1,22 +1,19 @@
 #include <iostream>
-#include <GL/glew.h>
 
 #include "PImage.h"
 #include "PGraphicsOpenGLv33.h"
 
-PImage::PImage(const std::string& filename) {
-    GLuint mTextureID;
-    PGraphicsOpenGLv33::load_texture(filename.c_str(), mTextureID, width, height, channels);
-    textureID = mTextureID;
+PImage::PImage() : textureID(-1),
+                   width(0),
+                   height(0),
+                   channels(0),
+                   pixels(nullptr) {
 }
 
 void PImage::bind() const {
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    PGraphicsOpenGLv33::bind_texture(textureID);
 }
 
 PImage::~PImage() {
-    if (textureID) {
-        const GLuint mTextureID = textureID;
-        glDeleteTextures(1, &mTextureID);
-    }
+    PGraphicsOpenGLv33::delete_texture(textureID);
 }

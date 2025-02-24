@@ -13,13 +13,18 @@
 
 class PGraphicsOpenGLv33 {
 public:
+    static PImage* loadImage(const char* file_path);
+    static bool    upload_texture(PImage* image);
+    static void    delete_texture(GLuint textureID);
+    static void    bind_texture(GLuint textureID);
+
     static bool generate_texture_mipmapped;
     int         width;
     int         height;
 
     PGraphicsOpenGLv33(const int width, const int height) : width(width),
-                                                  height(height),
-                                                  currentMatrix(glm::mat4(1.0f)) {
+                                                            height(height),
+                                                            currentMatrix(glm::mat4(1.0f)) {
         stroke_shader_program = build_shader(vertex_shader_source_simple(), fragment_shader_source_simple());
         init_stroke_vertice_buffers();
         fill_shader_program = build_shader(vertex_shader_source_texture(), fragment_shader_source_texture());
@@ -45,13 +50,6 @@ public:
             glm::vec3(0.0f, -1.0f, 0.0f)                                                                     // Keep Y-up as normal
         );
     }
-
-    static void load_texture(const char* file_path,
-                             GLuint&     textureID,
-                             int&        width,
-                             int&        height,
-                             int&        channels);
-
 
     void pushMatrix() {
         matrixStack.push_back(currentMatrix);
@@ -122,7 +120,7 @@ public:
         glDeleteProgram(fill_shader_program);
     }
 
-    void image(const PImage* image, float x, float y, float w = -1, float h = -1);
+    void image(PImage* image, float x, float y, float w = -1, float h = -1);
 
     void rect(const float x, const float y, const float w, const float h) {
         if (stroke_enabled) {
@@ -229,10 +227,10 @@ private:
     const uint8_t NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
     const uint8_t NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
 
-    const char* vertex_shader_source_texture();
-    const char* fragment_shader_source_texture();
-    const char* vertex_shader_source_simple();
-    const char* fragment_shader_source_simple();
+    static const char* vertex_shader_source_texture();
+    static const char* fragment_shader_source_texture();
+    static const char* vertex_shader_source_simple();
+    static const char* fragment_shader_source_simple();
 
     void fill_resize_buffer(const uint32_t newSize) {
         // Create a new buffer

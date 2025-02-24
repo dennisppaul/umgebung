@@ -109,11 +109,10 @@ void testPMatrix3D() {
 }
 
 void setup() {
-    testPVector();
-    testPMatrix2D();
-    testPMatrix3D();
-
-    image = new PImage("../256.png");
+    // testPVector();
+    // testPMatrix2D();
+    // testPMatrix3D();
+    image = PGraphicsOpenGLv33::loadImage("../256.png");
 }
 
 void pre_draw() {
