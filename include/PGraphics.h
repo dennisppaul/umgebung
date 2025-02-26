@@ -58,16 +58,24 @@ namespace umgebung {
         static constexpr uint16_t DISABLE_SMOOTH_LINES = 1;
 
         PGraphics();
+        ~PGraphics() override = default;
+
+        /* --- implemented in base class PGraphics --- */
 
         virtual void fill(float r, float g, float b, float alpha = 1.0f);
         virtual void fill(float gray, float alpha = 1.0f);
-        virtual void fill_i(uint32_t c);
+        virtual void fill_color(uint32_t c);
         virtual void noFill();
         virtual void stroke(float r, float g, float b, float alpha = 1.0f);
         virtual void stroke(float gray, float alpha);
         virtual void stroke(float a);
-        virtual void stroke_i(uint32_t c);
+        virtual void stroke_color(uint32_t c);
         virtual void noStroke();
+
+        // TODO add mechanism to handle matrix stacks
+        // TODO handle mechansim to store triangels and lines
+
+        /* --- interface --- */
 
         virtual void    strokeWeight(float weight)                                                = 0;
         virtual void    background(float a, float b, float c, float d = 1.0f)                     = 0;
@@ -142,7 +150,7 @@ namespace umgebung {
             float a      = 1;
             bool  active = false;
         };
-        Color fill_color{};
-        Color stroke_color{};
+        Color current_fill_color{};
+        Color current_stroke_color{};
     };
 } // namespace umgebung

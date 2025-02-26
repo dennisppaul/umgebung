@@ -118,11 +118,11 @@ namespace umgebung {
         g->fill(a);
     }
 
-    void fill(const uint32_t c) {
+    void fill_color(const uint32_t c) {
         if (g == nullptr) {
             return;
         }
-        g->fill(c);
+        g->fill_color(c);
     }
 
     void noFill() {
@@ -202,11 +202,11 @@ namespace umgebung {
         g->stroke(a);
     }
 
-    void stroke(const uint32_t c) {
+    void stroke_color(const uint32_t c) {
         if (g == nullptr) {
             return;
         }
-        g->stroke(c);
+        g->stroke_color(c);
     }
 
     void noStroke() {
@@ -314,4 +314,45 @@ namespace umgebung {
         g->rotateZ(angle);
     }
 
+    void rotate(const float angle) {
+        if (g == nullptr) {
+            return;
+        }
+        g->rotate(angle);
+    }
+
+    void rotate(const float angle, const float x, const float y, const float z) {
+        if (g == nullptr) {
+            return;
+        }
+        g->rotate(angle, x, y, z);
+    }
+
+    void scale(const float x) {
+        if (g == nullptr) {
+            return;
+        }
+        g->scale(x);
+    }
+
+    void scale(const float x, const float y) {
+        if (g == nullptr) {
+            return;
+        }
+        g->scale(x, y);
+    }
+
+    void scale(const float x, const float y, const float z) {
+        if (g == nullptr) {
+            return;
+        }
+        g->scale(x, y, z);
+    }
+
+    void pixelDensity(const int density) {
+        if (g == nullptr) {
+            return;
+        }
+        g->pixelDensity(density);
+    }
 } // namespace umgebung

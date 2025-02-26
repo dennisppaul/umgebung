@@ -29,18 +29,6 @@
 
 UMGEBUNG_NAMESPACE_BEGIN
 
-class _SubsystemGraphics {
-public:
-    virtual ~_SubsystemGraphics()            = default;
-    virtual bool init(int width, int height) = 0;
-    virtual void setup_pre()                 = 0;
-    virtual void setup_post()                = 0;
-    virtual void draw_pre()                  = 0;
-    virtual void draw_post()                 = 0;
-    virtual void shutdown()                  = 0;
-    virtual void event(SDL_Event* event)     = 0;
-};
-
 /* public variables *for initialization only*  */
 
 inline bool always_on_top       = false;
@@ -56,10 +44,10 @@ inline bool vsync               = false;
 
 /* public variables */
 
-inline int   width              = 1024;
-inline int   height             = 768;
-inline int   framebuffer_width  = width;
-inline int   framebuffer_height = height;
+inline float width              = 1024;
+inline float height             = 768;
+inline float framebuffer_width  = width;
+inline float framebuffer_height = height;
 inline int   frameCount         = 0;
 inline float frameRate          = 60;
 inline int   key                = 0;
@@ -77,6 +65,8 @@ inline int   pixelWidth         = 1;
 inline SubsystemGraphics*      subsystem_graphics = nullptr;
 inline SubsystemAudio*         subsystem_audio    = nullptr;
 inline std::vector<Subsystem*> subsystems;
+
+// TODO should this go into `UmgebungFunctionsAdditional`
 
 bool        is_initialized();
 std::string get_window_title();

@@ -5,7 +5,8 @@ using namespace umgebung;
 
 PGraphicsOpenGLv33::PGraphicsOpenGLv33() : PImage(0, 0, 0) {}
 
-void PGraphicsOpenGLv33::strokeWeight(float weight) {}
+void PGraphicsOpenGLv33::strokeWeight(float weight) {
+}
 
 void PGraphicsOpenGLv33::background(float a, float b, float c, float d) {
     glClearColor(a, b, c, d);

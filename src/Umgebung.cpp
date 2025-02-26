@@ -83,34 +83,6 @@ static uint32_t compile_subsystems_flag() {
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
-    /* check graphics subsystem */
-    if (umgebung::subsystem_graphics == nullptr) {
-        if (umgebung::create_subsystem_graphics != nullptr) {
-            umgebung::subsystem_graphics = umgebung::create_subsystem_graphics();
-        } else {
-            umgebung::console("No graphics subsystem provided, using default.");
-            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_default();
-            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
-            umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
-        }
-        if (umgebung::subsystem_graphics == nullptr) {
-            umgebung::console("Couldn't create graphics subsystem.");
-            return SDL_APP_FAILURE;
-        }
-    } else {
-        umgebung::console("Custom graphics subsystem provided.");
-    }
-
-    /* check graphics subsystem */
-    if (umgebung::subsystem_audio == nullptr) {
-        if (umgebung::create_subsystem_audio != nullptr) {
-            umgebung::subsystem_audio = umgebung::create_subsystem_audio();
-        } else {
-            umgebung::console("No audio subsystem provided, using default.");
-            // umgebung::subsystem_audio = umgebung_create_audio_subsystem_default();
-        }
-    }
-
     /*
      * 1. prepare umgebung application ( e.g args, settings )
      * 2. initialize SDL
@@ -123,6 +95,34 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     handle_arguments(argc, argv);
     settings();
+
+    /* check graphics subsystem */
+    if (umgebung::subsystem_graphics == nullptr) {
+        if (umgebung::create_subsystem_graphics != nullptr) {
+            umgebung::subsystem_graphics = umgebung::create_subsystem_graphics();
+        } else {
+            umgebung::console("No graphics subsystem provided, using default.");
+            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_default();
+            umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
+            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
+        }
+        if (umgebung::subsystem_graphics == nullptr) {
+            umgebung::console("Couldn't create graphics subsystem.");
+            return SDL_APP_FAILURE;
+        }
+    } else {
+        umgebung::console("Client provided graphics subsystem.");
+    }
+
+    /* check graphics subsystem */
+    if (umgebung::subsystem_audio == nullptr) {
+        if (umgebung::create_subsystem_audio != nullptr) {
+            umgebung::subsystem_audio = umgebung::create_subsystem_audio();
+        } else {
+            umgebung::console("No audio subsystem provided, using default.");
+            // umgebung::subsystem_audio = umgebung_create_audio_subsystem_default();
+        }
+    }
 
     /* 2. initialize SDL */
 
@@ -245,8 +245,10 @@ static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMou
             break;
         case SDL_EVENT_MOUSE_MOTION:
             // if (imgui_is_mouse_captured()) { break; }
-            umgebung::mouseX = static_cast<float>(event.motion.x);
-            umgebung::mouseY = static_cast<float>(event.motion.y);
+            umgebung::pmouseX = umgebung::mouseX;
+            umgebung::pmouseY = umgebung::mouseY;
+            umgebung::mouseX  = static_cast<float>(event.motion.x);
+            umgebung::mouseY  = static_cast<float>(event.motion.y);
 
             if (fMouseIsPressed) {
                 mouseDragged();

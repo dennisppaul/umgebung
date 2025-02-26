@@ -75,6 +75,7 @@ namespace umgebung {
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) const override;
         void    beginDraw() override;
         void    endDraw() const override;
+
         void    bind() const override;
         void    init(uint32_t* pixels, int width, int height, int format) override;
 

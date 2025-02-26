@@ -49,7 +49,7 @@ namespace umgebung {
     void    fill(float r, float g, float b, float a = 1.0);
     void    fill(float brightness, float a);
     void    fill(float a);
-    void    fill(uint32_t c);
+    void    fill_color(uint32_t c);
     void    noFill();
     void    image(const PImage* img, float x, float y, float w, float h);
     void    image(PImage* img, float x, float y);
@@ -61,7 +61,7 @@ namespace umgebung {
     void    stroke(float r, float g, float b, float a = 1.0);
     void    stroke(float brightness, float a);
     void    stroke(float a);
-    void    stroke(uint32_t c);
+    void    stroke_color(uint32_t c);
     void    noStroke();
     void    strokeWeight(float weight);
     void    vertex(float x, float y, float z = 0.0);

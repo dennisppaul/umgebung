@@ -25,6 +25,7 @@ WEAK void arguments(const std::vector<std::string>& args) { SDL_Log("default arg
 WEAK void settings() { SDL_Log("default settings"); }
 WEAK void setup() { SDL_Log("default setup"); }
 WEAK void draw() { SDL_Log("default draw"); }
+WEAK void shutdown() { SDL_Log("default shutdown"); }
 
 WEAK void keyPressed() { SDL_Log("default keyPressed"); }
 WEAK void keyReleased() { SDL_Log("default keyReleased"); }
