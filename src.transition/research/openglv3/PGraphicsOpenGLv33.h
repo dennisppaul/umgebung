@@ -18,7 +18,7 @@ public:
     static void    delete_texture(GLuint textureID);
     static void    bind_texture(GLuint textureID);
 
-    static bool generate_texture_mipmapped;
+    static bool generate_mipmap;
     int         width;
     int         height;
 

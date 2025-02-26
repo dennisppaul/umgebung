@@ -29,14 +29,11 @@ UMGEBUNG_NAMESPACE_BEGIN
 static SDL_Window*   window   = nullptr;
 static SDL_Renderer* renderer = nullptr;
 
-bool subsystem_graphics_default_init(int width, int height);
-void subsystem_graphics_default_setup_pre() { printf("Setup Pre\n"); }
-void subsystem_graphics_default_setup_post() { printf("Setup Post\n"); }
-void subsystem_graphics_default_draw_pre();
-void subsystem_graphics_default_draw_post();
-void subsystem_graphics_default_shutdown() { printf("Shutdown\n"); }
+static void setup_pre() { printf("Setup Pre\n"); }
+static void setup_post() { printf("Setup Post\n"); }
+static void shutdown() { printf("Shutdown\n"); }
 
-bool subsystem_graphics_default_init() {
+static bool init() {
     SDL_Log("Graphics Init: %d x %d\n", static_cast<int>(width), static_cast<int>(height));
     if (!SDL_CreateWindowAndRenderer("Hello World",
                                      static_cast<int>(umgebung::width),
@@ -50,7 +47,7 @@ bool subsystem_graphics_default_init() {
     return true;
 }
 
-void subsystem_graphics_default_draw_pre() {
+static void draw_pre() {
     const char*     message = "Hello World!";
     int             w = 0, h = 0;
     constexpr float scale = 2.0f;
@@ -69,13 +66,15 @@ void subsystem_graphics_default_draw_pre() {
     SDL_RenderPresent(renderer);
 }
 
-void subsystem_graphics_default_draw_post() {}
+static void draw_post() {}
 
-void subsystem_graphics_default_set_flags(uint32_t& subsystem_flags) {
+static void set_flags(uint32_t& subsystem_flags) {
     subsystem_flags |= SDL_INIT_VIDEO;
 }
 
-PGraphics* subsystem_graphics_default_create_graphics() {
+static PGraphics* create_graphics(const int width, const int height) {
+    (void) width;
+    (void) height;
     // auto* graphics = new PGraphicsOpenGL2();
     // graphics->init(nullptr, umgebung::width, umgebung::height, 4);
     // return graphics;
@@ -85,13 +84,13 @@ UMGEBUNG_NAMESPACE_END
 
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_default() {
     auto* graphics            = new umgebung::SubsystemGraphics{};
-    graphics->init            = umgebung::subsystem_graphics_default_init;
-    graphics->setup_pre       = umgebung::subsystem_graphics_default_setup_pre;
-    graphics->setup_post      = umgebung::subsystem_graphics_default_setup_post;
-    graphics->draw_pre        = umgebung::subsystem_graphics_default_draw_pre;
-    graphics->draw_post       = umgebung::subsystem_graphics_default_draw_post;
-    graphics->shutdown        = umgebung::subsystem_graphics_default_shutdown;
-    graphics->set_flags       = umgebung::subsystem_graphics_default_set_flags;
-    graphics->create_graphics = umgebung::subsystem_graphics_default_create_graphics;
+    graphics->init            = umgebung::init;
+    graphics->setup_pre       = umgebung::setup_pre;
+    graphics->setup_post      = umgebung::setup_post;
+    graphics->draw_pre        = umgebung::draw_pre;
+    graphics->draw_post       = umgebung::draw_post;
+    graphics->shutdown        = umgebung::shutdown;
+    graphics->set_flags       = umgebung::set_flags;
+    graphics->create_graphics = umgebung::create_graphics;
     return graphics;
 }

@@ -75,59 +75,65 @@ namespace umgebung {
         // TODO add mechanism to handle matrix stacks
         // TODO handle mechansim to store triangels and lines
 
+        /* --- additional --- */
+        virtual void flush() {}
+        virtual void reset_matrices() {}
+
         /* --- interface --- */
 
-        virtual void    strokeWeight(float weight)                                                = 0;
-        virtual void    background(float a, float b, float c, float d = 1.0f)                     = 0;
-        virtual void    background(float a)                                                       = 0;
-        virtual void    rect(float x, float y, float width, float height) const                   = 0;
-        virtual void    ellipse(float x, float y, float width, float height) const                = 0;
-        virtual void    circle(float x, float y, float radius) const                              = 0;
-        virtual void    ellipseDetail(int detail)                                                 = 0;
-        virtual void    line(float x1, float y1, float x2, float y2) const                        = 0;
+        virtual void strokeWeight(float weight)                            = 0;
+        virtual void background(float a, float b, float c, float d = 1.0f) = 0;
+        virtual void background(float a)                                   = 0;
+        virtual void rect(float x, float y, float width, float height)     = 0;
+        virtual void ellipse(float x, float y, float width, float height)  = 0;
+        virtual void circle(float x, float y, float radius)                = 0;
+        virtual void ellipseDetail(int detail)                             = 0;
+        virtual void line(float x1, float y1, float x2, float y2)          = 0;
+        // TODO implement 3D version
+        // virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)    = 0;
         virtual void    bezier(float x1, float y1,
                                float x2, float y2,
                                float x3, float y3,
-                               float x4, float y4) const                                          = 0;
+                               float x4, float y4)                                          = 0;
         virtual void    bezier(float x1, float y1, float z1,
                                float x2, float y2, float z2,
                                float x3, float y3, float z3,
-                               float x4, float y4, float z4) const                                = 0;
-        virtual void    bezierDetail(int detail)                                                  = 0;
-        virtual void    pointSize(float point_size)                                               = 0;
-        virtual void    point(float x, float y, float z = 0.0f) const                             = 0;
-        virtual void    beginShape(int shape = POLYGON)                                           = 0;
-        virtual void    endShape()                                                                = 0;
-        virtual void    vertex(float x, float y, float z = 0.0f)                                  = 0;
-        virtual void    vertex(float x, float y, float z, float u, float v)                       = 0;
-        virtual PFont*  loadFont(const std::string& file, float size)                             = 0; // @development maybe use smart pointers here
-        virtual void    textFont(PFont* font)                                                     = 0;
-        virtual void    textSize(float size) const                                                = 0;
-        virtual void    text(const char* value, float x, float y, float z = 0.0f) const           = 0;
-        virtual float   textWidth(const std::string& text) const                                  = 0;
-        virtual PImage* loadImage(const std::string& filename)                                    = 0;
-        virtual void    image(const PImage* img, float x, float y, float w, float h) const        = 0;
-        virtual void    image(PImage* img, float x, float y)                                      = 0;
-        virtual void    texture(const PImage* img)                                                = 0;
-        virtual void    popMatrix()                                                               = 0;
-        virtual void    pushMatrix()                                                              = 0;
-        virtual void    translate(float x, float y, float z = 0.0f)                               = 0;
-        virtual void    rotateX(float angle)                                                      = 0;
-        virtual void    rotateY(float angle)                                                      = 0;
-        virtual void    rotateZ(float angle)                                                      = 0;
-        virtual void    rotate(float angle)                                                       = 0;
-        virtual void    rotate(float angle, float x, float y, float z)                            = 0;
-        virtual void    scale(float x)                                                            = 0;
-        virtual void    scale(float x, float y)                                                   = 0;
-        virtual void    scale(float x, float y, float z)                                          = 0;
-        virtual void    pixelDensity(int density)                                                 = 0;
-        virtual void    hint(uint16_t property)                                                   = 0;
-        virtual void    text_str(const std::string& text, float x, float y, float z = 0.0f) const = 0;
-        virtual void    beginDraw()                                                               = 0;
-        virtual void    endDraw() const                                                           = 0;
+                               float x4, float y4, float z4)                                = 0;
+        virtual void    bezierDetail(int detail)                                            = 0;
+        virtual void    pointSize(float point_size)                                         = 0;
+        virtual void    point(float x, float y, float z = 0.0f)                             = 0;
+        virtual void    beginShape(int shape = POLYGON)                                     = 0;
+        virtual void    endShape()                                                          = 0;
+        virtual void    vertex(float x, float y, float z = 0.0f)                            = 0;
+        virtual void    vertex(float x, float y, float z, float u, float v)                 = 0;
+        virtual PFont*  loadFont(const std::string& file, float size)                       = 0; // @development maybe use smart pointers here
+        virtual void    textFont(PFont* font)                                               = 0;
+        virtual void    textSize(float size)                                                = 0;
+        virtual void    text(const char* value, float x, float y, float z = 0.0f)           = 0;
+        virtual float   textWidth(const std::string& text)                                  = 0;
+        virtual PImage* loadImage(const std::string& filename)                              = 0;
+        virtual void    image(PImage* img, float x, float y, float w, float h)              = 0;
+        virtual void    image(PImage* img, float x, float y)                                = 0;
+        virtual void    texture(PImage* img)                                                = 0;
+        virtual void    popMatrix()                                                         = 0;
+        virtual void    pushMatrix()                                                        = 0;
+        virtual void    translate(float x, float y, float z = 0.0f)                         = 0;
+        virtual void    rotateX(float angle)                                                = 0;
+        virtual void    rotateY(float angle)                                                = 0;
+        virtual void    rotateZ(float angle)                                                = 0;
+        virtual void    rotate(float angle)                                                 = 0;
+        virtual void    rotate(float angle, float x, float y, float z)                      = 0;
+        virtual void    scale(float x)                                                      = 0;
+        virtual void    scale(float x, float y)                                             = 0;
+        virtual void    scale(float x, float y, float z)                                    = 0;
+        virtual void    pixelDensity(int density)                                           = 0;
+        virtual void    hint(uint16_t property)                                             = 0;
+        virtual void    text_str(const std::string& text, float x, float y, float z = 0.0f) = 0;
+        virtual void    beginDraw()                                                         = 0;
+        virtual void    endDraw()                                                           = 0;
 
         template<typename T>
-        void text(const T& value, const float x, const float y, const float z = 0.0f) const {
+        void text(const T& value, const float x, const float y, const float z = 0.0f) {
             std::ostringstream ss;
             ss << value;
             text_str(ss.str(), x, y, z);

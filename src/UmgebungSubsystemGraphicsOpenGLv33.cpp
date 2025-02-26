@@ -32,45 +32,6 @@ static PGraphics* create_graphics();
 static SDL_Window*   window     = nullptr;
 static SDL_GLContext gl_context = nullptr;
 
-static SDL_WindowFlags get_SDL_WindowFlags() {
-    /*
-     * SDL_WINDOW_FULLSCREEN           SDL_UINT64_C(0x0000000000000001)    //  window is in fullscreen mode
-     * SDL_WINDOW_OPENGL               SDL_UINT64_C(0x0000000000000002)    //  window usable with OpenGL context
-     * SDL_WINDOW_OCCLUDED             SDL_UINT64_C(0x0000000000000004)    //  window is occluded
-     * SDL_WINDOW_HIDDEN               SDL_UINT64_C(0x0000000000000008)    //  window is neither mapped onto the desktop nor shown in the taskbar/dock/window list; SDL_ShowWindow() is required for it to become visible
-     * SDL_WINDOW_BORDERLESS           SDL_UINT64_C(0x0000000000000010)    //  no window decoration
-     * SDL_WINDOW_RESIZABLE            SDL_UINT64_C(0x0000000000000020)    //  window can be resized
-     * SDL_WINDOW_MINIMIZED            SDL_UINT64_C(0x0000000000000040)    //  window is minimized
-     * SDL_WINDOW_MAXIMIZED            SDL_UINT64_C(0x0000000000000080)    //  window is maximized
-     * SDL_WINDOW_MOUSE_GRABBED        SDL_UINT64_C(0x0000000000000100)    //  window has grabbed mouse input
-     * SDL_WINDOW_INPUT_FOCUS          SDL_UINT64_C(0x0000000000000200)    //  window has input focus
-     * SDL_WINDOW_MOUSE_FOCUS          SDL_UINT64_C(0x0000000000000400)    //  window has mouse focus
-     * SDL_WINDOW_EXTERNAL             SDL_UINT64_C(0x0000000000000800)    //  window not created by SDL
-     * SDL_WINDOW_MODAL                SDL_UINT64_C(0x0000000000001000)    //  window is modal
-     * SDL_WINDOW_HIGH_PIXEL_DENSITY   SDL_UINT64_C(0x0000000000002000)    //  window uses high pixel density back buffer if possible
-     * SDL_WINDOW_MOUSE_CAPTURE        SDL_UINT64_C(0x0000000000004000)    //  window has mouse captured (unrelated to MOUSE_GRABBED)
-     * SDL_WINDOW_MOUSE_RELATIVE_MODE  SDL_UINT64_C(0x0000000000008000)    //  window has relative mode enabled
-     * SDL_WINDOW_ALWAYS_ON_TOP        SDL_UINT64_C(0x0000000000010000)    //  window should always be above others
-     * SDL_WINDOW_UTILITY              SDL_UINT64_C(0x0000000000020000)    //  window should be treated as a utility window, not showing in the task bar and window list
-     * SDL_WINDOW_TOOLTIP              SDL_UINT64_C(0x0000000000040000)    //  window should be treated as a tooltip and does not get mouse or keyboard focus, requires a parent window
-     * SDL_WINDOW_POPUP_MENU           SDL_UINT64_C(0x0000000000080000)    //  window should be treated as a popup menu, requires a parent window
-     * SDL_WINDOW_KEYBOARD_GRABBED     SDL_UINT64_C(0x0000000000100000)    //  window has grabbed keyboard input
-     * SDL_WINDOW_VULKAN               SDL_UINT64_C(0x0000000010000000)    //  window usable for Vulkan surface
-     * SDL_WINDOW_METAL                SDL_UINT64_C(0x0000000020000000)    //  window usable for Metal view
-     * SDL_WINDOW_TRANSPARENT          SDL_UINT64_C(0x0000000040000000)    //  window with transparent buffer
-     * SDL_WINDOW_NOT_FOCUSABLE        SDL_UINT64_C(0x0000000080000000)    //  window should not be focusable
-     */
-    SDL_WindowFlags flags = SDL_WINDOW_OPENGL;
-    flags |= SDL_WINDOW_HIDDEN; // always hide window
-    // flags |= SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS;
-    flags |= fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
-    flags |= borderless ? SDL_WINDOW_BORDERLESS : 0;
-    flags |= resizable ? SDL_WINDOW_RESIZABLE : 0;
-    flags |= retina_support ? SDL_WINDOW_HIGH_PIXEL_DENSITY : 0;
-    flags |= always_on_top ? SDL_WINDOW_ALWAYS_ON_TOP : 0;
-    return flags;
-}
-
 static void set_default_graphics_state() {
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -98,6 +59,98 @@ static void center_display() {
     SDL_SetWindowPosition(window, mDisplayLocation, mDisplayLocation);
 }
 
+/* --- draw FBO --- */
+
+static auto vertexShaderSrc = R"(
+    #version 330 core
+    layout (location = 0) in vec2 aPos;
+    layout (location = 1) in vec2 aTexCoord;
+    out vec2 TexCoord;
+    void main() {
+        gl_Position = vec4(aPos, 0.0, 1.0);
+        TexCoord = aTexCoord;
+    }
+)";
+
+static auto fragmentShaderSrc = R"(
+    #version 330 core
+    in vec2 TexCoord;
+    out vec4 FragColor;
+    uniform sampler2D screenTexture;
+    void main() {
+        FragColor = texture(screenTexture, TexCoord);
+    }
+)";
+
+static GLuint screenVAO, screenVBO;
+static GLuint shaderProgram;
+
+GLuint compileShader(const GLenum type, const char* source) {
+    const GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, nullptr);
+    glCompileShader(shader);
+
+    GLint success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+        std::cerr << "Shader Compilation Error: " << infoLog << std::endl;
+    }
+    return shader;
+}
+
+static void init_FBO_drawing() {
+    // Compile shaders
+    const GLuint vertexShader   = compileShader(GL_VERTEX_SHADER, vertexShaderSrc);
+    const GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSrc);
+
+    // Link shader program
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    GLint success;
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
+        std::cerr << "Shader Linking Error: " << infoLog << std::endl;
+    }
+
+    // Clean up shaders
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    // Define fullscreen quad vertices with texture coordinates
+    constexpr float quadVertices[] = {
+        // Pos      // Tex Coords
+        -1.0f, -1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 1.0f, 1.0f,
+
+        -1.0f, -1.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, 0.0f, 1.0f};
+
+    // Generate VAO and VBO
+    glGenVertexArrays(1, &screenVAO);
+    glGenBuffers(1, &screenVBO);
+
+    glBindVertexArray(screenVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) 0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) (2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
 static bool init() {
     /* setup opengl */
 
@@ -117,10 +170,11 @@ static bool init() {
 
     /* window */
 
-    window = SDL_CreateWindow(get_window_title().c_str(),
-                              umgebung::width,
-                              umgebung::height,
-                              get_SDL_WindowFlags());
+    SDL_WindowFlags flags = SDL_WINDOW_OPENGL;
+    window                = SDL_CreateWindow(get_window_title().c_str(),
+                                             static_cast<int>(umgebung::width),
+                                             static_cast<int>(umgebung::height),
+                                             get_SDL_WindowFlags(flags));
     if (window == nullptr) {
         error("Couldn't create window: ", SDL_GetError());
         return false;
@@ -161,21 +215,80 @@ static bool init() {
     return true;
 }
 
-static void setup_pre() {}
+static void setup_pre() {
+    int current_framebuffer_width;
+    int current_framebuffer_height;
+    SDL_GetWindowSizeInPixels(window, &current_framebuffer_width, &current_framebuffer_height);
+    framebuffer_width  = static_cast<float>(current_framebuffer_width);
+    framebuffer_height = static_cast<float>(current_framebuffer_height);
+    console("framebuffer size: ", framebuffer_width, " x ", framebuffer_height);
 
-static void setup_post() {}
+    pixelHeight = static_cast<int>(framebuffer_height / height);
+    pixelWidth  = static_cast<int>(framebuffer_width / width);
+    g->init(nullptr, static_cast<int>(framebuffer_width), static_cast<int>(framebuffer_height), 0, false);
+    g->width  = static_cast<int>(width);
+    g->height = static_cast<int>(height);
+    set_default_graphics_state();
+    draw_pre();
 
-static void draw_pre() {}
+    init_FBO_drawing();
+}
+
+static void setup_post() {
+    draw_post();
+}
+
+static void draw_pre() {
+    glBindFramebuffer(GL_FRAMEBUFFER, g->framebuffer.id);
+    g->reset_matrices();
+}
 
 static void draw_post() {
+    if (window == nullptr) {
+        return;
+    }
+
+    g->flush();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind FBO
+
+    // Disable depth testing and blending
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+
+    // Use shader
+    glUseProgram(shaderProgram);
+    glBindVertexArray(screenVAO);
+
+    // Bind FBO texture and set uniform
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g->framebuffer.texture);
+    glUniform1i(glGetUniformLocation(shaderProgram, "screenTexture"), 0);
+
+    // Draw fullscreen quad
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
+
+    const GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        std::cerr << "OpenGL error: " << error << std::endl;
+    }
+
     SDL_GL_SwapWindow(window);
 }
 
-static void shutdown() {}
+static void shutdown() {
+    SDL_GL_DestroyContext(gl_context);
+    SDL_DestroyWindow(window);
+}
 
-static void set_flags(uint32_t& subsystem_flags) {}
+static void set_flags(uint32_t& subsystem_flags) {
+    subsystem_flags |= SDL_INIT_VIDEO;
+}
 
-static PGraphics* create_graphics() {
+static PGraphics* create_graphics(const int width, const int height) {
     return new PGraphicsOpenGLv33();
 }
 UMGEBUNG_NAMESPACE_END

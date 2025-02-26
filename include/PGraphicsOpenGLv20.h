@@ -30,35 +30,35 @@ namespace umgebung {
         void    strokeWeight(float weight) override;
         void    background(float a, float b, float c, float d = 1.0f) override;
         void    background(float a) override;
-        void    rect(float x, float y, float width, float height) const override;
-        void    ellipse(float x, float y, float width, float height) const override;
-        void    circle(float x, float y, float radius) const override;
+        void    rect(float x, float y, float width, float height) override;
+        void    ellipse(float x, float y, float width, float height) override;
+        void    circle(float x, float y, float radius) override;
         void    ellipseDetail(int detail) override;
-        void    line(float x1, float y1, float x2, float y2) const override;
+        void    line(float x1, float y1, float x2, float y2) override;
         void    bezier(float x1, float y1,
                        float x2, float y2,
                        float x3, float y3,
-                       float x4, float y4) const override;
+                       float x4, float y4) override;
         void    bezier(float x1, float y1, float z1,
                        float x2, float y2, float z2,
                        float x3, float y3, float z3,
-                       float x4, float y4, float z4) const override;
+                       float x4, float y4, float z4) override;
         void    bezierDetail(int detail) override;
         void    pointSize(float point_size) override;
-        void    point(float x, float y, float z = 0.0f) const override;
+        void    point(float x, float y, float z = 0.0f) override;
         void    beginShape(int shape = POLYGON) override;
         void    endShape() override;
         void    vertex(float x, float y, float z = 0.0f) override;
         void    vertex(float x, float y, float z, float u, float v) override;
         PFont*  loadFont(const std::string& file, float size) override;
         void    textFont(PFont* font) override;
-        void    textSize(float size) const override;
-        void    text(const char* value, float x, float y, float z = 0.0f) const override;
-        float   textWidth(const std::string& text) const override;
+        void    textSize(float size) override;
+        void    text(const char* value, float x, float y, float z = 0.0f) override;
+        float   textWidth(const std::string& text) override;
         PImage* loadImage(const std::string& filename) override;
-        void    image(const PImage* img, float x, float y, float w, float h) const override;
+        void    image(PImage* img, float x, float y, float w, float h) override;
         void    image(PImage* img, float x, float y) override;
-        void    texture(const PImage* img) override;
+        void    texture(PImage* img) override;
         void    popMatrix() override;
         void    pushMatrix() override;
         void    translate(float x, float y, float z = 0.0f) override;
@@ -72,12 +72,12 @@ namespace umgebung {
         void    scale(float x, float y, float z) override;
         void    pixelDensity(int density) override;
         void    hint(uint16_t property) override;
-        void    text_str(const std::string& text, float x, float y, float z = 0.0f) const override;
+        void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
         void    beginDraw() override;
-        void    endDraw() const override;
+        void    endDraw() override;
 
-        void    bind() const override;
-        void    init(uint32_t* pixels, int width, int height, int format) override;
+        void bind() override;
+        void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
 
     private:
         static constexpr int ELLIPSE_NUM_SEGMENTS = 32;

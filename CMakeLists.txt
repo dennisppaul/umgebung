@@ -282,6 +282,7 @@ if (NOT DISABLE_GRAPHICS)
     # OpenGL + GLEW + FTGL
     pkg_search_module(GLEW REQUIRED glew)
     pkg_search_module(FTGL REQUIRED ftgl)
+    pkg_search_module(GLM REQUIRED glm) # TODO add to brew file
     if (APPLE)
 #          pkg_search_module(SDL3 REQUIRED sdl3)
        find_package(SDL3 REQUIRED)
@@ -383,13 +384,15 @@ if (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
 endif (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
 
 if (NOT DISABLE_GRAPHICS)
-    # OpenGL + FTGL + GLEW
+    # OpenGL + FTGL + GLEW + GLM
     target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} ${FTGL_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${FTGL_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${GLEW_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} ${GLM_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${GLM_INCLUDE_DIRS})
 
     # FFMPEG
     if (NOT DISABLE_VIDEO)

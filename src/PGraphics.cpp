@@ -76,4 +76,3 @@ void PGraphics::stroke(const float a) {
 void PGraphics::noStroke() {
     current_stroke_color.active = false;
 }
-

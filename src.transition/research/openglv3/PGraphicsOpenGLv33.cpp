@@ -4,7 +4,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-bool PGraphicsOpenGLv33::generate_texture_mipmapped = true;
+bool PGraphicsOpenGLv33::generate_mipmap = true;
 
 PImage* PGraphicsOpenGLv33::loadImage(const char* file_path) {
     int      width;
@@ -51,11 +51,11 @@ bool PGraphicsOpenGLv33::upload_texture(PImage* image) {
         return false;
     }
 
-    image->textureID = mTextureID;
-    glBindTexture(GL_TEXTURE_2D, image->textureID);
+    image->texture_id = mTextureID;
+    glBindTexture(GL_TEXTURE_2D, image->texture_id);
 
     // Set texture parameters
-    if (generate_texture_mipmapped) {
+    if (generate_mipmap) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -78,7 +78,7 @@ bool PGraphicsOpenGLv33::upload_texture(PImage* image) {
                  GL_RGBA,
                  GL_UNSIGNED_BYTE,
                  image->pixels);
-    if (generate_texture_mipmapped) {
+    if (generate_mipmap) {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     return true;
@@ -103,7 +103,7 @@ void PGraphicsOpenGLv33::image(PImage* image, const float x, const float y, floa
     }
     const PImage& img = *image;
 
-    if (img.textureID == -1) {
+    if (img.texture_id == -1) {
         std::cout << "PImage has not been uploaded. Trying to upload image as texture." << std::endl;
         upload_texture(image);
     }
@@ -125,8 +125,8 @@ void PGraphicsOpenGLv33::image(PImage* image, const float x, const float y, floa
 
     constexpr int       RECT_NUM_VERTICES               = 6;
     const unsigned long fill_vertices_count_xyz_rgba_uv = fill_vertices_xyz_rgba_uv.size() / NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV;
-    if (renderBatches.empty() || renderBatches.back().textureID != img.textureID) {
-        renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - RECT_NUM_VERTICES, RECT_NUM_VERTICES, img.textureID);
+    if (renderBatches.empty() || renderBatches.back().textureID != img.texture_id) {
+        renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - RECT_NUM_VERTICES, RECT_NUM_VERTICES, img.texture_id);
     } else {
         renderBatches.back().numVertices += RECT_NUM_VERTICES;
     }

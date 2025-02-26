@@ -53,7 +53,7 @@ void PGraphicsOpenGLv20::background(const float a) {
     background(a, a, a);
 }
 
-void PGraphicsOpenGLv20::rect(const float x, const float y, const float width, const float height) const {
+void PGraphicsOpenGLv20::rect(const float x, const float y, const float width, const float height) {
     if (current_fill_color.active) {
         glColor4f(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_fill_color.a);
         glBegin(GL_QUADS);
@@ -99,7 +99,7 @@ static void draw_ellipse(const GLenum shape,
     glEnd();
 }
 
-void PGraphicsOpenGLv20::ellipse(const float x, const float y, const float width, const float height) const {
+void PGraphicsOpenGLv20::ellipse(const float x, const float y, const float width, const float height) {
     if (current_fill_color.active) {
         glColor4f(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_fill_color.a);
         draw_ellipse(GL_TRIANGLE_FAN, fEllipseDetail, x, y, width, height);
@@ -111,7 +111,7 @@ void PGraphicsOpenGLv20::ellipse(const float x, const float y, const float width
     }
 }
 
-void PGraphicsOpenGLv20::circle(const float x, const float y, const float diameter) const {
+void PGraphicsOpenGLv20::circle(const float x, const float y, const float diameter) {
     ellipse(x, y, diameter, diameter);
 }
 
@@ -119,7 +119,7 @@ void PGraphicsOpenGLv20::ellipseDetail(const int detail) {
     fEllipseDetail = detail;
 }
 
-void PGraphicsOpenGLv20::line(const float x1, const float y1, const float x2, const float y2) const {
+void PGraphicsOpenGLv20::line(const float x1, const float y1, const float x2, const float y2) {
     if (!current_stroke_color.active) {
         return;
     }
@@ -130,18 +130,18 @@ void PGraphicsOpenGLv20::line(const float x1, const float y1, const float x2, co
     glEnd();
 }
 
-void PGraphicsOpenGLv20::bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) const {
+void PGraphicsOpenGLv20::bezier(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4) {
     if (!current_stroke_color.active) {
         return;
     }
     glColor4f(current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
 
     const int   segments = fBezierDetail;
-    const float step     = 1.0f / segments;
+    const float step     = 1.0f / static_cast<float>(segments);
 
     glBegin(GL_LINE_STRIP);
     for (int i = 0; i <= segments; ++i) {
-        const float t = i * step;
+        const float t = static_cast<float>(i) * step;
         const float u = 1.0f - t;
 
         const float b0 = u * u * u;
@@ -157,38 +157,38 @@ void PGraphicsOpenGLv20::bezier(float x1, float y1, float x2, float y2, float x3
     glEnd();
 }
 
-void PGraphicsOpenGLv20::bezier(float x1, float y1, float z1,
-                                float x2, float y2, float z2,
-                                float x3, float y3, float z3,
-                                float x4, float y4, float z4) const {
+void PGraphicsOpenGLv20::bezier(const float x1, const float y1, const float z1,
+                                const float x2, const float y2, const float z2,
+                                const float x3, const float y3, const float z3,
+                                const float x4, const float y4, const float z4) {
     if (!current_stroke_color.active) {
         return;
     }
     glColor4f(current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
 
     const int   segments = fBezierDetail;
-    const float step     = 1.0f / segments;
+    const float step     = 1.0f / static_cast<float>(segments);
 
     glBegin(GL_LINE_STRIP);
     for (int i = 0; i <= segments; ++i) {
-        float t = i * step;
-        float u = 1.0f - t;
+        const float t = static_cast<float>(i) * step;
+        const float u = 1.0f - t;
 
-        float b0 = u * u * u;
-        float b1 = 3 * u * u * t;
-        float b2 = 3 * u * t * t;
-        float b3 = t * t * t;
+        const float b0 = u * u * u;
+        const float b1 = 3 * u * u * t;
+        const float b2 = 3 * u * t * t;
+        const float b3 = t * t * t;
 
-        float x = b0 * x1 + b1 * x2 + b2 * x3 + b3 * x4;
-        float y = b0 * y1 + b1 * y2 + b2 * y3 + b3 * y4;
-        float z = b0 * z1 + b1 * z2 + b2 * z3 + b3 * z4;
+        const float x = b0 * x1 + b1 * x2 + b2 * x3 + b3 * x4;
+        const float y = b0 * y1 + b1 * y2 + b2 * y3 + b3 * y4;
+        const float z = b0 * z1 + b1 * z2 + b2 * z3 + b3 * z4;
 
         glVertex3f(x, y, z);
     }
     glEnd();
 }
 
-void PGraphicsOpenGLv20::bezierDetail(int detail) {
+void PGraphicsOpenGLv20::bezierDetail(const int detail) {
     fBezierDetail = detail;
 }
 
@@ -196,7 +196,7 @@ void PGraphicsOpenGLv20::pointSize(const float point_size) {
     fPointSize = point_size;
 }
 
-void PGraphicsOpenGLv20::point(const float x, const float y, const float z) const {
+void PGraphicsOpenGLv20::point(const float x, const float y, const float z) {
     if (!current_stroke_color.active) {
         return;
     }
@@ -280,7 +280,7 @@ void PGraphicsOpenGLv20::vertex(const float x, const float y, const float z, con
 /* font */
 
 PFont* PGraphicsOpenGLv20::loadFont(const std::string& file, const float size) {
-    auto* font = new PFont(file.c_str(), size, fPixelDensity);
+    auto* font = new PFont(file.c_str(), size, static_cast<float>(fPixelDensity));
     return font;
 }
 
@@ -288,14 +288,14 @@ void PGraphicsOpenGLv20::textFont(PFont* font) {
     fCurrentFont = font;
 }
 
-void PGraphicsOpenGLv20::textSize(const float size) const {
+void PGraphicsOpenGLv20::textSize(const float size) {
     if (fCurrentFont == nullptr) {
         return;
     }
     fCurrentFont->size(size);
 }
 
-void PGraphicsOpenGLv20::text_str(const std::string& text, const float x, const float y, const float z) const {
+void PGraphicsOpenGLv20::text_str(const std::string& text, const float x, const float y, const float z) {
     if (fCurrentFont == nullptr) {
         return;
     }
@@ -309,7 +309,7 @@ void PGraphicsOpenGLv20::text_str(const std::string& text, const float x, const 
 #endif // DISABLE_GRAPHICS
 }
 
-float PGraphicsOpenGLv20::textWidth(const std::string& text) const {
+float PGraphicsOpenGLv20::textWidth(const std::string& text) {
     if (fCurrentFont == nullptr) {
         return 0;
     }
@@ -327,7 +327,7 @@ void PGraphicsOpenGLv20::pixelDensity(const int value) {
     }
 }
 
-void PGraphicsOpenGLv20::text(const char* value, const float x, const float y, const float z) const {
+void PGraphicsOpenGLv20::text(const char* value, const float x, const float y, const float z) {
     text_str(value, x, y, z);
 }
 
@@ -336,7 +336,7 @@ PImage* PGraphicsOpenGLv20::loadImage(const std::string& filename) {
     return img;
 }
 
-void PGraphicsOpenGLv20::image(const PImage* img, const float x, const float y, const float w, const float h) const {
+void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, const float w, const float h) {
 #ifndef DISABLE_GRAPHICS
     glEnable(GL_TEXTURE_2D);
     glColor4f(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_fill_color.a);
@@ -363,7 +363,7 @@ void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y) {
     image(img, x, y, img->width, img->height);
 }
 
-void PGraphicsOpenGLv20::texture(const PImage* img) {
+void PGraphicsOpenGLv20::texture(PImage* img) {
 #ifndef DISABLE_GRAPHICS
     if (fShapeBegun) {
         std::cerr << "texture must be set before `beginShape()`" << std::endl;
@@ -421,8 +421,8 @@ void PGraphicsOpenGLv20::scale(const float x, const float y, const float z) {
     glScalef(x, y, z);
 }
 
-#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
 void PGraphicsOpenGLv20::beginDraw() {
+#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
     /* save state */
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fPreviousFBO);
     glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -444,9 +444,11 @@ void PGraphicsOpenGLv20::beginDraw() {
     // save the current modelview matrix
     glPushMatrix();
     glLoadIdentity();
+#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
 }
 
-void PGraphicsOpenGLv20::endDraw() const {
+void PGraphicsOpenGLv20::endDraw() {
+#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
     // restore projection and modelview matrices
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
@@ -458,17 +460,21 @@ void PGraphicsOpenGLv20::endDraw() const {
     glBindFramebuffer(GL_FRAMEBUFFER, fPreviousFBO); // Restore the previously bound FBO
     glPopMatrix();
     glPopAttrib();
+#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
 }
 
-void PGraphicsOpenGLv20::bind() const {
+void PGraphicsOpenGLv20::bind() {
+#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
     glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
+#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
 }
 
-void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int height, int format) {
+void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int height, int format, bool generate_mipmap) {
     this->width        = width;
     this->height       = height;
     framebuffer.width  = width;
     framebuffer.height = height;
+#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
     glGenFramebuffers(1, &framebuffer.id);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
     glGenTextures(1, &framebuffer.texture);
@@ -495,8 +501,9 @@ void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int heigh
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
-}
 #endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+}
+
 void PGraphicsOpenGLv20::hint(const uint16_t property) {
     switch (property) {
         case ENABLE_SMOOTH_LINES:
