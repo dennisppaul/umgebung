@@ -21,7 +21,6 @@
 #include "PGraphicsOpenGLv33.h"
 
 UMGEBUNG_NAMESPACE_BEGIN
-static bool       init(int width, int height);
 static void       setup_pre();
 static void       setup_post();
 static void       draw_pre();
@@ -80,13 +79,32 @@ static void set_default_graphics_state() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+static void center_display() {
+    int mDisplayLocation;
+    if (display == DEFAULT) {
+        mDisplayLocation = SDL_WINDOWPOS_CENTERED;
+    } else {
+        int mNumDisplays = 0;
+        SDL_GetDisplays(&mNumDisplays);
+        if (display >= mNumDisplays) {
+            error("display index '", display, "' out of range. ",
+                  mNumDisplays, " display", mNumDisplays > 1 ? "s are" : " is",
+                  " available. using default display.");
+            mDisplayLocation = SDL_WINDOWPOS_CENTERED;
+        } else {
+            mDisplayLocation = SDL_WINDOWPOS_CENTERED_DISPLAY(display);
+        }
+    }
+    SDL_SetWindowPosition(window, mDisplayLocation, mDisplayLocation);
+}
+
 static bool init() {
     /* setup opengl */
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -99,8 +117,6 @@ static bool init() {
 
     /* window */
 
-    console("window size: ", umgebung::width, "x", umgebung::height);
-
     window = SDL_CreateWindow(get_window_title().c_str(),
                               umgebung::width,
                               umgebung::height,
@@ -109,6 +125,8 @@ static bool init() {
         error("Couldn't create window: ", SDL_GetError());
         return false;
     }
+
+    center_display();
 
     /* create opengl context */
 

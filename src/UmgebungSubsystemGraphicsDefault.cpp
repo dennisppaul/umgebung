@@ -37,10 +37,10 @@ void subsystem_graphics_default_draw_post();
 void subsystem_graphics_default_shutdown() { printf("Shutdown\n"); }
 
 bool subsystem_graphics_default_init() {
-    SDL_Log("Graphics Init: %d x %d\n", width, height);
+    SDL_Log("Graphics Init: %d x %d\n", static_cast<int>(width), static_cast<int>(height));
     if (!SDL_CreateWindowAndRenderer("Hello World",
-                                     umgebung::width,
-                                     umgebung::height,
+                                     static_cast<int>(umgebung::width),
+                                     static_cast<int>(umgebung::height),
                                      0,
                                      // SDL_WINDOW_FULLSCREEN,
                                      &window,
@@ -51,16 +51,15 @@ bool subsystem_graphics_default_init() {
 }
 
 void subsystem_graphics_default_draw_pre() {
-    const char* message = "Hello World!";
-    int         w = 0, h = 0;
-    float       x, y;
-    const float scale = 2.0f;
+    const char*     message = "Hello World!";
+    int             w = 0, h = 0;
+    constexpr float scale = 2.0f;
 
     /* Center the message and scale it up */
     SDL_GetRenderOutputSize(renderer, &w, &h);
     SDL_SetRenderScale(renderer, scale, scale);
-    x = ((w / scale) - SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE * SDL_strlen(message)) / 2;
-    y = ((h / scale) - SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE) / 2;
+    const float x = ((static_cast<float>(w) / scale) - SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE * SDL_strlen(message)) / 2;
+    const float y = ((static_cast<float>(h) / scale) - SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE) / 2;
 
     /* Draw the message */
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);

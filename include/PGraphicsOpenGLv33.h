@@ -28,7 +28,7 @@ namespace umgebung {
         PGraphicsOpenGLv33();
 
         void    strokeWeight(float weight) override;
-        void    background(float a, float b, float c, float d = 1.0) override;
+        void    background(float a, float b, float c, float d = 1.0f) override;
         void    background(float a) override;
         void    rect(float x, float y, float width, float height) const override;
         void    ellipse(float x, float y, float width, float height) const override;

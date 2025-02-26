@@ -85,7 +85,6 @@ void center_display() {
 
 /* --- private functions --- */
 
-static bool init(int width, int height);
 static void setup_pre();
 static void setup_post();
 static void draw_pre();
@@ -144,8 +143,9 @@ static void set_default_graphics_state() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-static bool init() {
+static bool init() { // TODO maybe merge v2.0 & v3.3 they are identical except for SDL_GL_CONTEXT_PROFILE_MASK + SDL_GL_CONTEXT_MAJOR_VERSION + SDL_GL_CONTEXT_MINOR_VERSION
     /* setup opengl */
+
     // see https://github.com/ocornut/imgui/blob/master/examples/example_sdl3_opengl3/main.cpp
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
@@ -164,8 +164,8 @@ static bool init() {
     /* window */
 
     window = SDL_CreateWindow(get_window_title().c_str(),
-                              umgebung::width,
-                              umgebung::height,
+                              static_cast<int>(umgebung::width),
+                              static_cast<int>(umgebung::height),
                               get_SDL_WindowFlags());
     if (window == nullptr) {
         error("Couldn't create window: ", SDL_GetError());
@@ -208,14 +208,18 @@ static bool init() {
 }
 
 static void setup_pre() {
-    SDL_GetWindowSizeInPixels(window, &framebuffer_width, &framebuffer_height);
+    int current_framebuffer_width;
+    int current_framebuffer_height;
+    SDL_GetWindowSizeInPixels(window, &current_framebuffer_width, &current_framebuffer_height);
+    framebuffer_width  = static_cast<float>(current_framebuffer_width);
+    framebuffer_height = static_cast<float>(current_framebuffer_height);
     console("framebuffer size: ", framebuffer_width, " x ", framebuffer_height);
 
-    pixelHeight = framebuffer_height / height;
-    pixelWidth  = framebuffer_width / width;
-    g->init(nullptr, framebuffer_width, framebuffer_height, 0);
-    g->width  = width;
-    g->height = height;
+    pixelHeight = static_cast<int>(framebuffer_height / height);
+    pixelWidth  = static_cast<int>(framebuffer_width / width);
+    g->init(nullptr, static_cast<int>(framebuffer_width), static_cast<int>(framebuffer_height), 0);
+    g->width  = static_cast<int>(width);
+    g->height = static_cast<int>(height);
     set_default_graphics_state();
     draw_pre();
 }
@@ -288,7 +292,8 @@ static void draw_post() {
     glTexCoord2f(1.0, 0.0);
     glVertex2f(static_cast<float>(g->framebuffer.width), 0);
     glTexCoord2f(1.0, 1.0);
-    glVertex2f(static_cast<float>(g->framebuffer.width), static_cast<float>(g->framebuffer.height));
+    glVertex2f(static_cast<float>(g->framebuffer.width),
+               static_cast<float>(g->framebuffer.height));
     glTexCoord2f(0.0, 1.0);
     glVertex2f(0, static_cast<float>(g->framebuffer.height));
     glEnd();
@@ -310,15 +315,15 @@ static void draw_post() {
     glTexCoord2f(0.0, 0.0);
     glVertex2f(20, 20);
     glTexCoord2f(1.0, 0.0);
-    glVertex2f(20 + g->framebuffer.width * 0.1, 20);
+    glVertex2f(20 + static_cast<float>(g->framebuffer.width) * 0.1f, 20);
     glTexCoord2f(1.0, 1.0);
-    glVertex2f(20 + g->framebuffer.width * 0.1, 20 + g->framebuffer.height * 0.1);
+    glVertex2f(20 + static_cast<float>(g->framebuffer.width) * 0.1f,
+               20 + static_cast<float>(g->framebuffer.height) * 0.1f);
     glTexCoord2f(0.0, 1.0);
-    glVertex2f(20, 20 + g->framebuffer.height * 0.1);
+    glVertex2f(20, 20 + static_cast<float>(g->framebuffer.height) * 0.1f);
     glEnd();
 
     glDisable(GL_TEXTURE_2D);
-    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glPopAttrib();
 
