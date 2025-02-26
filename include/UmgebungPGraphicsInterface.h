@@ -51,9 +51,9 @@ namespace umgebung {
     void    fill(float a);
     void    fill_color(uint32_t c);
     void    noFill();
-    void    image(const PImage* img, float x, float y, float w, float h);
+    void    image(PImage* img, float x, float y, float w, float h);
     void    image(PImage* img, float x, float y);
-    void    texture(const PImage* img);
+    void    texture(PImage* img);
     PImage* loadImage(const std::string& filename);
     void    line(float x1, float y1, float x2, float y2);
     void    point(float x, float y, float z = 0.0);

@@ -172,7 +172,8 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
     PImage::init(reinterpret_cast<uint32_t*>(convertedFrame->data[0]),
                  videoCodecContext->width,
                  videoCodecContext->height,
-                 _channels);
+                 _channels,
+                 false);
 
 #ifndef OMIT_PRINT_MOVIE_INFO
     std::cout << "+++ Movie: dimensions    : " << videoCodecContext->width << ", " << videoCodecContext->height << std::endl;
@@ -389,7 +390,7 @@ void Movie::reload() {
     update_full_internal();
 }
 
-void  Movie::set_listener(MovieListener* listener) { fListener = listener; }
+void Movie::set_listener(MovieListener* listener) { fListener = listener; }
 
 bool Movie::read() {
     if (!processFrame()) {

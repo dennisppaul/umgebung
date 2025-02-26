@@ -90,51 +90,6 @@ static void setup_post();
 static void draw_pre();
 static void draw_post();
 
-static void shutdown() {
-    SDL_GL_DestroyContext(gl_context);
-    // SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-}
-
-static SDL_WindowFlags get_SDL_WindowFlags() {
-    /*
-     * SDL_WINDOW_FULLSCREEN           SDL_UINT64_C(0x0000000000000001)    //  window is in fullscreen mode
-     * SDL_WINDOW_OPENGL               SDL_UINT64_C(0x0000000000000002)    //  window usable with OpenGL context
-     * SDL_WINDOW_OCCLUDED             SDL_UINT64_C(0x0000000000000004)    //  window is occluded
-     * SDL_WINDOW_HIDDEN               SDL_UINT64_C(0x0000000000000008)    //  window is neither mapped onto the desktop nor shown in the taskbar/dock/window list; SDL_ShowWindow() is required for it to become visible
-     * SDL_WINDOW_BORDERLESS           SDL_UINT64_C(0x0000000000000010)    //  no window decoration
-     * SDL_WINDOW_RESIZABLE            SDL_UINT64_C(0x0000000000000020)    //  window can be resized
-     * SDL_WINDOW_MINIMIZED            SDL_UINT64_C(0x0000000000000040)    //  window is minimized
-     * SDL_WINDOW_MAXIMIZED            SDL_UINT64_C(0x0000000000000080)    //  window is maximized
-     * SDL_WINDOW_MOUSE_GRABBED        SDL_UINT64_C(0x0000000000000100)    //  window has grabbed mouse input
-     * SDL_WINDOW_INPUT_FOCUS          SDL_UINT64_C(0x0000000000000200)    //  window has input focus
-     * SDL_WINDOW_MOUSE_FOCUS          SDL_UINT64_C(0x0000000000000400)    //  window has mouse focus
-     * SDL_WINDOW_EXTERNAL             SDL_UINT64_C(0x0000000000000800)    //  window not created by SDL
-     * SDL_WINDOW_MODAL                SDL_UINT64_C(0x0000000000001000)    //  window is modal
-     * SDL_WINDOW_HIGH_PIXEL_DENSITY   SDL_UINT64_C(0x0000000000002000)    //  window uses high pixel density back buffer if possible
-     * SDL_WINDOW_MOUSE_CAPTURE        SDL_UINT64_C(0x0000000000004000)    //  window has mouse captured (unrelated to MOUSE_GRABBED)
-     * SDL_WINDOW_MOUSE_RELATIVE_MODE  SDL_UINT64_C(0x0000000000008000)    //  window has relative mode enabled
-     * SDL_WINDOW_ALWAYS_ON_TOP        SDL_UINT64_C(0x0000000000010000)    //  window should always be above others
-     * SDL_WINDOW_UTILITY              SDL_UINT64_C(0x0000000000020000)    //  window should be treated as a utility window, not showing in the task bar and window list
-     * SDL_WINDOW_TOOLTIP              SDL_UINT64_C(0x0000000000040000)    //  window should be treated as a tooltip and does not get mouse or keyboard focus, requires a parent window
-     * SDL_WINDOW_POPUP_MENU           SDL_UINT64_C(0x0000000000080000)    //  window should be treated as a popup menu, requires a parent window
-     * SDL_WINDOW_KEYBOARD_GRABBED     SDL_UINT64_C(0x0000000000100000)    //  window has grabbed keyboard input
-     * SDL_WINDOW_VULKAN               SDL_UINT64_C(0x0000000010000000)    //  window usable for Vulkan surface
-     * SDL_WINDOW_METAL                SDL_UINT64_C(0x0000000020000000)    //  window usable for Metal view
-     * SDL_WINDOW_TRANSPARENT          SDL_UINT64_C(0x0000000040000000)    //  window with transparent buffer
-     * SDL_WINDOW_NOT_FOCUSABLE        SDL_UINT64_C(0x0000000080000000)    //  window should not be focusable
-     */
-    SDL_WindowFlags flags = SDL_WINDOW_OPENGL;
-    flags |= SDL_WINDOW_HIDDEN; // always hide window
-    // flags |= SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS;
-    flags |= fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
-    flags |= borderless ? SDL_WINDOW_BORDERLESS : 0;
-    flags |= resizable ? SDL_WINDOW_RESIZABLE : 0;
-    flags |= retina_support ? SDL_WINDOW_HIGH_PIXEL_DENSITY : 0;
-    flags |= always_on_top ? SDL_WINDOW_ALWAYS_ON_TOP : 0;
-    return flags;
-}
-
 static void set_default_graphics_state() {
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -163,10 +118,11 @@ static bool init() { // TODO maybe merge v2.0 & v3.3 they are identical except f
 
     /* window */
 
-    window = SDL_CreateWindow(get_window_title().c_str(),
-                              static_cast<int>(umgebung::width),
-                              static_cast<int>(umgebung::height),
-                              get_SDL_WindowFlags());
+    SDL_WindowFlags flags = SDL_WINDOW_OPENGL;
+    window                = SDL_CreateWindow(get_window_title().c_str(),
+                                             static_cast<int>(umgebung::width),
+                                             static_cast<int>(umgebung::height),
+                                             get_SDL_WindowFlags(flags));
     if (window == nullptr) {
         error("Couldn't create window: ", SDL_GetError());
         return false;
@@ -217,7 +173,7 @@ static void setup_pre() {
 
     pixelHeight = static_cast<int>(framebuffer_height / height);
     pixelWidth  = static_cast<int>(framebuffer_width / width);
-    g->init(nullptr, static_cast<int>(framebuffer_width), static_cast<int>(framebuffer_height), 0);
+    g->init(nullptr, static_cast<int>(framebuffer_width), static_cast<int>(framebuffer_height), 0, false);
     g->width  = static_cast<int>(width);
     g->height = static_cast<int>(height);
     set_default_graphics_state();
@@ -310,31 +266,41 @@ static void draw_post() {
     // glVertex2f(10, g->framebuffer.height - 10);
     // glEnd();
 
-    /* 10% tiny view */
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0, 0.0);
-    glVertex2f(20, 20);
-    glTexCoord2f(1.0, 0.0);
-    glVertex2f(20 + static_cast<float>(g->framebuffer.width) * 0.1f, 20);
-    glTexCoord2f(1.0, 1.0);
-    glVertex2f(20 + static_cast<float>(g->framebuffer.width) * 0.1f,
-               20 + static_cast<float>(g->framebuffer.height) * 0.1f);
-    glTexCoord2f(0.0, 1.0);
-    glVertex2f(20, 20 + static_cast<float>(g->framebuffer.height) * 0.1f);
-    glEnd();
+    // /* 10% tiny view */
+    // glBegin(GL_QUADS);
+    // glTexCoord2f(0.0, 0.0);
+    // glVertex2f(20, 20);
+    // glTexCoord2f(1.0, 0.0);
+    // glVertex2f(20 + static_cast<float>(g->framebuffer.width) * 0.1f, 20);
+    // glTexCoord2f(1.0, 1.0);
+    // glVertex2f(20 + static_cast<float>(g->framebuffer.width) * 0.1f,
+    //            20 + static_cast<float>(g->framebuffer.height) * 0.1f);
+    // glTexCoord2f(0.0, 1.0);
+    // glVertex2f(20, 20 + static_cast<float>(g->framebuffer.height) * 0.1f);
+    // glEnd();
 
     glDisable(GL_TEXTURE_2D);
 
     glPopAttrib();
 
+    const GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        umgebung::error("OpenGL error: ", error);
+    }
+
     SDL_GL_SwapWindow(window);
+}
+
+static void shutdown() {
+    SDL_GL_DestroyContext(gl_context);
+    SDL_DestroyWindow(window);
 }
 
 static void set_flags(uint32_t& subsystem_flags) {
     subsystem_flags |= SDL_INIT_VIDEO;
 }
 
-static PGraphics* create_graphics() {
+static PGraphics* create_graphics(const int width, const int height) {
     return new PGraphicsOpenGLv20();
 }
 UMGEBUNG_NAMESPACE_END

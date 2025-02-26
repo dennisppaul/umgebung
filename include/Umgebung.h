@@ -68,8 +68,9 @@ inline std::vector<Subsystem*> subsystems;
 
 // TODO should this go into `UmgebungFunctionsAdditional`
 
-bool        is_initialized();
-std::string get_window_title();
-void        set_frame_rate(float fps);
+bool            is_initialized();
+std::string     get_window_title();
+void            set_frame_rate(float fps);
+SDL_WindowFlags get_SDL_WindowFlags(SDL_WindowFlags& flags);
 
 UMGEBUNG_NAMESPACE_END

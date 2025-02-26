@@ -25,14 +25,14 @@
 namespace umgebung {
     class PImage {
     public:
-        virtual ~PImage() = default;
         explicit PImage(const std::string& filename);
-                 PImage(int width, int height, int format);
-                 PImage();
+        PImage(int width, int height, int format);
+        PImage();
+        virtual ~PImage() = default;
 
-        virtual void bind() const;
+        virtual void bind();
         virtual void loadPixels() const;
-        virtual void init(uint32_t* pixels, int width, int height, int format);
+        virtual void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap);
 
         void updatePixels() const;
         void updatePixels(int x, int y, int w, int h) const;
@@ -59,10 +59,9 @@ namespace umgebung {
         uint16_t  height;
         uint8_t   format;
         uint32_t* pixels;
+        int       texture_id = -1;
 
     protected:
-        unsigned int textureID = -1;
-
         void update_full_internal() const;
     };
 } // namespace umgebung

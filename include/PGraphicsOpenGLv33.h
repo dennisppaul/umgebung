@@ -19,6 +19,10 @@
 
 #pragma once
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "PGraphics.h"
 
 namespace umgebung {
@@ -30,35 +34,36 @@ namespace umgebung {
         void    strokeWeight(float weight) override;
         void    background(float a, float b, float c, float d = 1.0f) override;
         void    background(float a) override;
-        void    rect(float x, float y, float width, float height) const override;
-        void    ellipse(float x, float y, float width, float height) const override;
-        void    circle(float x, float y, float radius) const override;
+        void    rect(float x, float y, float width, float height) override;
+        void    ellipse(float x, float y, float width, float height) override;
+        void    circle(float x, float y, float radius) override;
         void    ellipseDetail(int detail) override;
-        void    line(float x1, float y1, float x2, float y2) const override;
+        void    line(float x1, float y1, float x2, float y2) override;
+        void    linse(float x1, float y1, float x2, float y2);
         void    bezier(float x1, float y1,
                        float x2, float y2,
                        float x3, float y3,
-                       float x4, float y4) const override;
+                       float x4, float y4) override;
         void    bezier(float x1, float y1, float z1,
                        float x2, float y2, float z2,
                        float x3, float y3, float z3,
-                       float x4, float y4, float z4) const override;
+                       float x4, float y4, float z4) override;
         void    bezierDetail(int detail) override;
         void    pointSize(float point_size) override;
-        void    point(float x, float y, float z = 0.0f) const override;
+        void    point(float x, float y, float z = 0.0f) override;
         void    beginShape(int shape = POLYGON) override;
         void    endShape() override;
         void    vertex(float x, float y, float z = 0.0f) override;
         void    vertex(float x, float y, float z, float u, float v) override;
         PFont*  loadFont(const std::string& file, float size) override;
         void    textFont(PFont* font) override;
-        void    textSize(float size) const override;
-        void    text(const char* value, float x, float y, float z = 0.0f) const override;
-        float   textWidth(const std::string& text) const override;
+        void    textSize(float size) override;
+        void    text(const char* value, float x, float y, float z = 0.0f) override;
+        float   textWidth(const std::string& text) override;
         PImage* loadImage(const std::string& filename) override;
-        void    image(const PImage* img, float x, float y, float w, float h) const override;
+        void    image(PImage* img, float x, float y, float w, float h) override;
         void    image(PImage* img, float x, float y) override;
-        void    texture(const PImage* img) override;
+        void    texture(PImage* img) override;
         void    popMatrix() override;
         void    pushMatrix() override;
         void    translate(float x, float y, float z = 0.0f) override;
@@ -72,23 +77,94 @@ namespace umgebung {
         void    scale(float x, float y, float z) override;
         void    pixelDensity(int density) override;
         void    hint(uint16_t property) override;
-        void    text_str(const std::string& text, float x, float y, float z = 0.0f) const override;
+        void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
         void    beginDraw() override;
-        void    endDraw() const override;
-        void    bind() const override;
-        void    init(uint32_t* pixels, int width, int height, int format) override;
+        void    endDraw() override;
+        void    bind() override;
+        void    init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
 
-        // private:
-        //        static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
-        //
+        /* --- additional methods --- */
+
+        // TODO replace `init()` in PImage constructor with `upload_texture(...)`
+        static bool upload_texture(PImage* image, bool generate_texture_mipmapped);
+
+        void flush() override {
+            flush_fill();
+            flush_stroke();
+        }
+
+        void reset_matrices() override;
+
+    private:
+        const uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
+        const uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
+        const uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024;       // 1MB
+        const float    DEFAULT_FOV                            = 2.0f * atan(0.5f); // = 53.1301f;
+
+        struct RenderBatch {
+            int    startIndex;
+            int    numVertices;
+            GLuint textureID;
+
+            RenderBatch(const int start, const int count, const GLuint texID)
+                : startIndex(start), numVertices(count), textureID(texID) {}
+        };
+
+        GLuint             fill_shader_program{};
+        GLuint             fill_VAO_xyz_rgba_uv = 0;
+        GLuint             fill_VBO_xyz_rgba_uv = 0;
+        std::vector<float> fill_vertices_xyz_rgba_uv;
+        uint32_t           fill_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
+
+        GLuint             stroke_shader_program{};
+        GLuint             stroke_VAO_xyz_rgba = 0;
+        GLuint             stroke_VBO_xyz_rgba = 0;
+        std::vector<float> stroke_vertices_xyz_rgba;
+        uint32_t           stroke_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
+
+        GLuint                   dummyTexture{};
+        std::vector<RenderBatch> renderBatches;
+        glm::mat4                currentMatrix;
+        std::vector<glm::mat4>   matrixStack;
+        float                    aspectRatio;
+        glm::mat4                projection2D{};
+        glm::mat4                projection3D{};
+        glm::mat4                viewMatrix{};
+
+        // static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
         //        PFont* fCurrentFont           = nullptr;
         //        float  fPointSize             = 1;
         //        float  fStrokeWeight          = 1;
         //        bool   fEnabledTextureInShape = false;
         //        bool   fShapeBegun            = false;
         //        int    fEllipseDetail         = 32;
-        //        int    fBezierDetail          = 20;
+        int fBezierDetail = 20;
         //        int    fPixelDensity          = 1;
-        //        int    fPreviousFBO{};
+        int fPreviousFBO{};
+
+        static const char* vertex_shader_source_texture();
+        static const char* fragment_shader_source_texture();
+        static const char* vertex_shader_source_simple();
+        static const char* fragment_shader_source_simple();
+
+        void          flush_stroke();
+        void          flush_fill();
+        void          fill_resize_buffer(uint32_t newSize);
+        void          init_stroke_vertice_buffers();
+        void          init_fill_vertice_buffers();
+        void          createDummyTexture();
+        void          add_fill_vertex_xyz_rgba_uv(glm::vec3 position,
+                                                  glm::vec4 color,
+                                                  glm::vec2 tex_coords);
+        void          add_fill_vertex_xyz_rgba_uv(float x, float y, float z,
+                                                  float r, float g, float b, float a = 1.0f,
+                                                  float u = 0.0f, float v = 0.0f);
+        void          add_stroke_vertex_xyz_rgba(float x, float y, float z,
+                                                 float r, float g, float b, float a = 1.0f);
+        static GLuint build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
+
+        static void checkShaderCompileStatus(GLuint shader);
+        static void checkProgramLinkStatus(GLuint program);
+        static void printMatrix(const glm::mat4& matrix);
     };
 } // namespace umgebung

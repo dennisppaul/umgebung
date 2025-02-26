@@ -52,7 +52,7 @@ PImage::PImage(const int width, const int height, const int format) : width(widt
         return;
     }
     pixels = new uint32_t[length]{0x00000000};
-    PImage::init(pixels, width, height, format);
+    PImage::init(pixels, width, height, format, false);
 }
 
 PImage::PImage(const std::string& filename) : width(0),
@@ -83,7 +83,7 @@ PImage::PImage(const std::string& filename) : width(0),
             std::cout << "Note that RGB is converted to RGBA and number of channels is changed to 4" << std::endl;
             _channels = 4;
         }
-        PImage::init(pixels, _width, _height, _channels);
+        PImage::init(pixels, _width, _height, _channels, true);
     } else {
         std::cerr << "Failed to load image: " << filename << std::endl;
     }
@@ -93,7 +93,7 @@ PImage::PImage(const std::string& filename) : width(0),
 
 void PImage::loadPixels() const {
 #ifndef DISABLE_GRAPHICS
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
     glGetTexImage(GL_TEXTURE_2D, 0,
                   UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
                   UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
@@ -101,13 +101,10 @@ void PImage::loadPixels() const {
 #endif // DISABLE_GRAPHICS
 }
 
-void PImage::init(uint32_t* pixels, const int width, const int height, const int format) {
+void PImage::init(uint32_t* pixels,
+                  const int width, const int height, const int format,
+                  const bool generate_mipmap) {
 #ifndef DISABLE_GRAPHICS
-    // GLenum error = glGetError();
-    // if (error != GL_NO_ERROR) {
-    //     std::cerr << "OpenGL Error: " << error << std::endl;
-    // }
-
     if (pixels == nullptr) {
         std::cerr << "unitialized pixel buffer" << std::endl;
         return;
@@ -121,10 +118,30 @@ void PImage::init(uint32_t* pixels, const int width, const int height, const int
         this->format = 4;
     }
 
+    GLuint textureID;
     glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    if (texture_id == 0) {
+        error("PImage could not create texture.");
+        texture_id = -1;
+        return;
+    }
+
+    texture_id = static_cast<int>(textureID);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
 
     // TODO check how to handle formats other than RGBA
+    if (generate_mipmap) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
     constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT; // internal format is always RGBA
     glTexImage2D(GL_TEXTURE_2D,
                  0,
@@ -134,20 +151,16 @@ void PImage::init(uint32_t* pixels, const int width, const int height, const int
                  mFormat,
                  UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
                  pixels);
-#define UMGEBUNG_GENERATE_MIPMAP
-#ifdef UMGEBUNG_GENERATE_MIPMAP
-    glGenerateMipmap(GL_TEXTURE_2D);
-#endif // UMGEBUNG_GENERATE_MIPMAP
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    if (generate_mipmap) {
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
 #endif // DISABLE_GRAPHICS
 }
 
-void PImage::bind() const {
+void PImage::bind() {
 #ifndef DISABLE_GRAPHICS
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    // move this to PGraphics?!?
+    glBindTexture(GL_TEXTURE_2D, texture_id);
 #endif // DISABLE_GRAPHICS
 }
 
@@ -176,7 +189,7 @@ void PImage::update(const float* pixel_data,
 void PImage::update_full_internal() const {
     // TODO currently RGB is not fully implemented
     constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT;
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
     glTexSubImage2D(GL_TEXTURE_2D,
                     0, 0, 0,
                     width, height,
@@ -218,7 +231,7 @@ void PImage::update(const uint32_t* pixel_data,
         }
     }
 
-    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
     constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT; // internal format is always RGBA
     glTexSubImage2D(GL_TEXTURE_2D,
                     0, offset_x, offset_y,

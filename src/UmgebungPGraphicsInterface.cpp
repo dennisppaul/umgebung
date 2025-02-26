@@ -132,7 +132,7 @@ namespace umgebung {
         g->noFill();
     }
 
-    void image(const PImage* img, const float x, const float y, const float w, const float h) {
+    void image(PImage* img, const float x, const float y, const float w, const float h) {
         if (g == nullptr) {
             return;
         }
@@ -146,7 +146,7 @@ namespace umgebung {
         g->image(img, x, y);
     }
 
-    void texture(const PImage* img) {
+    void texture(PImage* img) {
         if (g == nullptr) {
             return;
         }
