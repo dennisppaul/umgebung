@@ -57,6 +57,6 @@ inline SubsystemAudio* (*create_subsystem_audio)()       = nullptr;
 
 UMGEBUNG_NAMESPACE_END
 
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_default();
+umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_default_2D();
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv20();
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv33();
