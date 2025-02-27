@@ -135,24 +135,21 @@ namespace umgebung {
         float textWidth(const std::string& text) override { return 0; }
 
         PImage* loadImage(const std::string& filename) override {
-            SDL_Surface* bmpSurface = SDL_LoadBMP(filename.c_str());
-
-            // Load bitmap
-            if (!bmpSurface) {
-                std::cerr << "Failed to load bitmap! SDL_Error: " << SDL_GetError() << std::endl;
-            }
-
-            // Convert surface to texture
-            SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, bmpSurface);
-            SDL_DestroySurface(bmpSurface); // Free the surface after creating the texture
-            if (!texture) {
-                std::cerr << "Failed to create texture! SDL_Error: " << SDL_GetError() << std::endl;
-            }
-
-            // Draw the texture
-            SDL_RenderTexture(renderer, texture, NULL, NULL); // Fullscreen
-
-            return nullptr;
+            // auto* img = new PImage(filename);
+            //
+            // // Create SDL texture (RGBA format)
+            // SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            // if (!texture) {
+            //     std::cerr << "Failed to create texture! SDL_Error: " << SDL_GetError() << std::endl;
+            // }
+            //
+            // // Upload pixel data to the texture
+            // SDL_UpdateTexture(texture, NULL, pixels, img->width * sizeof(uint32_t));
+            //
+            // // Draw the texture
+            // SDL_RenderTexture(renderer, texture, NULL, NULL); // Fullscreen
+            //
+            // return nullptr;
         }
 
         void image(PImage* img, float x, float y, float w, float h) override {}
