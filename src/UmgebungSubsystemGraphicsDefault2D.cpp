@@ -22,6 +22,7 @@
 #include "UmgebungConstants.h"
 #include "UmgebungPGraphicsInterface.h"
 #include "UmgebungSubsystems.h"
+#include "PGraphicsDefault2D.h"
 
 UMGEBUNG_NAMESPACE_BEGIN
 // TODO Ref https://github.com/libsdl-org/SDL/blob/main/docs/hello.c
@@ -29,8 +30,14 @@ UMGEBUNG_NAMESPACE_BEGIN
 static SDL_Window*   window   = nullptr;
 static SDL_Renderer* renderer = nullptr;
 
-static void setup_pre() { printf("Setup Pre\n"); }
+static void setup_pre() {
+    int w = 0, h = 0;
+    SDL_GetRenderOutputSize(renderer, &w, &h);
+    umgebung::g->init(nullptr, w, h, 4, false);
+}
+
 static void setup_post() { printf("Setup Post\n"); }
+
 static void shutdown() { printf("Shutdown\n"); }
 
 static bool init() {
@@ -44,29 +51,17 @@ static bool init() {
                                      &renderer)) {
         return false;
     }
+
     return true;
 }
 
 static void draw_pre() {
-    const char*     message = "Hello World!";
-    int             w = 0, h = 0;
-    constexpr float scale = 2.0f;
-
-    /* Center the message and scale it up */
-    SDL_GetRenderOutputSize(renderer, &w, &h);
-    SDL_SetRenderScale(renderer, scale, scale);
-    const float x = ((static_cast<float>(w) / scale) - SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE * SDL_strlen(message)) / 2;
-    const float y = ((static_cast<float>(h) / scale) - SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE) / 2;
-
-    /* Draw the message */
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderDebugText(renderer, x, y, message);
-    SDL_RenderPresent(renderer);
+    SDL_SetRenderScale(renderer, 1, 1);
 }
 
-static void draw_post() {}
+static void draw_post() {
+    SDL_RenderPresent(renderer);
+}
 
 static void set_flags(uint32_t& subsystem_flags) {
     subsystem_flags |= SDL_INIT_VIDEO;
@@ -78,11 +73,11 @@ static PGraphics* create_graphics(const int width, const int height) {
     // auto* graphics = new PGraphicsOpenGL2();
     // graphics->init(nullptr, umgebung::width, umgebung::height, 4);
     // return graphics;
-    return nullptr;
+    return new PGraphicsDefault2D(renderer);
 }
 UMGEBUNG_NAMESPACE_END
 
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_default() {
+umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_default_2D() {
     auto* graphics            = new umgebung::SubsystemGraphics{};
     graphics->init            = umgebung::init;
     graphics->setup_pre       = umgebung::setup_pre;

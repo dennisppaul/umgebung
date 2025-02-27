@@ -141,7 +141,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
             umgebung::subsystem_graphics = umgebung::create_subsystem_graphics();
         } else {
             umgebung::console("No graphics subsystem provided, using default.");
-            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_default();
+            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_default_2D();
             umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
             // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
         }
