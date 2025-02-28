@@ -111,7 +111,7 @@ namespace umgebung {
         }
 
         void beginShape(int shape = POLYGON) override {}
-        void endShape() override {
+        void endShape(bool close_shape = false) override {
             // SDL_RenderGeometryRaw(SDL_Renderer *renderer,
             //                                    SDL_Texture *texture,
             //                                    const float *xy, int xy_stride,

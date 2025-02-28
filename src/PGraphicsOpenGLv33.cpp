@@ -48,17 +48,71 @@ void PGraphicsOpenGLv33::rect(const float x, const float y, const float width, c
 
         constexpr int       RECT_NUM_VERTICES               = 6;
         const unsigned long fill_vertices_count_xyz_rgba_uv = fill_vertices_xyz_rgba_uv.size() / NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV;
-        if (renderBatches.empty() || renderBatches.back().texture_id != dummyTexture) {
-            renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - RECT_NUM_VERTICES, RECT_NUM_VERTICES, dummyTexture);
+        if (renderBatches.empty() || renderBatches.back().texture_id != solid_color_texture_id) {
+            renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - RECT_NUM_VERTICES, RECT_NUM_VERTICES, solid_color_texture_id);
         } else {
             renderBatches.back().num_vertices += RECT_NUM_VERTICES;
         }
     }
 }
 
-void PGraphicsOpenGLv33::ellipse(float x, float y, float width, float height) {}
-void PGraphicsOpenGLv33::circle(float x, float y, float radius) {}
-void PGraphicsOpenGLv33::ellipseDetail(int detail) {}
+void PGraphicsOpenGLv33::draw_filled_ellipse(const float x, const float y,
+                                             const float      width,
+                                             const float      height,
+                                             const int        detail,
+                                             const glm::vec4& color) {
+    const float            radiusX = width / 2.0f;
+    const float            radiusY = height / 2.0f;
+    std::vector<glm::vec3> points;
+    for (int i = 0; i <= detail; ++i) {
+        const float     theta = 2.0f * 3.1415926f * static_cast<float>(i) / static_cast<float>(detail);
+        const glm::vec3 p{x + radiusX * cosf(theta),
+                          y + radiusY * sinf(theta), 0};
+        points.push_back(p);
+    }
+    const glm::vec3     center{x, y, 0};
+    constexpr glm::vec2 tex_coords{0, 0};
+    for (int i = 0; i < points.size(); ++i) {
+        const glm::vec3 p1 = points[i];
+        const glm::vec3 p2 = points[(i + 1) % points.size()];
+        add_fill_vertex_xyz_rgba_uv(center, color, tex_coords);
+        add_fill_vertex_xyz_rgba_uv(p1, color, tex_coords);
+        add_fill_vertex_xyz_rgba_uv(p2, color, tex_coords);
+    }
+    add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, points.size() * 3, solid_color_texture_id);
+}
+
+
+void PGraphicsOpenGLv33::ellipse(const float x, const float y, const float width, const float height) {
+    if (current_stroke_color.active) {
+        const float            radiusX = width / 2.0f;
+        const float            radiusY = height / 2.0f;
+        std::vector<glm::vec3> points;
+        for (int i = 0; i <= fEllipseDetail; ++i) {
+            const float     theta = 2.0f * 3.1415926f * static_cast<float>(i) / static_cast<float>(fEllipseDetail);
+            const glm::vec3 p{x + radiusX * cosf(theta),
+                              y + radiusY * sinf(theta), 0};
+            points.push_back(p);
+        }
+        const glm::vec4& color{current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a};
+        render_line_strip_as_lines(points, color, true, false);
+    }
+    if (current_fill_color.active) {
+        const glm::vec4& color{current_fill_color.r,
+                               current_fill_color.g,
+                               current_fill_color.b,
+                               current_fill_color.a};
+        draw_filled_ellipse(x, y, width, height, fEllipseDetail, color);
+    }
+}
+
+void PGraphicsOpenGLv33::circle(float x, float y, float diameter) {
+    ellipse(x, y, diameter, diameter);
+}
+
+void PGraphicsOpenGLv33::ellipseDetail(const int detail) {
+    fEllipseDetail = detail;
+}
 
 void PGraphicsOpenGLv33::add_texture_id_to_render_batch(const std::vector<float>& vertices,
                                                         const int                 num_vertices,
@@ -78,6 +132,174 @@ void PGraphicsOpenGLv33::line(const float x1, const float y1, const float x2, co
         return;
     }
     line(x1, y1, 0, x2, y2, 0);
+}
+
+static bool intersect_lines(const glm::vec2& p1, const glm::vec2& d1,
+                            const glm::vec2& p2, const glm::vec2& d2,
+                            glm::vec3& intersection) {
+    const float det = d1.x * d2.y - d1.y * d2.x;
+
+    if (fabs(det) < 1e-6f) {
+        return false; // Parallel or coincident lines
+    }
+
+    const float t = ((p2.x - p1.x) * d2.y - (p2.y - p1.y) * d2.x) / det;
+
+    intersection = glm::vec3(p1 + t * d1, 0);
+    return true;
+}
+
+static bool are_almost_parallel(const glm::vec3& n1, const glm::vec3& n2, const float epsilon = 0.01f) {
+    const float dotProduct = glm::dot(n1, n2);
+    return -dotProduct > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
+    // return fabs(dotProduct) > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
+}
+
+void PGraphicsOpenGLv33::render_line_strip_as_lines(const std::vector<glm::vec3>& points,
+                                                    const glm::vec4&              color,
+                                                    const bool                    close_shape,
+                                                    const bool                    round_corners) {
+    if (points.size() < 2) {
+        return;
+    }
+
+    if (points.size() == 2) {
+        // TODO replace with raw version
+        line(points[0].x, points[0].y, points[0].z,
+             points[1].x, points[1].y, points[1].z);
+        return;
+    }
+
+    const uint32_t num_line_segments = points.size() - (close_shape ? 0 : 1);
+    for (size_t i = 0; i < num_line_segments; i++) {
+        const size_t ii = (i + 1) % points.size();
+        line(points[i].x, points[i].y, points[i].z,
+             points[ii].x, points[ii].y, points[ii].z);
+        if (round_corners) {
+            // TODO must be transformed to screenspace!
+            draw_filled_ellipse(points[i].x, points[i].y, fStrokeWeight, fStrokeWeight, 8, color);
+        }
+    }
+}
+
+void PGraphicsOpenGLv33::render_line_strip(std::vector<glm::vec3>& points, const glm::vec4& color, const bool close_shape) {
+    if (points.size() < 2) {
+        return;
+    }
+
+    if (points.size() == 2) {
+        line(points[0].x, points[0].y, points[0].z,
+             points[1].x, points[1].y, points[1].z);
+        return;
+    }
+
+    // Transform all points to screen space first
+    std::vector<glm::vec3> screen_points = points;
+    std::vector<glm::vec3> normals(screen_points.size());
+    std::vector<glm::vec3> directions(screen_points.size());
+
+    for (auto& p: screen_points) {
+        to_screen_space(p);
+    }
+
+    for (size_t i = 0; i < normals.size(); i++) {
+        const size_t ii   = (i + 1) % screen_points.size();
+        glm::vec3&   p1   = screen_points[i];
+        glm::vec3&   p2   = screen_points[ii];
+        glm::vec3    dir  = p2 - p1;
+        glm::vec3    perp = glm::normalize(dir);
+        perp              = glm::vec3(-perp.y, perp.x, 0);
+        directions[i]     = dir;
+        normals[i]        = perp;
+    }
+
+    const float half_width = fStrokeWeight * 0.5f;
+    uint32_t    vertex_count{0};
+
+    glm::vec3 p1_left{};
+    glm::vec3 p1_right{};
+
+    const uint32_t num_line_segments = screen_points.size() + (close_shape ? 1 : 0);
+
+    for (size_t i = 0; i < num_line_segments; i++) {
+        const glm::vec3 point     = screen_points[i % screen_points.size()];
+        const glm::vec3 direction = directions[i % directions.size()];
+        const glm::vec3 normal    = normals[i % normals.size()];
+
+        const glm::vec3 next_point     = screen_points[(i + 1) % screen_points.size()];
+        const glm::vec3 next_direction = directions[(i + 1) % directions.size()];
+        const glm::vec3 next_normal    = normals[(i + 1) % normals.size()];
+
+        const glm::vec3 p2_left  = point + normal * half_width;
+        const glm::vec3 p2_right = point - normal * half_width;
+        const glm::vec3 p3_left  = next_point + next_normal * half_width;
+        const glm::vec3 p3_right = next_point - next_normal * half_width;
+
+        glm::vec3  intersection_left;
+        const bool result_left = intersect_lines(p2_left, direction,
+                                                 p3_left, next_direction,
+                                                 intersection_left);
+        glm::vec3  intersection_right;
+        const bool result_right = intersect_lines(p2_right, direction,
+                                                  p3_right, next_direction,
+                                                  intersection_right);
+
+        if (are_almost_parallel(normal, next_normal, 0.2f)) {
+            // TODO maybe handle sharp angles
+        }
+
+        if (!result_left) {
+            intersection_left = p3_left;
+        }
+        if (!result_right) {
+            intersection_right = p3_right;
+        }
+
+        if (close_shape) {
+            if (i != 0) {
+                add_transformed_fill_vertex_xyz_rgba_uv(p1_left, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
+
+                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(intersection_right, color);
+            }
+            vertex_count += 6;
+        } else {
+            if (i == 0) { // first segment
+                add_transformed_fill_vertex_xyz_rgba_uv(p2_left, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(p2_right, color);
+
+                add_transformed_fill_vertex_xyz_rgba_uv(p2_right, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(intersection_right, color);
+            } else if (i == num_line_segments - 2) { // last segment
+                add_transformed_fill_vertex_xyz_rgba_uv(p1_left, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(next_point + normal * half_width, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
+
+                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(next_point + normal * half_width, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(next_point - normal * half_width, color);
+            } else if (i < num_line_segments - 2) {
+                add_transformed_fill_vertex_xyz_rgba_uv(p1_left, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
+
+                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
+                add_transformed_fill_vertex_xyz_rgba_uv(intersection_right, color);
+            }
+            vertex_count += 6;
+            // TODO this could be used for round caps
+        }
+        p1_left  = intersection_left;
+        p1_right = intersection_right;
+    }
+
+    add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, vertex_count, solid_color_texture_id);
 }
 
 void PGraphicsOpenGLv33::line(const float x1, const float y1, const float z1,
@@ -102,13 +324,13 @@ void PGraphicsOpenGLv33::line(const float x1, const float y1, const float z1,
                               current_stroke_color.b,
                               current_stroke_color.a};
 
-        add_transformed_fill_vertex_xyz_rgba_uv(p1 - perp, color);
         add_transformed_fill_vertex_xyz_rgba_uv(p1 + perp, color);
         add_transformed_fill_vertex_xyz_rgba_uv(p2 + perp, color);
+        add_transformed_fill_vertex_xyz_rgba_uv(p1 - perp, color);
+        add_transformed_fill_vertex_xyz_rgba_uv(p1 - perp, color);
         add_transformed_fill_vertex_xyz_rgba_uv(p2 + perp, color);
         add_transformed_fill_vertex_xyz_rgba_uv(p2 - perp, color);
-        add_transformed_fill_vertex_xyz_rgba_uv(p1 - perp, color);
-        add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, 6, dummyTexture);
+        add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, 6, solid_color_texture_id);
     } else {
         add_stroke_vertex_xyz_rgba(x1, y1, z1, current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
         add_stroke_vertex_xyz_rgba(x2, y2, z2, current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
@@ -207,19 +429,32 @@ void PGraphicsOpenGLv33::pointSize(float point_size) {}
 void PGraphicsOpenGLv33::point(float x, float y, float z) {}
 
 void PGraphicsOpenGLv33::beginShape(int shape) {
-
+    line_strip_point_cache.clear();
 }
 
-void PGraphicsOpenGLv33::endShape() {
+void PGraphicsOpenGLv33::endShape(const bool close_shape) {
+    const glm::vec4 color = {current_stroke_color.r,
+                             current_stroke_color.g,
+                             current_stroke_color.b,
+                             current_stroke_color.a};
+    // render_line_strip(line_strip_point_cache, color, close_shape);
+    render_line_strip_as_lines(line_strip_point_cache, color, close_shape, true);
 
+    line_strip_point_cache.clear();
+    vertex_cache.clear();
 }
 
-void PGraphicsOpenGLv33::vertex(float x, float y, float z) {
-
+void PGraphicsOpenGLv33::vertex(const float x, const float y, const float z) {
+    vertex(x, y, z, 0, 0);
 }
 
-void PGraphicsOpenGLv33::vertex(float x, float y, float z, float u, float v) {
-
+void PGraphicsOpenGLv33::vertex(const float x, const float y, const float z, const float u, const float v) {
+    line_strip_point_cache.push_back(glm::vec3(x, y, z));
+    const Vertex vertex_info{
+        glm::vec3(x, y, z),
+        glm::vec4(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_fill_color.a),
+        glm::vec2(u, v)};
+    vertex_cache.push_back(vertex_info);
 }
 
 PFont* PGraphicsOpenGLv33::loadFont(const std::string& file, float size) { return nullptr; }
@@ -801,7 +1036,7 @@ void PGraphicsOpenGLv33::createDummyTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    dummyTexture = textureID;
+    solid_color_texture_id = textureID;
 }
 
 GLuint PGraphicsOpenGLv33::build_shader(const char* vertexShaderSource, const char* fragmentShaderSource) {
