@@ -130,6 +130,17 @@ void PGraphicsOpenGLv20::line(const float x1, const float y1, const float x2, co
     glEnd();
 }
 
+void PGraphicsOpenGLv20::line(float x1, float y1, float z1, float x2, float y2, float z2) {
+    if (!current_stroke_color.active) {
+        return;
+    }
+    glColor4f(current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
+    glBegin(GL_LINES);
+    glVertex3f(x1, y1, z1);
+    glVertex3f(x2, y2, z2);
+    glEnd();
+}
+
 void PGraphicsOpenGLv20::bezier(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4) {
     if (!current_stroke_color.active) {
         return;

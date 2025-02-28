@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <cstdint>
+#include <SDL3/SDL.h>
 
 namespace umgebung {
     class PImage {
@@ -55,11 +56,12 @@ namespace umgebung {
             return c;
         }
 
-        uint16_t  width;
-        uint16_t  height;
-        uint8_t   format;
-        uint32_t* pixels;
-        int       texture_id = -1;
+        uint16_t     width;
+        uint16_t     height;
+        uint8_t      format;
+        uint32_t*    pixels;
+        int          texture_id  = -1;
+        SDL_Texture* sdl_texture = nullptr;
 
     protected:
         void update_full_internal() const;

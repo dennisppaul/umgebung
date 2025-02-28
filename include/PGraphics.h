@@ -84,14 +84,15 @@ namespace umgebung {
         // TODO implement 3D version
         // virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)    = 0;
 
-        virtual void    strokeWeight(float weight)                                          = 0;
-        virtual void    background(float a, float b, float c, float d = 1.0f)               = 0;
-        virtual void    background(float a)                                                 = 0;
-        virtual void    rect(float x, float y, float width, float height)                   = 0;
-        virtual void    ellipse(float x, float y, float width, float height)                = 0;
-        virtual void    circle(float x, float y, float radius)                              = 0;
-        virtual void    ellipseDetail(int detail)                                           = 0;
-        virtual void    line(float x1, float y1, float x2, float y2)                        = 0;
+        virtual void strokeWeight(float weight)                                       = 0;
+        virtual void background(float a, float b, float c, float d = 1.0f)            = 0;
+        virtual void background(float a)                                              = 0;
+        virtual void rect(float x, float y, float width, float height)                = 0;
+        virtual void ellipse(float x, float y, float width, float height)             = 0;
+        virtual void circle(float x, float y, float radius)                           = 0;
+        virtual void ellipseDetail(int detail)                                        = 0;
+        virtual void line(float x1, float y1, float x2, float y2)                     = 0;
+        virtual void line(float x1, float y1, float z1, float x2, float y2, float z2) = 0;
         virtual void    bezier(float x1, float y1, float x2, float y2,
                                float x3, float y3, float x4, float y4)                      = 0;
         virtual void    bezier(float x1, float y1, float z1, float x2, float y2, float z2,
