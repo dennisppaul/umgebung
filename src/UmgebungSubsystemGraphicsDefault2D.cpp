@@ -41,17 +41,20 @@ static void setup_post() { printf("Setup Post\n"); }
 static void shutdown() { printf("Shutdown\n"); }
 
 static bool init() {
-    SDL_Log("Graphics Init: %d x %d\n", static_cast<int>(width), static_cast<int>(height));
-    if (!SDL_CreateWindowAndRenderer("Hello World",
+    SDL_WindowFlags flags = 0;
+    if (!SDL_CreateWindowAndRenderer(get_window_title().c_str(),
                                      static_cast<int>(umgebung::width),
                                      static_cast<int>(umgebung::height),
-                                     0,
-                                     // SDL_WINDOW_FULLSCREEN,
+                                     get_SDL_WindowFlags(flags),
                                      &window,
                                      &renderer)) {
         return false;
     }
 
+    std::cout << "Renderer Name    : " << SDL_GetRendererName(renderer) << std::endl;
+    std::cout << "Renderer Property: " << SDL_GetRendererProperties(renderer) << std::endl;
+
+    SDL_ShowWindow(window);
     return true;
 }
 

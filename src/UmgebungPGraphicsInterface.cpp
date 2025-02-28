@@ -167,6 +167,13 @@ namespace umgebung {
         g->line(x1, y1, x2, y2);
     }
 
+    void line(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2) {
+        if (g == nullptr) {
+            return;
+        }
+        g->line(x1, y1, z1, x2, y2, z2);
+    }
+
     void point(const float x, const float y, const float z) {
         if (g == nullptr) {
             return;

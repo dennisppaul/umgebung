@@ -27,7 +27,10 @@ static void       draw_pre();
 static void       draw_post();
 static void       shutdown();
 static void       set_flags(uint32_t& subsystem_flags);
-static PGraphics* create_graphics();
+static PGraphics* create_graphics(int width, int height);
+
+static bool render_to_framebuffer_object            = true;
+static bool blit_framebuffer_object_to_screenbuffer = true;
 
 static SDL_Window*   window     = nullptr;
 static SDL_GLContext gl_context = nullptr;
@@ -142,7 +145,7 @@ static void init_FBO_drawing() {
     glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), static_cast<void*>(0));
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) (2 * sizeof(float)));
     glEnableVertexAttribArray(1);
@@ -239,7 +242,9 @@ static void setup_post() {
 }
 
 static void draw_pre() {
-    glBindFramebuffer(GL_FRAMEBUFFER, g->framebuffer.id);
+    if (render_to_framebuffer_object) {
+        glBindFramebuffer(GL_FRAMEBUFFER, g->framebuffer.id);
+    }
     g->reset_matrices();
 }
 
@@ -247,29 +252,45 @@ static void draw_post() {
     if (window == nullptr) {
         return;
     }
+    if (g == nullptr) {
+        return;
+    }
 
     g->flush();
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind FBO
+    if (render_to_framebuffer_object) {
+        if (blit_framebuffer_object_to_screenbuffer) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);                      // Unbind FBO
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, g->framebuffer.id); // Bind the FBO as the source
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);                 // Bind the default framebuffer (screen) as the destination
+            glBlitFramebuffer(0, 0, static_cast<int>(g->framebuffer.width), static_cast<int>(g->framebuffer.height),
+                              0, 0, static_cast<int>(width), static_cast<int>(height),
+                              GL_COLOR_BUFFER_BIT, GL_LINEAR);
+            // GL_COLOR_BUFFER_BIT, GL_NEAREST);
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+        } else {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind FBO
 
-    // Disable depth testing and blending
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
+            // Disable depth testing and blending
+            glDisable(GL_DEPTH_TEST);
+            glDisable(GL_BLEND);
 
-    // Use shader
-    glUseProgram(shaderProgram);
-    glBindVertexArray(screenVAO);
+            // Use shader
+            glUseProgram(shaderProgram);
+            glBindVertexArray(screenVAO);
 
-    // Bind FBO texture and set uniform
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, g->framebuffer.texture);
-    glUniform1i(glGetUniformLocation(shaderProgram, "screenTexture"), 0);
+            // Bind FBO texture and set uniform
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, g->framebuffer.texture);
+            glUniform1i(glGetUniformLocation(shaderProgram, "screenTexture"), 0);
 
-    // Draw fullscreen quad
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+            // Draw fullscreen quad
+            glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    glBindVertexArray(0);
-    glUseProgram(0);
+            glBindVertexArray(0);
+            glUseProgram(0);
+        }
+    }
 
     const GLenum error = glGetError();
     if (error != GL_NO_ERROR) {

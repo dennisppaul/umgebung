@@ -87,6 +87,11 @@ namespace umgebung {
             }
         }
 
+        void line(float x1, float y1, float z1, float x2, float y2, float z2) override {
+            // TODO implement
+        }
+
+
         void bezier(float x1, float y1, float x2, float y2,
                     float x3, float y3, float x4, float y4) override {}
         void bezier(float x1, float y1, float z1, float x2, float y2, float z2,
@@ -149,7 +154,7 @@ namespace umgebung {
             // // Draw the texture
             // SDL_RenderTexture(renderer, texture, NULL, NULL); // Fullscreen
             //
-            // return nullptr;
+            return nullptr;
         }
 
         void image(PImage* img, float x, float y, float w, float h) override {}

@@ -1,20 +1,89 @@
 # SDL3 Transition Roadmap
 
 1. [x] clean up core Umgebung and merge with PApplet
-2. [ ] implement flexible renderer selection. future renders may include:
-    1. [ ] OpenGL 2.0 ( fixed function pipeline )
-    2. [ ] OpenGL 3.3
+2. [x] implement flexible renderer selection. future renders may include:
+    1. [x] OpenGL 2.0 ( fixed function pipeline )
+    2. [x] OpenGL 3.3
     3. [ ] OpenGL ES 3.0
     4. [ ] SDL_gpu ( Vulkan, Metal + maybe Direct3D )
-    5. [ ] SDL_render ( 2D only )
-3. [ ] port current *OpenGL 2.0* to *OpenGL 3.3*
+    5. [x] SDL_render ( 2D only )
+3. [x] port current *OpenGL 2.0* to *OpenGL 3.3*
 4. [x] transition to SDL3
+5. [x] add imgui
+6. [ ] add more SDL functions
+7. [ ] test platforms ( e.g RPI + iOS + WASM )
 
-## References
+## Renderer Status and TODOs
 
-- consult [SDL3 Wiki](https://wiki.libsdl.org/SDL3/FrontPage)
-- consult [Migrating to SDL 3.0](https://github.com/libsdl-org/SDL/blob/main/docs/README-migration.md).
-- apply *core changes* ( see below )
+### OpenGL 3.3
+
+- [ ] implement atlas-based font rendering ( with FreeType )
+- [ ] add *immediate* mode
+- [ ] add dedicated bins for transparent and non-transparent primitives in *retained* mode
+- [ ] MSAA FBOs
+- [ ] implemnt line width
+
+#### MSAA FBOs
+
+Modify FBO Setup for MSAA:
+
+```C
+GLuint fbo, msaaColorBuffer, msaaDepthBuffer;
+const int samples = 4; // Number of MSAA samples
+
+// Create FBO
+glGenFramebuffers(1, &fbo);
+glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+// Create Multisampled Color Buffer
+glGenTextures(1, &msaaColorBuffer);
+glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaColorBuffer);
+glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGBA8, width, height, GL_TRUE);
+glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, msaaColorBuffer, 0);
+
+// Create Multisampled Depth Buffer
+glGenRenderbuffers(1, &msaaDepthBuffer);
+glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBuffer);
+glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH24_STENCIL8, width, height);
+glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msaaDepthBuffer);
+
+if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    std::cerr << "MSAA FBO is incomplete!" << std::endl;
+}
+
+glBindFramebuffer(GL_FRAMEBUFFER, 0);
+```
+
+Render VBOs Into the MSAA FBO:
+
+```C
+glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+// Render VBOs here...
+
+glBindFramebuffer(GL_FRAMEBUFFER, 0);
+```
+
+Resolve the Multisampled FBO into a Regular Texture:
+
+```C
+glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+glBindFramebuffer(GL_DRAW_FRAMEBUFFER, screenFBO); // Regular FBO to store resolved image
+glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+glBindFramebuffer(GL_FRAMEBUFFER, 0);
+```
+
+### SDL_Renderer
+
+currently not more than a *proof of concept*. need to add texture ( and font ) rendering.
+
+### SDL_gpu
+
+- https://github.com/TheSpydog/SDL_gpu_examples
+- [SDL 3 GPU tutorial with C++23 and Modern CMake (Part 1)](https://www.youtube.com/watch?v=UFuWGECc8w0)
+- [SDL 3 GPU tutorial with C++23 and Modern CMake (Part 2)](https://www.youtube.com/watch?v=HYb753diRYA)
+- [SDL 3 GPU tutorial with C++23 and Modern CMake (Part 3)](https://www.youtube.com/watch?v=ddi7V0CDkLQ)
 
 ## core changes
 
@@ -43,18 +112,11 @@ see [Where an SDL program starts running.](https://github.com/libsdl-org/SDL/blo
 
 consider transitioning to OpenGL 3.3 ( including OpenGL ES for mobile platforms ) but also consider the option to completely stay away from OpenGL and revert to SDL3_gpu in order to make the render pipeline more futureproof ( apple might abandon OpenGL some time soon ) as well as potentially more platform independent.
 
-## research SDL3 features
+## En-/Disabling features
 
-see [New Features in SDL3](https://wiki.libsdl.org/SDL3/NewFeatures)
+currently it is possible to enable or disable certain features like graphics, sound or movies at *compile time* via CMake options, while also providing a *stub** implementation which allows copmilation ( and ideally exection ) even when the feature is disabled ( e.g to quickly be able to make an application *headless* ). check if this strategies introduces too much overhead and if there is a less cleaner way ( e.g escaping `#ifdef` hell ) to implement this.
 
-- [video capture / camera](https://wiki.libsdl.org/SDL3/CategoryCamera) @question(is it based on another camera/video library liek ffmpeg?)
-- implement `Camera` from this example ( with audio ) https://github.com/libsdl-org/SDL/blob/17549435960cf114a5118f837e0a71d6e7e0d4c9/test/testffmpeg.c
-- GPU API
-- Enhanced HiDPI Support
-- consider switching to [main callbacks](https://wiki.libsdl.org/SDL3/README/main-functions)
-- [Web Browser Examples](https://github.com/libsdl-org/SDL/tree/main/examples) and [SDL_main.h](https://github.com/libsdl-org/SDL/blob/main/include/SDL3/SDL_main.h)
-
-## additional changes
+## Additional Changes
 
 - clean up `CMakeLists.txt`
 - update installation files + documentation to SDL3
@@ -62,9 +124,3 @@ see [New Features in SDL3](https://wiki.libsdl.org/SDL3/NewFeatures)
     - `install-RPI.sh`
     - `DOCUMENTATION.md`
     - `README.md`
-
-## improvements or non-SDL3 related changes
-
-### en-/disabling features
-
-currently it is possible to enable or disable certain features like graphics, sound or movies at *compile time* via CMake options, while also providing a *stub** implementation which allows copmilation ( and ideally exection ) even when the feature is disabled ( e.g to quickly be able to make an application *headless* ). check if this strategies introduces too much overhead and if there is a less cleaner way ( e.g escaping `#ifdef` hell ) to implement this.

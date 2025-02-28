@@ -56,6 +56,7 @@ namespace umgebung {
     void    texture(PImage* img);
     PImage* loadImage(const std::string& filename);
     void    line(float x1, float y1, float x2, float y2);
+    void    line(float x1, float y1, float z1, float x2, float y2, float z2);
     void    point(float x, float y, float z = 0.0);
     void    rect(float x, float y, float width, float height);
     void    stroke(float r, float g, float b, float a = 1.0);
