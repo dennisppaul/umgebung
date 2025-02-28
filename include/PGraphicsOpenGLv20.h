@@ -48,7 +48,7 @@ namespace umgebung {
         void    pointSize(float point_size) override;
         void    point(float x, float y, float z = 0.0f) override;
         void    beginShape(int shape = POLYGON) override;
-        void    endShape() override;
+        void    endShape(bool close_shape = false) override;
         void    vertex(float x, float y, float z = 0.0f) override;
         void    vertex(float x, float y, float z, float u, float v) override;
         PFont*  loadFont(const std::string& file, float size) override;

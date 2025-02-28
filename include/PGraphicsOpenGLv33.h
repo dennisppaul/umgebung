@@ -36,7 +36,7 @@ namespace umgebung {
         void    background(float a) override;
         void    rect(float x, float y, float width, float height) override;
         void    ellipse(float x, float y, float width, float height) override;
-        void    circle(float x, float y, float radius) override;
+        void    circle(float x, float y, float diameter) override;
         void    ellipseDetail(int detail) override;
         void    line(float x1, float y1, float x2, float y2) override;
         void    line(float x1, float y1, float z1, float x2, float y2, float z2) override;
@@ -53,7 +53,7 @@ namespace umgebung {
         void    pointSize(float point_size) override;
         void    point(float x, float y, float z = 0.0f) override;
         void    beginShape(int shape = POLYGON) override;
-        void    endShape() override;
+        void    endShape(bool close_shape = false) override;
         void    vertex(float x, float y, float z = 0.0f) override;
         void    vertex(float x, float y, float z, float u, float v) override;
         PFont*  loadFont(const std::string& file, float size) override;
@@ -111,6 +111,12 @@ namespace umgebung {
                 : start_index(start), num_vertices(count), texture_id(texID) {}
         };
 
+        struct Vertex {
+            glm::vec3 postition;
+            glm::vec4 color;
+            glm::vec2 texture;
+        };
+
         // TOOD create *vertex buffer client* struct for this
         GLuint             fill_shader_program{};
         GLuint             fill_VAO_xyz_rgba_uv = 0;
@@ -124,7 +130,7 @@ namespace umgebung {
         std::vector<float> stroke_vertices_xyz_rgba;
         uint32_t           stroke_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
 
-        GLuint                   dummyTexture{};
+        GLuint                   solid_color_texture_id{};
         std::vector<RenderBatch> renderBatches;
         glm::mat4                currentMatrix;
         std::vector<glm::mat4>   matrixStack;
@@ -134,8 +140,11 @@ namespace umgebung {
         glm::mat4                viewMatrix{};
         float                    fStrokeWeight{1};
         int                      fBezierDetail{20};
+        int                      fEllipseDetail{32};
         int                      fPreviousFBO{};
         bool                     render_lines_as_quads{true};
+        std::vector<glm::vec3>   line_strip_point_cache;
+        std::vector<Vertex>      vertex_cache;
 
         // static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
         //        PFont* fCurrentFont           = nullptr;
@@ -143,7 +152,6 @@ namespace umgebung {
         //        float  fStrokeWeight          = 1;
         //        bool   fEnabledTextureInShape = false;
         //        bool   fShapeBegun            = false;
-        //        int    fEllipseDetail         = 32;
         //        int    fPixelDensity          = 1;
 
         static const char* vertex_shader_source_texture();
@@ -161,21 +169,18 @@ namespace umgebung {
         void add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position, const glm::vec4& color, float u = 0.0f, float v = 0.0f);
         void add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint texture_id);
         void to_screen_space(glm::vec3& world_position) const;
+        void render_line_strip(std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape);
+        void render_line_strip_as_lines(const std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape, bool round_corners);
+        void draw_filled_ellipse(float x, float y, float width, float height, int detail, const glm::vec4& color);
 
         // TODO remove these:
-        void add_fill_vertex_xyz_rgba_uv(glm::vec3 position, glm::vec4 color, glm::vec2 tex_coords);
-        void add_fill_vertex_xyz_rgba_uv_raw(glm::vec3 position, glm::vec4 color, glm::vec2 tex_coords);
-        void add_fill_vertex_xyz_rgba_uv(float x, float y, float z,
-                                         float r, float g, float b, float a = 1.0f,
-                                         float u = 0.0f, float v = 0.0f);
-        void add_stroke_vertex_xyz_rgba(float x, float y, float z,
-                                        float r, float g, float b, float a = 1.0f);
-        // void add_quad_line(const glm::vec3& p1,
-        //                    const glm::vec3& p2,
-        //                    const glm::vec4& color,
-        //                    float            width,
-        //                    const glm::mat4& mvp);
-
+        void          add_fill_vertex_xyz_rgba_uv(glm::vec3 position, glm::vec4 color, glm::vec2 tex_coords);
+        void          add_fill_vertex_xyz_rgba_uv_raw(glm::vec3 position, glm::vec4 color, glm::vec2 tex_coords);
+        void          add_fill_vertex_xyz_rgba_uv(float x, float y, float z,
+                                                  float r, float g, float b, float a = 1.0f,
+                                                  float u = 0.0f, float v = 0.0f);
+        void          add_stroke_vertex_xyz_rgba(float x, float y, float z,
+                                                 float r, float g, float b, float a = 1.0f);
         static GLuint build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
         static void   checkShaderCompileStatus(GLuint shader);
         static void   checkProgramLinkStatus(GLuint program);

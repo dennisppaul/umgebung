@@ -269,7 +269,7 @@ void PGraphicsOpenGLv20::beginShape(const int shape) {
     glBegin(mShape);
 }
 
-void PGraphicsOpenGLv20::endShape() {
+void PGraphicsOpenGLv20::endShape(bool close_shape) {
     glEnd();
     if (fEnabledTextureInShape) {
         glDisable(GL_TEXTURE_2D);

@@ -84,15 +84,15 @@ namespace umgebung {
         // TODO implement 3D version
         // virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)    = 0;
 
-        virtual void strokeWeight(float weight)                                       = 0;
-        virtual void background(float a, float b, float c, float d = 1.0f)            = 0;
-        virtual void background(float a)                                              = 0;
-        virtual void rect(float x, float y, float width, float height)                = 0;
-        virtual void ellipse(float x, float y, float width, float height)             = 0;
-        virtual void circle(float x, float y, float radius)                           = 0;
-        virtual void ellipseDetail(int detail)                                        = 0;
-        virtual void line(float x1, float y1, float x2, float y2)                     = 0;
-        virtual void line(float x1, float y1, float z1, float x2, float y2, float z2) = 0;
+        virtual void    strokeWeight(float weight)                                          = 0;
+        virtual void    background(float a, float b, float c, float d = 1.0f)               = 0;
+        virtual void    background(float a)                                                 = 0;
+        virtual void    rect(float x, float y, float width, float height)                   = 0;
+        virtual void    ellipse(float x, float y, float width, float height)                = 0;
+        virtual void    circle(float x, float y, float radius)                              = 0;
+        virtual void    ellipseDetail(int detail)                                           = 0;
+        virtual void    line(float x1, float y1, float x2, float y2)                        = 0;
+        virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)    = 0;
         virtual void    bezier(float x1, float y1, float x2, float y2,
                                float x3, float y3, float x4, float y4)                      = 0;
         virtual void    bezier(float x1, float y1, float z1, float x2, float y2, float z2,
@@ -101,7 +101,7 @@ namespace umgebung {
         virtual void    pointSize(float point_size)                                         = 0;
         virtual void    point(float x, float y, float z = 0.0f)                             = 0;
         virtual void    beginShape(int shape = POLYGON)                                     = 0;
-        virtual void    endShape()                                                          = 0;
+        virtual void    endShape(bool close_shape = false)                                                          = 0;
         virtual void    vertex(float x, float y, float z = 0.0f)                            = 0;
         virtual void    vertex(float x, float y, float z, float u, float v)                 = 0;
         virtual PFont*  loadFont(const std::string& file, float size)                       = 0; // @development maybe use smart pointers here
@@ -154,6 +154,7 @@ namespace umgebung {
             float a      = 1;
             bool  active = false;
         };
+        // TODO maybe better store rgba as glm::vec4
         Color current_fill_color{};
         Color current_stroke_color{};
     };

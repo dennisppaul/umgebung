@@ -40,4 +40,6 @@ namespace umgebung {
     static constexpr int   LEFT                 = 0;
     static constexpr int   RIGHT                = 1;
     static constexpr int   MIDDLE               = 2;
+    static constexpr bool  CLOSE                = true;
+    static constexpr bool  NOT_CLOSED           = false;
 } // namespace umgebung

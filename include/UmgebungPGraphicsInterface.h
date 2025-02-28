@@ -32,7 +32,7 @@ namespace umgebung {
     void    background(float a);
     void    background(float a, float b, float c, float d = 1.0);
     void    beginShape(int shape = POLYGON);
-    void    endShape();
+    void    endShape(bool close_shape = false);
     void    bezier(float x1, float y1,
                    float x2, float y2,
                    float x3, float y3,
