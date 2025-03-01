@@ -25,7 +25,7 @@
 #include "UmgebungSubsystems.h"
 #include "UmgebungFunctionsAdditional.h"
 #include "UmgebungFunctions.h"
-#include "UmgebungPGraphicsInterface.h"
+#include "UmgebungFunctionsPGraphics.h"
 
 UMGEBUNG_NAMESPACE_BEGIN
 

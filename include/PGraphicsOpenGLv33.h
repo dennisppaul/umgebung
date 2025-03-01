@@ -41,6 +41,7 @@ namespace umgebung {
         void    line(float x1, float y1, float x2, float y2) override;
         void    line(float x1, float y1, float z1, float x2, float y2, float z2) override;
         void    linse(float x1, float y1, float x2, float y2);
+        void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override;
         void    bezier(float x1, float y1,
                        float x2, float y2,
                        float x3, float y3,
@@ -89,9 +90,36 @@ namespace umgebung {
         // TODO replace `init()` in PImage constructor with `upload_texture(...)`
         static bool upload_texture(PImage* image, bool generate_texture_mipmapped);
 
+        void prepare_frame() {
+            if (render_mode == RENDER_MODE_IMMEDIATE) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+                glUseProgram(stroke_shader_program);
+
+                // Upload matrices
+                const GLint projLoc = glGetUniformLocation(stroke_shader_program, "uProjection");
+                glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection3D)); // or projection2D
+
+                const GLint viewLoc = glGetUniformLocation(stroke_shader_program, "uViewMatrix");
+                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+                const GLint matrixLoc = glGetUniformLocation(stroke_shader_program, "uModelMatrix");
+                glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix_shader));
+            }
+        }
+
         void flush() override {
-            flush_fill();
-            flush_stroke();
+            if (render_mode == RENDER_MODE_RETAINED) {
+                flush_fill();
+                flush_stroke();
+                return;
+            }
+            if (render_mode == RENDER_MODE_IMMEDIATE) {
+                /* TODO this should happen at the beginning of the frame */
+                prepare_frame();
+                return;
+            }
         }
 
         void reset_matrices() override;
@@ -117,6 +145,15 @@ namespace umgebung {
             glm::vec2 texture;
         };
 
+        static constexpr uint8_t RENDER_MODE_IMMEDIATE = 0;
+        static constexpr uint8_t RENDER_MODE_RETAINED  = 1;
+        uint8_t                  render_mode           = RENDER_MODE_IMMEDIATE;
+
+        static constexpr uint8_t RENDER_LINE_AS_QUADS_SEGMENTS                    = 0;
+        static constexpr uint8_t RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS = 1;
+        static constexpr uint8_t RENDER_LINE_AS_QUADS_WITH_POINTY_CORNERS         = 2;
+        uint8_t                  line_mode                                        = RENDER_LINE_AS_QUADS_SEGMENTS;
+
         // TOOD create *vertex buffer client* struct for this
         GLuint             fill_shader_program{};
         GLuint             fill_VAO_xyz_rgba_uv = 0;
@@ -130,9 +167,10 @@ namespace umgebung {
         std::vector<float> stroke_vertices_xyz_rgba;
         uint32_t           stroke_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
 
-        GLuint                   solid_color_texture_id{};
+        GLuint                   texture_id_solid_color_default{};
         std::vector<RenderBatch> renderBatches;
-        glm::mat4                currentMatrix;
+        glm::mat4                model_matrix_client;
+        glm::mat4                model_matrix_shader;
         std::vector<glm::mat4>   matrixStack;
         float                    aspectRatio;
         glm::mat4                projection2D{};
@@ -143,8 +181,9 @@ namespace umgebung {
         int                      fEllipseDetail{32};
         int                      fPreviousFBO{};
         bool                     render_lines_as_quads{true};
-        std::vector<glm::vec3>   line_strip_point_cache;
-        std::vector<Vertex>      vertex_cache;
+        std::vector<glm::vec3>   shape_stroke_vertex_cache{VBO_BUFFER_CHUNK_SIZE}; // TODO maybe add color?
+        std::vector<Vertex>      shape_fill_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
+        int                      shape_mode_cache = POLYGON;
 
         // static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
         //        PFont* fCurrentFont           = nullptr;
@@ -159,6 +198,35 @@ namespace umgebung {
         static const char* vertex_shader_source_simple();
         static const char* fragment_shader_source_simple();
 
+        /* --- RENDER_MODE_IMMEDIATE (IM) --- */
+
+        struct IM_primitive {
+            const uint32_t num_vertices;
+            GLuint         VAO{0};
+            GLuint         VBO{0};
+            explicit IM_primitive(const uint32_t vertices) : num_vertices(vertices) {}
+            bool uninitialized() const {
+                return VAO == 0 || VBO == 0;
+            }
+        };
+
+        IM_primitive IM_primitive_line{6};
+        IM_primitive IM_primitive_shape{VBO_BUFFER_CHUNK_SIZE};
+
+        std::vector<Vertex> convertQuadsToTriangles(const std::vector<Vertex>& quads) const;
+        std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon) const;
+
+        void IM_init_primitive(IM_primitive& primitive) const;
+        void IM_render_point(float x1, float y1, float z1);
+        void IM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
+        void IM_render_begin_shape(int shape);
+        void IM_render_end_shape(bool close_shape);
+        void IM_render_shape(IM_primitive& primitive, GLenum mode, const std::vector<Vertex>& shape_fill_vertices) const;
+
+        // ... triangle ( + textured ), quad ( + textured ), circle, etcetera
+
+        /* --- RENDER_MODE_RETAINED (RM) --- */
+
         void flush_stroke();
         void flush_fill();
         void fill_resize_buffer(uint32_t newSize);
@@ -169,8 +237,8 @@ namespace umgebung {
         void add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position, const glm::vec4& color, float u = 0.0f, float v = 0.0f);
         void add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint texture_id);
         void to_screen_space(glm::vec3& world_position) const;
-        void render_line_strip(std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape);
-        void render_line_strip_as_lines(const std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape, bool round_corners);
+        void render_line_strip_as_connected_quads(std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape);
+        void render_line_strip_as_quad_segments(const std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape, bool round_corners);
         void draw_filled_ellipse(float x, float y, float width, float height, int detail, const glm::vec4& color);
 
         // TODO remove these:

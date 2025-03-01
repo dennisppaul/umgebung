@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "UmgebungPGraphicsInterface.h"
+#include "UmgebungFunctionsPGraphics.h"
 
 namespace umgebung {
     void background(const float a) {
@@ -172,6 +172,13 @@ namespace umgebung {
             return;
         }
         g->line(x1, y1, z1, x2, y2, z2);
+    }
+
+    void triangle(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2, const float x3, const float y3, const float z3) {
+        if (g == nullptr) {
+            return;
+        }
+        g->triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
     }
 
     void point(const float x, const float y, const float z) {
@@ -361,5 +368,12 @@ namespace umgebung {
             return;
         }
         g->pixelDensity(density);
+    }
+
+    void hint(const uint16_t property) {
+        if (g == nullptr) {
+            return;
+        }
+        g->hint(property);
     }
 } // namespace umgebung
