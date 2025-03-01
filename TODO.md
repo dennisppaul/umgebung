@@ -2,8 +2,8 @@
 
 ## Graphics
 
-- [ ] fix `uModelMatrix` vs `currentMatrix` double applicatio issue
-- [ ] add *dirty* flag for *model matrix*
+- [x] fix `uModelMatrix` vs `currentMatrix` double application issue
+- [ ] add *dirty* flag for *model matrix* ( checking against identy for now )
 - [ ] separate transparent + non-transparent primitives
 - [ ] add line caps to lines rendered as quads
 - [ ] @optimize add begin-end-lines to optimze and beautify shapes made up of multiple lines ( e.g `rect(...)` or `bezier(...)` )
@@ -14,7 +14,7 @@
     - [ ] check *OpenGL ES* behavior
 - [ ] in `PGraphicsDefault2D` implement 3D by manually transforming points onto 2D 
 
-### Implement Immediate Mode
+### [x] Implement Immediate Mode
 
 add an ( inefficient ) immediate mode that draws primitives. e.g for lines:
 
@@ -85,7 +85,7 @@ glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, lineWidthRange);
 std::cout << "Supported line width range: " << lineWidthRange[0] << " to " << lineWidthRange[1] << std::endl;
 ```
 
-enable smooth lines:
+- enable smooth lines:
 
 ```C
 glEnable(GL_LINE_SMOOTH);

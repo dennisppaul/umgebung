@@ -215,13 +215,15 @@ namespace umgebung {
 
         std::vector<Vertex> convertQuadsToTriangles(const std::vector<Vertex>& quads) const;
         std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon) const;
+        std::vector<Vertex> triangulateConcavePolygon(const std::vector<Vertex>& polygon) const;
 
         void IM_init_primitive(IM_primitive& primitive) const;
         void IM_render_point(float x1, float y1, float z1);
         void IM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
         void IM_render_begin_shape(int shape);
         void IM_render_end_shape(bool close_shape);
-        void IM_render_shape(IM_primitive& primitive, GLenum mode, const std::vector<Vertex>& shape_fill_vertices) const;
+        void IM_render_shape(IM_primitive& primitive, GLenum mode, std::vector<Vertex>& shape_fill_vertices) const;
+        // TODO render strokes
 
         // ... triangle ( + textured ), quad ( + textured ), circle, etcetera
 

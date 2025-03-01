@@ -1,10 +1,11 @@
 #include <iostream>
-#include <GL/glew.h>
+#include <algorithm>
 #include <vector>
 
-#include "PGraphicsOpenGLv33.h"
+#include <GL/glew.h>
 
-#include <Umgebung.h>
+#include "Umgebung.h"
+#include "PGraphicsOpenGLv33.h"
 
 using namespace umgebung;
 
@@ -1296,8 +1297,8 @@ void PGraphicsOpenGLv33::IM_render_line(const float x1, const float y1, const fl
                                       current_stroke_color.a);
 
     // Define texture coordinates (default 1D mapping)
-    constexpr glm::vec2 t1 = glm::vec2(0.0f, 0.0f);
-    constexpr glm::vec2 t2 = glm::vec2(1.0f, 0.0f);
+    constexpr auto t1 = glm::vec2(0.0f, 0.0f);
+    constexpr auto t2 = glm::vec2(1.0f, 0.0f);
 
     // Prepare updated vertex data
     const Vertex newLineVertices[] = {{glm::vec3(p1), color, t1}, {glm::vec3(p2), color, t2}};
@@ -1315,7 +1316,7 @@ void PGraphicsOpenGLv33::IM_render_begin_shape(const int shape) {
     shape_mode_cache = shape;
 }
 
-void PGraphicsOpenGLv33::IM_render_shape(IM_primitive& primitive, const GLenum mode, const std::vector<Vertex>& shape_fill_vertices) const {
+void PGraphicsOpenGLv33::IM_render_shape(IM_primitive& primitive, const GLenum mode, std::vector<Vertex>& shape_fill_vertices) const {
     // Ensure there are vertices to render
     if (shape_fill_vertices.empty()) {
         return;
@@ -1326,8 +1327,32 @@ void PGraphicsOpenGLv33::IM_render_shape(IM_primitive& primitive, const GLenum m
         IM_init_primitive(primitive);
     }
 
+    if (model_matrix_client != glm::mat4(1.0f)) {
+        for (auto& p: shape_fill_vertices) {
+            p.postition = glm::vec3(model_matrix_client * glm::vec4(p.postition, 1.0f));
+        }
+    }
+
     // Update VBO with collected vertex data
     glBindBuffer(GL_ARRAY_BUFFER, primitive.VBO);
+
+    constexpr bool hint_check_buffer_size = true;
+    if (hint_check_buffer_size) {
+        const size_t newSize = shape_fill_vertices.size() * sizeof(Vertex);
+
+        // Get current buffer size
+        GLint bufferSize = 0;
+        glGetBufferParameteriv(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &bufferSize);
+
+        if (newSize > static_cast<size_t>(bufferSize)) {
+            // Allocate extra space to reduce reallocations
+            const size_t growSize = std::max(static_cast<int>(newSize), bufferSize + static_cast<int>(VBO_BUFFER_CHUNK_SIZE));
+            console("increasing vertex buffer array to ", growSize, " ( should be all good )");
+            glBufferData(GL_ARRAY_BUFFER, growSize, nullptr, GL_DYNAMIC_DRAW);
+        }
+    }
+
+    // Update only necessary data
     glBufferSubData(GL_ARRAY_BUFFER, 0, shape_fill_vertices.size() * sizeof(Vertex), shape_fill_vertices.data());
 
     // Bind VAO and draw the shape
@@ -1373,7 +1398,77 @@ std::vector<PGraphicsOpenGLv33::Vertex> PGraphicsOpenGLv33::convertQuadsToTriang
     return triangles;
 }
 
-void PGraphicsOpenGLv33::IM_render_end_shape(bool close_shape) {
+// NOTE does not work
+std::vector<PGraphicsOpenGLv33::Vertex> PGraphicsOpenGLv33::triangulateConcavePolygon(const std::vector<Vertex>& polygon) const {
+    std::vector<Vertex> triangles;
+    std::vector<int>    indices; // Stores the vertex indices of the polygon
+
+    int n = polygon.size();
+    if (n < 3) {
+        return triangles; // Need at least 3 vertices
+    }
+
+    // Fill indices with 0, 1, 2, ... n-1
+    for (int i = 0; i < n; i++) {
+        indices.push_back(i);
+    }
+
+    while (indices.size() > 3) {
+        bool earFound = false;
+
+        // Iterate through vertices and find an "ear"
+        for (size_t i = 0; i < indices.size(); i++) {
+            int prev = indices[(i - 1 + indices.size()) % indices.size()];
+            int curr = indices[i];
+            int next = indices[(i + 1) % indices.size()];
+
+            glm::vec3 a = polygon[prev].postition;
+            glm::vec3 b = polygon[curr].postition;
+            glm::vec3 c = polygon[next].postition;
+
+            // Check if the triangle (prev, curr, next) is an "ear"
+            bool isEar = true;
+            for (size_t j = 0; j < indices.size(); j++) {
+                if (j == prev || j == curr || j == next) {
+                    continue;
+                }
+                glm::vec3 p = polygon[indices[j]].postition;
+
+                // If any point is inside the triangle, it's not an ear
+                if (glm::dot(glm::cross(b - a, c - a), p - a) > 0) {
+                    isEar = false;
+                    break;
+                }
+            }
+
+            if (isEar) {
+                // Add the ear triangle
+                triangles.push_back(polygon[prev]);
+                triangles.push_back(polygon[curr]);
+                triangles.push_back(polygon[next]);
+
+                // Remove the "ear" from the polygon
+                indices.erase(indices.begin() + i);
+                earFound = true;
+                break;
+            }
+        }
+
+        // If no ear was found, the polygon might be malformed
+        if (!earFound) {
+            return {};
+        }
+    }
+
+    // Add the last triangle
+    triangles.push_back(polygon[indices[0]]);
+    triangles.push_back(polygon[indices[1]]);
+    triangles.push_back(polygon[indices[2]]);
+
+    return triangles;
+}
+
+void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
     if (IM_primitive_shape.uninitialized()) {
         IM_init_primitive(IM_primitive_shape);
     }
@@ -1408,10 +1503,15 @@ void PGraphicsOpenGLv33::IM_render_end_shape(bool close_shape) {
         case TRIANGLE_STRIP:
             IM_render_shape(IM_primitive_shape, GL_TRIANGLE_STRIP, shape_fill_vertex_cache);
             break;
-        case QUADS:
-            IM_render_shape(IM_primitive_shape, GL_TRIANGLES, convertQuadsToTriangles(shape_fill_vertex_cache));
-            break;
-        case POLYGON:
-            IM_render_shape(IM_primitive_shape, GL_TRIANGLE_FAN, convertPolygonToTriangleFan(shape_fill_vertex_cache));
+        case QUADS: {
+            std::vector<Vertex> vertices = convertQuadsToTriangles(shape_fill_vertex_cache);
+            IM_render_shape(IM_primitive_shape, GL_TRIANGLES, vertices);
+        } break;
+        case POLYGON: {
+            std::vector<Vertex> vertices = convertPolygonToTriangleFan(shape_fill_vertex_cache);
+            IM_render_shape(IM_primitive_shape, GL_TRIANGLE_FAN, vertices);
+            // std::vector<Vertex> vertices = triangulateConcavePolygon(shape_fill_vertex_cache);
+            // IM_render_shape(IM_primitive_shape, GL_TRIANGLES, vertices);
+        } break;
     }
 }
