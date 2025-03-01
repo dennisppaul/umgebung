@@ -42,4 +42,7 @@ namespace umgebung {
     static constexpr int   MIDDLE               = 2;
     static constexpr bool  CLOSE                = true;
     static constexpr bool  NOT_CLOSED           = false;
+
+    static constexpr int HINT_ENABLE_SMOOTH_LINES = 0xD0;
+    static constexpr int HINT_DISABLE_SMOOTH_LINES = 0xD1;
 } // namespace umgebung

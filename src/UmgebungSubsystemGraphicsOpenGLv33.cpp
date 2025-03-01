@@ -29,8 +29,8 @@ static void       shutdown();
 static void       set_flags(uint32_t& subsystem_flags);
 static PGraphics* create_graphics(int width, int height);
 
-static bool render_to_framebuffer_object            = true;
-static bool blit_framebuffer_object_to_screenbuffer = true;
+static bool render_to_framebuffer_object            = true; // NOTE render into a FBO instead of rendering directly into to color buffer
+static bool blit_framebuffer_object_to_screenbuffer = true; // NOTE FBO is BLITted directly into the color buffer instead of rendered with a textured quad
 
 static SDL_Window*   window     = nullptr;
 static SDL_GLContext gl_context = nullptr;

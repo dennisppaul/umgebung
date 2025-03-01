@@ -57,6 +57,7 @@ namespace umgebung {
     PImage* loadImage(const std::string& filename);
     void    line(float x1, float y1, float x2, float y2);
     void    line(float x1, float y1, float z1, float x2, float y2, float z2);
+    void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
     void    point(float x, float y, float z = 0.0);
     void    rect(float x, float y, float width, float height);
     void    stroke(float r, float g, float b, float a = 1.0);
@@ -84,4 +85,5 @@ namespace umgebung {
     void    scale(float x, float y);
     void    scale(float x, float y, float z);
     void    pixelDensity(int density);
+    void    hint(uint16_t property);
 } // namespace umgebung

@@ -36,6 +36,7 @@ namespace umgebung {
         void    ellipseDetail(int detail) override;
         void    line(float x1, float y1, float x2, float y2) override;
         void    line(float x1, float y1, float z1, float x2, float y2, float y3) override;
+      void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override;
         void    bezier(float x1, float y1,
                        float x2, float y2,
                        float x3, float y3,

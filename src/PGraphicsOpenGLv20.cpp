@@ -130,7 +130,7 @@ void PGraphicsOpenGLv20::line(const float x1, const float y1, const float x2, co
     glEnd();
 }
 
-void PGraphicsOpenGLv20::line(float x1, float y1, float z1, float x2, float y2, float z2) {
+void PGraphicsOpenGLv20::line(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2) {
     if (!current_stroke_color.active) {
         return;
     }
@@ -139,6 +139,27 @@ void PGraphicsOpenGLv20::line(float x1, float y1, float z1, float x2, float y2, 
     glVertex3f(x1, y1, z1);
     glVertex3f(x2, y2, z2);
     glEnd();
+}
+
+void PGraphicsOpenGLv20::triangle(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2, const float x3, const float y3, const float z3) {
+    if (!current_stroke_color.active) {
+        glColor4f(current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
+        glBegin(GL_TRIANGLES);
+        glVertex3f(x1, y1, z1);
+        glVertex3f(x2, y2, z2);
+        glVertex3f(x3, y3, z3);
+        glEnd();
+        return;
+    }
+    if (!current_fill_color.active) {
+        glColor4f(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_stroke_color.a);
+        glBegin(GL_TRIANGLES);
+        glVertex3f(x1, y1, z1);
+        glVertex3f(x2, y2, z2);
+        glVertex3f(x3, y3, z3);
+        glEnd();
+        return;
+    }
 }
 
 void PGraphicsOpenGLv20::bezier(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4) {
