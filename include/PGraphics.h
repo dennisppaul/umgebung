@@ -151,6 +151,11 @@ namespace umgebung {
         struct ColorState : glm::vec4 {
             bool active = false;
         };
+
+        static glm::vec4 as_vec4(const ColorState& color) {
+            return {color.r, color.g, color.b, color.a};
+        }
+
         ColorState color_stroke{};
         ColorState color_fill{};
 
