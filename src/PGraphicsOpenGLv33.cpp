@@ -389,10 +389,7 @@ void PGraphicsOpenGLv33::endShape(const bool close_shape) {
         IM_render_end_shape(close_shape);
     }
     if (render_mode == RENDER_MODE_RETAINED) {
-        const glm::vec4 color = {color_stroke.r,
-                                 color_stroke.g,
-                                 color_stroke.b,
-                                 color_stroke.a};
+        const glm::vec4 color = as_vec4(color_stroke);
         switch (line_mode) {
             case RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS:
                 render_line_strip_as_quad_segments(shape_stroke_vertex_cache, color, close_shape, true);
@@ -421,11 +418,7 @@ void PGraphicsOpenGLv33::vertex(const float x, const float y, const float z, con
     if (color_fill.active) {
         const Vertex vertex_info{
             glm::vec3(x, y, z),
-            color_fill,
-            // glm::vec4(color_fill.r,
-            //           color_fill.g,
-            //           color_fill.b,
-            //           color_fill.a),
+            as_vec4(color_fill),
             glm::vec2(u, v)};
         shape_fill_vertex_cache.push_back(vertex_info);
     }
@@ -982,7 +975,7 @@ void PGraphicsOpenGLv33::init_stroke_vertice_buffers() {
     glBindBuffer(GL_ARRAY_BUFFER, stroke_VBO_xyz_rgba);
     glBufferData(GL_ARRAY_BUFFER, stroke_max_buffer_size, nullptr, GL_DYNAMIC_DRAW);
 
-    const auto STRIDE = static_cast<GLsizei>(NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA * sizeof(float));
+    constexpr auto STRIDE = static_cast<GLsizei>(NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA * sizeof(float));
 
     // Position Attribute (Location 0) -> 3 floats (x, y, z)
     constexpr int NUM_POSITION_ATTRIBUTES = 3;
@@ -1382,17 +1375,16 @@ void PGraphicsOpenGLv33::IM_render_rect(const float x, const float y, const floa
     }
 
     // define colors once (avoiding redundant glm::vec4 conversions)
-    const glm::vec4 fill_color = color_fill;
-    const glm::vec4 stroke_color = color_stroke;
-    constexpr glm::vec2 tex_coord = {0.0f, 0.0f};
+    const glm::vec4     fill_color   = as_vec4(color_fill);
+    const glm::vec4     stroke_color = as_vec4(color_stroke);
+    constexpr glm::vec2 tex_coord    = {0.0f, 0.0f};
 
     // define rectangle vertices (shared for fill and stroke)
     const std::array<glm::vec3, 4> rect_vertices = {
         glm::vec3{p1.x, p1.y, 0},
         glm::vec3{p2.x, p1.y, 0},
         glm::vec3{p2.x, p2.y, 0},
-        glm::vec3{p1.x, p2.y, 0}
-    };
+        glm::vec3{p1.x, p2.y, 0}};
 
     if (color_fill.active) {
         if (IM_primitive_rect_fill.uninitialized()) {
@@ -1400,8 +1392,8 @@ void PGraphicsOpenGLv33::IM_render_rect(const float x, const float y, const floa
         }
 
         for (int i = 0; i < 4; ++i) {
-            IM_primitive_rect_fill.vertices[i].position = rect_vertices[i];
-            IM_primitive_rect_fill.vertices[i].color = fill_color;
+            IM_primitive_rect_fill.vertices[i].position  = rect_vertices[i];
+            IM_primitive_rect_fill.vertices[i].color     = fill_color;
             IM_primitive_rect_fill.vertices[i].tex_coord = tex_coord;
         }
 
@@ -1414,8 +1406,8 @@ void PGraphicsOpenGLv33::IM_render_rect(const float x, const float y, const floa
         }
 
         for (int i = 0; i < 4; ++i) {
-            IM_primitive_rect_stroke.vertices[i].position = rect_vertices[i];
-            IM_primitive_rect_stroke.vertices[i].color = stroke_color;
+            IM_primitive_rect_stroke.vertices[i].position  = rect_vertices[i];
+            IM_primitive_rect_stroke.vertices[i].color     = stroke_color;
             IM_primitive_rect_stroke.vertices[i].tex_coord = tex_coord;
         }
         IM_primitive_rect_stroke.vertices[4] = IM_primitive_rect_stroke.vertices[0];
@@ -1453,7 +1445,7 @@ void PGraphicsOpenGLv33::IM_render_ellipse(float x, float y, float width, float 
     const glm::vec3 center{x, y, 0};
 
     if (color_fill.active) {
-        const glm::vec4 fill_color = {color_fill.r, color_fill.g, color_fill.b, color_fill.a};
+        const glm::vec4 fill_color = as_vec4(color_fill);
 
         shape_fill_vertex_cache.emplace_back(center, fill_color, tex_coord);
         for (const auto& p: points) {
@@ -1464,7 +1456,7 @@ void PGraphicsOpenGLv33::IM_render_ellipse(float x, float y, float width, float 
     }
 
     if (color_stroke.active) {
-        const glm::vec4 stroke_color = {color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a};
+        const glm::vec4 stroke_color = as_vec4(color_stroke);
 
         shape_fill_vertex_cache.clear();
         for (const auto& p: points) {
@@ -1478,7 +1470,7 @@ void PGraphicsOpenGLv33::IM_render_ellipse(float x, float y, float width, float 
 void PGraphicsOpenGLv33::IM_render_vertex_buffer(IM_primitive&        primitive,
                                                  const GLenum         mode,
                                                  std::vector<Vertex>& shape_vertices) const {
-    // Ensure there are vertices to render
+    // ensure there are vertices to render
     if (shape_vertices.empty()) {
         return;
     }
