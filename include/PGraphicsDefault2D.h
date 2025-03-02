@@ -63,12 +63,12 @@ namespace umgebung {
             r.y = y;
             r.w = width;
             r.h = height;
-            if (current_stroke_color.active) {
-                set_color_f(current_stroke_color);
+            if (stroke_state.active) {
+                set_color_f(stroke_state);
                 SDL_RenderRect(renderer, &r);
             }
-            if (current_fill_color.active) {
-                set_color_f(current_fill_color);
+            if (fill_state.active) {
+                set_color_f(fill_state);
                 SDL_RenderFillRect(renderer, &r);
             }
         }
@@ -81,8 +81,8 @@ namespace umgebung {
             if (renderer == nullptr) {
                 return;
             }
-            if (current_stroke_color.active) {
-                set_color_f(current_stroke_color);
+            if (stroke_state.active) {
+                set_color_f(stroke_state);
                 SDL_RenderLine(renderer, x1, y1, x2, y2);
             }
         }
@@ -107,8 +107,8 @@ namespace umgebung {
             if (renderer == nullptr) {
                 return;
             }
-            if (current_stroke_color.active) {
-                set_color_f(current_stroke_color);
+            if (stroke_state.active) {
+                set_color_f(stroke_state);
                 SDL_RenderPoint(renderer, x, y);
             }
         }
@@ -134,8 +134,8 @@ namespace umgebung {
             if (renderer == nullptr) {
                 return;
             }
-            if (current_fill_color.active) {
-                set_color_f(current_fill_color);
+            if (fill_state.active) {
+                set_color_f(fill_state);
                 SDL_RenderDebugText(renderer, x, y, value);
             }
         }

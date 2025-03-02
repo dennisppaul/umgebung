@@ -28,11 +28,11 @@ PGraphics::PGraphics() : PImage(0, 0, 0) {
 }
 
 void PGraphics::fill(const float r, const float g, const float b, const float alpha) {
-    current_fill_color.r      = r;
-    current_fill_color.g      = g;
-    current_fill_color.b      = b;
-    current_fill_color.a      = alpha;
-    current_fill_color.active = true;
+    fill_state.r      = r;
+    fill_state.g      = g;
+    fill_state.b      = b;
+    fill_state.a      = alpha;
+    fill_state.active = true;
 }
 
 void PGraphics::fill(const float gray, const float alpha) {
@@ -40,33 +40,33 @@ void PGraphics::fill(const float gray, const float alpha) {
 }
 
 void PGraphics::fill_color(const uint32_t c) {
-    color_inv(c, current_fill_color.r, current_fill_color.g, current_fill_color.b, current_fill_color.a);
-    current_fill_color.active = true;
+    color_inv(c, fill_state.r, fill_state.g, fill_state.b, fill_state.a);
+    fill_state.active = true;
 }
 
 void PGraphics::noFill() {
-    current_fill_color.active = false;
+    fill_state.active = false;
 }
 
 void PGraphics::stroke(const float r, const float g, const float b, const float alpha) {
-    current_stroke_color.r      = r;
-    current_stroke_color.g      = g;
-    current_stroke_color.b      = b;
-    current_stroke_color.a      = alpha;
-    current_stroke_color.active = true;
+    stroke_state.r      = r;
+    stroke_state.g      = g;
+    stroke_state.b      = b;
+    stroke_state.a      = alpha;
+    stroke_state.active = true;
 }
 
 void PGraphics::stroke(const float gray, const float alpha) {
-    current_stroke_color.r      = gray;
-    current_stroke_color.g      = gray;
-    current_stroke_color.b      = gray;
-    current_stroke_color.a      = alpha;
-    current_stroke_color.active = true;
+    stroke_state.r      = gray;
+    stroke_state.g      = gray;
+    stroke_state.b      = gray;
+    stroke_state.a      = alpha;
+    stroke_state.active = true;
 }
 
 void PGraphics::stroke_color(const uint32_t c) {
-    color_inv(c, current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
-    current_stroke_color.active = true;
+    color_inv(c, stroke_state.r, stroke_state.g, stroke_state.b, stroke_state.a);
+    stroke_state.active = true;
 }
 
 void PGraphics::stroke(const float a) {
@@ -74,5 +74,5 @@ void PGraphics::stroke(const float a) {
 }
 
 void PGraphics::noStroke() {
-    current_stroke_color.active = false;
+    stroke_state.active = false;
 }

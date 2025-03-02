@@ -43,7 +43,7 @@ namespace umgebung {
                    float x4, float y4, float z4);
     void    bezierDetail(int detail);
     void    pointSize(float point_size);
-    void    circle(float x, float y, float radius);
+    void    circle(float x, float y, float diameter);
     void    ellipse(float x, float y, float width, float height);
     void    ellipseDetail(int detail);
     void    fill(float r, float g, float b, float a = 1.0);
