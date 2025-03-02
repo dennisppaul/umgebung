@@ -125,10 +125,10 @@ namespace umgebung {
         void reset_matrices() override;
 
     private:
-        const uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
-        const uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
-        const uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024;       // 1MB
-        const float    DEFAULT_FOV                            = 2.0f * atan(0.5f); // = 53.1301f;
+        static constexpr uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
+        static constexpr uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
+        static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024;       // 1MB
+        const float               DEFAULT_FOV                            = 2.0f * atan(0.5f); // = 53.1301f;
 
         struct RenderBatch {
             int    start_index;
@@ -140,9 +140,9 @@ namespace umgebung {
         };
 
         struct Vertex {
-            glm::vec3 postition;
+            glm::vec3 position;
             glm::vec4 color;
-            glm::vec2 texture;
+            glm::vec2 tex_coord;
         };
 
         static constexpr uint8_t RENDER_MODE_IMMEDIATE = 0;
@@ -152,7 +152,7 @@ namespace umgebung {
         static constexpr uint8_t RENDER_LINE_AS_QUADS_SEGMENTS                    = 0;
         static constexpr uint8_t RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS = 1;
         static constexpr uint8_t RENDER_LINE_AS_QUADS_WITH_POINTY_CORNERS         = 2;
-        uint8_t                  line_mode                                        = RENDER_LINE_AS_QUADS_SEGMENTS;
+        uint8_t                  line_mode                                        = RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS;
 
         // TOOD create *vertex buffer client* struct for this
         GLuint             fill_shader_program{};
@@ -201,29 +201,38 @@ namespace umgebung {
         /* --- RENDER_MODE_IMMEDIATE (IM) --- */
 
         struct IM_primitive {
-            const uint32_t num_vertices;
-            GLuint         VAO{0};
-            GLuint         VBO{0};
-            explicit IM_primitive(const uint32_t vertices) : num_vertices(vertices) {}
+            GLuint              VAO{0};
+            GLuint              VBO{0};
+            std::vector<Vertex> vertices{};
+            const uint32_t      num_vertices;
+            explicit IM_primitive(const uint32_t vertex_count) : num_vertices(vertex_count) {
+                vertices.resize(vertex_count);
+            }
             bool uninitialized() const {
                 return VAO == 0 || VBO == 0;
             }
         };
 
-        IM_primitive IM_primitive_line{6};
+        // TODO what about textures?!?
+        IM_primitive IM_primitive_line{2};
+        IM_primitive IM_primitive_rect_stroke{5};
+        IM_primitive IM_primitive_rect_fill{4};
         IM_primitive IM_primitive_shape{VBO_BUFFER_CHUNK_SIZE};
 
         std::vector<Vertex> convertQuadsToTriangles(const std::vector<Vertex>& quads) const;
         std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon) const;
         std::vector<Vertex> triangulateConcavePolygon(const std::vector<Vertex>& polygon) const;
 
-        void IM_init_primitive(IM_primitive& primitive) const;
+        static void SHARED_resize_vertex_buffer(size_t buffer_size_bytes);
+        static void SHARED_render_vertex_buffer(IM_primitive& primitive, GLenum mode, const std::vector<Vertex>& shape_vertices);
+        static void SHARED_init_primitive(IM_primitive& primitive);
+
         void IM_render_point(float x1, float y1, float z1);
         void IM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
+        void IM_render_rect(float x, float y, float width, float height);
         void IM_render_begin_shape(int shape);
         void IM_render_end_shape(bool close_shape);
-        void IM_render_shape(IM_primitive& primitive, GLenum mode, std::vector<Vertex>& shape_fill_vertices) const;
-        // TODO render strokes
+        void IM_render_vertex_buffer(IM_primitive& primitive, GLenum mode, std::vector<Vertex>& shape_vertices) const;
 
         // ... triangle ( + textured ), quad ( + textured ), circle, etcetera
 
@@ -236,6 +245,8 @@ namespace umgebung {
         void init_fill_vertice_buffers();
         void createDummyTexture();
 
+        void RM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
+        void RM_render_rect(float x, float y, float width, float height);
         void add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position, const glm::vec4& color, float u = 0.0f, float v = 0.0f);
         void add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint texture_id);
         void to_screen_space(glm::vec3& world_position) const;

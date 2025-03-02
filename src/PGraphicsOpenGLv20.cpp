@@ -54,8 +54,8 @@ void PGraphicsOpenGLv20::background(const float a) {
 }
 
 void PGraphicsOpenGLv20::rect(const float x, const float y, const float width, const float height) {
-    if (current_fill_color.active) {
-        glColor4f(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_fill_color.a);
+    if (fill_state.active) {
+        glColor4f(fill_state.r, fill_state.g, fill_state.b, fill_state.a);
         glBegin(GL_QUADS);
         glVertex2f(x, y);
         glVertex2f(x + width, y);
@@ -63,8 +63,8 @@ void PGraphicsOpenGLv20::rect(const float x, const float y, const float width, c
         glVertex2f(x, y + height);
         glEnd();
     }
-    if (current_stroke_color.active) {
-        glColor4f(current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
+    if (stroke_state.active) {
+        glColor4f(stroke_state.r, stroke_state.g, stroke_state.b, stroke_state.a);
         glBegin(GL_LINE_LOOP);
         glVertex2f(x, y);
         glVertex2f(x + width, y);
@@ -100,13 +100,13 @@ static void draw_ellipse(const GLenum shape,
 }
 
 void PGraphicsOpenGLv20::ellipse(const float x, const float y, const float width, const float height) {
-    if (current_fill_color.active) {
-        glColor4f(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_fill_color.a);
+    if (fill_state.active) {
+        glColor4f(fill_state.r, fill_state.g, fill_state.b, fill_state.a);
         draw_ellipse(GL_TRIANGLE_FAN, fEllipseDetail, x, y, width, height);
     }
 
-    if (current_stroke_color.active) {
-        glColor4f(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_fill_color.a);
+    if (stroke_state.active) {
+        glColor4f(fill_state.r, fill_state.g, fill_state.b, fill_state.a);
         draw_ellipse(GL_LINE_LOOP, fEllipseDetail, x, y, width, height);
     }
 }
@@ -120,10 +120,10 @@ void PGraphicsOpenGLv20::ellipseDetail(const int detail) {
 }
 
 void PGraphicsOpenGLv20::line(const float x1, const float y1, const float x2, const float y2) {
-    if (!current_stroke_color.active) {
+    if (!stroke_state.active) {
         return;
     }
-    glColor4f(current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
+    glColor4f(stroke_state.r, stroke_state.g, stroke_state.b, stroke_state.a);
     glBegin(GL_LINES);
     glVertex2f(x1, y1);
     glVertex2f(x2, y2);
@@ -131,10 +131,10 @@ void PGraphicsOpenGLv20::line(const float x1, const float y1, const float x2, co
 }
 
 void PGraphicsOpenGLv20::line(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2) {
-    if (!current_stroke_color.active) {
+    if (!stroke_state.active) {
         return;
     }
-    glColor4f(current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
+    glColor4f(stroke_state.r, stroke_state.g, stroke_state.b, stroke_state.a);
     glBegin(GL_LINES);
     glVertex3f(x1, y1, z1);
     glVertex3f(x2, y2, z2);
@@ -142,8 +142,8 @@ void PGraphicsOpenGLv20::line(const float x1, const float y1, const float z1, co
 }
 
 void PGraphicsOpenGLv20::triangle(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2, const float x3, const float y3, const float z3) {
-    if (!current_stroke_color.active) {
-        glColor4f(current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
+    if (!stroke_state.active) {
+        glColor4f(stroke_state.r, stroke_state.g, stroke_state.b, stroke_state.a);
         glBegin(GL_TRIANGLES);
         glVertex3f(x1, y1, z1);
         glVertex3f(x2, y2, z2);
@@ -151,8 +151,8 @@ void PGraphicsOpenGLv20::triangle(const float x1, const float y1, const float z1
         glEnd();
         return;
     }
-    if (!current_fill_color.active) {
-        glColor4f(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_stroke_color.a);
+    if (!fill_state.active) {
+        glColor4f(fill_state.r, fill_state.g, fill_state.b, stroke_state.a);
         glBegin(GL_TRIANGLES);
         glVertex3f(x1, y1, z1);
         glVertex3f(x2, y2, z2);
@@ -163,10 +163,10 @@ void PGraphicsOpenGLv20::triangle(const float x1, const float y1, const float z1
 }
 
 void PGraphicsOpenGLv20::bezier(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4) {
-    if (!current_stroke_color.active) {
+    if (!stroke_state.active) {
         return;
     }
-    glColor4f(current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
+    glColor4f(stroke_state.r, stroke_state.g, stroke_state.b, stroke_state.a);
 
     const int   segments = fBezierDetail;
     const float step     = 1.0f / static_cast<float>(segments);
@@ -193,10 +193,10 @@ void PGraphicsOpenGLv20::bezier(const float x1, const float y1, const float z1,
                                 const float x2, const float y2, const float z2,
                                 const float x3, const float y3, const float z3,
                                 const float x4, const float y4, const float z4) {
-    if (!current_stroke_color.active) {
+    if (!stroke_state.active) {
         return;
     }
-    glColor4f(current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
+    glColor4f(stroke_state.r, stroke_state.g, stroke_state.b, stroke_state.a);
 
     const int   segments = fBezierDetail;
     const float step     = 1.0f / static_cast<float>(segments);
@@ -229,10 +229,10 @@ void PGraphicsOpenGLv20::pointSize(const float point_size) {
 }
 
 void PGraphicsOpenGLv20::point(const float x, const float y, const float z) {
-    if (!current_stroke_color.active) {
+    if (!stroke_state.active) {
         return;
     }
-    glColor4f(current_stroke_color.r, current_stroke_color.g, current_stroke_color.b, current_stroke_color.a);
+    glColor4f(stroke_state.r, stroke_state.g, stroke_state.b, stroke_state.a);
 
     //    glPushMatrix();
     //    translate(x - fPointSize * 0.5, y - fPointSize * 0.5, z);
@@ -246,14 +246,14 @@ void PGraphicsOpenGLv20::point(const float x, const float y, const float z) {
 }
 
 void PGraphicsOpenGLv20::beginShape(const int shape) {
-    if (!current_fill_color.active) {
+    if (!fill_state.active) {
         // TODO why not stroke shapes?
         return;
     }
     fShapeBegun = true;
     if (fEnabledTextureInShape) {
     }
-    glColor4f(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_fill_color.a);
+    glColor4f(fill_state.r, fill_state.g, fill_state.b, fill_state.a);
 
     int mShape;
     switch (shape) {
@@ -331,12 +331,12 @@ void PGraphicsOpenGLv20::text_str(const std::string& text, const float x, const 
     if (fCurrentFont == nullptr) {
         return;
     }
-    if (!current_fill_color.active) {
+    if (!fill_state.active) {
         return;
     }
 
 #ifndef DISABLE_GRAPHICS
-    glColor4f(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_fill_color.a);
+    glColor4f(fill_state.r, fill_state.g, fill_state.b, fill_state.a);
     fCurrentFont->draw(text.c_str(), x, y, z);
 #endif // DISABLE_GRAPHICS
 }
@@ -371,7 +371,7 @@ PImage* PGraphicsOpenGLv20::loadImage(const std::string& filename) {
 void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, const float w, const float h) {
 #ifndef DISABLE_GRAPHICS
     glEnable(GL_TEXTURE_2D);
-    glColor4f(current_fill_color.r, current_fill_color.g, current_fill_color.b, current_fill_color.a);
+    glColor4f(fill_state.r, fill_state.g, fill_state.b, fill_state.a);
     img->bind();
 
     glBegin(GL_QUADS);

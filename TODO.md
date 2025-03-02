@@ -13,6 +13,7 @@
     - [ ] add option to draw smooth lines
     - [ ] check *OpenGL ES* behavior
 - [ ] in `PGraphicsDefault2D` implement 3D by manually transforming points onto 2D 
+- [ ] add [`libtess2`](https://github.com/memononen/libtess2) ( fast, 3D ) or [`earcut.hpp`](https://github.com/mapbox/earcut.hpp) ( faster, 2D only ) + `glm` to instructions and brew install file
 
 ### [x] Implement Immediate Mode
 

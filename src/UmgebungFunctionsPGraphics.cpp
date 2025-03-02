@@ -76,11 +76,11 @@ namespace umgebung {
         g->pointSize(point_size);
     }
 
-    void circle(const float x, const float y, const float radius) {
+    void circle(const float x, const float y, const float diameter) {
         if (g == nullptr) {
             return;
         }
-        g->circle(x, y, radius);
+        g->circle(x, y, diameter);
     }
 
     void ellipse(const float x, const float y, const float width, const float height) {

@@ -153,7 +153,7 @@ namespace umgebung {
             bool  active = false;
         };
         // TODO maybe better store rgba as glm::vec4
-        Color current_fill_color{};
-        Color current_stroke_color{};
+        Color fill_state{};
+        Color stroke_state{};
     };
 } // namespace umgebung
