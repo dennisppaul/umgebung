@@ -370,6 +370,20 @@ namespace umgebung {
         g->pixelDensity(density);
     }
 
+    void rectMode(const int mode) {
+        if (g == nullptr) {
+            return;
+        }
+        g->rectMode(mode);
+    }
+
+    void ellipseMode(const int mode) {
+        if (g == nullptr) {
+            return;
+        }
+        g->ellipseMode(mode);
+    }
+
     void hint(const uint16_t property) {
         if (g == nullptr) {
             return;

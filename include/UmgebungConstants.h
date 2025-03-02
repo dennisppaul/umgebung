@@ -28,21 +28,25 @@ namespace umgebung {
     static constexpr float QUARTER_PI           = PI / 4;
     static constexpr float TWO_PI               = PI * 2;
     static constexpr float TAU                  = TWO_PI;
-    static constexpr int   TRIANGLES            = 0;
-    static constexpr int   TRIANGLE_STRIP       = 1;
-    static constexpr int   TRIANGLE_FAN         = 2;
-    static constexpr int   QUADS                = 3;
-    static constexpr int   QUAD_STRIP           = 4;
-    static constexpr int   POLYGON              = 5;
-    static constexpr int   POINTS               = 6;
-    static constexpr int   LINES                = 7;
-    static constexpr int   LINE_STRIP           = 8;
+    static constexpr int   TRIANGLES            = 0x00;
+    static constexpr int   TRIANGLE_STRIP       = 0x01;
+    static constexpr int   TRIANGLE_FAN         = 0x02;
+    static constexpr int   QUADS                = 0x03;
+    static constexpr int   QUAD_STRIP           = 0x04;
+    static constexpr int   POLYGON              = 0x05;
+    static constexpr int   POINTS               = 0x06;
+    static constexpr int   LINES                = 0x07;
+    static constexpr int   LINE_STRIP           = 0x08;
     static constexpr int   LEFT                 = 0;
     static constexpr int   RIGHT                = 1;
     static constexpr int   MIDDLE               = 2;
     static constexpr bool  CLOSE                = true;
     static constexpr bool  NOT_CLOSED           = false;
-
-    static constexpr int HINT_ENABLE_SMOOTH_LINES = 0xD0;
-    static constexpr int HINT_DISABLE_SMOOTH_LINES = 0xD1;
+    static constexpr int   CORNER               = 0x00;
+    static constexpr int   CORNERS              = 0x01;
+    static constexpr int   CENTER               = 0x02;
+    static constexpr int   RADIUS               = 0x03;
+    /* HINTS */
+    static constexpr int HINT_ENABLE_SMOOTH_LINES  = 0xA0;
+    static constexpr int HINT_DISABLE_SMOOTH_LINES = 0xA1;
 } // namespace umgebung

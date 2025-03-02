@@ -42,6 +42,7 @@ sphere() A sphere is a hollow ball made from tessellated triangles
 #endif // DISABLE_GRAPHICS
 
 #include <sstream>
+#include <glm/glm.hpp>
 
 #include "UmgebungConstants.h"
 #include "PImage.h"
@@ -71,6 +72,10 @@ namespace umgebung {
         virtual void stroke(float a);
         virtual void stroke_color(uint32_t c);
         virtual void noStroke();
+        virtual void rectMode(int mode);
+        virtual void ellipseMode(int mode);
+        virtual void ellipseDetail(int detail);
+        virtual void pointSize(float size);
 
         /* --- additional --- */
         virtual void reset_matrices() {} // TODO this should be part of a `beginFrame()` and/or could be handled in `beginDraw()`
@@ -87,7 +92,6 @@ namespace umgebung {
         virtual void    rect(float x, float y, float width, float height)                                                  = 0;
         virtual void    ellipse(float x, float y, float width, float height)                                               = 0;
         virtual void    circle(float x, float y, float radius)                                                             = 0;
-        virtual void    ellipseDetail(int detail)                                                                          = 0;
         virtual void    line(float x1, float y1, float x2, float y2)                                                       = 0;
         virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)                                   = 0;
         virtual void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) = 0;
@@ -96,7 +100,6 @@ namespace umgebung {
         virtual void    bezier(float x1, float y1, float z1, float x2, float y2, float z2,
                                float x3, float y3, float z3, float x4, float y4, float z4)                                 = 0;
         virtual void    bezierDetail(int detail)                                                                           = 0;
-        virtual void    pointSize(float point_size)                                                                        = 0;
         virtual void    point(float x, float y, float z = 0.0f)                                                            = 0;
         virtual void    beginShape(int shape = POLYGON)                                                                    = 0;
         virtual void    endShape(bool close_shape = false)                                                                 = 0;
@@ -145,15 +148,15 @@ namespace umgebung {
         FBO framebuffer{};
 
     protected:
-        struct Color {
-            float r      = 0;
-            float g      = 0;
-            float b      = 0;
-            float a      = 1;
-            bool  active = false;
+        struct ColorState : glm::vec4 {
+            bool active = false;
         };
-        // TODO maybe better store rgba as glm::vec4
-        Color fill_state{};
-        Color stroke_state{};
+        ColorState color_stroke{};
+        ColorState color_fill{};
+
+        uint8_t rect_mode{CORNER};
+        uint8_t ellipse_mode{CENTER};
+        int     ellipse_detail{18};
+        float   point_size{1};
     };
 } // namespace umgebung
