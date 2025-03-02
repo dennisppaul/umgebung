@@ -1359,87 +1359,66 @@ void PGraphicsOpenGLv33::IM_render_rect(const float x, const float y, const floa
         return;
     }
 
-    float x1;
-    float y1;
-    float x2;
-    float y2;
+    // compute rectangle corners using glm::vec2
+    glm::vec2 p1, p2;
     switch (rect_mode) {
         case CORNERS:
-            x1 = x;
-            y1 = y;
-            x2 = width;
-            y2 = height;
+            p1 = {x, y};
+            p2 = {width, height};
             break;
         case CENTER:
-            x1 = x - width / 2;
-            y1 = y - height / 2;
-            x2 = x + width / 2;
-            y2 = y + height / 2;
+            p1 = {x - width * 0.5f, y - height * 0.5f};
+            p2 = {x + width * 0.5f, y + height * 0.5f};
             break;
         case RADIUS:
-            x1 = x - width;
-            y1 = y - height;
-            x2 = x + width;
-            y2 = y + height;
+            p1 = {x - width, y - height};
+            p2 = {x + width, y + height};
             break;
         case CORNER:
         default:
-            x1 = x;
-            y1 = y;
-            x2 = x + width;
-            y2 = y + height;
+            p1 = {x, y};
+            p2 = {x + width, y + height};
             break;
     }
 
+    // define colors once (avoiding redundant glm::vec4 conversions)
+    const glm::vec4 fill_color = color_fill;
+    const glm::vec4 stroke_color = color_stroke;
+    constexpr glm::vec2 tex_coord = {0.0f, 0.0f};
+
+    // define rectangle vertices (shared for fill and stroke)
+    const std::array<glm::vec3, 4> rect_vertices = {
+        glm::vec3{p1.x, p1.y, 0},
+        glm::vec3{p2.x, p1.y, 0},
+        glm::vec3{p2.x, p2.y, 0},
+        glm::vec3{p1.x, p2.y, 0}
+    };
 
     if (color_fill.active) {
         if (IM_primitive_rect_fill.uninitialized()) {
             SHARED_init_primitive(IM_primitive_rect_fill);
         }
-        uint8_t i                                    = 0;
-        IM_primitive_rect_fill.vertices[i].position  = glm::vec3(x1, y1, 0);
-        IM_primitive_rect_fill.vertices[i].color     = glm::vec4(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-        IM_primitive_rect_fill.vertices[i].tex_coord = glm::vec2(0.0f, 0.0f);
-        i++;
-        IM_primitive_rect_fill.vertices[i].position  = glm::vec3(x2, y1, 0);
-        IM_primitive_rect_fill.vertices[i].color     = glm::vec4(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-        IM_primitive_rect_fill.vertices[i].tex_coord = glm::vec2(0.0f, 0.0f);
-        i++;
-        IM_primitive_rect_fill.vertices[i].position  = glm::vec3(x1, y2, 0);
-        IM_primitive_rect_fill.vertices[i].color     = glm::vec4(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-        IM_primitive_rect_fill.vertices[i].tex_coord = glm::vec2(0.0f, 0.0f);
-        i++;
-        IM_primitive_rect_fill.vertices[i].position  = glm::vec3(x2, y2, 0);
-        IM_primitive_rect_fill.vertices[i].color     = glm::vec4(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-        IM_primitive_rect_fill.vertices[i].tex_coord = glm::vec2(0.0f, 0.0f);
 
-        IM_render_vertex_buffer(IM_primitive_rect_fill, GL_TRIANGLE_STRIP, IM_primitive_rect_fill.vertices);
+        for (int i = 0; i < 4; ++i) {
+            IM_primitive_rect_fill.vertices[i].position = rect_vertices[i];
+            IM_primitive_rect_fill.vertices[i].color = fill_color;
+            IM_primitive_rect_fill.vertices[i].tex_coord = tex_coord;
+        }
+
+        IM_render_vertex_buffer(IM_primitive_rect_fill, GL_TRIANGLE_FAN, IM_primitive_rect_fill.vertices);
     }
 
     if (color_stroke.active) {
-        if (IM_primitive_rect_fill.uninitialized()) {
-            SHARED_init_primitive(IM_primitive_rect_fill);
+        if (IM_primitive_rect_stroke.uninitialized()) {
+            SHARED_init_primitive(IM_primitive_rect_stroke);
         }
-        uint8_t i                                      = 0;
-        IM_primitive_rect_stroke.vertices[i].position  = glm::vec3(x1, y1, 0);
-        IM_primitive_rect_stroke.vertices[i].color     = glm::vec4(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-        IM_primitive_rect_stroke.vertices[i].tex_coord = glm::vec2(0.0f, 0.0f);
-        i++;
-        IM_primitive_rect_stroke.vertices[i].position  = glm::vec3(x2, y1, 0);
-        IM_primitive_rect_stroke.vertices[i].color     = glm::vec4(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-        IM_primitive_rect_stroke.vertices[i].tex_coord = glm::vec2(0.0f, 0.0f);
-        i++;
-        IM_primitive_rect_stroke.vertices[i].position  = glm::vec3(x2, y2, 0);
-        IM_primitive_rect_stroke.vertices[i].color     = glm::vec4(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-        IM_primitive_rect_stroke.vertices[i].tex_coord = glm::vec2(0.0f, 0.0f);
-        i++;
-        IM_primitive_rect_stroke.vertices[i].position  = glm::vec3(x1, y2, 0);
-        IM_primitive_rect_stroke.vertices[i].color     = glm::vec4(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-        IM_primitive_rect_stroke.vertices[i].tex_coord = glm::vec2(0.0f, 0.0f);
-        i++;
-        IM_primitive_rect_stroke.vertices[i].position  = glm::vec3(x1, y1, 0);
-        IM_primitive_rect_stroke.vertices[i].color     = glm::vec4(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-        IM_primitive_rect_stroke.vertices[i].tex_coord = glm::vec2(0.0f, 0.0f);
+
+        for (int i = 0; i < 4; ++i) {
+            IM_primitive_rect_stroke.vertices[i].position = rect_vertices[i];
+            IM_primitive_rect_stroke.vertices[i].color = stroke_color;
+            IM_primitive_rect_stroke.vertices[i].tex_coord = tex_coord;
+        }
+        IM_primitive_rect_stroke.vertices[4] = IM_primitive_rect_stroke.vertices[0];
 
         IM_render_vertex_buffer(IM_primitive_rect_stroke, GL_LINE_STRIP, IM_primitive_rect_stroke.vertices);
     }
