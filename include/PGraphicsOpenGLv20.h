@@ -33,10 +33,9 @@ namespace umgebung {
         void    rect(float x, float y, float width, float height) override;
         void    ellipse(float x, float y, float width, float height) override;
         void    circle(float x, float y, float radius) override;
-        void    ellipseDetail(int detail) override;
         void    line(float x1, float y1, float x2, float y2) override;
         void    line(float x1, float y1, float z1, float x2, float y2, float y3) override;
-      void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override;
+        void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override;
         void    bezier(float x1, float y1,
                        float x2, float y2,
                        float x3, float y3,
@@ -89,7 +88,6 @@ namespace umgebung {
         float  fStrokeWeight          = 1;
         bool   fEnabledTextureInShape = false;
         bool   fShapeBegun            = false;
-        int    fEllipseDetail         = 32;
         int    fBezierDetail          = 20;
         int    fPixelDensity          = 1;
         int    fPreviousFBO{};

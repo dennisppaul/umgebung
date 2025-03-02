@@ -28,11 +28,11 @@ PGraphics::PGraphics() : PImage(0, 0, 0) {
 }
 
 void PGraphics::fill(const float r, const float g, const float b, const float alpha) {
-    fill_state.r      = r;
-    fill_state.g      = g;
-    fill_state.b      = b;
-    fill_state.a      = alpha;
-    fill_state.active = true;
+    color_fill.r      = r;
+    color_fill.g      = g;
+    color_fill.b      = b;
+    color_fill.a      = alpha;
+    color_fill.active = true;
 }
 
 void PGraphics::fill(const float gray, const float alpha) {
@@ -40,33 +40,33 @@ void PGraphics::fill(const float gray, const float alpha) {
 }
 
 void PGraphics::fill_color(const uint32_t c) {
-    color_inv(c, fill_state.r, fill_state.g, fill_state.b, fill_state.a);
-    fill_state.active = true;
+    color_inv(c, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+    color_fill.active = true;
 }
 
 void PGraphics::noFill() {
-    fill_state.active = false;
+    color_fill.active = false;
 }
 
 void PGraphics::stroke(const float r, const float g, const float b, const float alpha) {
-    stroke_state.r      = r;
-    stroke_state.g      = g;
-    stroke_state.b      = b;
-    stroke_state.a      = alpha;
-    stroke_state.active = true;
+    color_stroke.r      = r;
+    color_stroke.g      = g;
+    color_stroke.b      = b;
+    color_stroke.a      = alpha;
+    color_stroke.active = true;
 }
 
 void PGraphics::stroke(const float gray, const float alpha) {
-    stroke_state.r      = gray;
-    stroke_state.g      = gray;
-    stroke_state.b      = gray;
-    stroke_state.a      = alpha;
-    stroke_state.active = true;
+    color_stroke.r      = gray;
+    color_stroke.g      = gray;
+    color_stroke.b      = gray;
+    color_stroke.a      = alpha;
+    color_stroke.active = true;
 }
 
 void PGraphics::stroke_color(const uint32_t c) {
-    color_inv(c, stroke_state.r, stroke_state.g, stroke_state.b, stroke_state.a);
-    stroke_state.active = true;
+    color_inv(c, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+    color_stroke.active = true;
 }
 
 void PGraphics::stroke(const float a) {
@@ -74,5 +74,19 @@ void PGraphics::stroke(const float a) {
 }
 
 void PGraphics::noStroke() {
-    stroke_state.active = false;
+    color_stroke.active = false;
 }
+
+void PGraphics::rectMode(const int mode) {
+    rect_mode = mode;
+}
+
+void PGraphics::ellipseMode(const int mode) {
+    ellipse_mode = mode;
+}
+
+void PGraphics::ellipseDetail(const int detail) {
+    ellipse_detail = detail;
+}
+
+void PGraphics::pointSize(const float size) { point_size = size < 1 ? 1 : size; }

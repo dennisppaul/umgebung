@@ -86,4 +86,6 @@ namespace umgebung {
     void    scale(float x, float y, float z);
     void    pixelDensity(int density);
     void    hint(uint16_t property);
+    void    rectMode(int mode);
+    void    ellipseMode(int mode);
 } // namespace umgebung

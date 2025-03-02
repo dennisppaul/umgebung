@@ -26,7 +26,7 @@
 namespace umgebung {
 
     class PGraphicsDefault2D final : public PGraphics {
-        void set_color_f(const Color& c) const {
+        void set_color_f(const ColorState& c) const {
             if (renderer == nullptr) {
                 return;
             }
@@ -63,26 +63,25 @@ namespace umgebung {
             r.y = y;
             r.w = width;
             r.h = height;
-            if (stroke_state.active) {
-                set_color_f(stroke_state);
+            if (color_stroke.active) {
+                set_color_f(color_stroke);
                 SDL_RenderRect(renderer, &r);
             }
-            if (fill_state.active) {
-                set_color_f(fill_state);
+            if (color_fill.active) {
+                set_color_f(color_fill);
                 SDL_RenderFillRect(renderer, &r);
             }
         }
 
         void ellipse(float x, float y, float width, float height) override {}
         void circle(float x, float y, float radius) override {}
-        void ellipseDetail(int detail) override {}
 
         void line(const float x1, const float y1, const float x2, const float y2) override {
             if (renderer == nullptr) {
                 return;
             }
-            if (stroke_state.active) {
-                set_color_f(stroke_state);
+            if (color_stroke.active) {
+                set_color_f(color_stroke);
                 SDL_RenderLine(renderer, x1, y1, x2, y2);
             }
         }
@@ -107,8 +106,8 @@ namespace umgebung {
             if (renderer == nullptr) {
                 return;
             }
-            if (stroke_state.active) {
-                set_color_f(stroke_state);
+            if (color_stroke.active) {
+                set_color_f(color_stroke);
                 SDL_RenderPoint(renderer, x, y);
             }
         }
@@ -134,8 +133,8 @@ namespace umgebung {
             if (renderer == nullptr) {
                 return;
             }
-            if (fill_state.active) {
-                set_color_f(fill_state);
+            if (color_fill.active) {
+                set_color_f(color_fill);
                 SDL_RenderDebugText(renderer, x, y, value);
             }
         }

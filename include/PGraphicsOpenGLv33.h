@@ -37,21 +37,13 @@ namespace umgebung {
         void    rect(float x, float y, float width, float height) override;
         void    ellipse(float x, float y, float width, float height) override;
         void    circle(float x, float y, float diameter) override;
-        void    ellipseDetail(int detail) override;
         void    line(float x1, float y1, float x2, float y2) override;
         void    line(float x1, float y1, float z1, float x2, float y2, float z2) override;
         void    linse(float x1, float y1, float x2, float y2);
         void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override;
-        void    bezier(float x1, float y1,
-                       float x2, float y2,
-                       float x3, float y3,
-                       float x4, float y4) override;
-        void    bezier(float x1, float y1, float z1,
-                       float x2, float y2, float z2,
-                       float x3, float y3, float z3,
-                       float x4, float y4, float z4) override;
+        void    bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) override;
+        void    bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) override;
         void    bezierDetail(int detail) override;
-        void    pointSize(float point_size) override;
         void    point(float x, float y, float z = 0.0f) override;
         void    beginShape(int shape = POLYGON) override;
         void    endShape(bool close_shape = false) override;
@@ -99,10 +91,10 @@ namespace umgebung {
 
                 // Upload matrices
                 const GLint projLoc = glGetUniformLocation(stroke_shader_program, "uProjection");
-                glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection3D)); // or projection2D
+                glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D)); // or projection2D
 
                 const GLint viewLoc = glGetUniformLocation(stroke_shader_program, "uViewMatrix");
-                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 
                 const GLint matrixLoc = glGetUniformLocation(stroke_shader_program, "uModelMatrix");
                 glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix_shader));
@@ -143,6 +135,20 @@ namespace umgebung {
             glm::vec3 position;
             glm::vec4 color;
             glm::vec2 tex_coord;
+            Vertex(const float x, const float y, const float z,
+                   const float r, const float g, const float b, const float a,
+                   const float u, const float v)
+                : position(x, y, z),
+                  color(r, g, b, a),
+                  tex_coord(u, v) {}
+            Vertex(const glm::vec3& position,
+                   const glm::vec4& color,
+                   const glm::vec2& tex_coord)
+                : position(position),
+                  color(color),
+                  tex_coord(tex_coord) {}
+            Vertex() : position(), color(), tex_coord() {}
+            // Vertex() : position(0, 0, 0), color(0, 0, 0, 0), tex_coord(0, 0) {}
         };
 
         static constexpr uint8_t RENDER_MODE_IMMEDIATE = 0;
@@ -171,23 +177,21 @@ namespace umgebung {
         std::vector<RenderBatch> renderBatches;
         glm::mat4                model_matrix_client;
         glm::mat4                model_matrix_shader;
-        std::vector<glm::mat4>   matrixStack;
+        std::vector<glm::mat4>   model_matrix_stack;
         float                    aspectRatio;
-        glm::mat4                projection2D{};
-        glm::mat4                projection3D{};
-        glm::mat4                viewMatrix{};
-        float                    fStrokeWeight{1};
-        int                      fBezierDetail{20};
-        int                      fEllipseDetail{32};
-        int                      fPreviousFBO{};
+        glm::mat4                projection_matrix_2D{};
+        glm::mat4                projection_matrix_3D{};
+        glm::mat4                view_matrix{};
+        float                    stroke_weight{1};
+        int                      bezier_detail{20};
+        int                      previous_FBO{};
         bool                     render_lines_as_quads{true};
         std::vector<glm::vec3>   shape_stroke_vertex_cache{VBO_BUFFER_CHUNK_SIZE}; // TODO maybe add color?
         std::vector<Vertex>      shape_fill_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
-        int                      shape_mode_cache = POLYGON;
+        int                      shape_mode_cache{POLYGON};
 
         // static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
         //        PFont* fCurrentFont           = nullptr;
-        //        float  fPointSize             = 1;
         //        float  fStrokeWeight          = 1;
         //        bool   fEnabledTextureInShape = false;
         //        bool   fShapeBegun            = false;
@@ -230,13 +234,18 @@ namespace umgebung {
         void IM_render_point(float x1, float y1, float z1);
         void IM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
         void IM_render_rect(float x, float y, float width, float height);
-        void IM_render_begin_shape(int shape);
+        void IM_render_ellipse(float x, float y, float width, float height);
+
         void IM_render_end_shape(bool close_shape);
         void IM_render_vertex_buffer(IM_primitive& primitive, GLenum mode, std::vector<Vertex>& shape_vertices) const;
 
         // ... triangle ( + textured ), quad ( + textured ), circle, etcetera
 
         /* --- RENDER_MODE_RETAINED (RM) --- */
+
+        void RM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
+        void RM_render_rect(float x, float y, float width, float height);
+        void RM_render_ellipse(float x, float y, float width, float height);
 
         void flush_stroke();
         void flush_fill();
@@ -245,8 +254,6 @@ namespace umgebung {
         void init_fill_vertice_buffers();
         void createDummyTexture();
 
-        void RM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
-        void RM_render_rect(float x, float y, float width, float height);
         void add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position, const glm::vec4& color, float u = 0.0f, float v = 0.0f);
         void add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint texture_id);
         void to_screen_space(glm::vec3& world_position) const;
