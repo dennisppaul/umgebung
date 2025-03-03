@@ -23,6 +23,8 @@
 #include <cstdint>
 #include <SDL3/SDL.h>
 
+#include "UmgebungConstants.h"
+
 namespace umgebung {
     class PImage {
     public:
@@ -48,7 +50,7 @@ namespace umgebung {
             pixels[y * width + x] = c;
         }
 
-        [[nodiscard]] uint32_t get(const uint16_t x, const uint16_t y) const {
+        uint32_t get(const uint16_t x, const uint16_t y) const {
             if (x >= width || y >= height) {
                 return 0;
             }
@@ -56,11 +58,11 @@ namespace umgebung {
             return c;
         }
 
-        uint16_t     width;
-        uint16_t     height;
+        uint16_t     width;  // TODO maybe change this float
+        uint16_t     height; // TODO maybe change this float
         uint8_t      format;
         uint32_t*    pixels;
-        int          texture_id  = -1;
+        int          texture_id  = NOT_INITIALIZED;
         SDL_Texture* sdl_texture = nullptr;
 
     protected:

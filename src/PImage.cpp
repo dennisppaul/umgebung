@@ -17,6 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "UmgebungConstants.h"
 #include "Umgebung.h"
 #include "PImage.h"
 
@@ -29,6 +30,8 @@
 #endif // DISABLE_GRAPHICS
 
 using namespace umgebung;
+
+// TODO try to remove all OpenGL references
 
 #define RGBA(r, g, b, a) (((uint32_t) (a) << 24) | ((uint32_t) (b) << 16) | ((uint32_t) (g) << 8) | ((uint32_t) (r)))
 
@@ -91,6 +94,9 @@ PImage::PImage(const std::string& filename) : width(0),
 #endif // DISABLE_GRAPHICS
 }
 
+/**
+ * @deprecated this should not use OpenGL directly
+ */
 void PImage::loadPixels() const {
 #ifndef DISABLE_GRAPHICS
     glBindTexture(GL_TEXTURE_2D, texture_id);
@@ -117,43 +123,46 @@ void PImage::init(uint32_t* pixels,
         std::cerr << "unsupported image format, defaulting to RGBA forcing 4 color channels." << std::endl;
         this->format = 4;
     }
-
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-
-    if (texture_id == 0) {
-        error("PImage could not create texture.");
-        texture_id = -1;
-        return;
-    }
-
-    texture_id = static_cast<int>(textureID);
-    glBindTexture(GL_TEXTURE_2D, texture_id);
-
-    // TODO check how to handle formats other than RGBA
-    if (generate_mipmap) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    } else {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-    constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT; // internal format is always RGBA
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 mFormat,
-                 width, height,
-                 0,
-                 mFormat,
-                 UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-                 pixels);
-    if (generate_mipmap) {
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
+    console("NOTE PImage does not initialize OpenGL side anymore.");
+//     GLuint textureID;
+//     glGenTextures(1, &textureID);
+//
+//     console("PImage::init / texture_id: ", texture_id);
+//     console("PImage::init /           : ", textureID);
+//
+//     if (textureID == 0) {
+//         error("PImage could not create texture.");
+//         texture_id = NOT_INITIALIZED;
+//         return;
+//     }
+//
+//     texture_id = static_cast<int>(textureID);
+//     glBindTexture(GL_TEXTURE_2D, texture_id);
+//
+//     // TODO check how to handle formats other than RGBA
+//     if (generate_mipmap) {
+//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//     } else {
+//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//     }
+//     constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT; // internal format is always RGBA
+//     glTexImage2D(GL_TEXTURE_2D,
+//                  0,
+//                  mFormat,
+//                  width, height,
+//                  0,
+//                  mFormat,
+//                  UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+//                  pixels);
+//     if (generate_mipmap) {
+//         glGenerateMipmap(GL_TEXTURE_2D);
+//     }
 #endif // DISABLE_GRAPHICS
 }
 

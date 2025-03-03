@@ -14,6 +14,15 @@
     - [ ] check *OpenGL ES* behavior
 - [ ] in `PGraphicsDefault2D` implement 3D by manually transforming points onto 2D 
 - [ ] add [`libtess2`](https://github.com/memononen/libtess2) ( fast, 3D ) or [`earcut.hpp`](https://github.com/mapbox/earcut.hpp) ( faster, 2D only ) + `glm` to instructions and brew install file
+- [ ] use unordered lists to collect renderbatches:
+    ```C
+    std::unordered_map<GLuint, std::vector<Vertex>> render_vertex_batches;
+    for (const auto& [texture_id, vertices] : render_vertex_batches) {
+        glBindTexture(GL_TEXTURE_2D, texture_id);
+    }
+    ```
+- [ ] @maybe for large begin-end-shapes consider using the shader-based model transform i.e `uModelMatrix`
+- [ ] in *immediate mode* expand lines into quads ( or triangles ) and render them as begin-end-shapes
 
 ### [x] Implement Immediate Mode
 

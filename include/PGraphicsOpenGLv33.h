@@ -79,27 +79,7 @@ namespace umgebung {
 
         /* --- additional methods --- */
 
-        // TODO replace `init()` in PImage constructor with `upload_texture(...)`
-        static bool upload_texture(PImage* image, bool generate_texture_mipmapped);
-
-        void prepare_frame() {
-            if (render_mode == RENDER_MODE_IMMEDIATE) {
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-                glUseProgram(stroke_shader_program);
-
-                // Upload matrices
-                const GLint projLoc = glGetUniformLocation(stroke_shader_program, "uProjection");
-                glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D)); // or projection2D
-
-                const GLint viewLoc = glGetUniformLocation(stroke_shader_program, "uViewMatrix");
-                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-
-                const GLint matrixLoc = glGetUniformLocation(stroke_shader_program, "uModelMatrix");
-                glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix_shader));
-            }
-        }
+        void prepare_frame();
 
         void flush() override {
             if (render_mode == RENDER_MODE_RETAINED) {
@@ -117,11 +97,6 @@ namespace umgebung {
         void reset_matrices() override;
 
     private:
-        static constexpr uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
-        static constexpr uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
-        static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024;       // 1MB
-        const float               DEFAULT_FOV                            = 2.0f * atan(0.5f); // = 53.1301f;
-
         struct RenderBatch {
             int    start_index;
             int    num_vertices;
@@ -151,44 +126,69 @@ namespace umgebung {
             // Vertex() : position(0, 0, 0), color(0, 0, 0, 0), tex_coord(0, 0) {}
         };
 
-        static constexpr uint8_t RENDER_MODE_IMMEDIATE = 0;
-        static constexpr uint8_t RENDER_MODE_RETAINED  = 1;
-        uint8_t                  render_mode           = RENDER_MODE_IMMEDIATE;
+        static constexpr GLint    UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
+        static constexpr GLint    UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
+        static constexpr uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
+        static constexpr uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
+        static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024;       // 1MB
+        const float               DEFAULT_FOV                            = 2.0f * atan(0.5f); // = 53.1301f;
+        static constexpr uint8_t  RENDER_MODE_IMMEDIATE                  = 0;
+        static constexpr uint8_t  RENDER_MODE_RETAINED                   = 1;
+        uint8_t                   render_mode                            = RENDER_MODE_IMMEDIATE;
+        // TODO @RENDER_MODE_RETAINED replace all `add_vertex...` methods with just
+        //     fill ( rendered as `GL_TRIANGLES` ):
+        //     - `RM_fill_add_vertex(Vertex v)`
+        //     - `RM_fill_add_triangle(Vertex v1, Vertex v2, Vertex v3)`
+        //     stroke ( rendered as `GL_LINES` ):
+        //     - `RM_fill_add_vertex(Vertex v)`
+        //     - `RM_fill_add_line(Vertex v1, Vertex v2)`
 
         static constexpr uint8_t RENDER_LINE_AS_QUADS_SEGMENTS                    = 0;
         static constexpr uint8_t RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS = 1;
         static constexpr uint8_t RENDER_LINE_AS_QUADS_WITH_POINTY_CORNERS         = 2;
-        uint8_t                  line_mode                                        = RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS;
+        uint8_t                  render_line_mode                                 = RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS;
 
-        // TOOD create *vertex buffer client* struct for this
+        // TODO create *vertex buffer client* struct for this
+        // TODO remove these and replace them with `PrimitiveVertexArray`:
         GLuint             fill_shader_program{};
-        GLuint             fill_VAO_xyz_rgba_uv = 0;
-        GLuint             fill_VBO_xyz_rgba_uv = 0;
+        GLuint             fill_VAO_xyz_rgba_uv{};
+        GLuint             fill_VBO_xyz_rgba_uv{};
         std::vector<float> fill_vertices_xyz_rgba_uv;
         uint32_t           fill_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
-
         GLuint             stroke_shader_program{};
         GLuint             stroke_VAO_xyz_rgba{};
-        GLuint             stroke_VBO_xyz_rgba = 0;
+        GLuint             stroke_VBO_xyz_rgba{};
         std::vector<float> stroke_vertices_xyz_rgba;
         uint32_t           stroke_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
+        GLuint             texture_id_solid_color{};
+        GLuint             texture_id_current{};
 
-        GLuint                   texture_id_solid_color_default{};
+// #define USE_UNORDERED_MAP
+#ifdef USE_UNORDERED_MAP
+        std::unordered_map<GLuint, std::vector<Vertex>> render_vertex_batches;
+        for (const auto& [texture_id, vertices]: render_vertex_batches) {
+            glBindTexture(GL_TEXTURE_2D, texture_id);
+        }
+        see https : //chatgpt.com/share/67c564b6-c144-8004-a3c3-2252c952d1eb
+#else
         std::vector<RenderBatch> renderBatches;
-        glm::mat4                model_matrix_client;
-        glm::mat4                model_matrix_shader;
-        std::vector<glm::mat4>   model_matrix_stack;
-        float                    aspectRatio;
-        glm::mat4                projection_matrix_2D{};
-        glm::mat4                projection_matrix_3D{};
-        glm::mat4                view_matrix{};
-        float                    stroke_weight{1};
-        int                      bezier_detail{20};
-        int                      previous_FBO{};
-        bool                     render_lines_as_quads{true};
-        std::vector<glm::vec3>   shape_stroke_vertex_cache{VBO_BUFFER_CHUNK_SIZE}; // TODO maybe add color?
-        std::vector<Vertex>      shape_fill_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
-        int                      shape_mode_cache{POLYGON};
+#endif
+
+                    glm::mat4  model_matrix_client;
+        glm::mat4              model_matrix_shader;
+        std::vector<glm::mat4> model_matrix_stack;
+        glm::mat4              projection_matrix_2D{};
+        glm::mat4              projection_matrix_3D{};
+        glm::mat4              view_matrix{};
+        float                  stroke_weight{1};
+        int                    bezier_detail{20};
+        int                    previous_FBO{};
+        bool                   render_lines_as_quads{true};
+        std::vector<glm::vec3> shape_stroke_vertex_cache_vec3_DEPRECATED{VBO_BUFFER_CHUNK_SIZE}; // TODO remove this
+        std::vector<Vertex>    shape_stroke_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
+        std::vector<Vertex>    shape_fill_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
+        int                    shape_mode_cache{POLYGON};
+        bool                   shape_has_begun{false};
 
         // static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
         //        PFont* fCurrentFont           = nullptr;
@@ -204,12 +204,12 @@ namespace umgebung {
 
         /* --- RENDER_MODE_IMMEDIATE (IM) --- */
 
-        struct IM_primitive {
+        struct PrimitiveVertexBuffer {
             GLuint              VAO{0};
             GLuint              VBO{0};
             std::vector<Vertex> vertices{};
             const uint32_t      num_vertices;
-            explicit IM_primitive(const uint32_t vertex_count) : num_vertices(vertex_count) {
+            explicit PrimitiveVertexBuffer(const uint32_t vertex_count) : num_vertices(vertex_count) {
                 vertices.resize(vertex_count);
             }
             bool uninitialized() const {
@@ -218,18 +218,14 @@ namespace umgebung {
         };
 
         // TODO what about textures?!?
-        IM_primitive IM_primitive_line{2};
-        IM_primitive IM_primitive_rect_stroke{5};
-        IM_primitive IM_primitive_rect_fill{4};
-        IM_primitive IM_primitive_shape{VBO_BUFFER_CHUNK_SIZE};
+        PrimitiveVertexBuffer IM_primitive_line{2};
+        PrimitiveVertexBuffer IM_primitive_rect_stroke{5};
+        PrimitiveVertexBuffer IM_primitive_rect_fill{4};
+        PrimitiveVertexBuffer IM_primitive_shape{VBO_BUFFER_CHUNK_SIZE};
 
-        std::vector<Vertex> convertQuadsToTriangles(const std::vector<Vertex>& quads) const;
-        std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon) const;
-        std::vector<Vertex> triangulateConcavePolygon(const std::vector<Vertex>& polygon) const;
-
-        static void SHARED_resize_vertex_buffer(size_t buffer_size_bytes);
-        static void SHARED_render_vertex_buffer(IM_primitive& primitive, GLenum mode, const std::vector<Vertex>& shape_vertices);
-        static void SHARED_init_primitive(IM_primitive& primitive);
+        static std::vector<Vertex> convertQuadsToTriangles(const std::vector<Vertex>& quads);
+        static std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon);
+        std::vector<Vertex>        triangulateConcavePolygon(const std::vector<Vertex>& polygon) const;
 
         void IM_render_point(float x1, float y1, float z1);
         void IM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
@@ -237,7 +233,7 @@ namespace umgebung {
         void IM_render_ellipse(float x, float y, float width, float height);
 
         void IM_render_end_shape(bool close_shape);
-        void IM_render_vertex_buffer(IM_primitive& primitive, GLenum mode, std::vector<Vertex>& shape_vertices) const;
+        void IM_render_vertex_buffer(PrimitiveVertexBuffer& primitive, GLenum mode, std::vector<Vertex>& shape_vertices) const;
 
         // ... triangle ( + textured ), quad ( + textured ), circle, etcetera
 
@@ -252,26 +248,33 @@ namespace umgebung {
         void fill_resize_buffer(uint32_t newSize);
         void init_stroke_vertice_buffers();
         void init_fill_vertice_buffers();
-        void createDummyTexture();
+        void create_solid_color_texture();
 
         void add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position, const glm::vec4& color, float u = 0.0f, float v = 0.0f);
-        void add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint texture_id);
+        void add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint batch_texture_id);
         void to_screen_space(glm::vec3& world_position) const;
         void render_line_strip_as_connected_quads(std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape);
         void render_line_strip_as_quad_segments(const std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape, bool round_corners);
         void draw_filled_ellipse(float x, float y, float width, float height, int detail, const glm::vec4& color);
 
         // TODO remove these:
-        void          add_fill_vertex_xyz_rgba_uv(glm::vec3 position, glm::vec4 color, glm::vec2 tex_coords);
-        void          add_fill_vertex_xyz_rgba_uv_raw(glm::vec3 position, glm::vec4 color, glm::vec2 tex_coords);
-        void          add_fill_vertex_xyz_rgba_uv(float x, float y, float z,
-                                                  float r, float g, float b, float a = 1.0f,
-                                                  float u = 0.0f, float v = 0.0f);
-        void          add_stroke_vertex_xyz_rgba(float x, float y, float z,
-                                                 float r, float g, float b, float a = 1.0f);
-        static GLuint build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
-        static void   checkShaderCompileStatus(GLuint shader);
-        static void   checkProgramLinkStatus(GLuint program);
+        void add_fill_vertex_xyz_rgba_uv(glm::vec3 position, glm::vec4 color, glm::vec2 tex_coords);
+        void add_fill_vertex_xyz_rgba_uv_raw(glm::vec3 position, glm::vec4 color, glm::vec2 tex_coords);
+        void add_fill_vertex_xyz_rgba_uv(float x, float y, float z,
+                                         float r, float g, float b, float a = 1.0f,
+                                         float u = 0.0f, float v = 0.0f);
+        void add_stroke_vertex_xyz_rgba(float x, float y, float z,
+                                        float r, float g, float b, float a = 1.0f);
+        /* --- SHARED --- */
+
+        void          SHARED_bind_texture(GLuint bind_texture_id);
+        void          SHARED_resize_vertex_buffer(size_t buffer_size_bytes) const;
+        void          SHARED_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices) const;
+        void          SHARED_init_vertex_buffer(PrimitiveVertexBuffer& primitive) const;
         static void   printMatrix(const glm::mat4& matrix);
+        static GLuint SHARED_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
+        static void   SHARED_checkShaderCompileStatus(GLuint shader);
+        static void   SHARED_checkProgramLinkStatus(GLuint program);
+        static bool   SHARED_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`
     };
 } // namespace umgebung
