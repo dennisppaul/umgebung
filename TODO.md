@@ -2,12 +2,8 @@
 
 ## Graphics
 
-- [x] fix `uModelMatrix` vs `currentMatrix` double application issue
-- [ ] add *dirty* flag for *model matrix* ( checking against identy for now )
 - [ ] separate transparent + non-transparent primitives
 - [ ] add line caps to lines rendered as quads
-- [x] @optimize add begin-end-lines to optimze and beautify shapes made up of multiple lines ( e.g `rect(...)` or `bezier(...)` )
-- [ ] add begin-end-shape and replace as many of the drawing functions with this … for now
 - [ ] rework option to draw lines as lines primitives 
     - [ ] @maybe always draw *opaque* + `strokeWeight==1` as `GL_LINES`
     - [ ] add option to draw smooth lines
@@ -21,7 +17,6 @@
         glBindTexture(GL_TEXTURE_2D, texture_id);
     }
     ```
-- [ ] @maybe for large begin-end-shapes consider using the shader-based model transform i.e `uModelMatrix`
 - [ ] in *immediate mode* expand lines into quads ( or triangles ) and render them as begin-end-shapes
 - [ ] remove all reference to OpenGL in `PImage`
 - [ ] emulate `GL_LINES` + `GL_LINE_STRIP` in 
@@ -29,32 +24,9 @@
     - [ ] `IM_render_line`
     - [ ] `IM_render_rect` 
     - [ ] `IM_render_ellipse`
-
-### [x] Implement Immediate Mode
-
-add an ( inefficient ) immediate mode that draws primitives. e.g for lines:
-
-```C
-GLuint vao, vbo;
-glm::vec3 lineVertices[] = {
-    glm::vec3(-0.5f, 0.0f, 0.0f),
-    glm::vec3(0.5f, 0.0f, 0.0f)
-};
-
-glGenVertexArrays(1, &vao);
-glBindVertexArray(vao);
-
-glGenBuffers(1, &vbo);
-
-glBindBuffer(GL_ARRAY_BUFFER, vbo);
-glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), lineVertices, GL_STATIC_DRAW);
-
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-glEnableVertexAttribArray(0);
-
-glBindVertexArray(vao);
-glDrawArrays(GL_LINES, 0, 2);
-```
+- [ ] add `PShape` with VAO/VBOs
+- [ ] `GL_POINTS` might need some shader love ( i.e `gl_PointSize` + `gl_PointCoord` for point sprites )
+- [ ] texture coordinates currently go from `[0...1]` in processing 
 
 and this updates the line vertices:
 
@@ -141,3 +113,38 @@ void main() {
     EndPrimitive();
 }
 ```
+
+## Build
+
+- [ ] add `brew install sdl3_ttf`
+- [ ] add `brew install glm`
+
+## Archived
+
+- [x] @maybe for large begin-end-shapes consider using the shader-based model transform i.e `uModelMatrix` @archived(2025-03-03) @from(Umgebung / TODO > Graphics) @done(2025-03-03)
+- [x] add begin-end-shape and replace as many of the drawing functions with this … for now @archived(2025-03-03) @from(Umgebung / TODO > Graphics) @done(2025-03-03)
+- [x] add *dirty* flag for *model matrix* ( checking against identy for now ) @archived(2025-03-03) @from(Umgebung / TODO > Graphics) @done(2025-03-03)
+- [x] add an ( inefficient ) immediate mode that draws primitives. e.g for lines: @archived(2025-03-03) @from(Umgebung / TODO > Graphics) @done(2025-03-03)
+    ```C
+    GLuint vao, vbo;
+    glm::vec3 lineVertices[] = {
+        glm::vec3(-0.5f, 0.0f, 0.0f),
+        glm::vec3(0.5f, 0.0f, 0.0f)
+    };
+    
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    
+    glGenBuffers(1, &vbo);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), lineVertices, GL_STATIC_DRAW);
+    
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    
+    glBindVertexArray(vao);
+    glDrawArrays(GL_LINES, 0, 2);
+    ```
+- [x] @optimize add begin-end-lines to optimze and beautify shapes made up of multiple lines ( e.g `rect(...)` or `bezier(...)` ) @archived(2025-03-03) @from(Umgebung / TODO > Graphics) @done(2025-03-03)
+- [x] fix `uModelMatrix` vs `currentMatrix` double application issue @archived(2025-03-03) @from(Umgebung / TODO > Graphics) @done(2025-03-03)

@@ -1,5 +1,5 @@
 /*
-* Umgebung
+ * Umgebung
  *
  * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
  * Copyright (c) 2025 Dennis P Paul.
@@ -83,7 +83,6 @@ namespace umgebung {
     private:
         static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
 
-        PFont* fCurrentFont           = nullptr;
         float  fPointSize             = 1;
         float  fStrokeWeight          = 1;
         bool   fEnabledTextureInShape = false;

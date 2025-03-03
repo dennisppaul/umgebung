@@ -34,41 +34,41 @@ namespace umgebung {
         void    strokeWeight(float weight) override;
         void    background(float a, float b, float c, float d = 1.0f) override;
         void    background(float a) override;
-        void    rect(float x, float y, float width, float height) override;
-        void    ellipse(float x, float y, float width, float height) override;
-        void    circle(float x, float y, float diameter) override;
-        void    line(float x1, float y1, float x2, float y2) override;
-        void    line(float x1, float y1, float z1, float x2, float y2, float z2) override;
-        void    linse(float x1, float y1, float x2, float y2);
-        void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override;
-        void    bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) override;
-        void    bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) override;
-        void    bezierDetail(int detail) override;
-        void    point(float x, float y, float z = 0.0f) override;
-        void    beginShape(int shape = POLYGON) override;
-        void    endShape(bool close_shape = false) override;
-        void    vertex(float x, float y, float z = 0.0f) override;
-        void    vertex(float x, float y, float z, float u, float v) override;
+        void    rect(float x, float y, float width, float height) override;                                                                              // NOTE: done
+        void    ellipse(float x, float y, float width, float height) override;                                                                           // NOTE: done
+        void    circle(float x, float y, float diameter) override;                                                                                       // NOTE: done
+        void    line(float x1, float y1, float x2, float y2) override;                                                                                   // NOTE: done
+        void    line(float x1, float y1, float z1, float x2, float y2, float z2) override;                                                               // NOTE: done
+        void    linse(float x1, float y1, float x2, float y2);                                                                                           // NOTE: done
+        void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override;                             // NOTE: done
+        void    bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) override;                                         // NOTE: done
+        void    bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) override; // NOTE: done
+        void    bezierDetail(int detail) override;                                                                                                       // NOTE: done
+        void    point(float x, float y, float z = 0.0f) override;                                                                                        // NOTE: done
+        void    beginShape(int shape = POLYGON) override;                                                                                                // NOTE: done
+        void    endShape(bool close_shape = false) override;                                                                                             // NOTE: done
+        void    vertex(float x, float y, float z = 0.0f) override;                                                                                       // NOTE: done
+        void    vertex(float x, float y, float z, float u, float v) override;                                                                            // NOTE: done
         PFont*  loadFont(const std::string& file, float size) override;
         void    textFont(PFont* font) override;
         void    textSize(float size) override;
         void    text(const char* value, float x, float y, float z = 0.0f) override;
         float   textWidth(const std::string& text) override;
-        PImage* loadImage(const std::string& filename) override;
-        void    image(PImage* img, float x, float y, float w, float h) override;
-        void    image(PImage* img, float x, float y) override;
-        void    texture(PImage* img) override;
-        void    popMatrix() override;
-        void    pushMatrix() override;
-        void    translate(float x, float y, float z = 0.0f) override;
-        void    rotateX(float angle) override;
-        void    rotateY(float angle) override;
-        void    rotateZ(float angle) override;
-        void    rotate(float angle) override;
-        void    rotate(float angle, float x, float y, float z) override;
-        void    scale(float x) override;
-        void    scale(float x, float y) override;
-        void    scale(float x, float y, float z) override;
+        PImage* loadImage(const std::string& filename) override;                 // NOTE: done
+        void    image(PImage* img, float x, float y, float w, float h) override; // NOTE: done
+        void    image(PImage* img, float x, float y) override;                   // NOTE: done
+        void    texture(PImage* img) override;                                   // NOTE: done
+        void    popMatrix() override;                                            // NOTE: done
+        void    pushMatrix() override;                                           // NOTE: done
+        void    translate(float x, float y, float z = 0.0f) override;            // NOTE: done
+        void    rotateX(float angle) override;                                   // NOTE: done
+        void    rotateY(float angle) override;                                   // NOTE: done
+        void    rotateZ(float angle) override;                                   // NOTE: done
+        void    rotate(float angle) override;                                    // NOTE: done
+        void    rotate(float angle, float x, float y, float z) override;         // NOTE: done
+        void    scale(float x) override;                                         // NOTE: done
+        void    scale(float x, float y) override;                                // NOTE: done
+        void    scale(float x, float y, float z) override;                       // NOTE: done
         void    pixelDensity(int density) override;
         void    hint(uint16_t property) override;
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
@@ -95,6 +95,8 @@ namespace umgebung {
         }
 
         void reset_matrices() override;
+        void bind_texture(const int texture_id) override { glBindTexture(GL_TEXTURE_2D, texture_id); }
+        void unbind_texture() override { glBindTexture(GL_TEXTURE_2D, texture_id_solid_color); }
 
     private:
         struct RenderBatch {
@@ -174,9 +176,10 @@ namespace umgebung {
         std::vector<RenderBatch> renderBatches;
 #endif
 
-                    glm::mat4  model_matrix_client;
-        glm::mat4              model_matrix_shader;
-        std::vector<glm::mat4> model_matrix_stack;
+                    glm::mat4  model_matrix_client{};
+        glm::mat4              model_matrix_shader{};
+        std::vector<glm::mat4> model_matrix_stack{};
+        bool                   model_matrix_dirty{false};
         glm::mat4              projection_matrix_2D{};
         glm::mat4              projection_matrix_3D{};
         glm::mat4              view_matrix{};
@@ -268,9 +271,9 @@ namespace umgebung {
         /* --- SHARED --- */
 
         void          SHARED_bind_texture(GLuint bind_texture_id);
-        static void          SHARED_resize_vertex_buffer(size_t buffer_size_bytes) ;
-        static void          SHARED_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices) ;
-        static void          SHARED_init_vertex_buffer(PrimitiveVertexBuffer& primitive) ;
+        static void   SHARED_resize_vertex_buffer(size_t buffer_size_bytes);
+        static void   SHARED_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);
+        static void   SHARED_init_vertex_buffer(PrimitiveVertexBuffer& primitive);
         static void   printMatrix(const glm::mat4& matrix);
         static GLuint SHARED_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
         static void   SHARED_checkShaderCompileStatus(GLuint shader);

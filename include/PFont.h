@@ -37,8 +37,6 @@
 
 #ifndef DISABLE_GRAPHICS
 
-#include <stdint.h>
-
 #include <GL/glew.h>
 #include <FTGL/ftgl.h>
 
@@ -50,7 +48,7 @@ namespace umgebung {
 
     class PFont {
     public:
-        PFont(const char* file, float size, float pixelDensity = 1) {
+        PFont(const char* file, const float size, const float pixelDensity = 1) {
 #ifndef DISABLE_GRAPHICS
             font = new FTTextureFont(file);
             if (font->Error()) {
@@ -63,7 +61,7 @@ namespace umgebung {
 #endif // DISABLE_GRAPHICS
         }
 
-        void size(float size) {
+        void size(const float size) const {
 #ifndef DISABLE_GRAPHICS
             if (font == nullptr) {
                 return;
@@ -72,21 +70,21 @@ namespace umgebung {
 #endif
         }
 
-        void draw(const char* text, float x, float y, float z) {
+        void draw(const char* text, const float x, const float y, const float z) const {
 #ifndef DISABLE_GRAPHICS
             if (font == nullptr) {
                 return;
             }
-            glPushMatrix();
-            glTranslatef(x, y, z);
-            const float scaleFactor = 1.f / fPixelDensity;
-            glScalef(scaleFactor, -scaleFactor, scaleFactor);
+            // glPushMatrix();
+            // glTranslatef(x, y, z);
+            // const float scaleFactor = 1.f / fPixelDensity;
+            // glScalef(scaleFactor, -scaleFactor, scaleFactor);
             font->Render(text, -1, FTPoint(0, 0));
-            glPopMatrix();
+            // glPopMatrix();
 #endif
         }
 
-        float textWidth(const char* text) {
+        float textWidth(const char* text) const {
 #ifndef DISABLE_GRAPHICS
             if (font == nullptr) {
                 return 0;

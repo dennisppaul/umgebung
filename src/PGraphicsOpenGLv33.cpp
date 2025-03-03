@@ -8,7 +8,7 @@
 
 using namespace umgebung;
 
-PGraphicsOpenGLv33::PGraphicsOpenGLv33() : PImage(0, 0, 0), model_matrix_client(), model_matrix_shader() {}
+PGraphicsOpenGLv33::PGraphicsOpenGLv33() : PImage(0, 0, 0) {}
 
 void PGraphicsOpenGLv33::strokeWeight(const float weight) {
     stroke_weight = weight;
@@ -197,12 +197,24 @@ static bool are_almost_parallel(const glm::vec3& n1, const glm::vec3& n2, const 
     // return fabs(dotProduct) > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::bezierDetail(const int detail) {
     bezier_detail = detail;
 }
 
-void PGraphicsOpenGLv33::point(float x, float y, float z) {}
+// NOTE: done
+void PGraphicsOpenGLv33::point(const float x, const float y, const float z) {
+    // TODO this could be replaced by dedicated shader, also point size might not wqork in all contexts
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        beginShape(POINTS);
+        vertex(x, y, z);
+        endShape();
+    }
+    if (render_mode == RENDER_MODE_RETAINED) {
+    }
+}
 
+// NOTE: done
 void PGraphicsOpenGLv33::beginShape(const int shape) {
     shape_fill_vertex_cache.clear();
     shape_stroke_vertex_cache.clear();
@@ -211,6 +223,7 @@ void PGraphicsOpenGLv33::beginShape(const int shape) {
     shape_has_begun  = true;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::endShape(const bool close_shape) {
     if (render_mode == RENDER_MODE_IMMEDIATE) {
         IM_render_end_shape(close_shape);
@@ -236,10 +249,12 @@ void PGraphicsOpenGLv33::endShape(const bool close_shape) {
     shape_has_begun = false;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::vertex(const float x, const float y, const float z) {
     vertex(x, y, z, 0, 0);
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::vertex(const float x, const float y, const float z, const float u, const float v) {
     if (!color_stroke.active && !color_fill.active) {
         return;
@@ -259,17 +274,57 @@ void PGraphicsOpenGLv33::vertex(const float x, const float y, const float z, con
     }
 }
 
-PFont* PGraphicsOpenGLv33::loadFont(const std::string& file, float size) { return nullptr; }
-void   PGraphicsOpenGLv33::textFont(PFont* font) {}
-void   PGraphicsOpenGLv33::textSize(float size) {}
-void   PGraphicsOpenGLv33::text(const char* value, float x, float y, float z) {}
-float  PGraphicsOpenGLv33::textWidth(const std::string& text) { return 0.0f; }
+PFont* PGraphicsOpenGLv33::loadFont(const std::string& file, float size) {
+    auto* font = new PFont(file.c_str(), size, static_cast<float>(pixel_density));
+    return font;
+}
 
+void PGraphicsOpenGLv33::textFont(PFont* font) {
+    fCurrentFont = font;
+}
+
+void PGraphicsOpenGLv33::textSize(float size) {
+    if (fCurrentFont == nullptr) {
+        return;
+    }
+    fCurrentFont->size(size);
+}
+
+void PGraphicsOpenGLv33::text(const char* value, float x, float y, float z) {
+    text_str(value, x, y, z);
+}
+
+float PGraphicsOpenGLv33::textWidth(const std::string& text) {
+    if (fCurrentFont == nullptr) {
+        return 0;
+    }
+
+#ifndef DISABLE_GRAPHICS
+    return fCurrentFont->textWidth(text.c_str());
+#endif // DISABLE_GRAPHICS
+}
+
+void PGraphicsOpenGLv33::text_str(const std::string& text, float x, float y, float z) {
+    if (fCurrentFont == nullptr) {
+        return;
+    }
+    if (!color_fill.active) {
+        return;
+    }
+
+#ifndef DISABLE_GRAPHICS
+    // glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+    fCurrentFont->draw(text.c_str(), x, y, z);
+#endif // DISABLE_GRAPHICS
+}
+
+// NOTE: done
 PImage* PGraphicsOpenGLv33::loadImage(const std::string& filename) {
     auto* img = new PImage(filename);
     return img;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y, float w, float h) {
     if (!color_fill.active) {
         return;
@@ -281,10 +336,10 @@ void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y, float 
     }
 
     if (w < 0) {
-        w = static_cast<float>(img->width);
+        w = img->width;
     }
     if (h < 0) {
-        h = static_cast<float>(img->height);
+        h = img->height;
     }
 
     if (img->texture_id == NOT_INITIALIZED) {
@@ -300,12 +355,6 @@ void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y, float 
         const uint8_t tmp_texture_id_current = texture_id_current;
         SHARED_bind_texture(img->texture_id);
         rect(x, y, w, h);
-        // beginShape(TRIANGLE_FAN);
-        // vertex(x, y, 0, 0, 0);
-        // vertex(x + w, y, 0, 1, 0);
-        // vertex(x + w, y + h, 0, 1, 1);
-        // vertex(x, y + h, 0, 0, 1);
-        // endShape();
         if (tmp_texture_id_current != img->texture_id) {
             SHARED_bind_texture(tmp_texture_id_current);
         }
@@ -332,12 +381,20 @@ void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y, float 
     }
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y) {
     image(img, x, y, img->width, img->height);
 }
 
-void PGraphicsOpenGLv33::texture(PImage* img) {}
+// NOTE: done
+void PGraphicsOpenGLv33::texture(PImage* img) {
+    if (img == nullptr) {
+        return;
+    }
+    SHARED_bind_texture(img->texture_id);
+}
 
+// NOTE: done
 void PGraphicsOpenGLv33::popMatrix() {
     if (!model_matrix_stack.empty()) {
         model_matrix_client = model_matrix_stack.back();
@@ -345,47 +402,68 @@ void PGraphicsOpenGLv33::popMatrix() {
     }
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::pushMatrix() {
     model_matrix_stack.push_back(model_matrix_client);
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::translate(const float x, const float y, const float z) {
     model_matrix_client = glm::translate(model_matrix_client, glm::vec3(x, y, z));
+    model_matrix_dirty  = true;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::rotateX(const float angle) {
     model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(1.0f, 0.0f, 0.0f));
+    model_matrix_dirty  = true;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::rotateY(const float angle) {
     model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+    model_matrix_dirty  = true;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::rotateZ(const float angle) {
     model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    model_matrix_dirty  = true;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::rotate(const float angle) {
     model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    model_matrix_dirty  = true;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::rotate(const float angle, const float x, const float y, const float z) {
     model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(x, y, z));
+    model_matrix_dirty  = true;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::scale(const float x) {
     model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, x, x));
+    model_matrix_dirty  = true;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::scale(const float x, const float y) {
     model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, y, 1));
+    model_matrix_dirty  = true;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::scale(const float x, const float y, const float z) {
     model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, y, z));
+    model_matrix_dirty  = true;
 }
 
-void PGraphicsOpenGLv33::pixelDensity(int density) {}
+void PGraphicsOpenGLv33::pixelDensity(int density) {
+    pixel_density = density;
+}
 
 void PGraphicsOpenGLv33::hint(const uint16_t property) {
     if (property == HINT_ENABLE_SMOOTH_LINES) {
@@ -393,8 +471,6 @@ void PGraphicsOpenGLv33::hint(const uint16_t property) {
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     }
 }
-
-void PGraphicsOpenGLv33::text_str(const std::string& text, float x, float y, float z) {}
 
 void PGraphicsOpenGLv33::beginDraw() {
     // TODO this is NOT OpenGL3.3 code.
@@ -480,22 +556,23 @@ void PGraphicsOpenGLv33::prepare_frame() {
 void PGraphicsOpenGLv33::reset_matrices() {
     model_matrix_shader = glm::mat4(1.0f);
     model_matrix_client = glm::mat4(1.0f);
+    model_matrix_dirty  = false;
 
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, static_cast<GLint>(width), static_cast<GLint>(height));
 
     // Orthographic projection
-    projection_matrix_2D = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
+    projection_matrix_2D = glm::ortho(0.0f, width, height, 0.0f);
 
-    const float fov            = DEFAULT_FOV;                                           // distance from the camera = screen height
-    const float cameraDistance = (static_cast<float>(height) / 2.0f) / tan(fov / 2.0f); // 1 unit = 1 pixel
+    const float fov            = DEFAULT_FOV;                       // distance from the camera = screen height
+    const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f); // 1 unit = 1 pixel
 
     // Perspective projection
-    projection_matrix_3D = glm::perspective(fov, static_cast<float>(width) / static_cast<float>(height), 0.1f, 10000.0f);
+    projection_matrix_3D = glm::perspective(fov, width / height, 0.1f, 10000.0f);
 
     view_matrix = glm::lookAt(
-        glm::vec3(static_cast<float>(width) / 2.0f, static_cast<float>(height) / 2.0f, -cameraDistance), // Flip Z to fix X-axis
-        glm::vec3(static_cast<float>(width) / 2.0f, static_cast<float>(height) / 2.0f, 0.0f),            // Look at the center
-        glm::vec3(0.0f, -1.0f, 0.0f)                                                                     // Keep Y-up as normal
+        glm::vec3(width / 2.0f, height / 2.0f, -cameraDistance), // Flip Z to fix X-axis
+        glm::vec3(width / 2.0f, height / 2.0f, 0.0f),            // Look at the center
+        glm::vec3(0.0f, -1.0f, 0.0f)                             // Keep Y-up as normal
     );
 }
 
@@ -585,8 +662,8 @@ bool PGraphicsOpenGLv33::SHARED_upload_image_as_texture(PImage* image, const boo
     glTexImage2D(GL_TEXTURE_2D,
                  0,
                  UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                 image->width,
-                 image->height,
+                 static_cast<GLint>(image->width),
+                 static_cast<GLint>(image->height),
                  0,
                  UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
                  UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
@@ -860,7 +937,8 @@ void PGraphicsOpenGLv33::init_stroke_vertice_buffers() {
 
     // Position Attribute (Location 0) -> 3 floats (x, y, z)
     constexpr int NUM_POSITION_ATTRIBUTES = 3;
-    glVertexAttribPointer(0, NUM_POSITION_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, static_cast<void*>(0));
+    // ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
+    glVertexAttribPointer(0, NUM_POSITION_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, static_cast<void*>(0)); // NOLINT(*-use-nullptr)
     glEnableVertexAttribArray(0);
 
     // Color Attribute (Location 1) -> 4 floats (r, g, b, a)
@@ -885,7 +963,8 @@ void PGraphicsOpenGLv33::init_fill_vertice_buffers() {
 
     // Position Attribute (Location 0) -> 3 floats (x, y, z)
     constexpr int NUM_POSITION_ATTRIBUTES = 3;
-    glVertexAttribPointer(0, NUM_POSITION_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, static_cast<void*>(0));
+    // ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
+    glVertexAttribPointer(0, NUM_POSITION_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, static_cast<void*>(0)); // NOLINT(*-use-nullptr)
     glEnableVertexAttribArray(0);
 
     // Color Attribute (Location 1) -> 4 floats (r, g, b, a)
@@ -1522,8 +1601,8 @@ void PGraphicsOpenGLv33::IM_render_ellipse(const float x, const float y, const f
     float i_f = 0.0f;
     for (int i = 0; i <= ellipse_detail; ++i, i_f += 1.0f) {
         const float theta = deltaTheta * i_f;
-        points.emplace_back(x + radiusX * cosf(theta),
-                            y + radiusY * sinf(theta),
+        points.emplace_back(x + radiusX * ellipse_points_LUT[i].x,
+                            y + radiusY * ellipse_points_LUT[i].y,
                             0.0f);
     }
 
@@ -1565,8 +1644,7 @@ void PGraphicsOpenGLv33::IM_render_vertex_buffer(PrimitiveVertexBuffer& primitiv
 
     static constexpr int MAX_NUM_VERTICES_CLIENT_SIDE_TRANSFORM = 4; // NOTE all shapes *up to* quads are transformed on CPU
     bool                 mModelMatrixTransformOnGPU             = false;
-    // TODO replace this with a `model_matrix_client_dirty` flag
-    if (model_matrix_client != glm::mat4(1.0f)) {
+    if (model_matrix_dirty) {
         // NOTE depending on the number of vertices transformation are handle on the GPU
         if (shape_vertices.size() <= MAX_NUM_VERTICES_CLIENT_SIDE_TRANSFORM) {
             for (auto& p: shape_vertices) {
