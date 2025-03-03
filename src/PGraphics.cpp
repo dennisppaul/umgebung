@@ -25,6 +25,7 @@ using namespace umgebung;
 PGraphics::PGraphics() : PImage(0, 0, 0) {
     PGraphics::fill(1.0f);
     PGraphics::stroke(0.0f);
+    PGraphics::ellipseDetail(ELLIPSE_DETAIL_DEFAULT);
 }
 
 void PGraphics::fill(const float r, const float g, const float b, const float alpha) {
@@ -86,7 +87,24 @@ void PGraphics::ellipseMode(const int mode) {
 }
 
 void PGraphics::ellipseDetail(const int detail) {
+    if (ellipse_detail == detail) {
+        return;
+    }
     ellipse_detail = detail;
+    resize_ellipse_points_LUT(ellipse_detail);
 }
 
 void PGraphics::pointSize(const float size) { point_size = size < 1 ? 1 : size; }
+
+void PGraphics::resize_ellipse_points_LUT(const int detail) {
+    ellipse_points_LUT.clear();
+    ellipse_points_LUT.resize(ellipse_detail + 1); // Resize instead of reserve
+
+    constexpr float PI         = 3.14159265358979323846f;
+    const float     deltaTheta = (2.0f * PI) / static_cast<float>(ellipse_detail);
+
+    for (int i = 0; i <= ellipse_detail; ++i) {
+        const float theta     = deltaTheta * static_cast<float>(i);
+        ellipse_points_LUT[i] = {std::cos(theta), std::sin(theta)};
+    }
+}

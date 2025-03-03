@@ -55,8 +55,9 @@ namespace umgebung {
 
     class PGraphics : public virtual PImage {
     public:
-        static constexpr uint16_t ENABLE_SMOOTH_LINES  = 0;
-        static constexpr uint16_t DISABLE_SMOOTH_LINES = 1;
+        static constexpr uint16_t ENABLE_SMOOTH_LINES    = 0;
+        static constexpr uint16_t DISABLE_SMOOTH_LINES   = 1;
+        static constexpr uint16_t ELLIPSE_DETAIL_DEFAULT = 18;
 
         PGraphics();
         ~PGraphics() override = default;
@@ -80,6 +81,8 @@ namespace umgebung {
         /* --- additional --- */
         virtual void reset_matrices() {} // TODO this should be part of a `beginFrame()` and/or could be handled in `beginDraw()`
         virtual void flush() {}          // TODO this should be renamed to `endFrame()` and could maybe be handle in `endDraw()`
+        virtual void bind_texture(int texture_id) {}
+        virtual void unbind_texture() {}
 
         /* --- interface --- */
 
@@ -156,12 +159,17 @@ namespace umgebung {
             return {color.r, color.g, color.b, color.a};
         }
 
-        ColorState color_stroke{};
-        ColorState color_fill{};
+        void    resize_ellipse_points_LUT(int detail);
+        uint8_t get_pixel_density() const { return pixel_density; }
 
-        uint8_t rect_mode{CORNER};
-        uint8_t ellipse_mode{CENTER};
-        int     ellipse_detail{18};
-        float   point_size{1};
+        PFont*                 fCurrentFont = nullptr;
+        ColorState             color_stroke{};
+        ColorState             color_fill{};
+        uint8_t                rect_mode{CORNER};
+        uint8_t                ellipse_mode{CENTER};
+        int                    ellipse_detail{0};
+        std::vector<glm::vec2> ellipse_points_LUT;
+        float                  point_size{1};
+        uint8_t                pixel_density{1};
     };
 } // namespace umgebung

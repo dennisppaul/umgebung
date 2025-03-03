@@ -137,7 +137,7 @@ target_include_directories(umgebung-lib PUBLIC
 add_library(umgebung-lib-interface INTERFACE)
 
 if (NOT DISABLE_MAIN)
-target_compile_definitions(${PROJECT_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)
 else ()
     message(STATUS "DISABLE_MAIN  : no `main` function entry point. must be defined in project.")
 endif (NOT DISABLE_MAIN)
@@ -281,27 +281,17 @@ endif ()
 if (NOT DISABLE_GRAPHICS)
     # OpenGL + GLEW + FTGL
     pkg_search_module(GLEW REQUIRED glew)
-    pkg_search_module(FTGL REQUIRED ftgl)
+    pkg_search_module(FTGL REQUIRED ftgl) # NOTE may be removed in the future
     pkg_search_module(GLM REQUIRED glm) # TODO add to brew file
+    find_package(OpenGL REQUIRED)
+    find_package(SDL3 CONFIG REQUIRED)
+    find_package(SDL3_ttf CONFIG REQUIRED)
+
     if (APPLE)
-#          pkg_search_module(SDL3 REQUIRED sdl3)
-       find_package(SDL3 REQUIRED)
-#        find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared) # TODO maybe use more specific find_package
-#        message(STATUS "SDL3_LIBRARIES: ${SDL3_LIBRARIES}")
-#        message(STATUS "SDL3_INCLUDE……: ${SDL3_INCLUDE_DIRS}")
-        find_package(OpenGL REQUIRED) # or `OPENGL`
     elseif (UNIX)
-        #        pkg_search_module(SDL3 REQUIRED sdl3)
-        find_package(SDL3 REQUIRED)
-        find_package(OpenGL REQUIRED)
     elseif (WIN32)
-        find_package(OpenGL REQUIRED)
-        find_package(SDL3 REQUIRED)
     else ()
         message(STATUS "plattform may not be supported.")
-        #        pkg_search_module(SDL3 REQUIRED sdl3)
-        find_package(SDL3 REQUIRED)
-        find_package(OpenGL REQUIRED)
     endif ()
 
     # FFMPEG
@@ -326,8 +316,7 @@ if (NOT DISABLE_AUDIO)
     if (ENABLE_PORTAUDIO)
         pkg_search_module(PORTAUDIO REQUIRED portaudio-2.0)
     else (ENABLE_PORTAUDIO)
-        #        pkg_search_module(SDL3 REQUIRED sdl3)
-        find_package(SDL3 REQUIRED)
+        find_package(SDL3 CONFIG REQUIRED)
     endif (ENABLE_PORTAUDIO)
 endif (NOT DISABLE_AUDIO)
 
@@ -365,14 +354,17 @@ endif ()
 
 # GRAPHICS + VIDEO + AUDIO
 if (NOT DISABLE_AUDIO)
+    # TODO always add portaudio?!?
     target_link_libraries(${PROJECT_NAME} ${PORTAUDIO_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${PORTAUDIO_INCLUDE_DIRS})
 endif (NOT DISABLE_AUDIO)
 
 if (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
-    find_package(SDL3 CONFIG REQUIRED)
-    target_link_libraries(${PROJECT_NAME} ${SDL3_LIBRARIES})
+    #    target_link_libraries(${PROJECT_NAME} ${SDL3_LIBRARIES} SDL3_ttf::SDL3_ttf)
+    target_link_libraries(${PROJECT_NAME} SDL3_ttf::SDL3_ttf SDL3::SDL3) # NOTE not sure about these explicit lib names
     target_include_directories(${PROJECT_NAME} PUBLIC ${SDL3_INCLUDE_DIRS})
+
+    #    target_link_libraries(my_project PRIVATE SDL3::SDL3 SDL3_ttf::SDL3_ttf)
 
     # IMGUI
     if (ENABLE_IMGUI)
