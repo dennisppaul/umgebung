@@ -251,11 +251,11 @@ namespace umgebung {
         void create_solid_color_texture();
 
         void add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position, const glm::vec4& color, float u = 0.0f, float v = 0.0f);
-        void add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint batch_texture_id);
+        void RM_add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint batch_texture_id);
         void to_screen_space(glm::vec3& world_position) const;
-        void render_line_strip_as_connected_quads(std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape);
-        void render_line_strip_as_quad_segments(const std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape, bool round_corners);
-        void draw_filled_ellipse(float x, float y, float width, float height, int detail, const glm::vec4& color);
+        void RM_render_line_strip_as_connected_quads(std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape);
+        void RM_render_line_strip_as_quad_segments(const std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape, bool round_corners);
+        void RM_render_ellipse_filled(float x, float y, float width, float height, int detail, const glm::vec4& color);
 
         // TODO remove these:
         void add_fill_vertex_xyz_rgba_uv(glm::vec3 position, glm::vec4 color, glm::vec2 tex_coords);
@@ -268,9 +268,9 @@ namespace umgebung {
         /* --- SHARED --- */
 
         void          SHARED_bind_texture(GLuint bind_texture_id);
-        void          SHARED_resize_vertex_buffer(size_t buffer_size_bytes) const;
-        void          SHARED_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices) const;
-        void          SHARED_init_vertex_buffer(PrimitiveVertexBuffer& primitive) const;
+        static void          SHARED_resize_vertex_buffer(size_t buffer_size_bytes) ;
+        static void          SHARED_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices) ;
+        static void          SHARED_init_vertex_buffer(PrimitiveVertexBuffer& primitive) ;
         static void   printMatrix(const glm::mat4& matrix);
         static GLuint SHARED_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
         static void   SHARED_checkShaderCompileStatus(GLuint shader);
