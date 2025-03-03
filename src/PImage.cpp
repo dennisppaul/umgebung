@@ -17,7 +17,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "UmgebungConstants.h"
 #include "Umgebung.h"
 #include "PImage.h"
 
@@ -30,8 +29,6 @@
 #endif // DISABLE_GRAPHICS
 
 using namespace umgebung;
-
-// TODO try to remove all OpenGL references
 
 #define RGBA(r, g, b, a) (((uint32_t) (a) << 24) | ((uint32_t) (b) << 16) | ((uint32_t) (g) << 8) | ((uint32_t) (r)))
 
@@ -46,8 +43,8 @@ PImage::PImage() : width(0),
     /* note that PImage is not initialized with any data in this constructor branch */
 }
 
-PImage::PImage(const int width, const int height, const int format) : width(width),
-                                                                      height(height),
+PImage::PImage(const int width, const int height, const int format) : width(static_cast<float>(width)),
+                                                                      height(static_cast<float>(height)),
                                                                       format(format),
                                                                       pixels(nullptr) {
     const int length = width * height;
@@ -116,53 +113,14 @@ void PImage::init(uint32_t* pixels,
         return;
     }
     this->pixels = pixels;
-    this->width  = width;
-    this->height = height;
+    this->width  = static_cast<float>(width);
+    this->height = static_cast<float>(height);
     this->format = format;
     if (format != 4) {
         std::cerr << "unsupported image format, defaulting to RGBA forcing 4 color channels." << std::endl;
         this->format = 4;
     }
     console("NOTE PImage does not initialize OpenGL side anymore.");
-//     GLuint textureID;
-//     glGenTextures(1, &textureID);
-//
-//     console("PImage::init / texture_id: ", texture_id);
-//     console("PImage::init /           : ", textureID);
-//
-//     if (textureID == 0) {
-//         error("PImage could not create texture.");
-//         texture_id = NOT_INITIALIZED;
-//         return;
-//     }
-//
-//     texture_id = static_cast<int>(textureID);
-//     glBindTexture(GL_TEXTURE_2D, texture_id);
-//
-//     // TODO check how to handle formats other than RGBA
-//     if (generate_mipmap) {
-//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//     } else {
-//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//     }
-//     constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT; // internal format is always RGBA
-//     glTexImage2D(GL_TEXTURE_2D,
-//                  0,
-//                  mFormat,
-//                  width, height,
-//                  0,
-//                  mFormat,
-//                  UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-//                  pixels);
-//     if (generate_mipmap) {
-//         glGenerateMipmap(GL_TEXTURE_2D);
-//     }
 #endif // DISABLE_GRAPHICS
 }
 
@@ -201,7 +159,7 @@ void PImage::update_full_internal() const {
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glTexSubImage2D(GL_TEXTURE_2D,
                     0, 0, 0,
-                    width, height,
+                    static_cast<int>(width), static_cast<int>(height),
                     mFormat,
                     UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
                     pixels);
@@ -226,8 +184,8 @@ void PImage::update(const uint32_t* pixel_data,
 
     // Ensure the region is within bounds
     if (offset_x < 0 || offset_y < 0 ||
-        offset_x + _width > width ||
-        offset_y + _height > height) {
+        offset_x + _width > static_cast<int>(this->width) ||
+        offset_y + _height > static_cast<int>(this->height)) {
         std::cerr << "subregion is out of bounds" << std::endl;
         return;
     }
@@ -235,7 +193,7 @@ void PImage::update(const uint32_t* pixel_data,
     for (int y = 0; y < _height; ++y) {
         for (int x = 0; x < _width; ++x) {
             const int src_index  = y * _width + x;
-            const int dest_index = (offset_y + y) * width + (offset_x + x);
+            const int dest_index = (offset_y + y) * static_cast<int>(this->width) + (offset_x + x);
             pixels[dest_index]   = pixel_data[src_index];
         }
     }
@@ -252,11 +210,11 @@ void PImage::update(const uint32_t* pixel_data,
 }
 
 void PImage::update(const uint32_t* pixel_data) const {
-    update(pixel_data, width, height, 0, 0);
+    update(pixel_data, static_cast<int>(this->width), static_cast<int>(this->height), 0, 0);
 }
 
 void PImage::updatePixels() const {
-    update(pixels, width, height, 0, 0);
+    update(pixels, static_cast<int>(this->width), static_cast<int>(this->height), 0, 0);
 }
 
 void PImage::updatePixels(const int x, const int y, const int w, const int h) const {
@@ -265,14 +223,14 @@ void PImage::updatePixels(const int x, const int y, const int w, const int h) co
         return;
     }
 
-    if (x < 0 || y < 0 || x + w > width || y + h > height) {
+    if (x < 0 || y < 0 || x + w > static_cast<int>(this->width) || y + h > static_cast<int>(this->height)) {
         return;
     }
 
     const int length  = w * h;
     auto*     mPixels = new uint32_t[length];
     for (int i = 0; i < length; ++i) {
-        const int src_index = (y + i / w) * width + (x + i % w);
+        const int src_index = (y + i / w) * static_cast<int>(this->width) + (x + i % w);
         mPixels[i]          = pixels[src_index];
     }
     update(mPixels, w, h, x, y);

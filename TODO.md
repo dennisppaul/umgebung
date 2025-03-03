@@ -6,7 +6,7 @@
 - [ ] add *dirty* flag for *model matrix* ( checking against identy for now )
 - [ ] separate transparent + non-transparent primitives
 - [ ] add line caps to lines rendered as quads
-- [ ] @optimize add begin-end-lines to optimze and beautify shapes made up of multiple lines ( e.g `rect(...)` or `bezier(...)` )
+- [x] @optimize add begin-end-lines to optimze and beautify shapes made up of multiple lines ( e.g `rect(...)` or `bezier(...)` )
 - [ ] add begin-end-shape and replace as many of the drawing functions with this … for now
 - [ ] rework option to draw lines as lines primitives 
     - [ ] @maybe always draw *opaque* + `strokeWeight==1` as `GL_LINES`
@@ -23,6 +23,12 @@
     ```
 - [ ] @maybe for large begin-end-shapes consider using the shader-based model transform i.e `uModelMatrix`
 - [ ] in *immediate mode* expand lines into quads ( or triangles ) and render them as begin-end-shapes
+- [ ] remove all reference to OpenGL in `PImage`
+- [ ] emulate `GL_LINES` + `GL_LINE_STRIP` in 
+    - [ ] `IM_render_end_shape`
+    - [ ] `IM_render_line`
+    - [ ] `IM_render_rect` 
+    - [ ] `IM_render_ellipse`
 
 ### [x] Implement Immediate Mode
 

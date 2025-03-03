@@ -44,22 +44,22 @@ namespace umgebung {
         void update(const float* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
 
         void set(const uint16_t x, const uint16_t y, const uint32_t c) const {
-            if (x >= width || y >= height) {
+            if (x >= static_cast<uint16_t>(width) || y >= static_cast<uint16_t>(height)) {
                 return;
             }
-            pixels[y * width + x] = c;
+            pixels[y * static_cast<uint16_t>(width) + x] = c;
         }
 
         uint32_t get(const uint16_t x, const uint16_t y) const {
-            if (x >= width || y >= height) {
+            if (x >= static_cast<uint16_t>(width) || y >= static_cast<uint16_t>(height)) {
                 return 0;
             }
-            const uint32_t c = pixels[y * width + x];
+            const uint32_t c = pixels[y * static_cast<uint16_t>(width) + x];
             return c;
         }
 
-        uint16_t     width;  // TODO maybe change this float
-        uint16_t     height; // TODO maybe change this float
+        float        width;
+        float        height;
         uint8_t      format;
         uint32_t*    pixels;
         int          texture_id  = NOT_INITIALIZED;
