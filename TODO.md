@@ -118,6 +118,16 @@ void main() {
 
 - [ ] add `brew install sdl3_ttf`
 - [ ] add `brew install glm`
+- [ ] fetch mit cmake?!?
+    ```cmake
+    include(FetchContent)
+    FetchContent_Declare(
+        SDL3_ttf
+        URL https://github.com/libsdl-org/SDL_ttf/releases/latest/download/SDL3_ttf-3.2.2.tar.gz
+    )
+    FetchContent_MakeAvailable(SDL3_ttf)
+    target_link_libraries(my_project PRIVATE SDL3_ttf::SDL3_ttf)
+    ```
 
 ## Archived
 

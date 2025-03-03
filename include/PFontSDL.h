@@ -19,13 +19,11 @@
 
 #pragma once
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <map>
+#include <cstring>
 
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
-#include <SDL3/SDL_opengl.h>
 
 #include "Umgebung.h"
 
@@ -34,7 +32,168 @@ namespace umgebung {
 
     class PFontSDL {
     public:
-        explicit PFontSDL(const std::string& font_file) : font(nullptr) {
+        struct Glyph {
+            float               x{}, y{}, w{}, h{};     // Texture atlas coordinates
+            int                 advanceX{};             // How much to move right
+            int                 bearingX{}, bearingY{}; // Offset
+            std::map<char, int> kerning;                // Kerning adjustments
+        };
+
+        std::map<char, Glyph> fontAtlas;
+        GLuint                textureAtlas{};
+        static constexpr int  ATLAS_WIDTH  = 1024;
+        static constexpr int  ATLAS_HEIGHT = 1024;
+
+        void create_atlas() {
+            if (font == nullptr) {
+                error("could not create font atlas");
+                return;
+            }
+
+            constexpr SDL_Color forecol = {0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE};
+
+            SDL_Surface* atlasSurface = SDL_CreateSurface(ATLAS_WIDTH, ATLAS_HEIGHT, SDL_PIXELFORMAT_RGBA32);
+            SDL_SetSurfaceBlendMode(atlasSurface, SDL_BLENDMODE_NONE);
+
+            int x = 0, y = 0, maxHeight = 0;
+            for (Uint32 c = 32; c < 127; ++c) {
+                Uint8         saved_alpha;
+                SDL_BlendMode saved_mode;
+
+                SDL_Surface* glyphSurface = TTF_RenderGlyph_Blended(font, c, SDL_Color{255, 255, 255, 255});
+                SDL_GetSurfaceAlphaMod(glyphSurface, &saved_alpha);
+                SDL_SetSurfaceAlphaMod(glyphSurface, 0xFF);
+                SDL_GetSurfaceBlendMode(glyphSurface, &saved_mode);
+                SDL_SetSurfaceBlendMode(glyphSurface, SDL_BLENDMODE_NONE);
+                if (!glyphSurface) {
+                    continue;
+                }
+
+                if (x + glyphSurface->w > ATLAS_WIDTH) {
+                    x = 0;
+                    y += maxHeight + 2;
+                    maxHeight = 0;
+                }
+
+                SDL_Rect dstRect = {x, y, glyphSurface->w, glyphSurface->h};
+                SDL_BlitSurface(glyphSurface, nullptr, atlasSurface, &dstRect);
+
+                SDL_SetSurfaceAlphaMod(glyphSurface, saved_alpha);
+                SDL_SetSurfaceBlendMode(glyphSurface, saved_mode);
+
+                Glyph g;
+                g.x = static_cast<float>(x) / static_cast<float>(ATLAS_WIDTH);
+                g.y = static_cast<float>(y) / static_cast<float>(ATLAS_HEIGHT);
+                g.w = static_cast<float>(glyphSurface->w) / static_cast<float>(ATLAS_WIDTH);
+                g.h = static_cast<float>(glyphSurface->h) / static_cast<float>(ATLAS_HEIGHT);
+                TTF_GetGlyphMetrics(font, c, &g.bearingX, nullptr, &g.bearingY, nullptr, &g.advanceX);
+                // console("bearing: ", c, " > ", g.bearingX, ", ", g.bearingY);
+
+                // When building the atlas
+                for (Uint32 k = 32; k < 127; ++k) {
+                    int        kerningOffset;
+                    const bool success = TTF_GetGlyphKerning(font, k, c, &kerningOffset);
+                    if (success && kerningOffset != 0) {
+                        g.kerning[k] = kerningOffset;
+                        console("kerning pair: ", k, " > ", c, " = ", kerningOffset);
+                    }
+                }
+
+                fontAtlas[c] = g;
+                x += glyphSurface->w + 2;
+                maxHeight = std::max(maxHeight, glyphSurface->h);
+
+                SDL_DestroySurface(glyphSurface);
+            }
+
+            glGenTextures(1, &textureAtlas);
+            glBindTexture(GL_TEXTURE_2D, textureAtlas);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D,
+                         0,
+                         GL_RGBA,
+                         ATLAS_WIDTH,
+                         ATLAS_HEIGHT,
+                         0,
+                         GL_RGBA,
+                         GL_UNSIGNED_BYTE,
+                         atlasSurface->pixels);
+            glGenerateMipmap(GL_TEXTURE_2D);
+
+            if (!TTF_GetFontKerning(font)) {
+                console("Warning: Font does not support kerning!");
+            }
+
+            SDL_DestroySurface(atlasSurface);
+        }
+
+        struct Vertex {
+            glm::vec3 position;
+            glm::vec2 tex_coord;
+            Vertex(const float x, const float y, const float u, const float v)
+                : position(x, y, 0), tex_coord(u, v) {}
+        };
+
+        void render(PGraphics* g, const std::string& text, float x, const float y, const float scale, const float y_position_scale) {
+            g->bind_texture(static_cast<int>(textureAtlas));
+
+            std::vector<Vertex> vertices;
+            char                prevChar = 0;
+
+            for (char c: text) {
+                if (fontAtlas.find(c) == fontAtlas.end()) {
+                    continue;
+                }
+
+                Glyph& glyph = fontAtlas[c];
+
+                // Apply kerning adjustment from the previous character
+                const int kerningOffset = (prevChar && glyph.kerning.count(prevChar)) ? glyph.kerning[prevChar] : 0;
+                x += static_cast<float>(kerningOffset) * scale;
+
+                // float       xpos = x + static_cast<float>(glyph.bearingX) * scale*y_position_scale;
+                // float       ypos = y - static_cast<float>(glyph.bearingY) * scale*y_position_scale;
+                float       xpos = x;
+                float       ypos = y;
+                const float w    = glyph.w * ATLAS_WIDTH * scale;
+                const float h    = glyph.h * ATLAS_HEIGHT * scale;
+                float       u0 = glyph.x, v0 = glyph.y;
+                float       u1 = glyph.x + glyph.w, v1 = glyph.y + glyph.h;
+
+                vertices.emplace_back(xpos, ypos + h, u0, v1);
+                vertices.emplace_back(xpos + w, ypos, u1, v0);
+                vertices.emplace_back(xpos, ypos, u0, v0);
+
+                vertices.emplace_back(xpos, ypos + h, u0, v1);
+                vertices.emplace_back(xpos + w, ypos + h, u1, v1);
+                vertices.emplace_back(xpos + w, ypos, u1, v0);
+
+                x += static_cast<float>(glyph.advanceX) * scale;
+                prevChar = c;
+            }
+
+            g->beginShape(TRIANGLES);
+            for (const auto v: vertices) {
+                g->vertex(v.position.x,
+                          v.position.y,
+                          v.position.z,
+                          v.tex_coord.x,
+                          v.tex_coord.y);
+            }
+            g->endShape();
+
+            g->unbind_texture();
+        }
+
+        /* ----------------------------------------------------------------------------------------------------- */
+        /* ----------------------------------------------------------------------------------------------------- */
+        /* ----------------------------------------------------------------------------------------------------- */
+        /* ----------------------------------------------------------------------------------------------------- */
+        /* ----------------------------------------------------------------------------------------------------- */
+        /* ----------------------------------------------------------------------------------------------------- */
+
+        explicit PFontSDL(const std::string& font_file, const float size) : font(nullptr) {
 
             /* Initialize the TTF library */
             if (!TTF_initialized) {
@@ -46,13 +205,22 @@ namespace umgebung {
             }
 
             console("font_file: ", font_file);
-            font = TTF_OpenFont(font_file.c_str(), ptsize);
+            ptsize = size;
+            font   = TTF_OpenFont(font_file.c_str(), ptsize);
 
             if (font == nullptr) {
                 error("Couldn't load ", ptsize, " pt font from '", font_file, "' ", SDL_GetError());
                 return;
             }
+
+            if (TTF_FontIsFixedWidth(font)) {
+                console("font is fixed width");
+            }
+
+            TTF_SetFontKerning(font, true);
             TTF_SetFontStyle(font, renderstyle);
+
+            create_atlas();
 
             constexpr SDL_Color forecol = {0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE};
             // constexpr SDL_Color backcol = {0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE};
@@ -70,7 +238,8 @@ namespace umgebung {
             //         }
             //     }
             // }
-            const auto   message = "hello world";
+            // const auto   message = "Hamburgefonts";
+            const auto   message = "AVTAWaToVAWeYoyo Hamburgefonts";
             SDL_Surface* text    = TTF_RenderText_Blended(font, message, 0, forecol);
             if (text == nullptr) {
                 error("Couldn't render text: ", SDL_GetError());
@@ -105,7 +274,7 @@ namespace umgebung {
 
         int     width{0};
         int     height{0};
-        GLfloat texcoord[4];
+        GLfloat texcoord[4]{};
         GLuint  texture_id{0};
 
     private:
@@ -138,10 +307,10 @@ namespace umgebung {
             h = (surface->h);
             // w           = power_of_two(surface->w);
             // h           = power_of_two(surface->h);
-            texcoord[0] = 0.0f;                                 /* Min X */
-            texcoord[1] = 0.0f;                                 /* Min Y */
-            texcoord[2] = static_cast<GLfloat>(surface->w) / w; /* Max X */
-            texcoord[3] = static_cast<GLfloat>(surface->h) / h; /* Max Y */
+            texcoord[0] = 0.0f;                                                     /* Min X */
+            texcoord[1] = 0.0f;                                                     /* Min Y */
+            texcoord[2] = static_cast<GLfloat>(surface->w) / static_cast<float>(w); /* Max X */
+            texcoord[3] = static_cast<GLfloat>(surface->h) / static_cast<float>(h); /* Max Y */
 
             SDL_Surface* image = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_RGBA32);
             if (image == nullptr) {
@@ -168,7 +337,6 @@ namespace umgebung {
             /* Create an OpenGL texture for the image */
             glGenTextures(1, &texture);
             glBindTexture(GL_TEXTURE_2D, texture);
-
 
             // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
