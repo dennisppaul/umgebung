@@ -9,7 +9,7 @@
     5. [x] SDL_render ( 2D only )
 3. [x] port current *OpenGL 2.0* to *OpenGL 3.3*
 4. [x] transition to SDL3
-5. [x] add imgui
+5. [ ] add imgui
 6. [ ] add more SDL functions
 7. [ ] test platforms ( e.g RPI + iOS + WASM )
 
