@@ -342,12 +342,14 @@ void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y, float 
         h = img->height;
     }
 
+    // TODO move this to own method and share with `texture()`
     if (img->texture_id == NOT_INITIALIZED) {
         SHARED_upload_image_as_texture(img, true);
         if (img->texture_id == NOT_INITIALIZED) {
             error("image cannot create texture.");
             return;
         }
+        console("uploaded texture image to GPU");
     }
 
     if (render_mode == RENDER_MODE_IMMEDIATE) {
@@ -391,6 +393,17 @@ void PGraphicsOpenGLv33::texture(PImage* img) {
     if (img == nullptr) {
         return;
     }
+
+    // TODO move this to own method and share with `texture()`
+    if (img->texture_id == NOT_INITIALIZED) {
+        SHARED_upload_image_as_texture(img, true);
+        if (img->texture_id == NOT_INITIALIZED) {
+            error("image cannot create texture.");
+            return;
+        }
+        console("uploaded texture image to GPU");
+    }
+
     SHARED_bind_texture(img->texture_id);
 }
 

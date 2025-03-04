@@ -159,17 +159,18 @@ namespace umgebung {
             return {color.r, color.g, color.b, color.a};
         }
 
-        void    resize_ellipse_points_LUT(int detail);
+        void    resize_ellipse_points_LUT();
         uint8_t get_pixel_density() const { return pixel_density; }
 
-        PFont*                 fCurrentFont = nullptr;
-        ColorState             color_stroke{};
-        ColorState             color_fill{};
-        uint8_t                rect_mode{CORNER};
-        uint8_t                ellipse_mode{CENTER};
-        int                    ellipse_detail{0};
-        std::vector<glm::vec2> ellipse_points_LUT;
-        float                  point_size{1};
-        uint8_t                pixel_density{1};
+        static constexpr uint16_t MIN_ELLIPSE_DETAIL = 3;
+        PFont*                    fCurrentFont       = nullptr;
+        ColorState                color_stroke{};
+        ColorState                color_fill{};
+        uint8_t                   rect_mode{CORNER};
+        uint8_t                   ellipse_mode{CENTER};
+        int                       ellipse_detail{0};
+        std::vector<glm::vec2>    ellipse_points_LUT;
+        float                     point_size{1};
+        uint8_t                   pixel_density{1};
     };
 } // namespace umgebung

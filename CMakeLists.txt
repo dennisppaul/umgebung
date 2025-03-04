@@ -281,11 +281,13 @@ endif ()
 if (NOT DISABLE_GRAPHICS)
     # OpenGL + GLEW + FTGL
     pkg_search_module(GLEW REQUIRED glew)
-    pkg_search_module(FTGL REQUIRED ftgl) # NOTE may be removed in the future
+    pkg_search_module(FTGL REQUIRED ftgl) # NOTE @deprecated may be removed in the future
     pkg_search_module(GLM REQUIRED glm) # TODO add to brew file
     find_package(OpenGL REQUIRED)
     find_package(SDL3 CONFIG REQUIRED)
     find_package(SDL3_ttf CONFIG REQUIRED)
+    pkg_search_module(HARFBUZZ REQUIRED harfbuzz)
+    pkg_check_modules(FREETYPE REQUIRED freetype2)
 
     if (APPLE)
     elseif (UNIX)
@@ -360,11 +362,13 @@ if (NOT DISABLE_AUDIO)
 endif (NOT DISABLE_AUDIO)
 
 if (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
-    #    target_link_libraries(${PROJECT_NAME} ${SDL3_LIBRARIES} SDL3_ttf::SDL3_ttf)
-    target_link_libraries(${PROJECT_NAME} SDL3_ttf::SDL3_ttf SDL3::SDL3) # NOTE not sure about these explicit lib names
+    target_link_libraries(${PROJECT_NAME} ${HARFBUZZ_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${HARFBUZZ_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} ${FREETYPE_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${FREETYPE_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} SDL3_ttf::SDL3_ttf) # NOTE not sure about these explicit lib names
+    target_link_libraries(${PROJECT_NAME} SDL3::SDL3) # NOTE not sure about these explicit lib names
     target_include_directories(${PROJECT_NAME} PUBLIC ${SDL3_INCLUDE_DIRS})
-
-    #    target_link_libraries(my_project PRIVATE SDL3::SDL3 SDL3_ttf::SDL3_ttf)
 
     # IMGUI
     if (ENABLE_IMGUI)

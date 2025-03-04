@@ -21,7 +21,7 @@
 - [ ] add *immediate* mode
 - [ ] add dedicated bins for transparent and non-transparent primitives in *retained* mode
 - [ ] MSAA FBOs
-- [ ] implemnt line width
+    - [ ] implement line width
 
 #### MSAA FBOs
 
