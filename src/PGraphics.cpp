@@ -90,13 +90,20 @@ void PGraphics::ellipseDetail(const int detail) {
     if (ellipse_detail == detail) {
         return;
     }
+    if (detail < MIN_ELLIPSE_DETAIL) {
+        // error("ellipseDetail too small: ", detail, ". must be at least ", MIN_ELLIPSE_DETAIL);
+        return;
+    }
     ellipse_detail = detail;
-    resize_ellipse_points_LUT(ellipse_detail);
+    resize_ellipse_points_LUT();
 }
 
 void PGraphics::pointSize(const float size) { point_size = size < 1 ? 1 : size; }
 
-void PGraphics::resize_ellipse_points_LUT(const int detail) {
+void PGraphics::resize_ellipse_points_LUT() {
+    if (ellipse_detail < MIN_ELLIPSE_DETAIL) {
+        return;
+    }
     ellipse_points_LUT.clear();
     ellipse_points_LUT.resize(ellipse_detail + 1); // Resize instead of reserve
 

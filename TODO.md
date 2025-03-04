@@ -128,6 +128,8 @@ void main() {
     FetchContent_MakeAvailable(SDL3_ttf)
     target_link_libraries(my_project PRIVATE SDL3_ttf::SDL3_ttf)
     ```
+- [ ] add `stb_image_write.h`
+- [ ] add `FreeType2` and `Harfbuzz`
 
 ## Archived
 
