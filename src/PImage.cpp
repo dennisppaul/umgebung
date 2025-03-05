@@ -17,12 +17,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define PIMAGE_INCLUDE_OPENGL
-
-#ifdef PIMAGE_INCLUDE_OPENGL
-#include <GL/glew.h>
-#endif // PIMAGE_INCLUDE_OPENGL
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -31,11 +25,6 @@
 #include "PGraphics.h"
 
 using namespace umgebung;
-
-#define RGBA(r, g, b, a) (((uint32_t) (a) << 24) | ((uint32_t) (b) << 16) | ((uint32_t) (g) << 8) | ((uint32_t) (r)))
-
-static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
-static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
 
 PImage::PImage() : width(0),
                    height(0),
@@ -132,21 +121,13 @@ void PImage::update(PGraphics*   graphics,
 }
 
 void PImage::update_full_internal(PGraphics* graphics) {
-    // constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT;
-    // glBindTexture(GL_TEXTURE_2D, texture_id);
-    // glTexSubImage2D(GL_TEXTURE_2D,
-    //                 0, 0, 0,
-    //                 static_cast<int>(width), static_cast<int>(height),
-    //                 mFormat,
-    //                 UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-    //                 pixels);
     graphics->upload_image(this,
                            pixels,
                            static_cast<int>(width), static_cast<int>(height),
                            0, 0, true);
 }
 
-void PImage::update(PGraphics* graphics, uint32_t* pixel_data) {
+void PImage::update(PGraphics* graphics, const uint32_t* pixel_data) {
     update(graphics, pixel_data, static_cast<int>(this->width), static_cast<int>(this->height), 0, 0);
 }
 
@@ -182,20 +163,7 @@ void PImage::loadPixels(PGraphics* graphics) {
         return;
     }
     graphics->download_image(this);
-    // glBindTexture(GL_TEXTURE_2D, texture_id);
-    // glGetTexImage(GL_TEXTURE_2D, 0,
-    //               UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-    //               UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-    //               pixels);
 }
-
-// /**
-//  * @deprecated this should not use OpenGL directly
-// */
-// void PImage::bind() {
-//     // move this to PGraphics?!?
-//     glBindTexture(GL_TEXTURE_2D, texture_id);
-// }
 
 void PImage::update(PGraphics*      graphics,
                     const uint32_t* pixel_data,
