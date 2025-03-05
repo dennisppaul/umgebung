@@ -570,14 +570,24 @@ void PGraphicsOpenGLv33::upload_image(PImage*         img,
 
     if (img->texture_id < TEXTURE_VALID_ID) {
         SHARED_upload_image_as_texture(img, mipmapped);
-        console("PGraphics / `upload_image` texture has not been intialized yet … trying to initialize");
+        console("PGraphics / `upload_image` texture has not been initialized yet … trying to initialize");
         if (img->texture_id < TEXTURE_VALID_ID) {
             error("PGraphics / `upload_image` failed to create texture");
             return;
         }
     }
 
-    // TODO could try to check width again img->width etcetera
+    // Check if the provided width, height, and offsets are within the valid range
+    if (width <= 0 || height <= 0) {
+        error("PGraphics / `upload_image` invalid width or height");
+        return;
+    }
+
+    if (offset_x < 0 || offset_y < 0 || offset_x + width > img->width || offset_y + height > img->height) {
+        error("PGraphics / `upload_image` parameters exceed image dimensions");
+        return;
+    }
+
     glBindTexture(GL_TEXTURE_2D, img->texture_id);
     constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT; // internal format is always RGBA
     glTexSubImage2D(GL_TEXTURE_2D,
