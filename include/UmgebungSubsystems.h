@@ -38,7 +38,7 @@ struct Subsystem {
 
 struct SubsystemGraphics : Subsystem {
     void (*set_flags)(uint32_t& subsystem_flags);
-    PGraphics* (*create_graphics)(int width, int height);
+    PGraphics* (*create_graphics)(bool render_to_offscreen);
 };
 
 struct SubsystemAudio : Subsystem {

@@ -34,9 +34,8 @@ static_assert(std::is_same_v<GLfloat, float>,
 
 using namespace umgebung;
 
-// TODO look into OpenGL 3 e.g https://github.com/opengl-tutorials/ogl/
-
-PGraphicsOpenGLv20::PGraphicsOpenGLv20() : PImage(0, 0, 0) {
+PGraphicsOpenGLv20::PGraphicsOpenGLv20(const bool render_to_offscreen) : PImage(0, 0, 0) {
+    this->render_to_offscreen = render_to_offscreen;
 }
 
 void PGraphicsOpenGLv20::strokeWeight(const float weight) {
@@ -224,9 +223,9 @@ void PGraphicsOpenGLv20::bezierDetail(const int detail) {
     fBezierDetail = detail;
 }
 
-void PGraphicsOpenGLv20::pointSize(const float point_size) {
-    if (point_size >= OPENGL_POINT_SIZE_MIN && point_size <= OPENGL_POINT_SIZE_MAX) {
-        fPointSize = point_size;
+void PGraphicsOpenGLv20::pointSize(const float size) {
+    if (size >= open_gl_capabilities.point_size_min && size <= open_gl_capabilities.point_size_max) {
+        fPointSize = size;
     }
 }
 
@@ -234,6 +233,8 @@ void PGraphicsOpenGLv20::point(const float x, const float y, const float z) {
     if (!color_stroke.active) {
         return;
     }
+
+    // TODO maybe implement point by rect
     glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
 
     //    glPushMatrix();
@@ -319,18 +320,18 @@ PFont* PGraphicsOpenGLv20::loadFont(const std::string& file, const float size) {
 }
 
 void PGraphicsOpenGLv20::textFont(PFont* font) {
-    fCurrentFont = font;
+    current_font = font;
 }
 
 void PGraphicsOpenGLv20::textSize(const float size) {
-    if (fCurrentFont == nullptr) {
+    if (current_font == nullptr) {
         return;
     }
-    fCurrentFont->textSize(size);
+    current_font->textSize(size);
 }
 
 void PGraphicsOpenGLv20::text_str(const std::string& text, const float x, const float y, const float z) {
-    if (fCurrentFont == nullptr) {
+    if (current_font == nullptr) {
         return;
     }
     if (!color_fill.active) {
@@ -339,18 +340,17 @@ void PGraphicsOpenGLv20::text_str(const std::string& text, const float x, const 
 
 #ifndef DISABLE_GRAPHICS
     glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-    // fCurrentFont->draw(text.c_str(), x, y, z);
-    fCurrentFont->draw(this, text, x, y, z);
+    current_font->draw(this, text, x, y, z);
 #endif // DISABLE_GRAPHICS
 }
 
 float PGraphicsOpenGLv20::textWidth(const std::string& text) {
-    if (fCurrentFont == nullptr) {
+    if (current_font == nullptr) {
         return 0;
     }
 
 #ifndef DISABLE_GRAPHICS
-    return fCurrentFont->textWidth(text.c_str());
+    return current_font->textWidth(text.c_str());
 #endif // DISABLE_GRAPHICS
 }
 
@@ -556,51 +556,55 @@ void PGraphicsOpenGLv20::scale(const float x, const float y, const float z) {
 }
 
 void PGraphicsOpenGLv20::beginDraw() {
-#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-    /* save state */
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fPreviousFBO);
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    glPushMatrix();
+    if (render_to_offscreen) {
+        /* save state */
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previously_bound_FBO);
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glPushMatrix();
 
-    // bind the FBO for offscreen rendering
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-    glViewport(0, 0, framebuffer.width, framebuffer.height);
+        // bind the FBO for offscreen rendering
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+        glViewport(0, 0, framebuffer.width, framebuffer.height);
 
-    /* setup projection and modelview matrices */
+        /* setup projection and modelview matrices */
 
-    glMatrixMode(GL_PROJECTION);
-    // save the current projection matrix
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, framebuffer.width, 0, framebuffer.height, -1, 1);
+        glMatrixMode(GL_PROJECTION);
+        // save the current projection matrix
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(0, framebuffer.width, 0, framebuffer.height, -depth_range, depth_range);
 
-    glMatrixMode(GL_MODELVIEW);
-    // save the current modelview matrix
-    glPushMatrix();
-    glLoadIdentity();
-#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+        glMatrixMode(GL_MODELVIEW);
+        // save the current modelview matrix
+        glPushMatrix();
+        glLoadIdentity();
+
+        /** flip y axis */
+        glScalef(1, -1, 1);
+        glTranslatef(0, -height, 0);
+    }
 }
 
 void PGraphicsOpenGLv20::endDraw() {
-#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-    // restore projection and modelview matrices
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
+    if (render_to_offscreen) {
+        // restore projection and modelview matrices
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
 
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
 
-    /* restore state */
-    glBindFramebuffer(GL_FRAMEBUFFER, fPreviousFBO); // Restore the previously bound FBO
-    glPopMatrix();
-    glPopAttrib();
-#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+        /* restore state */
+        glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO); // Restore the previously bound FBO
+        glPopMatrix();
+        glPopAttrib();
+    }
 }
 
 void PGraphicsOpenGLv20::bind() {
-#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-    glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
-#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+    if (render_to_offscreen) {
+        glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id);
+    }
 }
 
 void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int height, int format, bool generate_mipmap) {
@@ -608,37 +612,38 @@ void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int heigh
     this->height       = height;
     framebuffer.width  = width;
     framebuffer.height = height;
-#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-    glGenFramebuffers(1, &framebuffer.id);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-    glGenTextures(1, &framebuffer.texture);
-    glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 GL_RGBA,
-                 framebuffer.width,
-                 framebuffer.height,
-                 0,
-                 GL_RGBA,
-                 GL_UNSIGNED_BYTE,
-                 nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.texture, 0);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        // Handle framebuffer incomplete error
-        std::cerr << "ERROR Framebuffer is not complete!" << std::endl;
-    }
-    glViewport(0, 0, framebuffer.width, framebuffer.height);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (render_to_offscreen) {
+        glGenFramebuffers(1, &framebuffer.id);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+        glGenTextures(1, &framebuffer.texture_id);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id);
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     framebuffer.width,
+                     framebuffer.height,
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.texture_id, 0);
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            // Handle framebuffer incomplete error
+            std::cerr << "ERROR Framebuffer is not complete!" << std::endl;
+        }
+        glViewport(0, 0, framebuffer.width, framebuffer.height);
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 }
 
 void PGraphicsOpenGLv20::hint(const uint16_t property) {
+    // TODO @MERGE
     switch (property) {
         case ENABLE_SMOOTH_LINES:
             glEnable(GL_LINE_SMOOTH);

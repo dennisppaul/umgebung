@@ -68,12 +68,8 @@ static void set_flags(uint32_t& subsystem_flags) {
     subsystem_flags |= SDL_INIT_VIDEO;
 }
 
-static PGraphics* create_graphics(const int width, const int height) {
-    (void) width;
-    (void) height;
-    // auto* graphics = new PGraphicsOpenGL2();
-    // graphics->init(nullptr, umgebung::width, umgebung::height, 4);
-    // return graphics;
+static PGraphics* create_graphics(const bool render_to_offscreen) {
+    (void) render_to_offscreen;
     return new PGraphicsDefault2D(renderer);
 }
 UMGEBUNG_NAMESPACE_END

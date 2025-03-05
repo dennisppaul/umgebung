@@ -9,7 +9,9 @@
 
 using namespace umgebung;
 
-PGraphicsOpenGLv33::PGraphicsOpenGLv33() : PImage(0, 0, 0) {}
+PGraphicsOpenGLv33::PGraphicsOpenGLv33(const bool render_to_offscreen) : PImage(0, 0, 0) {
+    this->render_to_offscreen = render_to_offscreen;
+}
 
 void PGraphicsOpenGLv33::strokeWeight(const float weight) {
     stroke_weight = weight;
@@ -206,12 +208,20 @@ void PGraphicsOpenGLv33::bezierDetail(const int detail) {
 // NOTE: done
 void PGraphicsOpenGLv33::point(const float x, const float y, const float z) {
     // TODO this could be replaced by dedicated shader, also point size might not wqork in all contexts
+    // TODO maybe implement point by rect
     if (render_mode == RENDER_MODE_IMMEDIATE) {
         beginShape(POINTS);
         vertex(x, y, z);
         endShape();
     }
     if (render_mode == RENDER_MODE_RETAINED) {
+    }
+}
+
+// NOTE: done
+void PGraphicsOpenGLv33::pointSize(const float size) {
+    if (size >= open_gl_capabilities.point_size_min && size <= open_gl_capabilities.point_size_max) {
+        point_size = size;
     }
 }
 
@@ -283,14 +293,14 @@ PFont* PGraphicsOpenGLv33::loadFont(const std::string& file, float size) {
 
 // NOTE: done
 void PGraphicsOpenGLv33::textFont(PFont* font) {
-    fCurrentFont = font;
+    current_font = font;
 }
 
 void PGraphicsOpenGLv33::textSize(float size) {
-    if (fCurrentFont == nullptr) {
+    if (current_font == nullptr) {
         return;
     }
-    fCurrentFont->textSize(size);
+    current_font->textSize(size);
 }
 
 void PGraphicsOpenGLv33::text(const char* value, float x, float y, float z) {
@@ -298,22 +308,22 @@ void PGraphicsOpenGLv33::text(const char* value, float x, float y, float z) {
 }
 
 float PGraphicsOpenGLv33::textWidth(const std::string& text) {
-    if (fCurrentFont == nullptr) {
+    if (current_font == nullptr) {
         return 0;
     }
 
-    return fCurrentFont->textWidth(text.c_str());
+    return current_font->textWidth(text.c_str());
 }
 
 void PGraphicsOpenGLv33::text_str(const std::string& text, float x, float y, float z) {
-    if (fCurrentFont == nullptr) {
+    if (current_font == nullptr) {
         return;
     }
     if (!color_fill.active) {
         return;
     }
 
-    fCurrentFont->draw(this, text, x, y, z);
+    current_font->draw(this, text, x, y, z);
 }
 
 // NOTE: done
@@ -323,27 +333,27 @@ PImage* PGraphicsOpenGLv33::loadImage(const std::string& filename) {
 }
 
 // NOTE: done
-void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y, float w, float h) {
+void PGraphicsOpenGLv33::image(PImage* image, const float x, const float y, float w, float h) {
     if (!color_fill.active) {
         return;
     }
 
-    if (img == nullptr) {
+    if (image == nullptr) {
         error("image is null");
         return;
     }
 
     if (w < 0) {
-        w = img->width;
+        w = image->width;
     }
     if (h < 0) {
-        h = img->height;
+        h = image->height;
     }
 
     // TODO move this to own method and share with `texture()`
-    if (img->texture_id == TEXTURE_NOT_GENERATED) {
-        SHARED_upload_image_as_texture(img, true);
-        if (img->texture_id == TEXTURE_NOT_GENERATED) {
+    if (image->texture_id == TEXTURE_NOT_GENERATED) {
+        SHARED_upload_image_as_texture(image, true);
+        if (image->texture_id == TEXTURE_NOT_GENERATED) {
             error("image cannot create texture.");
             return;
         }
@@ -353,9 +363,9 @@ void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y, float 
     if (render_mode == RENDER_MODE_IMMEDIATE) {
         const uint8_t tmp_rect_mode          = rect_mode;
         const uint8_t tmp_texture_id_current = texture_id_current;
-        SHARED_bind_texture(img->texture_id);
+        SHARED_bind_texture(image->texture_id);
         rect(x, y, w, h);
-        if (tmp_texture_id_current != img->texture_id) {
+        if (tmp_texture_id_current != image->texture_id) {
             SHARED_bind_texture(tmp_texture_id_current);
         }
         rect_mode = tmp_rect_mode;
@@ -373,8 +383,8 @@ void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y, float 
 
         constexpr int       RECT_NUM_VERTICES               = 6;
         const unsigned long fill_vertices_count_xyz_rgba_uv = fill_vertices_xyz_rgba_uv.size() / NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV;
-        if (renderBatches.empty() || renderBatches.back().texture_id != img->texture_id) {
-            renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - RECT_NUM_VERTICES, RECT_NUM_VERTICES, img->texture_id);
+        if (renderBatches.empty() || renderBatches.back().texture_id != image->texture_id) {
+            renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - RECT_NUM_VERTICES, RECT_NUM_VERTICES, image->texture_id);
         } else {
             renderBatches.back().num_vertices += RECT_NUM_VERTICES;
         }
@@ -477,63 +487,42 @@ void PGraphicsOpenGLv33::pixelDensity(int density) {
 }
 
 void PGraphicsOpenGLv33::hint(const uint16_t property) {
-    if (property == HINT_ENABLE_SMOOTH_LINES) {
-        glEnable(GL_LINE_SMOOTH);
-        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    // TODO @MERGE
+    switch (property) {
+        case ENABLE_SMOOTH_LINES:
+            glEnable(GL_LINE_SMOOTH);
+            glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+            break;
+        case DISABLE_SMOOTH_LINES:
+            glDisable(GL_LINE_SMOOTH);
+            glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
+            break;
+        default:
+            break;
     }
 }
 
 void PGraphicsOpenGLv33::beginDraw() {
-    // TODO this is NOT OpenGL3.3 code.
-#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-    /* save state */
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previous_FBO);
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    glPushMatrix();
-
-    // bind the FBO for offscreen rendering
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-    glViewport(0, 0, framebuffer.width, framebuffer.height);
-
-    /* setup projection and modelview matrices */
-
-    glMatrixMode(GL_PROJECTION);
-    // save the current projection matrix
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, framebuffer.width, 0, framebuffer.height, -1, 1);
-
-    glMatrixMode(GL_MODELVIEW);
-    // save the current modelview matrix
-    glPushMatrix();
-    glLoadIdentity();
-#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-
-    // TODO maybe replace the code above with this:
-    //      make sure to also check `draw_pre()`
-    // reset_matrices();
-    // prepare_frame();
+    if (render_to_offscreen) {
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previously_bound_FBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+    }
+    IM_prepare_frame();
+    reset_matrices();
 }
 
 void PGraphicsOpenGLv33::endDraw() {
-#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-    // restore projection and modelview matrices
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-
-    /* restore state */
-    glBindFramebuffer(GL_FRAMEBUFFER, previous_FBO); // Restore the previously bound FBO
-    glPopMatrix();
-    glPopAttrib();
-#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-
-    // TODO maybe replace the code above with this:
-    //      make sure to also check `draw_post()`
-    // flush_fill();
-    // flush_stroke();
+    if (render_to_offscreen) {
+        glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO);
+    }
+    if (render_mode == RENDER_MODE_RETAINED) {
+        RM_flush_fill();
+        RM_flush_stroke();
+        return;
+    }
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        return;
+    }
 }
 
 void PGraphicsOpenGLv33::bind() {
@@ -542,7 +531,7 @@ void PGraphicsOpenGLv33::bind() {
     }
 }
 
-void PGraphicsOpenGLv33::prepare_frame() {
+void PGraphicsOpenGLv33::IM_prepare_frame() {
     if (render_mode == RENDER_MODE_IMMEDIATE) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -578,7 +567,7 @@ void PGraphicsOpenGLv33::reset_matrices() {
     const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f); // 1 unit = 1 pixel
 
     // Perspective projection
-    projection_matrix_3D = glm::perspective(fov, width / height, 0.1f, 10000.0f);
+    projection_matrix_3D = glm::perspective(fov, width / height, 0.1f, static_cast<float>(depth_range));
 
     view_matrix = glm::lookAt(
         glm::vec3(width / 2.0f, height / 2.0f, -cameraDistance), // Flip Z to fix X-axis
@@ -601,39 +590,40 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
     init_stroke_vertice_buffers();
     fill_shader_program = SHARED_build_shader(vertex_shader_source_texture(), fragment_shader_source_texture());
     init_fill_vertice_buffers();
+
+    if (render_to_offscreen) {
+        glGenFramebuffers(1, &framebuffer.id);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+        glGenTextures(1, &framebuffer.texture_id);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id);
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                     framebuffer.width,
+                     framebuffer.height,
+                     0,
+                     UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                     UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                     nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.texture_id, 0);
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            // Handle framebuffer incomplete error
+            error("ERROR Framebuffer is not complete!");
+        }
+        glViewport(0, 0, framebuffer.width, framebuffer.height);
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
     create_solid_color_texture();
     SHARED_bind_texture(texture_id_solid_color);
 
     reset_matrices();
-
-#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-    glGenFramebuffers(1, &framebuffer.id);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-    glGenTextures(1, &framebuffer.texture);
-    glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                 framebuffer.width,
-                 framebuffer.height,
-                 0,
-                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                 UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-                 nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.texture, 0);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        // Handle framebuffer incomplete error
-        error("ERROR Framebuffer is not complete!");
-    }
-    glViewport(0, 0, framebuffer.width, framebuffer.height);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
 }
 
 /* additional */
@@ -685,7 +675,7 @@ bool PGraphicsOpenGLv33::SHARED_upload_image_as_texture(PImage* image, const boo
     return true;
 }
 
-void PGraphicsOpenGLv33::flush_stroke() {
+void PGraphicsOpenGLv33::RM_flush_stroke() {
     if (stroke_vertices_xyz_rgba.empty()) {
         return;
     }
@@ -716,7 +706,7 @@ void PGraphicsOpenGLv33::flush_stroke() {
     stroke_vertices_xyz_rgba.clear();
 }
 
-void PGraphicsOpenGLv33::flush_fill() {
+void PGraphicsOpenGLv33::RM_flush_fill() {
     if (fill_vertices_xyz_rgba_uv.empty()) {
         return;
     }

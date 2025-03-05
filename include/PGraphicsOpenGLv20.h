@@ -25,7 +25,7 @@ namespace umgebung {
 
     class PGraphicsOpenGLv20 final : public PGraphics {
     public:
-        PGraphicsOpenGLv20();
+        explicit PGraphicsOpenGLv20(bool render_to_offscreen);
 
         void    strokeWeight(float weight) override;
         void    background(float a, float b, float c, float d = 1.0f) override;
@@ -45,7 +45,7 @@ namespace umgebung {
                        float x3, float y3, float z3,
                        float x4, float y4, float z4) override;
         void    bezierDetail(int detail) override;
-        void    pointSize(float point_size) override;
+        void    pointSize(float size) override;
         void    point(float x, float y, float z = 0.0f) override;
         void    beginShape(int shape = POLYGON) override;
         void    endShape(bool close_shape = false) override;
@@ -76,19 +76,21 @@ namespace umgebung {
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
         void    beginDraw() override;
         void    endDraw() override;
+        void    bind() override;
+        void    init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
 
-        void bind() override;
-        void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
+        /* --- additional methods --- */
+
+        std::string name() override { return "PGraphicsOpenGLv22"; }
 
     private:
-        static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
 
-        float  fPointSize             = 1;
-        float  fStrokeWeight          = 1;
-        bool   fEnabledTextureInShape = false;
-        bool   fShapeBegun            = false;
-        int    fBezierDetail          = 20;
-        int    fPixelDensity          = 1;
-        int    fPreviousFBO{};
+        float fPointSize             = 1;
+        float fStrokeWeight          = 1;
+        bool  fEnabledTextureInShape = false;
+        bool  fShapeBegun            = false;
+        int   fBezierDetail          = 20;
+        int   fPixelDensity          = 1;
+        int   previously_bound_FBO{0};
     };
 } // namespace umgebung
