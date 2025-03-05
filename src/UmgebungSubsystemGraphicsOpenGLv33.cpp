@@ -28,9 +28,8 @@ static void       draw_pre();
 static void       draw_post();
 static void       shutdown();
 static void       set_flags(uint32_t& subsystem_flags);
-static PGraphics* create_graphics(int width, int height);
+static PGraphics* create_graphics(bool render_to_offscreen);
 
-static bool render_to_framebuffer_object            = true; // NOTE render into a FBO instead of rendering directly into to color buffer
 static bool blit_framebuffer_object_to_screenbuffer = true; // NOTE FBO is BLITted directly into the color buffer instead of rendered with a textured quad
 
 static SDL_Window*   window     = nullptr;
@@ -155,7 +154,8 @@ static void init_FBO_drawing() {
     glBindVertexArray(0);
 }
 
-static bool init() {
+static bool init() { // TODO maybe merge v2.0 & v3.3 they are identical except for SDL_GL_CONTEXT_PROFILE_MASK + SDL_GL_CONTEXT_MAJOR_VERSION + SDL_GL_CONTEXT_MINOR_VERSION
+    // NOTE this is identical with the other OpenGL renderer >>>
     /* setup opengl */
 
     // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // always required on Mac?
@@ -215,18 +215,29 @@ static bool init() {
         return false;
     }
 
-    query_opengl_capabilities();
+    query_opengl_capabilities(open_gl_capabilities);
 
     return true;
+    // <<< NOTE this is identical with the other OpenGL renderer
 }
 
 static void setup_pre() {
+    // NOTE this is identical with the other OpenGL renderer >>>
+    if (g == nullptr) {
+        return;
+    }
+
     int current_framebuffer_width;
     int current_framebuffer_height;
     SDL_GetWindowSizeInPixels(window, &current_framebuffer_width, &current_framebuffer_height);
     framebuffer_width  = static_cast<float>(current_framebuffer_width);
     framebuffer_height = static_cast<float>(current_framebuffer_height);
-    console("framebuffer size: ", framebuffer_width, " x ", framebuffer_height);
+
+    console("main renderer      : ", g->name());
+    console("render to offscreen: ", g->render_to_offscreen ? "true" : "false");
+    console("framebuffer size   : ", framebuffer_width, " x ", framebuffer_height);
+    console("graphics    size   : ", width, " x ", height);
+    console("( note that if these do not align the pixel density might not be 1 )");
 
     pixelHeight = static_cast<int>(framebuffer_height / height);
     pixelWidth  = static_cast<int>(framebuffer_width / width);
@@ -235,32 +246,43 @@ static void setup_pre() {
     g->height = static_cast<int>(height);
     set_default_graphics_state();
     draw_pre();
+    // <<< NOTE this is identical with the other OpenGL renderer
 
-    init_FBO_drawing();
+    if (g->render_to_offscreen) {
+        init_FBO_drawing();
+    }
 }
 
 static void setup_post() {
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv33::setup_post");
     draw_post();
 }
 
 static void draw_pre() {
-    if (render_to_framebuffer_object) {
+    if (g->render_to_offscreen && g->framebuffer.id > 0) {
+        // NOTE if `g->framebuffer.id` is `0` i.e not initialized
+        //      the bound buffer is the default color buffer … hmmm
         glBindFramebuffer(GL_FRAMEBUFFER, g->framebuffer.id);
     }
-    g->reset_matrices();
+    g->beginDraw();
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv33::draw_pre");
 }
 
 static void draw_post() {
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv33::draw");
+
     if (window == nullptr) {
         return;
     }
+
     if (g == nullptr) {
         return;
     }
 
-    g->flush();
+    g->endDraw();
 
-    if (render_to_framebuffer_object) {
+    // NOTE if `g->framebuffer.id` is `0` the framebuffer has not been initialized and nothing needs to be done
+    if (g->render_to_offscreen && g->framebuffer.id > 0) {
         if (blit_framebuffer_object_to_screenbuffer) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);                      // Unbind FBO
             glBindFramebuffer(GL_READ_FRAMEBUFFER, g->framebuffer.id); // Bind the FBO as the source
@@ -271,31 +293,29 @@ static void draw_post() {
             // GL_COLOR_BUFFER_BIT, GL_NEAREST);
             glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
         } else {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0); // Unbind FBO
-
-            // Disable depth testing and blending
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_BLEND);
+            GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0)); // Unbind FBO
+                                                           // Disable depth testing and blending
+            GL_CALL(glDisable(GL_DEPTH_TEST));
+            GL_CALL(glDisable(GL_BLEND));
 
             // Use shader
-            glUseProgram(shaderProgram);
-            glBindVertexArray(screenVAO);
+            GL_CALL(glUseProgram(shaderProgram));
+            GL_CALL(glBindVertexArray(screenVAO));
 
             // Bind FBO texture and set uniform
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, g->framebuffer.texture);
-            glUniform1i(glGetUniformLocation(shaderProgram, "screenTexture"), 0);
+            GL_CALL(glActiveTexture(GL_TEXTURE0));
+            GL_CALL(glBindTexture(GL_TEXTURE_2D, g->framebuffer.texture_id));
+            GL_CALL(glUniform1i(glGetUniformLocation(shaderProgram, "screenTexture"), 0));
 
             // Draw fullscreen quad
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
 
-            glBindVertexArray(0);
-            glUseProgram(0);
+            GL_CALL(glBindVertexArray(0));
+            GL_CALL(glUseProgram(0));
         }
     }
 
-    umgebung::checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv33::draw_post");
-
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv33::draw_post");
     SDL_GL_SwapWindow(window);
 }
 
@@ -308,9 +328,10 @@ static void set_flags(uint32_t& subsystem_flags) {
     subsystem_flags |= SDL_INIT_VIDEO;
 }
 
-static PGraphics* create_graphics(const int width, const int height) {
-    return new PGraphicsOpenGLv33();
+static PGraphics* create_graphics(const bool render_to_offscreen) {
+    return new PGraphicsOpenGLv33(render_to_offscreen);
 }
+
 UMGEBUNG_NAMESPACE_END
 
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv33() {

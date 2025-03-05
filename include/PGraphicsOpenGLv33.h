@@ -29,7 +29,7 @@ namespace umgebung {
 
     class PGraphicsOpenGLv33 final : public PGraphics {
     public:
-        PGraphicsOpenGLv33();
+        explicit PGraphicsOpenGLv33(bool render_to_offscreen);
 
         void    strokeWeight(float weight) override;
         void    background(float a, float b, float c, float d = 1.0f) override;
@@ -45,30 +45,31 @@ namespace umgebung {
         void    bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) override; // NOTE: done
         void    bezierDetail(int detail) override;                                                                                                       // NOTE: done
         void    point(float x, float y, float z = 0.0f) override;                                                                                        // NOTE: done
-        void    beginShape(int shape = POLYGON) override;                                                                                                // NOTE: done
-        void    endShape(bool close_shape = false) override;                                                                                             // NOTE: done
-        void    vertex(float x, float y, float z = 0.0f) override;                                                                                       // NOTE: done
-        void    vertex(float x, float y, float z, float u, float v) override;                                                                            // NOTE: done
+        void    pointSize(float size) override;
+        void    beginShape(int shape = POLYGON) override;                     // NOTE: done
+        void    endShape(bool close_shape = false) override;                  // NOTE: done
+        void    vertex(float x, float y, float z = 0.0f) override;            // NOTE: done
+        void    vertex(float x, float y, float z, float u, float v) override; // NOTE: done
         PFont*  loadFont(const std::string& file, float size) override;
         void    textFont(PFont* font) override;
         void    textSize(float size) override;
         void    text(const char* value, float x, float y, float z = 0.0f) override;
         float   textWidth(const std::string& text) override;
-        PImage* loadImage(const std::string& filename) override;                 // NOTE: done
-        void    image(PImage* img, float x, float y, float w, float h) override; // NOTE: done
-        void    image(PImage* img, float x, float y) override;                   // NOTE: done
-        void    texture(PImage* img) override;                                   // NOTE: done
-        void    popMatrix() override;                                            // NOTE: done
-        void    pushMatrix() override;                                           // NOTE: done
-        void    translate(float x, float y, float z = 0.0f) override;            // NOTE: done
-        void    rotateX(float angle) override;                                   // NOTE: done
-        void    rotateY(float angle) override;                                   // NOTE: done
-        void    rotateZ(float angle) override;                                   // NOTE: done
-        void    rotate(float angle) override;                                    // NOTE: done
-        void    rotate(float angle, float x, float y, float z) override;         // NOTE: done
-        void    scale(float x) override;                                         // NOTE: done
-        void    scale(float x, float y) override;                                // NOTE: done
-        void    scale(float x, float y, float z) override;                       // NOTE: done
+        PImage* loadImage(const std::string& filename) override;                   // NOTE: done
+        void    image(PImage* image, float x, float y, float w, float h) override; // NOTE: done
+        void    image(PImage* img, float x, float y) override;                     // NOTE: done
+        void    texture(PImage* img) override;                                     // NOTE: done
+        void    popMatrix() override;                                              // NOTE: done
+        void    pushMatrix() override;                                             // NOTE: done
+        void    translate(float x, float y, float z = 0.0f) override;              // NOTE: done
+        void    rotateX(float angle) override;                                     // NOTE: done
+        void    rotateY(float angle) override;                                     // NOTE: done
+        void    rotateZ(float angle) override;                                     // NOTE: done
+        void    rotate(float angle) override;                                      // NOTE: done
+        void    rotate(float angle, float x, float y, float z) override;           // NOTE: done
+        void    scale(float x) override;                                           // NOTE: done
+        void    scale(float x, float y) override;                                  // NOTE: done
+        void    scale(float x, float y, float z) override;                         // NOTE: done
         void    pixelDensity(int density) override;
         void    hint(uint16_t property) override;
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
@@ -79,24 +80,10 @@ namespace umgebung {
 
         /* --- additional methods --- */
 
-        void prepare_frame();
-
-        void flush() override {
-            if (render_mode == RENDER_MODE_RETAINED) {
-                flush_fill();
-                flush_stroke();
-                return;
-            }
-            if (render_mode == RENDER_MODE_IMMEDIATE) {
-                /* TODO this should happen at the beginning of the frame */
-                prepare_frame();
-                return;
-            }
-        }
-
-        void reset_matrices() override;
-        void bind_texture(const int texture_id) override { glBindTexture(GL_TEXTURE_2D, texture_id); }
-        void unbind_texture() override { glBindTexture(GL_TEXTURE_2D, texture_id_solid_color); }
+        void        reset_matrices() override;
+        void        bind_texture(const int texture_id) override { glBindTexture(GL_TEXTURE_2D, texture_id); }
+        void        unbind_texture() override { glBindTexture(GL_TEXTURE_2D, texture_id_solid_color); }
+        std::string name() override { return "PGraphicsOpenGLv33"; }
 
     private:
         struct RenderBatch {
@@ -142,56 +129,42 @@ namespace umgebung {
         //     stroke ( rendered as `GL_LINES` ):
         //     - `RM_fill_add_vertex(Vertex v)`
         //     - `RM_fill_add_line(Vertex v1, Vertex v2)`
-
         static constexpr uint8_t RENDER_LINE_AS_QUADS_SEGMENTS                    = 0;
         static constexpr uint8_t RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS = 1;
         static constexpr uint8_t RENDER_LINE_AS_QUADS_WITH_POINTY_CORNERS         = 2;
         uint8_t                  render_line_mode                                 = RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS;
-
         // TODO create *vertex buffer client* struct for this
         // TODO remove these and replace them with `PrimitiveVertexArray`:
-        GLuint             fill_shader_program{};
-        GLuint             fill_VAO_xyz_rgba_uv{};
-        GLuint             fill_VBO_xyz_rgba_uv{};
-        std::vector<float> fill_vertices_xyz_rgba_uv;
-        uint32_t           fill_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
-        GLuint             stroke_shader_program{};
-        GLuint             stroke_VAO_xyz_rgba{};
-        GLuint             stroke_VBO_xyz_rgba{};
-        std::vector<float> stroke_vertices_xyz_rgba;
-        uint32_t           stroke_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
-        GLuint             texture_id_solid_color{};
-        GLuint             texture_id_current{};
-
-// #define USE_UNORDERED_MAP
-#ifdef USE_UNORDERED_MAP
-        std::unordered_map<GLuint, std::vector<Vertex>> render_vertex_batches;
-        for (const auto& [texture_id, vertices]: render_vertex_batches) {
-            glBindTexture(GL_TEXTURE_2D, texture_id);
-        }
-        see https : //chatgpt.com/share/67c564b6-c144-8004-a3c3-2252c952d1eb
-#else
+        GLuint                   fill_shader_program{};
+        GLuint                   fill_VAO_xyz_rgba_uv{};
+        GLuint                   fill_VBO_xyz_rgba_uv{};
+        std::vector<float>       fill_vertices_xyz_rgba_uv;
+        uint32_t                 fill_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
+        GLuint                   stroke_shader_program{};
+        GLuint                   stroke_VAO_xyz_rgba{};
+        GLuint                   stroke_VBO_xyz_rgba{};
+        std::vector<float>       stroke_vertices_xyz_rgba;
+        uint32_t                 stroke_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
+        GLuint                   texture_id_solid_color{};
+        GLuint                   texture_id_current{};
         std::vector<RenderBatch> renderBatches;
-#endif
+        glm::mat4                model_matrix_client{};
+        glm::mat4                model_matrix_shader{};
+        std::vector<glm::mat4>   model_matrix_stack{};
+        bool                     model_matrix_dirty{false};
+        glm::mat4                projection_matrix_2D{};
+        glm::mat4                projection_matrix_3D{};
+        glm::mat4                view_matrix{};
+        float                    stroke_weight{1};
+        int                      bezier_detail{20};
+        bool                     render_lines_as_quads{true};
+        std::vector<glm::vec3>   shape_stroke_vertex_cache_vec3_DEPRECATED{VBO_BUFFER_CHUNK_SIZE}; // TODO remove this
+        std::vector<Vertex>      shape_stroke_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
+        std::vector<Vertex>      shape_fill_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
+        int                      shape_mode_cache{POLYGON};
+        bool                     shape_has_begun{false};
+        int                      previously_bound_FBO{0};
 
-                    glm::mat4  model_matrix_client{};
-        glm::mat4              model_matrix_shader{};
-        std::vector<glm::mat4> model_matrix_stack{};
-        bool                   model_matrix_dirty{false};
-        glm::mat4              projection_matrix_2D{};
-        glm::mat4              projection_matrix_3D{};
-        glm::mat4              view_matrix{};
-        float                  stroke_weight{1};
-        int                    bezier_detail{20};
-        int                    previous_FBO{};
-        bool                   render_lines_as_quads{true};
-        std::vector<glm::vec3> shape_stroke_vertex_cache_vec3_DEPRECATED{VBO_BUFFER_CHUNK_SIZE}; // TODO remove this
-        std::vector<Vertex>    shape_stroke_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
-        std::vector<Vertex>    shape_fill_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
-        int                    shape_mode_cache{POLYGON};
-        bool                   shape_has_begun{false};
-
-        // static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
         //        PFont* fCurrentFont           = nullptr;
         //        float  fStrokeWeight          = 1;
         //        bool   fEnabledTextureInShape = false;
@@ -202,6 +175,8 @@ namespace umgebung {
         static const char* fragment_shader_source_texture();
         static const char* vertex_shader_source_simple();
         static const char* fragment_shader_source_simple();
+
+        void IM_prepare_frame();
 
         /* --- RENDER_MODE_IMMEDIATE (IM) --- */
 
@@ -244,8 +219,8 @@ namespace umgebung {
         void RM_render_rect(float x, float y, float width, float height);
         void RM_render_ellipse(float x, float y, float width, float height);
 
-        void flush_stroke();
-        void flush_fill();
+        void RM_flush_stroke();
+        void RM_flush_fill();
         void fill_resize_buffer(uint32_t newSize);
         void init_stroke_vertice_buffers();
         void init_fill_vertice_buffers();

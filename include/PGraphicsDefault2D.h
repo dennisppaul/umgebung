@@ -192,7 +192,6 @@ namespace umgebung {
 
         SDL_Renderer* renderer;
 
-        PFont* fCurrentFont           = nullptr;
         float  fPointSize             = 1;
         float  fStrokeWeight          = 1;
         bool   fEnabledTextureInShape = false;

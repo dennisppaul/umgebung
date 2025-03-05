@@ -120,7 +120,6 @@ void PImage::init(uint32_t* pixels,
         std::cerr << "unsupported image format, defaulting to RGBA forcing 4 color channels." << std::endl;
         this->format = 4;
     }
-    console("NOTE PImage does not initialize OpenGL side anymore.");
 #endif // DISABLE_GRAPHICS
 }
 

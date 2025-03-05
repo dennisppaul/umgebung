@@ -41,6 +41,7 @@ inline bool fullscreen          = false;
 inline bool resizable           = false;
 inline bool retina_support      = true;
 inline bool vsync               = false;
+inline bool render_to_buffer    = false;
 
 /* public variables */
 

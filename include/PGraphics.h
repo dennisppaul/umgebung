@@ -47,8 +47,6 @@ sphere() A sphere is a hollow ball made from tessellated triangles
 #include "UmgebungConstants.h"
 #include "PImage.h"
 
-#define PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-
 namespace umgebung {
 
     class PFont;
@@ -61,6 +59,8 @@ namespace umgebung {
 
         PGraphics();
         ~PGraphics() override = default;
+
+        bool render_to_offscreen{true};
 
         /* --- implemented in base class PGraphics --- */
 
@@ -79,10 +79,11 @@ namespace umgebung {
         virtual void pointSize(float size);
 
         /* --- additional --- */
-        virtual void reset_matrices() {} // TODO this should be part of a `beginFrame()` and/or could be handled in `beginDraw()`
-        virtual void flush() {}          // TODO this should be renamed to `endFrame()` and could maybe be handle in `endDraw()`
-        virtual void bind_texture(int texture_id) {}
-        virtual void unbind_texture() {}
+
+        virtual void        reset_matrices() {}
+        virtual void        bind_texture(int texture_id) {}
+        virtual void        unbind_texture() {}
+        virtual std::string name() { return "PGraphics"; }
 
         /* --- interface --- */
 
@@ -143,7 +144,7 @@ namespace umgebung {
 
         struct FBO {
             unsigned int id{};
-            unsigned int texture{};
+            unsigned int texture_id{};
             int          width{};
             int          height{};
         };
@@ -159,11 +160,8 @@ namespace umgebung {
             return {color.r, color.g, color.b, color.a};
         }
 
-        void    resize_ellipse_points_LUT();
-        uint8_t get_pixel_density() const { return pixel_density; }
-
         static constexpr uint16_t MIN_ELLIPSE_DETAIL = 3;
-        PFont*                    fCurrentFont       = nullptr;
+        PFont*                    current_font{nullptr};
         ColorState                color_stroke{};
         ColorState                color_fill{};
         uint8_t                   rect_mode{CORNER};
@@ -173,5 +171,8 @@ namespace umgebung {
         float                     point_size{1};
         uint8_t                   pixel_density{1};
         int                       texture_id_current{};
+
+        void    resize_ellipse_points_LUT();
+        uint8_t get_pixel_density() const { return pixel_density; }
     };
 } // namespace umgebung

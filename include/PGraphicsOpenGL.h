@@ -30,8 +30,11 @@
 #endif
 
 namespace umgebung {
+    struct OpenGLCapabilities;
     static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
     static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
+
+    inline double depth_range = 10000; // TODO this should be configurable … maybe in `reset_matrices()`
 
     inline std::string getOpenGLErrorString(const GLenum error) {
         switch (error) {
@@ -74,12 +77,18 @@ namespace umgebung {
     }
 
     /* opengl capabilities */
+    struct OpenGLCapabilities;
+    void query_opengl_capabilities(OpenGLCapabilities& capabilities);
 
-    inline float OPENGL_POINT_SIZE_MIN{0};
-    inline float OPENGL_POINT_SIZE_MAX{0};
-    inline float OPENGL_POINT_GRANULARITY{0};
+    struct OpenGLCapabilities {
+        float point_size_min{0};
+        float point_size_max{0};
+        float point_size_granularity{0};
+    };
 
-    inline void query_opengl_capabilities() {
+    inline OpenGLCapabilities open_gl_capabilities;
+
+    inline void query_opengl_capabilities(OpenGLCapabilities& capabilities) {
         console("================================================================================");
         console("OPENGL CAPABILITIES");
         console("================================================================================");
@@ -88,15 +97,15 @@ namespace umgebung {
 
         GLfloat pointSizeRange[2]{};
         glGetFloatv(GL_POINT_SIZE_RANGE, pointSizeRange);
-        OPENGL_POINT_SIZE_MIN = pointSizeRange[0];
-        OPENGL_POINT_SIZE_MAX = pointSizeRange[1];
-        console(fl("Min Point Size"), OPENGL_POINT_SIZE_MIN);
-        console(fl("Max Point Size"), OPENGL_POINT_SIZE_MAX);
+        capabilities.point_size_min = pointSizeRange[0];
+        capabilities.point_size_max = pointSizeRange[1];
+        console(fl("Min Point Size"), capabilities.point_size_min);
+        console(fl("Max Point Size"), capabilities.point_size_max);
 
         GLfloat pointGranularity{0};
         glGetFloatv(GL_POINT_SIZE_GRANULARITY, &pointGranularity);
         console(fl("Point Size Granularity"), pointGranularity);
-        OPENGL_POINT_GRANULARITY = pointGranularity;
+        capabilities.point_size_granularity = pointGranularity;
 
         console("================================================================================");
     }

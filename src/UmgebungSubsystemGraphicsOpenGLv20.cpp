@@ -100,6 +100,7 @@ static void set_default_graphics_state() {
 }
 
 static bool init() { // TODO maybe merge v2.0 & v3.3 they are identical except for SDL_GL_CONTEXT_PROFILE_MASK + SDL_GL_CONTEXT_MAJOR_VERSION + SDL_GL_CONTEXT_MINOR_VERSION
+    // NOTE this is identical with the other OpenGL renderer >>>
     /* setup opengl */
 
     // see https://github.com/ocornut/imgui/blob/master/examples/example_sdl3_opengl3/main.cpp
@@ -146,7 +147,7 @@ static bool init() { // TODO maybe merge v2.0 & v3.3 they are identical except f
     /* display window */
 
     SDL_ShowWindow(window);
-    SDL_RaiseWindow(window); // TODO see if this causes any issues
+    // SDL_RaiseWindow(window); // TODO see if this causes any issues
 
     set_default_graphics_state();
 
@@ -161,18 +162,29 @@ static bool init() { // TODO maybe merge v2.0 & v3.3 they are identical except f
         return false;
     }
 
-    query_opengl_capabilities();
+    query_opengl_capabilities(open_gl_capabilities);
 
     return true;
+    // <<< NOTE this is identical with the other OpenGL renderer
 }
 
 static void setup_pre() {
+    // NOTE this is identical with the other OpenGL renderer >>>
+    if (g == nullptr) {
+        return;
+    }
+
     int current_framebuffer_width;
     int current_framebuffer_height;
     SDL_GetWindowSizeInPixels(window, &current_framebuffer_width, &current_framebuffer_height);
     framebuffer_width  = static_cast<float>(current_framebuffer_width);
     framebuffer_height = static_cast<float>(current_framebuffer_height);
-    console("framebuffer size: ", framebuffer_width, " x ", framebuffer_height);
+
+    console("main renderer      : ", g->name());
+    console("render to offscreen: ", g->render_to_offscreen ? "true" : "false");
+    console("framebuffer size   : ", framebuffer_width, " x ", framebuffer_height);
+    console("graphics    size   : ", width, " x ", height);
+    console("( note that if these do not align the pixel density might not be 1 )");
 
     pixelHeight = static_cast<int>(framebuffer_height / height);
     pixelWidth  = static_cast<int>(framebuffer_width / width);
@@ -181,44 +193,38 @@ static void setup_pre() {
     g->height = static_cast<int>(height);
     set_default_graphics_state();
     draw_pre();
+    // <<< NOTE this is identical with the other OpenGL renderer
 }
 
 static void setup_post() {
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv20::setup_post");
     draw_post();
 }
 
 static void draw_pre() {
-    set_default_graphics_state(); // TODO this is not nevessary as the FBO is drawn fullscreen
+    if (g == nullptr) {
+        return;
+    }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, g->framebuffer.id);
+    if (g->render_to_offscreen) {
+        g->beginDraw();
+    } else {
+        set_default_graphics_state();
 
-    glViewport(0, 0, g->framebuffer.width, g->framebuffer.height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, width, 0, height, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+        glViewport(0, 0, g->framebuffer.width, g->framebuffer.height);
 
-    glScalef(1, -1, 1);
-    glTranslatef(0, static_cast<float>(-height), 0);
+        glMatrixMode(GL_PROJECTION);
 
-    // const char* message = "Hello World!";
-    // int         w = 0, h = 0;
-    // float       x, y;
-    // const float scale = 2.0f;
-    //
-    // /* Center the message and scale it up */
-    // SDL_GetRenderOutputSize(renderer, &w, &h);
-    // SDL_SetRenderScale(renderer, scale, scale);
-    // x = ((w / scale) - SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE * SDL_strlen(message)) / 2;
-    // y = ((h / scale) - SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE) / 2;
-    //
-    // /* Draw the message */
-    // SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    // SDL_RenderClear(renderer);
-    // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    // SDL_RenderDebugText(renderer, x, y, message);
-    // SDL_RenderPresent(renderer);
+        // glPushMatrix();
+        glLoadIdentity();
+        glOrtho(0, width, 0, height, -depth_range, depth_range);
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        glScalef(1, -1, 1);
+        glTranslatef(0, -height, 0);
+    }
     checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv20::draw_pre");
 }
 
@@ -229,68 +235,75 @@ static void draw_post() {
         return;
     }
 
-    // Unbind framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    // Render the FBO to the entire screen
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    if (g == nullptr) {
+        return;
+    }
 
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
-    glDisable(GL_ALPHA_TEST);
+    if (g->render_to_offscreen) {
+        g->endDraw();
 
-    glViewport(0, 0, g->framebuffer.width, g->framebuffer.height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, g->framebuffer.width, 0, g->framebuffer.height, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glBindTexture(GL_TEXTURE_2D, g->framebuffer.texture);
-    glEnable(GL_TEXTURE_2D);
-    glColor4f(1, 1, 1, 1);
+        // Unbind framebuffer
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // Render the FBO to the entire screen
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-    glBegin(GL_QUADS);
-    glTexCoord2f(0.0, 0.0);
-    glVertex2f(0, 0);
-    glTexCoord2f(1.0, 0.0);
-    glVertex2f(static_cast<float>(g->framebuffer.width), 0);
-    glTexCoord2f(1.0, 1.0);
-    glVertex2f(static_cast<float>(g->framebuffer.width),
-               static_cast<float>(g->framebuffer.height));
-    glTexCoord2f(0.0, 1.0);
-    glVertex2f(0, static_cast<float>(g->framebuffer.height));
-    glEnd();
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+        glDisable(GL_ALPHA_TEST);
 
-    // /* with padding of 10px */
-    // glBegin(GL_QUADS);
-    // glTexCoord2f(0.0, 0.0);
-    // glVertex2f(10, 10);
-    // glTexCoord2f(1.0, 0.0);
-    // glVertex2f(g->framebuffer.width - 10, 10);
-    // glTexCoord2f(1.0, 1.0);
-    // glVertex2f(g->framebuffer.width - 10, g->framebuffer.height - 10);
-    // glTexCoord2f(0.0, 1.0);
-    // glVertex2f(10, g->framebuffer.height - 10);
-    // glEnd();
+        glViewport(0, 0, g->framebuffer.width, g->framebuffer.height);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, g->framebuffer.width, 0, g->framebuffer.height, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glBindTexture(GL_TEXTURE_2D, g->framebuffer.texture_id);
+        glEnable(GL_TEXTURE_2D);
+        glColor4f(1, 1, 1, 1);
 
-    // /* 10% tiny view */
-    // glBegin(GL_QUADS);
-    // glTexCoord2f(0.0, 0.0);
-    // glVertex2f(20, 20);
-    // glTexCoord2f(1.0, 0.0);
-    // glVertex2f(20 + static_cast<float>(g->framebuffer.width) * 0.1f, 20);
-    // glTexCoord2f(1.0, 1.0);
-    // glVertex2f(20 + static_cast<float>(g->framebuffer.width) * 0.1f,
-    //            20 + static_cast<float>(g->framebuffer.height) * 0.1f);
-    // glTexCoord2f(0.0, 1.0);
-    // glVertex2f(20, 20 + static_cast<float>(g->framebuffer.height) * 0.1f);
-    // glEnd();
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0, 0.0);
+        glVertex2f(0, 0);
+        glTexCoord2f(1.0, 0.0);
+        glVertex2f(static_cast<float>(g->framebuffer.width), 0);
+        glTexCoord2f(1.0, 1.0);
+        glVertex2f(static_cast<float>(g->framebuffer.width),
+                   static_cast<float>(g->framebuffer.height));
+        glTexCoord2f(0.0, 1.0);
+        glVertex2f(0, static_cast<float>(g->framebuffer.height));
+        glEnd();
 
-    glDisable(GL_TEXTURE_2D);
+        // /* with padding of 10px */
+        // glBegin(GL_QUADS);
+        // glTexCoord2f(0.0, 0.0);
+        // glVertex2f(10, 10);
+        // glTexCoord2f(1.0, 0.0);
+        // glVertex2f(g->framebuffer.width - 10, 10);
+        // glTexCoord2f(1.0, 1.0);
+        // glVertex2f(g->framebuffer.width - 10, g->framebuffer.height - 10);
+        // glTexCoord2f(0.0, 1.0);
+        // glVertex2f(10, g->framebuffer.height - 10);
+        // glEnd();
 
-    glPopAttrib();
+        // /* 10% tiny view */
+        // glBegin(GL_QUADS);
+        // glTexCoord2f(0.0, 0.0);
+        // glVertex2f(20, 20);
+        // glTexCoord2f(1.0, 0.0);
+        // glVertex2f(20 + static_cast<float>(g->framebuffer.width) * 0.1f, 20);
+        // glTexCoord2f(1.0, 1.0);
+        // glVertex2f(20 + static_cast<float>(g->framebuffer.width) * 0.1f,
+        //            20 + static_cast<float>(g->framebuffer.height) * 0.1f);
+        // glTexCoord2f(0.0, 1.0);
+        // glVertex2f(20, 20 + static_cast<float>(g->framebuffer.height) * 0.1f);
+        // glEnd();
+
+        glDisable(GL_TEXTURE_2D);
+
+        glPopAttrib();
+    }
 
     checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv20::draw_post");
-
     SDL_GL_SwapWindow(window);
 }
 
@@ -303,8 +316,8 @@ static void set_flags(uint32_t& subsystem_flags) {
     subsystem_flags |= SDL_INIT_VIDEO;
 }
 
-static PGraphics* create_graphics(const int width, const int height) {
-    return new PGraphicsOpenGLv20();
+static PGraphics* create_graphics(const bool render_to_offscreen) {
+    return new PGraphicsOpenGLv20(render_to_offscreen);
 }
 UMGEBUNG_NAMESPACE_END
 
