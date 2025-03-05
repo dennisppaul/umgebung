@@ -18,7 +18,6 @@
  */
 
 #include <vector>
-#include <type_traits>
 #include <GL/glew.h>
 
 #include "PGraphicsOpenGLv20.h"
@@ -320,7 +319,7 @@ void PGraphicsOpenGLv20::textSize(const float size) {
     if (fCurrentFont == nullptr) {
         return;
     }
-    fCurrentFont->size(size);
+    fCurrentFont->textSize(size);
 }
 
 void PGraphicsOpenGLv20::text_str(const std::string& text, const float x, const float y, const float z) {
@@ -333,7 +332,8 @@ void PGraphicsOpenGLv20::text_str(const std::string& text, const float x, const 
 
 #ifndef DISABLE_GRAPHICS
     glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-    fCurrentFont->draw(text.c_str(), x, y, z);
+    // fCurrentFont->draw(text.c_str(), x, y, z);
+    fCurrentFont->draw(this, text, x, y, z);
 #endif // DISABLE_GRAPHICS
 }
 

@@ -274,11 +274,13 @@ void PGraphicsOpenGLv33::vertex(const float x, const float y, const float z, con
     }
 }
 
+// NOTE: done
 PFont* PGraphicsOpenGLv33::loadFont(const std::string& file, float size) {
-    auto* font = new PFont(file.c_str(), size, static_cast<float>(pixel_density));
+    auto* font = new PFont(file, size); // TODO what about pixel_density … see FTGL implementation
     return font;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::textFont(PFont* font) {
     fCurrentFont = font;
 }
@@ -287,7 +289,7 @@ void PGraphicsOpenGLv33::textSize(float size) {
     if (fCurrentFont == nullptr) {
         return;
     }
-    fCurrentFont->size(size);
+    fCurrentFont->textSize(size);
 }
 
 void PGraphicsOpenGLv33::text(const char* value, float x, float y, float z) {
@@ -299,9 +301,7 @@ float PGraphicsOpenGLv33::textWidth(const std::string& text) {
         return 0;
     }
 
-#ifndef DISABLE_GRAPHICS
     return fCurrentFont->textWidth(text.c_str());
-#endif // DISABLE_GRAPHICS
 }
 
 void PGraphicsOpenGLv33::text_str(const std::string& text, float x, float y, float z) {
@@ -312,10 +312,7 @@ void PGraphicsOpenGLv33::text_str(const std::string& text, float x, float y, flo
         return;
     }
 
-#ifndef DISABLE_GRAPHICS
-    // glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-    fCurrentFont->draw(text.c_str(), x, y, z);
-#endif // DISABLE_GRAPHICS
+    fCurrentFont->draw(this, text, x, y, z);
 }
 
 // NOTE: done
@@ -343,13 +340,13 @@ void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y, float 
     }
 
     // TODO move this to own method and share with `texture()`
-    if (img->texture_id == NOT_INITIALIZED) {
+    if (img->texture_id == TEXTURE_NOT_GENERATED) {
         SHARED_upload_image_as_texture(img, true);
-        if (img->texture_id == NOT_INITIALIZED) {
+        if (img->texture_id == TEXTURE_NOT_GENERATED) {
             error("image cannot create texture.");
             return;
         }
-        console("uploaded texture image to GPU");
+        console("PGraphicsOpenGLv33::image // uploaded texture image to GPU");
     }
 
     if (render_mode == RENDER_MODE_IMMEDIATE) {
@@ -395,13 +392,13 @@ void PGraphicsOpenGLv33::texture(PImage* img) {
     }
 
     // TODO move this to own method and share with `texture()`
-    if (img->texture_id == NOT_INITIALIZED) {
+    if (img->texture_id == TEXTURE_NOT_GENERATED) {
         SHARED_upload_image_as_texture(img, true);
-        if (img->texture_id == NOT_INITIALIZED) {
+        if (img->texture_id == TEXTURE_NOT_GENERATED) {
             error("image cannot create texture.");
             return;
         }
-        console("uploaded texture image to GPU");
+        console("PGraphicsOpenGLv33::texture // uploaded texture image to GPU");
     }
 
     SHARED_bind_texture(img->texture_id);
@@ -627,7 +624,7 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.texture, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         // Handle framebuffer incomplete error
-        std::cerr << "ERROR Framebuffer is not complete!" << std::endl;
+        error("ERROR Framebuffer is not complete!");
     }
     glViewport(0, 0, framebuffer.width, framebuffer.height);
     glClearColor(0, 0, 0, 0);
@@ -922,7 +919,7 @@ void PGraphicsOpenGLv33::add_stroke_vertex_xyz_rgba(const float x, const float y
     // Each vertex consists of 7 floats (x, y, z, r, g, b, u, v)
     // uint32_t vertexSize = NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA * sizeof(float);
     if ((stroke_vertices_xyz_rgba.size() + NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA) * sizeof(float) > stroke_max_buffer_size) {
-        std::cerr << "Stroke buffer is full!" << std::endl;
+        error("Stroke buffer is full!");
         // TODO create version for stroke buffer
         // stroke_resize_buffer(stroke_max_buffer_size + VBO_BUFFER_CHUNK_SIZE);
     }
@@ -1044,8 +1041,7 @@ void PGraphicsOpenGLv33::SHARED_checkShaderCompileStatus(const GLuint shader) {
     if (!success) {
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "ERROR::SHADER::COMPILATION_FAILED\n"
-                  << infoLog << std::endl;
+        error("ERROR::SHADER::COMPILATION_FAILED\n", infoLog);
     }
 }
 
@@ -1055,8 +1051,7 @@ void PGraphicsOpenGLv33::SHARED_checkProgramLinkStatus(const GLuint program) {
     if (!success) {
         char infoLog[512];
         glGetProgramInfoLog(program, 512, nullptr, infoLog);
-        std::cerr << "ERROR::PROGRAM::LINKING_FAILED\n"
-                  << infoLog << std::endl;
+        error("ERROR::SHADER::COMPILATION_FAILED\n", infoLog);
     }
 }
 
@@ -1601,11 +1596,9 @@ void PGraphicsOpenGLv33::IM_render_ellipse(const float x, const float y, const f
     }
 
     // TODO: Implement `ellipseMode()`
-    constexpr glm::vec2 tex_coord  = {0.0f, 0.0f};
-    constexpr float     PI         = 3.14159265358979323846f;
-    const float         radiusX    = width * 0.5f;
-    const float         radiusY    = height * 0.5f;
-    const float         deltaTheta = (2.0f * PI) / static_cast<float>(ellipse_detail);
+    constexpr glm::vec2 tex_coord = {0.0f, 0.0f};
+    const float         radiusX   = width * 0.5f;
+    const float         radiusY   = height * 0.5f;
 
     std::vector<glm::vec3> points;
     points.reserve(ellipse_detail + 1);
@@ -1613,7 +1606,6 @@ void PGraphicsOpenGLv33::IM_render_ellipse(const float x, const float y, const f
     // TODO create and recompute LUT for when `ellipse_detail` changes
     float i_f = 0.0f;
     for (int i = 0; i <= ellipse_detail; ++i, i_f += 1.0f) {
-        const float theta = deltaTheta * i_f;
         points.emplace_back(x + radiusX * ellipse_points_LUT[i].x,
                             y + radiusY * ellipse_points_LUT[i].y,
                             0.0f);
