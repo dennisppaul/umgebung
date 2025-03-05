@@ -30,6 +30,9 @@
 #endif
 
 namespace umgebung {
+    static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
+    static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
+
     inline std::string getOpenGLErrorString(const GLenum error) {
         switch (error) {
             case GL_NO_ERROR: return "No error";
@@ -51,5 +54,50 @@ namespace umgebung {
             warning("[OpenGL Error] @", functionName, ": ", getOpenGLErrorString(opengl_error));
         }
 #endif
+    }
+
+    static std::string fl(const std::string& text) {
+        constexpr size_t column_width = 40;
+        return format_label(text, column_width);
+    }
+
+    inline void printOpenGLInfo() {
+        const GLubyte* version         = glGetString(GL_VERSION);
+        const GLubyte* renderer        = glGetString(GL_RENDERER);
+        const GLubyte* vendor          = glGetString(GL_VENDOR);
+        const GLubyte* shadingLanguage = glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+        console(fl("OpenGL Version"), version);
+        console(fl("Renderer"), renderer);
+        console(fl("Vendor"), vendor);
+        console(fl("GLSL Version"), shadingLanguage);
+    }
+
+    /* opengl capabilities */
+
+    inline float OPENGL_POINT_SIZE_MIN{0};
+    inline float OPENGL_POINT_SIZE_MAX{0};
+    inline float OPENGL_POINT_GRANULARITY{0};
+
+    inline void query_opengl_capabilities() {
+        console("================================================================================");
+        console("OPENGL CAPABILITIES");
+        console("================================================================================");
+
+        printOpenGLInfo();
+
+        GLfloat pointSizeRange[2]{};
+        glGetFloatv(GL_POINT_SIZE_RANGE, pointSizeRange);
+        OPENGL_POINT_SIZE_MIN = pointSizeRange[0];
+        OPENGL_POINT_SIZE_MAX = pointSizeRange[1];
+        console(fl("Min Point Size"), OPENGL_POINT_SIZE_MIN);
+        console(fl("Max Point Size"), OPENGL_POINT_SIZE_MAX);
+
+        GLfloat pointGranularity{0};
+        glGetFloatv(GL_POINT_SIZE_GRANULARITY, &pointGranularity);
+        console(fl("Point Size Granularity"), pointGranularity);
+        OPENGL_POINT_GRANULARITY = pointGranularity;
+
+        console("================================================================================");
     }
 } // namespace umgebung

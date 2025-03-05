@@ -51,7 +51,7 @@
 #include "UmgebungFunctionsAdditional.h"
 #include "PImage.h"
 
-#define PFONT_DEBUG_FONT
+// #define PFONT_DEBUG_FONT
 // #define PFONT_INCLUDE_OPENGL
 
 namespace umgebung {
