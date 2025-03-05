@@ -172,5 +172,6 @@ namespace umgebung {
         std::vector<glm::vec2>    ellipse_points_LUT;
         float                     point_size{1};
         uint8_t                   pixel_density{1};
+        int                       texture_id_current{};
     };
 } // namespace umgebung

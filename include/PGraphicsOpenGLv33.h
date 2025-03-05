@@ -128,8 +128,6 @@ namespace umgebung {
             // Vertex() : position(0, 0, 0), color(0, 0, 0, 0), tex_coord(0, 0) {}
         };
 
-        static constexpr GLint    UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
-        static constexpr GLint    UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
         static constexpr uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
         static constexpr uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
         static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024;       // 1MB

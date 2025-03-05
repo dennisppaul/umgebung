@@ -685,7 +685,6 @@ bool PGraphicsOpenGLv33::SHARED_upload_image_as_texture(PImage* image, const boo
     return true;
 }
 
-
 void PGraphicsOpenGLv33::flush_stroke() {
     if (stroke_vertices_xyz_rgba.empty()) {
         return;

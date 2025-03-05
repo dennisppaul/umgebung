@@ -20,6 +20,7 @@
 #include <vector>
 #include <GL/glew.h>
 
+#include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv20.h"
 #include "PFont.h"
 #include "UmgebungFunctions.h"
@@ -56,9 +57,13 @@ void PGraphicsOpenGLv20::rect(const float x, const float y, const float width, c
     if (color_fill.active) {
         glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
         glBegin(GL_QUADS);
+        glTexCoord2f(0, 0);
         glVertex2f(x, y);
+        glTexCoord2f(1, 0);
         glVertex2f(x + width, y);
+        glTexCoord2f(1, 1);
         glVertex2f(x + width, y + height);
+        glTexCoord2f(0, 1);
         glVertex2f(x, y + height);
         glEnd();
     }
@@ -220,7 +225,9 @@ void PGraphicsOpenGLv20::bezierDetail(const int detail) {
 }
 
 void PGraphicsOpenGLv20::pointSize(const float point_size) {
-    fPointSize = point_size;
+    if (point_size >= OPENGL_POINT_SIZE_MIN && point_size <= OPENGL_POINT_SIZE_MAX) {
+        fPointSize = point_size;
+    }
 }
 
 void PGraphicsOpenGLv20::point(const float x, const float y, const float z) {
@@ -364,8 +371,85 @@ PImage* PGraphicsOpenGLv20::loadImage(const std::string& filename) {
     return img;
 }
 
-void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, const float w, const float h) {
+
+static bool SHARED_upload_image_as_texture(PImage* image, const bool generate_texture_mipmapped) {
+    if (image->pixels == nullptr) {
+        error("Failed to upload texture because pixels are null");
+        return false;
+    }
+
+    GLuint mTextureID;
+    glGenTextures(1, &mTextureID);
+
+    if (mTextureID == 0) {
+        error("Failed to generate texture ID");
+        return false;
+    }
+
+    image->texture_id = static_cast<int>(mTextureID);
+    glBindTexture(GL_TEXTURE_2D, image->texture_id);
+
+    // Set texture parameters
+    if (generate_texture_mipmapped) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+
+    // Load image data
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                 static_cast<GLint>(image->width),
+                 static_cast<GLint>(image->height),
+                 0,
+                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                 UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                 image->pixels);
+    if (generate_texture_mipmapped) {
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    return true;
+}
+
+void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, float w, float h) {
 #ifndef DISABLE_GRAPHICS
+    if (!color_fill.active) {
+        return;
+    }
+
+    if (img == nullptr) {
+        error("image(...) / image is null");
+        return;
+    }
+
+    if (w < 0) {
+        w = img->width;
+    }
+    if (h < 0) {
+        h = img->height;
+    }
+
+    // TODO move this to own method and share with `texture()`
+    if (img->texture_id == TEXTURE_NOT_GENERATED) {
+        SHARED_upload_image_as_texture(img, true);
+        if (img->texture_id == TEXTURE_NOT_GENERATED) {
+            error("image cannot create texture.");
+            return;
+        }
+        console("PGraphicsOpenGLv20::image // uploaded texture image to GPU: ", img->texture_id);
+    }
+
+    const uint8_t tmp_rect_mode          = rect_mode;
+    const uint8_t tmp_texture_id_current = texture_id_current; // TODO
+
     glEnable(GL_TEXTURE_2D);
     glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
     img->bind();
@@ -384,6 +468,12 @@ void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, const 
     glVertex2f(x, y + h);
     glEnd();
     glDisable(GL_TEXTURE_2D);
+
+    if (tmp_texture_id_current != img->texture_id) {
+        glBindTexture(GL_TEXTURE_2D, tmp_texture_id_current);
+    }
+    rect_mode = tmp_rect_mode;
+
 #endif // DISABLE_GRAPHICS
 }
 
@@ -397,6 +487,22 @@ void PGraphicsOpenGLv20::texture(PImage* img) {
         std::cerr << "texture must be set before `beginShape()`" << std::endl;
         return;
     }
+
+    if (img == nullptr) {
+        error("texture(...) / image is null");
+        return;
+    }
+
+    // TODO move this to own method and share with `image()`
+    if (img->texture_id == TEXTURE_NOT_GENERATED) {
+        SHARED_upload_image_as_texture(img, true);
+        if (img->texture_id == TEXTURE_NOT_GENERATED) {
+            error("image cannot create texture.");
+            return;
+        }
+        console("PGraphicsOpenGLv20::texture // uploaded texture image to GPU: ", img->texture_id);
+    }
+
     fEnabledTextureInShape = true;
     glEnable(GL_TEXTURE_2D);
     img->bind();

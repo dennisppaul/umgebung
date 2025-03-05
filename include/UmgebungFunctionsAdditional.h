@@ -102,4 +102,11 @@ namespace umgebung {
         std::flush(std::cout);
 #endif
     }
+
+    inline std::string format_label(const std::string& label, size_t width) {
+        if (label.length() >= width) {
+            return label + " : "; // Ensure spacing even if label is too long
+        }
+        return label + std::string(width - label.length(), ' ') + " : ";
+    }
 } // namespace umgebung

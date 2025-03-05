@@ -161,6 +161,8 @@ static bool init() { // TODO maybe merge v2.0 & v3.3 they are identical except f
         return false;
     }
 
+    query_opengl_capabilities();
+
     return true;
 }
 

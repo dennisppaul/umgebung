@@ -215,6 +215,8 @@ static bool init() {
         return false;
     }
 
+    query_opengl_capabilities();
+
     return true;
 }
 
