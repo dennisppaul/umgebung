@@ -59,11 +59,11 @@ namespace umgebung {
         void  noLoop();
         void  pause();
         void  play();
-        bool  read();
+        bool  read(PGraphics* graphics);
         void  speed(float factor);
         void  stop() { pause(); }
         float time() const;
-        void  reload();
+        void  reload(PGraphics* graphics);
         void  set_listener(MovieListener* listener);
 
         ~Movie() override;

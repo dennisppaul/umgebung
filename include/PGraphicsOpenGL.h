@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <GL/glew.h>
+
 #include "UmgebungFunctionsAdditional.h"
 
 #ifndef PGRAPHICS_OPENGL_DO_NOT_CHECK_ERRORS

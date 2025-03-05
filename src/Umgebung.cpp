@@ -89,7 +89,7 @@ void umgebung_subsystem_events_init();
 
 // TODO add console ( e.g SDL_log )
 // TODO not in umgebung namespace?
-static void handle_arguments(int argc, char* argv[]) {
+static void handle_arguments(const int argc, char* argv[]) {
     std::vector<std::string> args;
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
@@ -142,8 +142,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         } else {
             umgebung::console("No graphics subsystem provided, using default.");
             // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_default_2D();
-            umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
-            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
+            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
+            umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
         }
         if (umgebung::subsystem_graphics == nullptr) {
             umgebung::console("Couldn't create graphics subsystem.");
@@ -275,14 +275,14 @@ static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMou
             umgebung::mouseButton = event.button.button;
             fMouseIsPressed       = true;
             mousePressed();
-            umgebung::isMousePressed = true;
+            umgebung::is_mouse_pressed = true;
             break;
         case SDL_EVENT_MOUSE_BUTTON_UP:
             // if (imgui_is_mouse_captured()) { break; }
             fMouseIsPressed       = false;
             umgebung::mouseButton = -1;
             mouseReleased();
-            umgebung::isMousePressed = false;
+            umgebung::is_mouse_pressed = false;
             break;
         case SDL_EVENT_MOUSE_MOTION:
             // if (imgui_is_mouse_captured()) { break; }
