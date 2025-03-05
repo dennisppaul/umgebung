@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 
 #include "Umgebung.h"
+#include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv33.h"
 
 using namespace umgebung;

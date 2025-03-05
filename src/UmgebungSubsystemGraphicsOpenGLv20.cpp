@@ -23,6 +23,7 @@
 #include "Umgebung.h"
 #include "UmgebungFunctionsPGraphics.h"
 #include "UmgebungSubsystems.h"
+#include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv20.h"
 
 UMGEBUNG_NAMESPACE_BEGIN
@@ -216,9 +217,12 @@ static void draw_pre() {
     // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     // SDL_RenderDebugText(renderer, x, y, message);
     // SDL_RenderPresent(renderer);
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv20::draw_pre");
 }
 
 static void draw_post() {
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv20::draw");
+
     if (window == nullptr) {
         return;
     }
@@ -283,10 +287,7 @@ static void draw_post() {
 
     glPopAttrib();
 
-    const GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
-        umgebung::error("OpenGL error: ", error);
-    }
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv20::draw_post");
 
     SDL_GL_SwapWindow(window);
 }

@@ -18,6 +18,7 @@
  */
 
 #include "Umgebung.h"
+#include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv33.h"
 
 UMGEBUNG_NAMESPACE_BEGIN
@@ -291,12 +292,7 @@ static void draw_post() {
         }
     }
 
-#ifndef PGRAPHICS_OPENGL_DO_NOT_CHECK_ERRORS
-    const GLenum gl_error = glGetError();
-    if (gl_error != GL_NO_ERROR) {
-        error("SUBSYSTEM GRAPHICS has OpenGL error: ", getOpenGLErrorString(gl_error), "(", gl_error, ")");
-    }
-#endif // PGRAPHICS_OPENGL_DO_NOT_CHECK_ERRORS
+    umgebung::checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv33::draw_post");
 
     SDL_GL_SwapWindow(window);
 }
