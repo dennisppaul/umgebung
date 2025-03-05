@@ -525,11 +525,11 @@ void PGraphicsOpenGLv33::endDraw() {
     }
 }
 
-void PGraphicsOpenGLv33::bind() {
-    if (texture_id) {
-        glBindTexture(GL_TEXTURE_2D, texture_id);
-    }
-}
+// void PGraphicsOpenGLv33::bind() {
+//     if (texture_id) {
+//         glBindTexture(GL_TEXTURE_2D, texture_id);
+//     }
+// }
 
 void PGraphicsOpenGLv33::IM_prepare_frame() {
     if (render_mode == RENDER_MODE_IMMEDIATE) {
@@ -551,6 +551,59 @@ void PGraphicsOpenGLv33::IM_prepare_frame() {
         texture_id_current = 0;
         SHARED_bind_texture(texture_id_solid_color);
     }
+}
+
+void PGraphicsOpenGLv33::upload_image(PImage*         img,
+                                      const uint32_t* pixel_data,
+                                      const int       width,
+                                      const int       height,
+                                      const int       offset_x,
+                                      const int       offset_y,
+                                      const bool      mipmapped) {
+    if (img == nullptr) {
+        return;
+    }
+
+    if (pixel_data == nullptr) {
+        return;
+    }
+
+    if (img->texture_id < TEXTURE_VALID_ID) {
+        SHARED_upload_image_as_texture(img, mipmapped);
+        console("PGraphics / `upload_image` texture has not been intialized yet … trying to initialize");
+        if (img->texture_id < TEXTURE_VALID_ID) {
+            error("PGraphics / `upload_image` failed to create texture");
+            return;
+        }
+    }
+
+    // TODO could try to check width again img->width etcetera
+    glBindTexture(GL_TEXTURE_2D, img->texture_id);
+    constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT; // internal format is always RGBA
+    glTexSubImage2D(GL_TEXTURE_2D,
+                    0, offset_x, offset_y,
+                    width, height,
+                    mFormat,
+                    UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                    pixel_data);
+}
+
+void PGraphicsOpenGLv33::download_image(PImage* img) {
+    if (img == nullptr) {
+        return;
+    }
+    if (img->pixels == nullptr) {
+        return;
+    }
+    if (img->texture_id < TEXTURE_VALID_ID) {
+        return;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, img->texture_id);
+    glGetTexImage(GL_TEXTURE_2D, 0,
+                  UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                  UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                  img->pixels);
 }
 
 void PGraphicsOpenGLv33::reset_matrices() {

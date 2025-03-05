@@ -76,7 +76,7 @@ namespace umgebung {
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
         void    beginDraw() override;
         void    endDraw() override;
-        void    bind() override;
+        // void    bind() override;
         void    init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
 
         /* --- additional methods --- */

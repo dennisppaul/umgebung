@@ -19,13 +19,14 @@
 
 #pragma once
 
-#include <iostream>
 #include <cstdint>
 #include <SDL3/SDL.h>
 
 #include "UmgebungConstants.h"
 
 namespace umgebung {
+
+    class PGraphics;
     class PImage {
     public:
         explicit PImage(const std::string& filename);
@@ -33,17 +34,18 @@ namespace umgebung {
         PImage();
         virtual ~PImage() = default;
 
-        virtual void bind();
-        virtual void loadPixels() const;
+        // virtual void bind();
+        virtual void loadPixels(PGraphics* graphics);
         virtual void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap);
 
-        void updatePixels() const;
-        void updatePixels(int x, int y, int w, int h) const;
-        void update(const uint32_t* pixel_data) const;
-        void update(const uint32_t* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
-        void update(const float* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
+        void updatePixels(PGraphics* graphics);
+        void updatePixels(PGraphics* graphics, int x, int y, int w, int h);
+        void update(PGraphics* graphics, uint32_t* pixel_data);
+        void update(PGraphics* graphics, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y);
+        void update(PGraphics* graphics, const float* pixel_data, int _width, int _height, int offset_x, int offset_y);
 
-        void set(const uint16_t x, const uint16_t y, const uint32_t c) const {
+        // ReSharper disable once CppMemberFunctionMayBeConst
+        void set(const uint16_t x, const uint16_t y, const uint32_t c) {
             if (x >= static_cast<uint16_t>(width) || y >= static_cast<uint16_t>(height)) {
                 return;
             }
@@ -66,6 +68,6 @@ namespace umgebung {
         SDL_Texture* sdl_texture = nullptr;
 
     protected:
-        void update_full_internal() const;
+        void update_full_internal(PGraphics* graphics);
     };
 } // namespace umgebung

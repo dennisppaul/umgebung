@@ -75,11 +75,13 @@ namespace umgebung {
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
         void    beginDraw() override;
         void    endDraw() override;
-        void    bind() override;
-        void    init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
+        // void    bind() override;
+        void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
 
         /* --- additional methods --- */
 
+        void        upload_image(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool      mipmapped) override;
+        void        download_image(PImage* img) override;
         void        reset_matrices() override;
         void        bind_texture(const int texture_id) override { glBindTexture(GL_TEXTURE_2D, texture_id); }
         void        unbind_texture() override { glBindTexture(GL_TEXTURE_2D, texture_id_solid_color); }

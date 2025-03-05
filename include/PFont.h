@@ -35,13 +35,19 @@
 //    //textSize() :: Sets the current font size
 //    //textWidth() :: Calculates and returns the width of any character or text string
 
+// #define PFONT_DEBUG_FONT
+// #define PFONT_INCLUDE_OPENGL
+
 #include <string>
 #include <codecvt>
 
 #include <algorithm>
 #include <vector>
 #include <unordered_map>
+
+#ifdef PFONT_INCLUDE_OPENGL
 #include <GL/glew.h>
+#endif // PFONT_INCLUDE_OPENGL
 
 #include "harfbuzz/hb.h"
 #include "harfbuzz/hb-ft.h"
@@ -50,9 +56,6 @@
 
 #include "UmgebungFunctionsAdditional.h"
 #include "PImage.h"
-
-// #define PFONT_DEBUG_FONT
-// #define PFONT_INCLUDE_OPENGL
 
 namespace umgebung {
     struct TexturedQuad {
@@ -290,10 +293,6 @@ namespace umgebung {
             }
         }
 
-        // TODO move to `UmgebungConstantsOpenGL.h`
-        static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
-        static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
-
         void copy_atlas_to_rgba(const FontData& font, unsigned char* atlas_rgba) const {
             for (int y = 0; y < font.atlas_height; y++) {
                 for (int x = 0; x < font.atlas_width; x++) {
@@ -309,13 +308,18 @@ namespace umgebung {
         }
 
 #ifdef PFONT_INCLUDE_OPENGL
+
+        // TODO move to `UmgebungConstantsOpenGL.h`
+        static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
+        static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
+
         /**
          * @deprecated this is handle by PGraphics
          * @param font
          * @return
          */
         GLuint create_font_texture(const FontData& font) const {
-            // TODO this should happen in OpenGL context ... as for PImage
+            // TODO this does happen in OpenGL context ... as for PImage
             std::vector<unsigned char> atlas_rgba(font.atlas_width * font.atlas_height * 4, 255);
             for (int y = 0; y < font.atlas_height; y++) {
                 for (int x = 0; x < font.atlas_width; x++) {

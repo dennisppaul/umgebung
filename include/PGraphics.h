@@ -80,6 +80,8 @@ namespace umgebung {
 
         /* --- additional --- */
 
+        virtual void        upload_image(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {}
+        virtual void        download_image(PImage* img) {}
         virtual void        reset_matrices() {}
         virtual void        bind_texture(int texture_id) {}
         virtual void        unbind_texture() {}

@@ -452,7 +452,7 @@ void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, float 
 
     glEnable(GL_TEXTURE_2D);
     glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-    img->bind();
+    glBindTexture(GL_TEXTURE_2D, img->texture_id);
 
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0);
@@ -482,7 +482,6 @@ void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y) {
 }
 
 void PGraphicsOpenGLv20::texture(PImage* img) {
-#ifndef DISABLE_GRAPHICS
     if (fShapeBegun) {
         std::cerr << "texture must be set before `beginShape()`" << std::endl;
         return;
@@ -505,11 +504,8 @@ void PGraphicsOpenGLv20::texture(PImage* img) {
 
     fEnabledTextureInShape = true;
     glEnable(GL_TEXTURE_2D);
-    img->bind();
-#endif // DISABLE_GRAPHICS
+    glBindTexture(GL_TEXTURE_2D, img->texture_id);
 }
-
-#ifndef DISABLE_GRAPHICS
 
 void PGraphicsOpenGLv20::popMatrix() {
     glPopMatrix();
@@ -601,11 +597,11 @@ void PGraphicsOpenGLv20::endDraw() {
     }
 }
 
-void PGraphicsOpenGLv20::bind() {
-    if (render_to_offscreen) {
-        glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id);
-    }
-}
+// void PGraphicsOpenGLv20::bind() {
+//     if (render_to_offscreen) {
+//         glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id);
+//     }
+// }
 
 void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int height, int format, bool generate_mipmap) {
     this->width        = width;
@@ -658,6 +654,7 @@ void PGraphicsOpenGLv20::hint(const uint16_t property) {
     }
 }
 
+#ifndef DISABLE_GRAPHICS
 #else // DISABLE_GRAPHICS
 void PGraphicsOpenGLv20::popMatrix() {
 }

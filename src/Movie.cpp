@@ -385,19 +385,19 @@ bool Movie::processFrame() {
     return false;
 }
 
-void Movie::reload() {
+void Movie::reload(PGraphics* graphics) {
     pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
-    update_full_internal();
+    update_full_internal(graphics);
 }
 
 void Movie::set_listener(MovieListener* listener) { fListener = listener; }
 
-bool Movie::read() {
+bool Movie::read(PGraphics* graphics) {
     if (!processFrame()) {
         return false; // No frame available or error processing frame
     }
     pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
-    update_full_internal();
+    update_full_internal(graphics);
     return true;
 }
 
