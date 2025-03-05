@@ -98,7 +98,7 @@ GLuint compileShader(const GLenum type, const char* source) {
     if (!success) {
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "Shader Compilation Error: " << infoLog << std::endl;
+        error("Shader Compilation Error: ", infoLog);
     }
     return shader;
 }
@@ -291,10 +291,12 @@ static void draw_post() {
         }
     }
 
-    const GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cerr << "OpenGL error: " << error << std::endl;
+#ifndef PGRAPHICS_OPENGL_DO_NOT_CHECK_ERRORS
+    const GLenum gl_error = glGetError();
+    if (gl_error != GL_NO_ERROR) {
+        error("SUBSYSTEM GRAPHICS has OpenGL error: ", getOpenGLErrorString(gl_error), "(", gl_error, ")");
     }
+#endif // PGRAPHICS_OPENGL_DO_NOT_CHECK_ERRORS
 
     SDL_GL_SwapWindow(window);
 }

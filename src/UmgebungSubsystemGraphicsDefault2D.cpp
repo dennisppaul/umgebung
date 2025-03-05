@@ -19,9 +19,7 @@
 
 #include <SDL3/SDL.h>
 
-#include "UmgebungConstants.h"
-#include "UmgebungFunctionsPGraphics.h"
-#include "UmgebungSubsystems.h"
+#include "Umgebung.h"
 #include "PGraphicsDefault2D.h"
 
 UMGEBUNG_NAMESPACE_BEGIN

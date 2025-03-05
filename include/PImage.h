@@ -62,7 +62,7 @@ namespace umgebung {
         float        height;
         uint8_t      format;
         uint32_t*    pixels;
-        int          texture_id  = NOT_INITIALIZED;
+        int          texture_id  = TEXTURE_NOT_GENERATED;
         SDL_Texture* sdl_texture = nullptr;
 
     protected:
