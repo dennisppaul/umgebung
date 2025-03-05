@@ -1,5 +1,5 @@
 /*
-* Umgebung
+ * Umgebung
  *
  * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
  * Copyright (c) 2025 Dennis P Paul.
@@ -25,36 +25,7 @@
 
 #include "PGraphics.h"
 
-#ifndef PGRAPHICS_OPENGL_DO_NOT_CHECK_ERRORS
-#define GL_CALL(func) \
-    func;             \
-    checkOpenGLError(#func)
-#else
-#define GL_CALL(func) func;
-#endif
-
 namespace umgebung {
-
-    inline std::string getOpenGLErrorString(const GLenum error) {
-        switch (error) {
-            case GL_NO_ERROR: return "No error";
-            case GL_INVALID_ENUM: return "Invalid enum (GL_INVALID_ENUM)";
-            case GL_INVALID_VALUE: return "Invalid value (GL_INVALID_VALUE)";
-            case GL_INVALID_OPERATION: return "Invalid operation (GL_INVALID_OPERATION)";
-            case GL_STACK_OVERFLOW: return "Stack overflow (GL_STACK_OVERFLOW)";
-            case GL_STACK_UNDERFLOW: return "Stack underflow (GL_STACK_UNDERFLOW)";
-            case GL_OUT_OF_MEMORY: return "Out of memory (GL_OUT_OF_MEMORY)";
-            case GL_INVALID_FRAMEBUFFER_OPERATION: return "Invalid framebuffer operation (GL_INVALID_FRAMEBUFFER_OPERATION)";
-            default: return "Unknown OpenGL error";
-        }
-    }
-
-    inline void checkOpenGLError(const std::string& functionName) {
-        GLenum error;
-        while ((error = glGetError()) != GL_NO_ERROR) {
-            std::cerr << "[OpenGL Error] " << functionName << ": " << getOpenGLErrorString(error) << std::endl;
-        }
-    }
 
     class PGraphicsOpenGLv33 final : public PGraphics {
     public:

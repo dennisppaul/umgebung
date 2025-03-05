@@ -240,7 +240,7 @@ namespace umgebung {
 
             for (unsigned int i = 0; i < glyph_count; i++) {
                 FT_Load_Glyph(font.face, glyph_info[i].codepoint, FT_LOAD_RENDER);
-                FT_GlyphSlot glyph = font.face->glyph;
+                const FT_GlyphSlot glyph = font.face->glyph;
 
                 if (font.glyphs.find(glyph_info[i].codepoint) == font.glyphs.end()) {
                     Glyph g;
