@@ -40,9 +40,9 @@ namespace umgebung {
 
         void updatePixels(PGraphics* graphics);
         void updatePixels(PGraphics* graphics, int x, int y, int w, int h);
-        void update(PGraphics* graphics, uint32_t* pixel_data);
+        void update(PGraphics* graphics, const uint32_t* pixel_data);
         void update(PGraphics* graphics, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y);
-        void update(PGraphics* graphics, const float* pixel_data, int _width, int _height, int offset_x, int offset_y);
+        void update(PGraphics* graphics, const float* pixel_data, int width, int height, int offset_x, int offset_y);
 
         // ReSharper disable once CppMemberFunctionMayBeConst
         void set(const uint16_t x, const uint16_t y, const uint32_t c) {

@@ -69,3 +69,9 @@
 #ifndef UMGEBUNG_PRINT_CONSOLE
 #define UMGEBUNG_PRINT_CONSOLE TRUE
 #endif
+
+/* --- TOOLS --- */
+
+#ifndef RGBA
+#define RGBA(r, g, b, a) (((uint32_t) (a) << 24) | ((uint32_t) (b) << 16) | ((uint32_t) (g) << 8) | ((uint32_t) (r)))
+#endif
