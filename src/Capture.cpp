@@ -83,15 +83,32 @@ namespace umgebung {
     }
 
     bool Capture::read(PGraphics* graphics) {
+        if (graphics == nullptr) {
+            return false;
+        }
+
+        if (convertedFrame == nullptr) {
+            return false;
+        }
+
         if (!processFrame()) {
             return false; // No frame available or error processing frame
         }
+
         pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
         update_full_internal(graphics);
         return true;
     }
 
     void Capture::reload(PGraphics* graphics) {
+        if (graphics == nullptr) {
+            return;
+        }
+
+        if (convertedFrame == nullptr) {
+            return;
+        }
+
         pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
         update_full_internal(graphics);
     }
@@ -308,6 +325,18 @@ namespace umgebung {
     }
 
     bool Capture::available() {
+        if (convertedFrame == nullptr) {
+            return false;
+        }
+
+        if (codecContext == nullptr) {
+            return false;
+        }
+
+        if (formatContext == nullptr) {
+            return false;
+        }
+
         const int ret = av_read_frame(formatContext, packet);
         if (ret >= 0) {
             if (packet->stream_index == videoStreamIndex) {
@@ -328,6 +357,14 @@ namespace umgebung {
     }
 
     bool Capture::processFrame() {
+        if (codecContext == nullptr) {
+            return false;
+        }
+
+        if (convertedFrame == nullptr) {
+            return false;
+        }
+
         if (fVideoFrameAvailable) {
             const int ret = avcodec_receive_frame(codecContext, frame);
             if (ret == 0) {

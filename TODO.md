@@ -130,6 +130,25 @@ void main() {
     ```
 - [ ] add `stb_image_write.h`
 - [ ] add `FreeType2` and `Harfbuzz`
+- [ ] add iOS version of ffmpeg ( see https://github.com/kewlbear/FFmpeg-iOS-build-script ) and do somthing like this in CMake:
+    ```cmake
+    if(APPLE AND NOT CMAKE_SYSTEM_NAME MATCHES "iOS")
+        # macOS: Use Homebrew's dynamically linked FFmpeg
+        find_package(FFmpeg REQUIRED)
+        target_link_libraries(${EXECUTABLE_NAME} PUBLIC FFmpeg::FFmpeg)
+    elseif(IOS)
+        # iOS: Use precompiled static FFmpeg libraries
+        set(FFMPEG_IOS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ffmpeg-ios")
+        target_include_directories(${EXECUTABLE_NAME} PRIVATE "${FFMPEG_IOS_PATH}/include")
+        target_link_libraries(${EXECUTABLE_NAME} PRIVATE 
+            "${FFMPEG_IOS_PATH}/lib/libavcodec.a"
+            "${FFMPEG_IOS_PATH}/lib/libavformat.a"
+            "${FFMPEG_IOS_PATH}/lib/libavutil.a"
+            "${FFMPEG_IOS_PATH}/lib/libswscale.a"
+            "${FFMPEG_IOS_PATH}/lib/libswresample.a"
+        )
+    endif()
+    ```
 
 ## Archived
 
