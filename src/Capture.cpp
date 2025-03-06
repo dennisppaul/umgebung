@@ -82,18 +82,18 @@ namespace umgebung {
         return true;
     }
 
-    bool Capture::read() {
+    bool Capture::read(PGraphics* graphics) {
         if (!processFrame()) {
             return false; // No frame available or error processing frame
         }
         pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
-        update_full_internal();
+        update_full_internal(graphics);
         return true;
     }
 
-    void Capture::reload() {
+    void Capture::reload(PGraphics* graphics) {
         pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
-        update_full_internal();
+        update_full_internal(graphics);
     }
 
     int Capture::connect(const char* device_name,
@@ -262,7 +262,7 @@ namespace umgebung {
         PImage::init(reinterpret_cast<uint32_t*>(buffer),
                      codecContext->width,
                      codecContext->height,
-                     default_channels_RGBA);
+                     default_channels_RGBA, false);
         return 0;
     }
 
@@ -559,7 +559,7 @@ namespace umgebung {
         return false;
     }
 
-    bool Capture::read() {
+    bool Capture::read(PGraphics* graphics) {
         return false;
     }
 
@@ -567,7 +567,7 @@ namespace umgebung {
 
     void Capture::stop() {}
 
-    void Capture::reload() {}
+    void Capture::reload(PGraphics* graphics) {}
 
     Capture::~Capture() = default;
 

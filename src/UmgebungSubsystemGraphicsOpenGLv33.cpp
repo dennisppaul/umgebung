@@ -230,17 +230,24 @@ static void setup_pre() {
     int current_framebuffer_width;
     int current_framebuffer_height;
     SDL_GetWindowSizeInPixels(window, &current_framebuffer_width, &current_framebuffer_height);
-    framebuffer_width  = static_cast<float>(current_framebuffer_width);
-    framebuffer_height = static_cast<float>(current_framebuffer_height);
+    int current_framebuffer_width_in_pixel;
+    int current_framebuffer_height_in_pixel;
+    SDL_GetWindowSizeInPixels(window, &current_framebuffer_width_in_pixel, &current_framebuffer_height_in_pixel);
+    framebuffer_width   = static_cast<float>(current_framebuffer_width);
+    framebuffer_height  = static_cast<float>(current_framebuffer_height);
+    float pixel_density = SDL_GetWindowPixelDensity(window);
 
     console("main renderer      : ", g->name());
     console("render to offscreen: ", g->render_to_offscreen ? "true" : "false");
     console("framebuffer size   : ", framebuffer_width, " x ", framebuffer_height);
-    console("graphics    size   : ", width, " x ", height);
-    console("( note that if these do not align the pixel density might not be 1 )");
+    console("framebuffer size px: ", current_framebuffer_width_in_pixel, " x ", current_framebuffer_height_in_pixel);
+    console("graphics size      : ", width, " x ", height);
+    console("pixel_density      : ", pixel_density);
+    // console("( note that if these do not align the pixel density might not be 1 )");
 
     pixelHeight = static_cast<int>(framebuffer_height / height);
     pixelWidth  = static_cast<int>(framebuffer_width / width);
+
     g->init(nullptr, static_cast<int>(framebuffer_width), static_cast<int>(framebuffer_height), 0, false);
     g->width  = static_cast<int>(width);
     g->height = static_cast<int>(height);
@@ -287,8 +294,8 @@ static void draw_post() {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);                      // Unbind FBO
             glBindFramebuffer(GL_READ_FRAMEBUFFER, g->framebuffer.id); // Bind the FBO as the source
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);                 // Bind the default framebuffer (screen) as the destination
-            glBlitFramebuffer(0, 0, static_cast<int>(g->framebuffer.width), static_cast<int>(g->framebuffer.height),
-                              0, 0, static_cast<int>(width), static_cast<int>(height),
+            glBlitFramebuffer(0, 0, g->framebuffer.width, g->framebuffer.height,
+                              0, 0, g->framebuffer.width, g->framebuffer.height,
                               GL_COLOR_BUFFER_BIT, GL_LINEAR);
             // GL_COLOR_BUFFER_BIT, GL_NEAREST);
             glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);

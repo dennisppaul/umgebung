@@ -621,10 +621,15 @@ void PGraphicsOpenGLv33::reset_matrices() {
     model_matrix_client = glm::mat4(1.0f);
     model_matrix_dirty  = false;
 
-    glViewport(0, 0, static_cast<GLint>(width), static_cast<GLint>(height));
+    const float viewport_width  = framebuffer_width;
+    const float viewport_height = framebuffer_height;
+    // const float viewport_width  = width;
+    // const float viewport_height = height;
+
+    glViewport(0, 0, static_cast<GLint>(viewport_width), static_cast<GLint>(viewport_height));
 
     // Orthographic projection
-    projection_matrix_2D = glm::ortho(0.0f, width, height, 0.0f);
+    projection_matrix_2D = glm::ortho(0.0f, viewport_width, viewport_height, 0.0f);
 
     const float fov            = DEFAULT_FOV;                       // distance from the camera = screen height
     const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f); // 1 unit = 1 pixel
@@ -655,6 +660,9 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
     init_fill_vertice_buffers();
 
     if (render_to_offscreen) {
+        console("setting up rendering to offscreen buffer:");
+        console("framebuffer: ", framebuffer.width, "x", framebuffer.height);
+        console("graphics   : ", this->width, "x", this->height);
         glGenFramebuffers(1, &framebuffer.id);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
         glGenTextures(1, &framebuffer.texture_id);

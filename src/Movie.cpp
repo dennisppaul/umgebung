@@ -168,7 +168,6 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
                          1);
     packet = av_packet_alloc();
 
-    // TODO check if this still works
     PImage::init(reinterpret_cast<uint32_t*>(convertedFrame->data[0]),
                  videoCodecContext->width,
                  videoCodecContext->height,
