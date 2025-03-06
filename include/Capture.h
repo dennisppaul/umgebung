@@ -72,10 +72,10 @@ namespace umgebung {
                          const char* pixel_format);
         bool        available();
         float       frameRate() const { return 1.0f / static_cast<float>(frameDuration); }
-        bool        read();
+        bool        read(PGraphics* graphics);
         void        start();
         void        stop();
-        void        reload();
+        void        reload(PGraphics* graphics);
         void        set_listener(CaptureListener* listener) { this->listener = listener; }
         const char* name() const { return fDeviceName; }
 

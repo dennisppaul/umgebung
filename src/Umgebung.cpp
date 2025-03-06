@@ -198,7 +198,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     if (umgebung::subsystem_graphics->create_graphics != nullptr) {
         umgebung::g = umgebung::subsystem_graphics->create_graphics(umgebung::render_to_buffer);
-        // TODO or call init(width, height) here?
     }
 
     umgebung::initialized = true;
