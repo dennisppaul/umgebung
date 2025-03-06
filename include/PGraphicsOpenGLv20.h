@@ -77,18 +77,18 @@ namespace umgebung {
         void    beginDraw() override;
         void    endDraw() override;
         // void    bind() override;
-        void    init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
+        void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
 
         /* --- additional methods --- */
 
+        void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
+        void        download_texture(PImage* img, bool restore_texture = true) override;
         std::string name() override { return "PGraphicsOpenGLv22"; }
 
     private:
-
         float fPointSize             = 1;
         float fStrokeWeight          = 1;
         bool  fEnabledTextureInShape = false;
-        bool  fShapeBegun            = false;
         int   fBezierDetail          = 20;
         int   fPixelDensity          = 1;
         int   previously_bound_FBO{0};

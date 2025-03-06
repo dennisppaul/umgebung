@@ -90,8 +90,8 @@ void PGraphics::ellipseDetail(const int detail) {
     if (ellipse_detail == detail) {
         return;
     }
-    if (detail < MIN_ELLIPSE_DETAIL) {
-        // error("ellipseDetail too small: ", detail, ". must be at least ", MIN_ELLIPSE_DETAIL);
+    if (detail < ELLIPSE_DETAIL_MIN) {
+        // error("ellipseDetail too small: ", detail, ". must be at least ", ELLIPSE_DETAIL_MIN);
         return;
     }
     ellipse_detail = detail;
@@ -101,7 +101,7 @@ void PGraphics::ellipseDetail(const int detail) {
 void PGraphics::pointSize(const float size) { point_size = size < 1 ? 1 : size; }
 
 void PGraphics::resize_ellipse_points_LUT() {
-    if (ellipse_detail < MIN_ELLIPSE_DETAIL) {
+    if (ellipse_detail < ELLIPSE_DETAIL_MIN) {
         return;
     }
     ellipse_points_LUT.clear();

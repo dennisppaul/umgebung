@@ -385,6 +385,14 @@ bool Movie::processFrame() {
 }
 
 void Movie::reload(PGraphics* graphics) {
+    if (graphics == nullptr) {
+        return;
+    }
+
+    if (convertedFrame == nullptr) {
+        return;
+    }
+
     pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
     update_full_internal(graphics);
 }
@@ -392,9 +400,18 @@ void Movie::reload(PGraphics* graphics) {
 void Movie::set_listener(MovieListener* listener) { fListener = listener; }
 
 bool Movie::read(PGraphics* graphics) {
+    if (graphics == nullptr) {
+        return false;
+    }
+
+    if (convertedFrame == nullptr) {
+        return false;
+    }
+
     if (!processFrame()) {
         return false; // No frame available or error processing frame
     }
+
     pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
     update_full_internal(graphics);
     return true;
@@ -402,6 +419,10 @@ bool Movie::read(PGraphics* graphics) {
 
 // Example of frameRate() method
 float Movie::frameRate() const {
+    if (formatContext == nullptr) {
+        return 0;
+    }
+
     const AVRational frame_rate = formatContext->streams[videoStreamIndex]->avg_frame_rate;
     return static_cast<float>(frame_rate.num) / static_cast<float>(frame_rate.den);
 }
@@ -413,10 +434,18 @@ void Movie::speed(const float factor) {
 }
 
 float Movie::duration() const {
+    if (formatContext == nullptr) {
+        return 0;
+    }
+
     return static_cast<float>(formatContext->duration) / AV_TIME_BASE;
 }
 
 void Movie::jump(const float seconds) const {
+    if (formatContext == nullptr) {
+        return;
+    }
+
     const int64_t timestamp = static_cast<int64_t>(seconds) * AV_TIME_BASE;
     av_seek_frame(formatContext, videoStreamIndex, timestamp, AVSEEK_FLAG_ANY);
     // Reset any buffers or states as needed

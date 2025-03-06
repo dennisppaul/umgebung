@@ -50,13 +50,8 @@ sphere() A sphere is a hollow ball made from tessellated triangles
 namespace umgebung {
 
     class PFont;
-
     class PGraphics : public virtual PImage {
     public:
-        static constexpr uint16_t ENABLE_SMOOTH_LINES    = 0;
-        static constexpr uint16_t DISABLE_SMOOTH_LINES   = 1;
-        static constexpr uint16_t ELLIPSE_DETAIL_DEFAULT = 18;
-
         PGraphics();
         ~PGraphics() override = default;
 
@@ -80,8 +75,8 @@ namespace umgebung {
 
         /* --- additional --- */
 
-        virtual void        upload_image(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {}
-        virtual void        download_image(PImage* img) {}
+        virtual void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {}
+        virtual void        download_texture(PImage* img, bool restore_texture = true) {}
         virtual void        reset_matrices() {}
         virtual void        bind_texture(int texture_id) {}
         virtual void        unbind_texture() {}
@@ -162,7 +157,8 @@ namespace umgebung {
             return {color.r, color.g, color.b, color.a};
         }
 
-        static constexpr uint16_t MIN_ELLIPSE_DETAIL = 3;
+        static constexpr uint16_t ELLIPSE_DETAIL_MIN     = 3;
+        static constexpr uint16_t ELLIPSE_DETAIL_DEFAULT = 18;
         PFont*                    current_font{nullptr};
         ColorState                color_stroke{};
         ColorState                color_fill{};
@@ -173,8 +169,10 @@ namespace umgebung {
         float                     point_size{1};
         uint8_t                   pixel_density{1};
         int                       texture_id_current{};
+        bool                      shape_has_begun{false};
 
         void    resize_ellipse_points_LUT();
         uint8_t get_pixel_density() const { return pixel_density; }
     };
+
 } // namespace umgebung

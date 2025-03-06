@@ -80,11 +80,11 @@ namespace umgebung {
 
         /* --- additional methods --- */
 
-        void        upload_image(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool      mipmapped) override;
-        void        download_image(PImage* img) override;
+        void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
+        void        download_texture(PImage* img, bool restore_texture = true) override;
+        void        bind_texture(const int texture_id) override { SHARED_bind_texture(texture_id); }
+        void        unbind_texture() override { SHARED_bind_texture(texture_id_solid_color); }
         void        reset_matrices() override;
-        void        bind_texture(const int texture_id) override { glBindTexture(GL_TEXTURE_2D, texture_id); }
-        void        unbind_texture() override { glBindTexture(GL_TEXTURE_2D, texture_id_solid_color); }
         std::string name() override { return "PGraphicsOpenGLv33"; }
 
     private:
@@ -164,7 +164,6 @@ namespace umgebung {
         std::vector<Vertex>      shape_stroke_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
         std::vector<Vertex>      shape_fill_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
         int                      shape_mode_cache{POLYGON};
-        bool                     shape_has_begun{false};
         int                      previously_bound_FBO{0};
 
         //        PFont* fCurrentFont           = nullptr;
@@ -229,8 +228,8 @@ namespace umgebung {
         void create_solid_color_texture();
 
         void add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position, const glm::vec4& color, float u = 0.0f, float v = 0.0f);
-        void RM_add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint batch_texture_id);
         void to_screen_space(glm::vec3& world_position) const;
+        void RM_add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint batch_texture_id);
         void RM_render_line_strip_as_connected_quads(std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape);
         void RM_render_line_strip_as_quad_segments(const std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape, bool round_corners);
         void RM_render_ellipse_filled(float x, float y, float width, float height, int detail, const glm::vec4& color);
@@ -246,6 +245,7 @@ namespace umgebung {
         /* --- SHARED --- */
 
         void          SHARED_bind_texture(GLuint bind_texture_id);
+        bool          SHARED_generate_and_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`
         static void   SHARED_resize_vertex_buffer(size_t buffer_size_bytes);
         static void   SHARED_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);
         static void   SHARED_init_vertex_buffer(PrimitiveVertexBuffer& primitive);
@@ -253,6 +253,5 @@ namespace umgebung {
         static GLuint SHARED_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
         static void   SHARED_checkShaderCompileStatus(GLuint shader);
         static void   SHARED_checkProgramLinkStatus(GLuint program);
-        static bool   SHARED_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`
     };
 } // namespace umgebung

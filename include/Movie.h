@@ -47,6 +47,8 @@ namespace umgebung {
         virtual void movieAudioEvent(Movie* m, float* audio_buffer, int length, int channels) = 0;
     };
 
+    extern PGraphics* g;
+
     class Movie final : public PImage {
     public:
         explicit Movie(const std::string& filename, int channels = -1);
@@ -59,11 +61,11 @@ namespace umgebung {
         void  noLoop();
         void  pause();
         void  play();
-        bool  read(PGraphics* graphics);
+        bool  read(PGraphics* graphics = g);
         void  speed(float factor);
         void  stop() { pause(); }
         float time() const;
-        void  reload(PGraphics* graphics);
+        void  reload(PGraphics* graphics = g);
         void  set_listener(MovieListener* listener);
 
         ~Movie() override;

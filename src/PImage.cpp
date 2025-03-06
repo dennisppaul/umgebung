@@ -121,7 +121,7 @@ void PImage::update(PGraphics*   graphics,
 }
 
 void PImage::update_full_internal(PGraphics* graphics) {
-    graphics->upload_image(this,
+    graphics->upload_texture(this,
                            pixels,
                            static_cast<int>(width), static_cast<int>(height),
                            0, 0, true);
@@ -162,7 +162,7 @@ void PImage::loadPixels(PGraphics* graphics) {
     if (graphics == nullptr) {
         return;
     }
-    graphics->download_image(this);
+    graphics->download_texture(this);
 }
 
 void PImage::update(PGraphics*      graphics,
@@ -198,5 +198,5 @@ void PImage::update(PGraphics*      graphics,
         }
     }
 
-    graphics->upload_image(this, pixel_data, width, height, offset_x, offset_y, true);
+    graphics->upload_texture(this, pixel_data, width, height, offset_x, offset_y, true);
 }

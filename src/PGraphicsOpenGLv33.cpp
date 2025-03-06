@@ -239,6 +239,7 @@ void PGraphicsOpenGLv33::endShape(const bool close_shape) {
     if (render_mode == RENDER_MODE_IMMEDIATE) {
         IM_render_end_shape(close_shape);
     }
+
     if (render_mode == RENDER_MODE_RETAINED) {
         const glm::vec4 color = as_vec4(color_stroke);
         switch (render_line_mode) {
@@ -352,23 +353,19 @@ void PGraphicsOpenGLv33::image(PImage* image, const float x, const float y, floa
 
     // TODO move this to own method and share with `texture()`
     if (image->texture_id == TEXTURE_NOT_GENERATED) {
-        SHARED_upload_image_as_texture(image, true);
+        SHARED_generate_and_upload_image_as_texture(image, true);
         if (image->texture_id == TEXTURE_NOT_GENERATED) {
             error("image cannot create texture.");
             return;
         }
-        console("PGraphicsOpenGLv33::image // uploaded texture image to GPU");
+        // console("PGraphicsOpenGLv33::image // uploaded texture image to GPU");
     }
 
     if (render_mode == RENDER_MODE_IMMEDIATE) {
-        const uint8_t tmp_rect_mode          = rect_mode;
-        const uint8_t tmp_texture_id_current = texture_id_current;
+        const int tmp_bound_texture = texture_id_current;
         SHARED_bind_texture(image->texture_id);
         rect(x, y, w, h);
-        if (tmp_texture_id_current != image->texture_id) {
-            SHARED_bind_texture(tmp_texture_id_current);
-        }
-        rect_mode = tmp_rect_mode;
+        SHARED_bind_texture(tmp_bound_texture);
         return;
     }
 
@@ -402,17 +399,25 @@ void PGraphicsOpenGLv33::texture(PImage* img) {
         return;
     }
 
+    if (shape_has_begun) {
+        console("`texture()` can only be called right before `beginShape(...)`. ( note, this is different from the original processing )");
+        return;
+    }
+
     // TODO move this to own method and share with `texture()`
     if (img->texture_id == TEXTURE_NOT_GENERATED) {
-        SHARED_upload_image_as_texture(img, true);
+        SHARED_generate_and_upload_image_as_texture(img, true);
         if (img->texture_id == TEXTURE_NOT_GENERATED) {
             error("image cannot create texture.");
             return;
         }
-        console("PGraphicsOpenGLv33::texture // uploaded texture image to GPU");
     }
 
     SHARED_bind_texture(img->texture_id);
+    // TODO so this is interesting: we could leave the texture bound and require the client
+    //      to unbind it with `texture_unbind()` or should `endShape()` alsways reset to
+    //      `texture_id_solid_color` with `texture_unbind()`.
+    //      mazbe if this called within begin-end-shape it restores the texture afterwards.
 }
 
 // NOTE: done
@@ -489,11 +494,11 @@ void PGraphicsOpenGLv33::pixelDensity(int density) {
 void PGraphicsOpenGLv33::hint(const uint16_t property) {
     // TODO @MERGE
     switch (property) {
-        case ENABLE_SMOOTH_LINES:
+        case HINT_ENABLE_SMOOTH_LINES:
             glEnable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
             break;
-        case DISABLE_SMOOTH_LINES:
+        case HINT_DISABLE_SMOOTH_LINES:
             glDisable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
             break;
@@ -525,12 +530,6 @@ void PGraphicsOpenGLv33::endDraw() {
     }
 }
 
-// void PGraphicsOpenGLv33::bind() {
-//     if (texture_id) {
-//         glBindTexture(GL_TEXTURE_2D, texture_id);
-//     }
-// }
-
 void PGraphicsOpenGLv33::IM_prepare_frame() {
     if (render_mode == RENDER_MODE_IMMEDIATE) {
         glEnable(GL_BLEND);
@@ -553,13 +552,13 @@ void PGraphicsOpenGLv33::IM_prepare_frame() {
     }
 }
 
-void PGraphicsOpenGLv33::upload_image(PImage*         img,
-                                      const uint32_t* pixel_data,
-                                      const int       width,
-                                      const int       height,
-                                      const int       offset_x,
-                                      const int       offset_y,
-                                      const bool      mipmapped) {
+void PGraphicsOpenGLv33::upload_texture(PImage*         img,
+                                        const uint32_t* pixel_data,
+                                        const int       width,
+                                        const int       height,
+                                        const int       offset_x,
+                                        const int       offset_y,
+                                        const bool      mipmapped) {
     if (img == nullptr) {
         return;
     }
@@ -569,26 +568,28 @@ void PGraphicsOpenGLv33::upload_image(PImage*         img,
     }
 
     if (img->texture_id < TEXTURE_VALID_ID) {
-        SHARED_upload_image_as_texture(img, mipmapped);
-        console("PGraphics / `upload_image` texture has not been initialized yet … trying to initialize");
+        SHARED_generate_and_upload_image_as_texture(img, mipmapped);
+        console("PGraphics / `upload_texture` texture has not been initialized yet … trying to initialize");
         if (img->texture_id < TEXTURE_VALID_ID) {
-            error("PGraphics / `upload_image` failed to create texture");
+            error("PGraphics / `upload_texture` failed to create texture");
             return;
         }
     }
 
     // Check if the provided width, height, and offsets are within the valid range
     if (width <= 0 || height <= 0) {
-        error("PGraphics / `upload_image` invalid width or height");
+        error("PGraphics / `upload_texture` invalid width or height");
         return;
     }
 
     if (offset_x < 0 || offset_y < 0 || offset_x + width > img->width || offset_y + height > img->height) {
-        error("PGraphics / `upload_image` parameters exceed image dimensions");
+        error("PGraphics / `upload_texture` parameters exceed image dimensions");
         return;
     }
 
-    glBindTexture(GL_TEXTURE_2D, img->texture_id);
+    const int tmp_bound_texture = texture_id_current;
+    SHARED_bind_texture(img->texture_id);
+
     constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT; // internal format is always RGBA
     glTexSubImage2D(GL_TEXTURE_2D,
                     0, offset_x, offset_y,
@@ -596,9 +597,11 @@ void PGraphicsOpenGLv33::upload_image(PImage*         img,
                     mFormat,
                     UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
                     pixel_data);
+
+    SHARED_bind_texture(tmp_bound_texture);
 }
 
-void PGraphicsOpenGLv33::download_image(PImage* img) {
+void PGraphicsOpenGLv33::download_texture(PImage* img, const bool restore_texture) {
     if (img == nullptr) {
         return;
     }
@@ -609,11 +612,13 @@ void PGraphicsOpenGLv33::download_image(PImage* img) {
         return;
     }
 
-    glBindTexture(GL_TEXTURE_2D, img->texture_id);
+    const int tmp_bound_texture = texture_id_current;
+    SHARED_bind_texture(img->texture_id);
     glGetTexImage(GL_TEXTURE_2D, 0,
                   UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
                   UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
                   img->pixels);
+    SHARED_bind_texture(tmp_bound_texture);
 }
 
 void PGraphicsOpenGLv33::reset_matrices() {
@@ -623,8 +628,6 @@ void PGraphicsOpenGLv33::reset_matrices() {
 
     const float viewport_width  = framebuffer_width;
     const float viewport_height = framebuffer_height;
-    // const float viewport_width  = width;
-    // const float viewport_height = height;
 
     glViewport(0, 0, static_cast<GLint>(viewport_width), static_cast<GLint>(viewport_height));
 
@@ -666,7 +669,7 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
         glGenFramebuffers(1, &framebuffer.id);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
         glGenTextures(1, &framebuffer.texture_id);
-        glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id); // NOTE no need to use `SHARED_bind_texture()`
         glTexImage2D(GL_TEXTURE_2D,
                      0,
                      UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
@@ -688,7 +691,7 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, 0); // NOTE no need to use `SHARED_bind_texture()`
     }
 
     create_solid_color_texture();
@@ -699,9 +702,14 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
 
 /* additional */
 
-bool PGraphicsOpenGLv33::SHARED_upload_image_as_texture(PImage* image, const bool generate_texture_mipmapped) {
+bool PGraphicsOpenGLv33::SHARED_generate_and_upload_image_as_texture(PImage* image, const bool generate_texture_mipmapped) {
+    if (image == nullptr) {
+        error("Failed to upload texture because image nullptr.");
+        return false;
+    }
+
     if (image->pixels == nullptr) {
-        error("Failed to upload texture because pixels are null");
+        error("Failed to upload texture because pixels are null. make sure pixel array exists.");
         return false;
     }
 
@@ -713,8 +721,9 @@ bool PGraphicsOpenGLv33::SHARED_upload_image_as_texture(PImage* image, const boo
         return false;
     }
 
-    image->texture_id = static_cast<int>(mTextureID);
-    glBindTexture(GL_TEXTURE_2D, image->texture_id);
+    image->texture_id           = static_cast<int>(mTextureID);
+    const int tmp_bound_texture = texture_id_current;
+    SHARED_bind_texture(image->texture_id);
 
     // Set texture parameters
     if (generate_texture_mipmapped) {
@@ -743,6 +752,8 @@ bool PGraphicsOpenGLv33::SHARED_upload_image_as_texture(PImage* image, const boo
     if (generate_texture_mipmapped) {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
+
+    SHARED_bind_texture(tmp_bound_texture);
     return true;
 }
 
@@ -803,20 +814,11 @@ void PGraphicsOpenGLv33::RM_flush_fill() {
 
     // Bind textures per batch
     glBindVertexArray(fill_VAO_xyz_rgba_uv);
-#ifdef USE_UNORDERED_MAP
-    for (const auto& [texture_id, vertices]: renderBatches) {
-        glBindTexture(GL_TEXTURE_2D, texture_id);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size() / NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV);
-    }
-#else
     for (const auto& batch: renderBatches) {
-        glBindTexture(GL_TEXTURE_2D, batch.texture_id);
+        glBindTexture(GL_TEXTURE_2D, batch.texture_id); // NOTE no need to use `SHARED_bind_texture()`
         glDrawArrays(GL_TRIANGLES, batch.start_index, batch.num_vertices);
     }
-#endif
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(GL_TEXTURE_2D, 0); // NOTE no need to use `SHARED_bind_texture()`
     glBindVertexArray(0);
 
     fill_vertices_xyz_rgba_uv.clear();
@@ -1054,7 +1056,7 @@ void PGraphicsOpenGLv33::init_fill_vertice_buffers() {
 void PGraphicsOpenGLv33::create_solid_color_texture() {
     GLuint texture_id;
     glGenTextures(1, &texture_id);
-    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glBindTexture(GL_TEXTURE_2D, texture_id); // NOTE no need to use `SHARED_bind_texture()`
 
     constexpr unsigned char whitePixel[4] = {255, 255, 255, 255}; // RGBA: White
     glTexImage2D(GL_TEXTURE_2D,
@@ -1068,6 +1070,8 @@ void PGraphicsOpenGLv33::create_solid_color_texture() {
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glBindTexture(GL_TEXTURE_2D, 0); // NOTE no need to use `SHARED_bind_texture()`
 
     texture_id_solid_color = texture_id;
 }
@@ -1273,7 +1277,7 @@ void PGraphicsOpenGLv33::SHARED_render_vertex_buffer(PrimitiveVertexBuffer&     
 
     // Bind VAO and draw the shape
     glBindVertexArray(vertex_buffer.VAO);
-    // glBindTexture(GL_TEXTURE_2D, texture_id_current); // TODO why?
+    // glBindTexture(GL_TEXTURE_2D, texture_id_current); // TODO why? what "why?"? do we need to bind a texture?!?
     glDrawArrays(primitive_mode, 0, static_cast<GLsizei>(shape_vertices.size()));
 
     // Unbind VAO for safety (optional)
@@ -1281,9 +1285,10 @@ void PGraphicsOpenGLv33::SHARED_render_vertex_buffer(PrimitiveVertexBuffer&     
 }
 
 void PGraphicsOpenGLv33::SHARED_bind_texture(const GLuint bind_texture_id) {
+    // `SHARED_bind_texture()` and `bind_texture()` are redundant
     if (bind_texture_id != texture_id_current) {
         texture_id_current = bind_texture_id;
-        glBindTexture(GL_TEXTURE_2D, texture_id_current);
+        glBindTexture(GL_TEXTURE_2D, texture_id_current); // NOTE this should be the only glBindTexture ( except for initializations )
     }
 }
 
@@ -1774,12 +1779,6 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
         SHARED_init_vertex_buffer(IM_primitive_shape);
     }
 
-    if (close_shape) {
-        // TODO add first entry as last …
-        shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
-        shape_fill_vertex_cache.push_back(shape_fill_vertex_cache[0]);
-        shape_stroke_vertex_cache.push_back(shape_stroke_vertex_cache[0]);
-    }
     /*
      * OpenGL ES 3.1 is stricter:
      *
@@ -1792,13 +1791,19 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
     switch (shape_mode_cache) {
         case POINTS:
             glPointSize(point_size); // TODO does this still work under macOS? it renders squares … maybe texturize them
+            // NOTE do not render fill vertex chache -----------------------------------------------------
+            // TODO @OpenGLES3.1 replace with circle or textured quad
             IM_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_cache);
             glPointSize(1);
             break;
         case LINES:
+            // NOTE do not render fill vertex chache -----------------------------------------------------
+            // TODO @OpenGLES3.1 replace with quad lines
             IM_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_cache);
             break;
         case LINE_STRIP:
+            // NOTE do not render fill vertex chache -----------------------------------------------------
+            // TODO @OpenGLES3.1 replace with quad lines
             IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
             break;
         case TRIANGLES:
@@ -1812,20 +1817,30 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
         case QUAD_STRIP: // NOTE does this just work?!?
         case TRIANGLE_STRIP:
             IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_STRIP, shape_fill_vertex_cache);
+            // TODO @OpenGLES3.1 replace with quad lines
             IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
             break;
         case QUADS: {
             std::vector<Vertex> vertices_fill = convertQuadsToTriangles(shape_fill_vertex_cache);
             IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill);
             std::vector<Vertex> vertices_stroke = convertQuadsToTriangles(shape_stroke_vertex_cache);
+            // TODO @OpenGLES3.1 replace with quad lines
             IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke);
         } break;
         default:
         case POLYGON: {
+            if (close_shape) {
+                // NOTE add first vertex as last …
+                // TODO maybe only do this for certain shapes i.e POLYGON
+                shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
+                shape_fill_vertex_cache.push_back(shape_fill_vertex_cache[0]);
+                shape_stroke_vertex_cache.push_back(shape_stroke_vertex_cache[0]);
+            }
             // TODO tesselate properly with [`libtess2`](https://github.com/memononen/libtess2) ( fast, 3D ) or [`earcut.hpp`](https://github.com/mapbox/earcut.hpp)
             std::vector<Vertex> vertices_fill = convertPolygonToTriangleFan(shape_fill_vertex_cache);
             IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, vertices_fill);
             std::vector<Vertex> vertices_stroke = convertPolygonToTriangleFan(shape_stroke_vertex_cache);
+            // TODO @OpenGLES3.1 replace with quad lines
             IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke);
         } break;
     }

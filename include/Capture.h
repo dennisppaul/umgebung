@@ -61,6 +61,8 @@ namespace umgebung {
         virtual ~CaptureListener() = default;
     };
 
+    extern PGraphics* g;
+
     class Capture final : public PImage {
     public:
         Capture();
@@ -72,10 +74,10 @@ namespace umgebung {
                          const char* pixel_format);
         bool        available();
         float       frameRate() const { return 1.0f / static_cast<float>(frameDuration); }
-        bool        read(PGraphics* graphics);
+        bool        read(PGraphics* graphics = g);
         void        start();
         void        stop();
-        void        reload(PGraphics* graphics);
+        void        reload(PGraphics* graphics = g);
         void        set_listener(CaptureListener* listener) { this->listener = listener; }
         const char* name() const { return fDeviceName; }
 
@@ -91,8 +93,8 @@ namespace umgebung {
         double            frameDuration{};
         CaptureListener*  listener = nullptr;
 #if defined(ENABLE_CAPTURE) && !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
-        uint8_t*         buffer{};
-        AVFormatContext* formatContext{};
+        uint8_t*         buffer           = nullptr;
+        AVFormatContext* formatContext    = nullptr;
         AVCodecContext*  codecContext     = nullptr;
         AVFrame*         frame            = nullptr;
         AVFrame*         convertedFrame   = nullptr;

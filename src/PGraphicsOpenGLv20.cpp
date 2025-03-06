@@ -249,11 +249,7 @@ void PGraphicsOpenGLv20::point(const float x, const float y, const float z) {
 }
 
 void PGraphicsOpenGLv20::beginShape(const int shape) {
-    if (!color_fill.active) {
-        // TODO why not stroke shapes?
-        return;
-    }
-    fShapeBegun = true;
+    shape_has_begun = true;
     if (fEnabledTextureInShape) {
     }
     glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
@@ -294,20 +290,30 @@ void PGraphicsOpenGLv20::beginShape(const int shape) {
 }
 
 void PGraphicsOpenGLv20::endShape(bool close_shape) {
-    glEnd();
+    if (shape_has_begun) {
+        glEnd();
+        shape_has_begun = false;
+    }
     if (fEnabledTextureInShape) {
         glDisable(GL_TEXTURE_2D);
         fEnabledTextureInShape = false;
     }
-    fShapeBegun = false;
 }
 
 void PGraphicsOpenGLv20::vertex(const float x, const float y, const float z) {
+    if (!shape_has_begun) {
+        console("`vertex()` should only be called between `beginShape()` and `endShape()`");
+        return;
+    }
     glVertex3f(x, y, z);
 }
 
 
 void PGraphicsOpenGLv20::vertex(const float x, const float y, const float z, const float u, const float v) {
+    if (!shape_has_begun) {
+        console("`vertex()` should only be called between `beginShape()` and `endShape()`");
+        return;
+    }
     glTexCoord2f(u, v);
     glVertex3f(x, y, z);
 }
@@ -482,13 +488,13 @@ void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y) {
 }
 
 void PGraphicsOpenGLv20::texture(PImage* img) {
-    if (fShapeBegun) {
-        std::cerr << "texture must be set before `beginShape()`" << std::endl;
+    if (img == nullptr) {
+        error("texture(...) / image is null");
         return;
     }
 
-    if (img == nullptr) {
-        error("texture(...) / image is null");
+    if (shape_has_begun) {
+        console("`texture()` can only be called right before `beginShape(...)`. ( note, this is different from the original processing )");
         return;
     }
 
@@ -597,12 +603,6 @@ void PGraphicsOpenGLv20::endDraw() {
     }
 }
 
-// void PGraphicsOpenGLv20::bind() {
-//     if (render_to_offscreen) {
-//         glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id);
-//     }
-// }
-
 void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int height, int format, bool generate_mipmap) {
     this->width        = width;
     this->height       = height;
@@ -641,17 +641,25 @@ void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int heigh
 void PGraphicsOpenGLv20::hint(const uint16_t property) {
     // TODO @MERGE
     switch (property) {
-        case ENABLE_SMOOTH_LINES:
+        case HINT_ENABLE_SMOOTH_LINES:
             glEnable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
             break;
-        case DISABLE_SMOOTH_LINES:
+        case HINT_DISABLE_SMOOTH_LINES:
             glDisable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
             break;
         default:
             break;
     }
+}
+
+void PGraphicsOpenGLv20::upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {
+    error("`upload_texture` not implemented ( might be called from `PImage`, `Capture` ,or `Movie` )");
+}
+
+void PGraphicsOpenGLv20::download_texture(PImage* img, bool restore_texture) {
+    error("`download_texture` not implemented ( might be called from `PImage`, `Capture` ,or `Movie` )");
 }
 
 #ifndef DISABLE_GRAPHICS
