@@ -251,10 +251,15 @@ static void draw_post() {
         glDisable(GL_BLEND);
         glDisable(GL_ALPHA_TEST);
 
-        glViewport(0, 0, g->framebuffer.width, g->framebuffer.height);
+        const float viewport_width  = g->framebuffer.width;
+        const float viewport_height = g->framebuffer.height;
+        const float ortho_width  = g->width;
+        const float ortho_height = g->height;
+
+        glViewport(0, 0, viewport_width, viewport_height);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(0, g->framebuffer.width, 0, g->framebuffer.height, -1, 1);
+        glOrtho(0, ortho_width, 0, ortho_height, -1, 1);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glBindTexture(GL_TEXTURE_2D, g->framebuffer.texture_id);

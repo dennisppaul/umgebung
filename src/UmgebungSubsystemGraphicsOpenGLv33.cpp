@@ -288,8 +288,8 @@ static void draw_post() {
 
     g->endDraw();
 
-    // NOTE if `g->framebuffer.id` is `0` the framebuffer has not been initialized and nothing needs to be done
     if (g->render_to_offscreen && g->framebuffer.id > 0) {
+        // NOTE if `g->framebuffer.id` is `0` the framebuffer has not been initialized and nothing needs to be done
         if (blit_framebuffer_object_to_screenbuffer) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);                      // Unbind FBO
             glBindFramebuffer(GL_READ_FRAMEBUFFER, g->framebuffer.id); // Bind the FBO as the source
@@ -297,7 +297,7 @@ static void draw_post() {
             glBlitFramebuffer(0, 0, g->framebuffer.width, g->framebuffer.height,
                               0, 0, g->framebuffer.width, g->framebuffer.height,
                               GL_COLOR_BUFFER_BIT, GL_LINEAR);
-            // GL_COLOR_BUFFER_BIT, GL_NEAREST);
+            // GL_COLOR_BUFFER_BIT, GL_NEAREST); // TODO does this also work? i.e is it good enough?
             glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
         } else {
             GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0)); // Unbind FBO
