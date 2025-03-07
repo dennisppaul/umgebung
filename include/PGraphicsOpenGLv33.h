@@ -104,7 +104,7 @@ namespace umgebung {
         const float               DEFAULT_FOV                            = 2.0f * atan(0.5f); // = 53.1301f;
         static constexpr uint8_t  RENDER_MODE_IMMEDIATE                  = 0;
         static constexpr uint8_t  RENDER_MODE_RETAINED                   = 1;
-        uint8_t                   render_mode                            = RENDER_MODE_IMMEDIATE;
+        uint8_t                   render_mode                            = RENDER_MODE_RETAINED;
         // TODO @RENDER_MODE_RETAINED replace all `add_vertex...` methods with just
         //     fill ( rendered as `GL_TRIANGLES` ):
         //     - `RM_fill_add_vertex(Vertex v)`
@@ -112,10 +112,7 @@ namespace umgebung {
         //     stroke ( rendered as `GL_LINES` ):
         //     - `RM_fill_add_vertex(Vertex v)`
         //     - `RM_fill_add_line(Vertex v1, Vertex v2)`
-        static constexpr uint8_t RENDER_LINE_AS_QUADS_SEGMENTS                    = 0;
-        static constexpr uint8_t RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS = 1;
-        static constexpr uint8_t RENDER_LINE_AS_QUADS_WITH_POINTY_CORNERS         = 2;
-        uint8_t                  render_line_mode                                 = RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS;
+        uint8_t render_line_mode = RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_MITER;
         // TODO create *vertex buffer client* struct for this
         // TODO remove these and replace them with `PrimitiveVertexArray`:
         GLuint                   fill_shader_program{};
@@ -208,8 +205,20 @@ namespace umgebung {
         void init_fill_vertice_buffers();
         void create_solid_color_texture();
 
+        void RM_add_quad_as_triangles(const glm::vec3 v0, const glm::vec3 v1, const glm::vec3 v2, const glm::vec3 v3, const glm::vec4 color) {
+            // triangle #1
+            add_transformed_fill_vertex_xyz_rgba_uv(v0, color);
+            add_transformed_fill_vertex_xyz_rgba_uv(v1, color);
+            add_transformed_fill_vertex_xyz_rgba_uv(v3, color);
+            // triangle #2
+            add_transformed_fill_vertex_xyz_rgba_uv(v3, color);
+            add_transformed_fill_vertex_xyz_rgba_uv(v1, color);
+            add_transformed_fill_vertex_xyz_rgba_uv(v2, color);
+        }
+
         void add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position, const glm::vec4& color, float u = 0.0f, float v = 0.0f);
-        void to_screen_space(glm::vec3& world_position) const;
+        void to_screen_space(glm::vec3& world_position) const; // convert from model space to screen space
+        void to_world_space(glm::vec3& world_position) const;  // convert from model space to works space
         void RM_add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint batch_texture_id);
         void RM_render_line_strip_as_connected_quads(std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape);
         void RM_render_line_strip_as_quad_segments(const std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape, bool round_corners);

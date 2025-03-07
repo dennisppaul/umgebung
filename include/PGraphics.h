@@ -176,6 +176,7 @@ namespace umgebung {
         uint8_t                   pixel_density{1};
         int                       texture_id_current{};
         bool                      shape_has_begun{false};
+        int                       polygon_triangulation_strategy = POLYGON_TRIANGULATION_FASTER;
 
         void    resize_ellipse_points_LUT();
         uint8_t get_pixel_density() const { return pixel_density; }
