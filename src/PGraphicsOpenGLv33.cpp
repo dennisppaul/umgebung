@@ -6,6 +6,7 @@
 #include "Umgebung.h"
 #include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv33.h"
+#include "Vertex.h"
 
 using namespace umgebung;
 
@@ -1746,7 +1747,7 @@ void PGraphicsOpenGLv33::IM_render_vertex_buffer(PrimitiveVertexBuffer& primitiv
     }
 }
 
-std::vector<PGraphicsOpenGLv33::Vertex> PGraphicsOpenGLv33::convertPolygonToTriangleFan(const std::vector<Vertex>& polygon) {
+std::vector<Vertex> PGraphicsOpenGLv33::convertPolygonToTriangleFan(const std::vector<Vertex>& polygon) {
     if (polygon.size() < 3) {
         return {}; // Need at least 3 vertices
     }
@@ -1761,7 +1762,7 @@ std::vector<PGraphicsOpenGLv33::Vertex> PGraphicsOpenGLv33::convertPolygonToTria
     return fan;
 }
 
-std::vector<PGraphicsOpenGLv33::Vertex> PGraphicsOpenGLv33::convertQuadsToTriangles(const std::vector<Vertex>& quads) {
+std::vector<Vertex> PGraphicsOpenGLv33::convertQuadsToTriangles(const std::vector<Vertex>& quads) {
     if (quads.size() < 4) {
         return {};
     }
@@ -1823,9 +1824,11 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
         } break;
         default:
         case POLYGON: {
-            // TODO tesselate properly with [`libtess2`](https://github.com/memononen/libtess2) ( fast, 3D ) or [`earcut.hpp`](https://github.com/mapbox/earcut.hpp)
-            std::vector<Vertex> vertices_fill_polygon = convertPolygonToTriangleFan(shape_fill_vertex_cache);
-            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, vertices_fill_polygon);
+            std::vector<Vertex> vertices_fill_polygon;
+            // vertices_fill_polygon = triangulate_better_quality(shape_fill_vertex_cache); // POLYPARTITION + CLIPPER
+            vertices_fill_polygon = triangulate_faster(shape_fill_vertex_cache); // EARCUT
+            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill_polygon);
+            // TODO what if polygon has only 3 or 4 vertices? could shortcut … here
         } break;
     }
 
@@ -1837,7 +1840,7 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
         //      upon further consideration i am a bit uncertain of how to handle filled non-closed shapes?
         //      is there such a thing? maybe for `LINE_STRIP` too?
         shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
-        shape_fill_vertex_cache.push_back(shape_fill_vertex_cache[0]);
+        // shape_fill_vertex_cache.push_back(shape_fill_vertex_cache[0]);
         shape_stroke_vertex_cache.push_back(shape_stroke_vertex_cache[0]);
     }
 
@@ -1884,9 +1887,7 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
         } break;
         default:
         case POLYGON: {
-            std::vector<Vertex> vertices_stroke_polygon = convertPolygonToTriangleFan(shape_stroke_vertex_cache);
-            // TODO @OpenGLES3.1 replace with quad lines
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke_polygon);
+            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
         } break;
     }
 }
