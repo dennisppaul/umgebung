@@ -220,9 +220,7 @@ void PGraphicsOpenGLv33::point(const float x, const float y, const float z) {
 
 // NOTE: done
 void PGraphicsOpenGLv33::pointSize(const float size) {
-    if (size >= open_gl_capabilities.point_size_min && size <= open_gl_capabilities.point_size_max) {
-        point_size = size;
-    }
+    point_size = size;
 }
 
 // NOTE: done
@@ -287,7 +285,7 @@ void PGraphicsOpenGLv33::vertex(const float x, const float y, const float z, con
 }
 
 // NOTE: done
-PFont* PGraphicsOpenGLv33::loadFont(const std::string& file, float size) {
+PFont* PGraphicsOpenGLv33::loadFont(const std::string& file, const float size) {
     auto* font = new PFont(file, size); // TODO what about pixel_density … see FTGL implementation
     return font;
 }
@@ -297,14 +295,14 @@ void PGraphicsOpenGLv33::textFont(PFont* font) {
     current_font = font;
 }
 
-void PGraphicsOpenGLv33::textSize(float size) {
+void PGraphicsOpenGLv33::textSize(const float size) {
     if (current_font == nullptr) {
         return;
     }
     current_font->textSize(size);
 }
 
-void PGraphicsOpenGLv33::text(const char* value, float x, float y, float z) {
+void PGraphicsOpenGLv33::text(const char* value, const float x, const float y, const float z) {
     text_str(value, x, y, z);
 }
 
@@ -316,7 +314,7 @@ float PGraphicsOpenGLv33::textWidth(const std::string& text) {
     return current_font->textWidth(text.c_str());
 }
 
-void PGraphicsOpenGLv33::text_str(const std::string& text, float x, float y, float z) {
+void PGraphicsOpenGLv33::text_str(const std::string& text, const float x, const float y, const float z) {
     if (current_font == nullptr) {
         return;
     }
@@ -487,7 +485,12 @@ void PGraphicsOpenGLv33::scale(const float x, const float y, const float z) {
     model_matrix_dirty  = true;
 }
 
-void PGraphicsOpenGLv33::pixelDensity(int density) {
+void PGraphicsOpenGLv33::pixelDensity(const int density) {
+    static bool emitted_warning = false;
+    if (!emitted_warning && init_properties_locked) {
+        warning("`pixelDensity()` should not be set after context is created. use `retina_support` in settings instead.");
+        emitted_warning = true;
+    }
     pixel_density = density;
 }
 
@@ -501,6 +504,12 @@ void PGraphicsOpenGLv33::hint(const uint16_t property) {
         case HINT_DISABLE_SMOOTH_LINES:
             glDisable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
+            break;
+        case HINT_ENABLE_LINE_RENDERING_MODE_NATIVE:
+            error("implement HINT_ENABLE_LINE_RENDERING_MODE_NATIVE");
+            break;
+        case HINT_DISABLE_LINE_RENDERING_MODE_NATIVE:
+            error("implement HINT_DISABLE_LINE_RENDERING_MODE_NATIVE");
             break;
         default:
             break;
@@ -601,7 +610,7 @@ void PGraphicsOpenGLv33::upload_texture(PImage*         img,
     SHARED_bind_texture(tmp_bound_texture);
 }
 
-void PGraphicsOpenGLv33::download_texture(PImage* img, const bool restore_texture) {
+void PGraphicsOpenGLv33::download_texture(PImage* img) {
     if (img == nullptr) {
         return;
     }
@@ -1788,60 +1797,96 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
      *
      * i.e GL_LINES + GL_LINE_STRIP must be emulated
      */
-    switch (shape_mode_cache) {
+
+    const int tmp_shape_mode_cache = shape_mode_cache;
+
+    /* --- render fill --- */
+
+    switch (tmp_shape_mode_cache) {
         case POINTS:
-            glPointSize(point_size); // TODO does this still work under macOS? it renders squares … maybe texturize them
-            // NOTE do not render fill vertex chache -----------------------------------------------------
-            // TODO @OpenGLES3.1 replace with circle or textured quad
-            IM_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_cache);
-            glPointSize(1);
-            break;
         case LINES:
-            // NOTE do not render fill vertex chache -----------------------------------------------------
-            // TODO @OpenGLES3.1 replace with quad lines
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_cache);
-            break;
         case LINE_STRIP:
-            // NOTE do not render fill vertex chache -----------------------------------------------------
-            // TODO @OpenGLES3.1 replace with quad lines
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
             break;
         case TRIANGLES:
             IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, shape_fill_vertex_cache);
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
             break;
         case TRIANGLE_FAN:
             IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, shape_fill_vertex_cache);
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
             break;
         case QUAD_STRIP: // NOTE does this just work?!?
         case TRIANGLE_STRIP:
             IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_STRIP, shape_fill_vertex_cache);
+            break;
+        case QUADS: {
+            std::vector<Vertex> vertices_fill_quads = convertQuadsToTriangles(shape_fill_vertex_cache);
+            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill_quads);
+        } break;
+        default:
+        case POLYGON: {
+            // TODO tesselate properly with [`libtess2`](https://github.com/memononen/libtess2) ( fast, 3D ) or [`earcut.hpp`](https://github.com/mapbox/earcut.hpp)
+            std::vector<Vertex> vertices_fill_polygon = convertPolygonToTriangleFan(shape_fill_vertex_cache);
+            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, vertices_fill_polygon);
+        } break;
+    }
+
+    /* --- render stroke --- */
+
+    if (close_shape && tmp_shape_mode_cache == POLYGON) {
+        // NOTE add first vertex as last …
+        // TODO maybe only do this for certain shapes i.e `POLYGON`.
+        //      upon further consideration i am a bit uncertain of how to handle filled non-closed shapes?
+        //      is there such a thing? maybe for `LINE_STRIP` too?
+        shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
+        shape_fill_vertex_cache.push_back(shape_fill_vertex_cache[0]);
+        shape_stroke_vertex_cache.push_back(shape_stroke_vertex_cache[0]);
+    }
+
+    // TODO evaluate different line rendering styles:
+    //      - may render with GL_LINES or GL_LINE_STRIP if available and `stroke_weight==1.0f`
+    //      - may expand into triangles/quads
+    //      - evaluate corner mode ( NONE, ROUND, POINTY )
+    //          - strokeCap() :: Sets the style for rendering line endings -> SQUARE, PROJECT, and ROUND
+    //          - strokeJoin() :: Sets the style of the joints which connect line segments -> MITER, BEVEL, and ROUND
+
+    const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
+    const float tmp_line_width = std::max(std::min(stroke_weight, open_gl_capabilities.line_size_max), open_gl_capabilities.line_size_min);
+    glLineWidth(tmp_line_width);
+
+    switch (tmp_shape_mode_cache) {
+        case POINTS:
+            glPointSize(tmp_point_size); // TODO does this still work under macOS? it renders squares … maybe texturize them
+            // TODO @OpenGLES3.1 replace with circle or textured quad
+            IM_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_cache);
+            break;
+        case LINES:
+            // TODO @OpenGLES3.1 replace with quad lines
+            IM_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_cache);
+            break;
+        case LINE_STRIP:
+            // TODO @OpenGLES3.1 replace with quad lines
+            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
+            break;
+        case TRIANGLES:
+            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
+            break;
+        case TRIANGLE_FAN:
+            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
+            break;
+        case QUAD_STRIP: // NOTE does this just work?!?
+        case TRIANGLE_STRIP:
             // TODO @OpenGLES3.1 replace with quad lines
             IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
             break;
         case QUADS: {
-            std::vector<Vertex> vertices_fill = convertQuadsToTriangles(shape_fill_vertex_cache);
-            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill);
-            std::vector<Vertex> vertices_stroke = convertQuadsToTriangles(shape_stroke_vertex_cache);
+            std::vector<Vertex> vertices_stroke_quads = convertQuadsToTriangles(shape_stroke_vertex_cache);
             // TODO @OpenGLES3.1 replace with quad lines
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke);
+            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke_quads);
         } break;
         default:
         case POLYGON: {
-            if (close_shape) {
-                // NOTE add first vertex as last …
-                // TODO maybe only do this for certain shapes i.e POLYGON
-                shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
-                shape_fill_vertex_cache.push_back(shape_fill_vertex_cache[0]);
-                shape_stroke_vertex_cache.push_back(shape_stroke_vertex_cache[0]);
-            }
-            // TODO tesselate properly with [`libtess2`](https://github.com/memononen/libtess2) ( fast, 3D ) or [`earcut.hpp`](https://github.com/mapbox/earcut.hpp)
-            std::vector<Vertex> vertices_fill = convertPolygonToTriangleFan(shape_fill_vertex_cache);
-            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, vertices_fill);
-            std::vector<Vertex> vertices_stroke = convertPolygonToTriangleFan(shape_stroke_vertex_cache);
+            std::vector<Vertex> vertices_stroke_polygon = convertPolygonToTriangleFan(shape_stroke_vertex_cache);
             // TODO @OpenGLES3.1 replace with quad lines
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke);
+            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke_polygon);
         } break;
     }
 }

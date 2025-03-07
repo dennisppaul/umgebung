@@ -164,6 +164,8 @@ static bool init() { // TODO maybe merge v2.0 & v3.3 they are identical except f
 
     query_opengl_capabilities(open_gl_capabilities);
 
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::init(end)");
+
     return true;
     // <<< NOTE this is identical with the other OpenGL renderer
 }
@@ -174,34 +176,44 @@ static void setup_pre() {
         return;
     }
 
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_pre(begin)");
+
     int current_framebuffer_width;
     int current_framebuffer_height;
     SDL_GetWindowSizeInPixels(window, &current_framebuffer_width, &current_framebuffer_height);
     framebuffer_width  = static_cast<float>(current_framebuffer_width);
     framebuffer_height = static_cast<float>(current_framebuffer_height);
+    const float pixel_density = SDL_GetWindowPixelDensity(window);
 
     console("main renderer      : ", g->name());
     console("render to offscreen: ", g->render_to_offscreen ? "true" : "false");
     console("framebuffer size   : ", framebuffer_width, " x ", framebuffer_height);
     console("graphics    size   : ", width, " x ", height);
     console("( note that if these do not align the pixel density might not be 1 )");
+    console("pixel_density      : ", pixel_density);
+    g->pixelDensity(pixel_density); // NOTE setting pixel density from configuration
 
     pixelHeight = static_cast<int>(framebuffer_height / height);
     pixelWidth  = static_cast<int>(framebuffer_width / width);
     g->init(nullptr, static_cast<int>(framebuffer_width), static_cast<int>(framebuffer_height), 0, false);
     g->width  = static_cast<int>(width);
     g->height = static_cast<int>(height);
+    g->lock_init_properties(true);
+
     set_default_graphics_state();
     draw_pre();
     // <<< NOTE this is identical with the other OpenGL renderer
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_pre(end)");
 }
 
 static void setup_post() {
-    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv20::setup_post");
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_post(begin)");
     draw_post();
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_post(end)");
 }
 
 static void draw_pre() {
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw_pre(begin)");
     if (g == nullptr) {
         return;
     }
@@ -225,11 +237,11 @@ static void draw_pre() {
         glScalef(1, -1, 1);
         glTranslatef(0, -height, 0);
     }
-    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv20::draw_pre");
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw_pre(end)");
 }
 
 static void draw_post() {
-    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv20::draw");
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw");
 
     if (window == nullptr) {
         return;
@@ -253,8 +265,8 @@ static void draw_post() {
 
         const float viewport_width  = g->framebuffer.width;
         const float viewport_height = g->framebuffer.height;
-        const float ortho_width  = g->width;
-        const float ortho_height = g->height;
+        const float ortho_width     = g->width;
+        const float ortho_height    = g->height;
 
         glViewport(0, 0, viewport_width, viewport_height);
         glMatrixMode(GL_PROJECTION);
@@ -308,7 +320,7 @@ static void draw_post() {
         glPopAttrib();
     }
 
-    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv20::draw_post");
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw_post");
     SDL_GL_SwapWindow(window);
 }
 

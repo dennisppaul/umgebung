@@ -253,6 +253,7 @@ namespace umgebung {
 
     PFont* loadFont(const std::string& file, const float size) {
         if (g == nullptr) {
+            error("`loadFont` is only available after `settings()` has finished");
             return nullptr;
         }
         return g->loadFont(file, size);
@@ -365,6 +366,7 @@ namespace umgebung {
 
     void pixelDensity(const int density) {
         if (g == nullptr) {
+            error("`pixelDensity` is only available after `settings()` has finished");
             return;
         }
         g->pixelDensity(density);
