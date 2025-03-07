@@ -156,7 +156,7 @@ std::vector<Vertex> PGraphics::triangulate_faster(const std::vector<Vertex>& ver
     return triangleList;
 }
 
-// POLYPARTITION + CLIPPER
+// POLYPARTITION + CLIPPER2
 
 Clipper2Lib::PathD convertToClipperPath(const std::vector<Vertex>& vertices) {
     Clipper2Lib::PathD path;

@@ -242,13 +242,13 @@ void PGraphicsOpenGLv33::endShape(const bool close_shape) {
     if (render_mode == RENDER_MODE_RETAINED) {
         const glm::vec4 color = as_vec4(color_stroke);
         switch (render_line_mode) {
-            case RENDER_LINE_AS_QUADS_SEGMENTS_WITH_ROUND_CORNERS:
+            case RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_ROUND:
                 RM_render_line_strip_as_quad_segments(shape_stroke_vertex_cache_vec3_DEPRECATED, color, close_shape, true);
                 break;
-            case RENDER_LINE_AS_QUADS_WITH_POINTY_CORNERS:
+            case RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_MITER:
                 RM_render_line_strip_as_connected_quads(shape_stroke_vertex_cache_vec3_DEPRECATED, color, close_shape);
                 break;
-            case RENDER_LINE_AS_QUADS_SEGMENTS:
+            case RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NONE:
             default:
                 RM_render_line_strip_as_quad_segments(shape_stroke_vertex_cache_vec3_DEPRECATED, color, close_shape, false);
                 break;
@@ -1375,7 +1375,9 @@ void PGraphicsOpenGLv33::RM_render_line_strip_as_quad_segments(const std::vector
  * @param color
  * @param close_shape
  */
-void PGraphicsOpenGLv33::RM_render_line_strip_as_connected_quads(std::vector<glm::vec3>& points, const glm::vec4& color, const bool close_shape) {
+void PGraphicsOpenGLv33::RM_render_line_strip_as_connected_quads(std::vector<glm::vec3>& points,
+                                                                 const glm::vec4&        color,
+                                                                 const bool              close_shape) {
     if (points.size() < 2) {
         return;
     }
@@ -1437,59 +1439,118 @@ void PGraphicsOpenGLv33::RM_render_line_strip_as_connected_quads(std::vector<glm
                                                   p3_right, next_direction,
                                                   intersection_right);
 
-        if (are_almost_parallel(normal, next_normal, 0.2f)) {
-            // TODO maybe handle sharp angles
-        }
+        bool line_segments_are_too_pointy = are_almost_parallel(normal, next_normal, RENDER_LINE_STRIP_AS_QUADS_MAX_ANGLE);
 
         if (!result_left) {
             intersection_left = p3_left;
         }
+
         if (!result_right) {
             intersection_right = p3_right;
         }
 
+        /*
+         * 1--2
+         * |\ |
+         * | \|
+         * 0--3
+         */
         if (close_shape) {
+            /* closed */
             if (i != 0) {
-                add_transformed_fill_vertex_xyz_rgba_uv(p1_left, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
-
-                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(intersection_right, color);
+                if (line_segments_are_too_pointy) {
+                    RM_add_quad_as_triangles(p1_left,
+                                             next_point + normal * half_width,
+                                             next_point - normal * half_width,
+                                             p1_right,
+                                             color);
+                    p1_left  = next_point - normal * half_width;
+                    p1_right = next_point + normal * half_width;
+                    vertex_count += 6;
+                } else {
+                    RM_add_quad_as_triangles(p1_left,
+                                             intersection_left,
+                                             intersection_right,
+                                             p1_right,
+                                             color);
+                    p1_left  = intersection_left;
+                    p1_right = intersection_right;
+                    vertex_count += 6;
+                }
+            } else {
+                if (line_segments_are_too_pointy) {
+                    p1_left  = next_point - normal * half_width;
+                    p1_right = next_point + normal * half_width;
+                } else {
+                    p1_left  = intersection_left;
+                    p1_right = intersection_right;
+                }
             }
-            vertex_count += 6;
         } else {
-            if (i == 0) { // first segment
-                add_transformed_fill_vertex_xyz_rgba_uv(p2_left, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(p2_right, color);
-
-                add_transformed_fill_vertex_xyz_rgba_uv(p2_right, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(intersection_right, color);
-            } else if (i == num_line_segments - 2) { // last segment
-                add_transformed_fill_vertex_xyz_rgba_uv(p1_left, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(next_point + normal * half_width, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
-
-                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(next_point + normal * half_width, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(next_point - normal * half_width, color);
+            /* open */
+            if (i == 0) {
+                // first segment
+                if (line_segments_are_too_pointy) {
+                    console("x");
+                    RM_add_quad_as_triangles(p2_left,
+                                             p3_right,
+                                             p3_left,
+                                             p2_right,
+                                             color);
+                    p1_left  = p3_left;
+                    p1_right = p3_right;
+                    // RM_add_quad_as_triangles(p2_left,
+                    //                          next_point + normal * half_width,
+                    //                          next_point - normal * half_width,
+                    //                          p2_right,
+                    //                          color);
+                    // p1_left  = next_point - normal * half_width;
+                    // p1_right = next_point + normal * half_width;
+                    vertex_count += 6;
+                } else {
+                    RM_add_quad_as_triangles(p2_left,
+                                             intersection_left,
+                                             intersection_right,
+                                             p2_right,
+                                             color);
+                    p1_left  = intersection_left;
+                    p1_right = intersection_right;
+                    vertex_count += 6;
+                }
+            } else if (i == num_line_segments - 2) {
+                // last segment
+                RM_add_quad_as_triangles(p1_left,
+                                         next_point + normal * half_width,
+                                         next_point - normal * half_width,
+                                         p1_right,
+                                         color);
+                p1_left  = next_point + normal * half_width;
+                p1_right = next_point - normal * half_width;
+                vertex_count += 6;
             } else if (i < num_line_segments - 2) {
-                add_transformed_fill_vertex_xyz_rgba_uv(p1_left, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
-
-                add_transformed_fill_vertex_xyz_rgba_uv(p1_right, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(intersection_left, color);
-                add_transformed_fill_vertex_xyz_rgba_uv(intersection_right, color);
+                // other segments
+                if (line_segments_are_too_pointy) {
+                    RM_add_quad_as_triangles(p1_left,
+                                             next_point + normal * half_width,
+                                             next_point - normal * half_width,
+                                             p1_right,
+                                             color);
+                    p1_left  = next_point - normal * half_width;
+                    p1_right = next_point + normal * half_width;
+                    vertex_count += 6;
+                } else {
+                    RM_add_quad_as_triangles(p1_left,
+                                             intersection_left,
+                                             intersection_right,
+                                             p1_right,
+                                             color);
+                    p1_left  = intersection_left;
+                    p1_right = intersection_right;
+                    vertex_count += 6;
+                }
             }
-            vertex_count += 6;
             // TODO this could be used for round caps
         }
-        p1_left  = intersection_left;
-        p1_right = intersection_right;
     }
 
     RM_add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, static_cast<int>(vertex_count), texture_id_solid_color);
@@ -1825,8 +1886,13 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
         default:
         case POLYGON: {
             std::vector<Vertex> vertices_fill_polygon;
-            // vertices_fill_polygon = triangulate_better_quality(shape_fill_vertex_cache); // POLYPARTITION + CLIPPER
-            vertices_fill_polygon = triangulate_faster(shape_fill_vertex_cache); // EARCUT
+            if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_FASTER) {
+                // EARCUT
+                vertices_fill_polygon = triangulate_faster(shape_fill_vertex_cache);
+            } else if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_BETTER) {
+                // POLYPARTITION + CLIPPER2
+                vertices_fill_polygon = triangulate_better_quality(shape_fill_vertex_cache);
+            }
             IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill_polygon);
             // TODO what if polygon has only 3 or 4 vertices? could shortcut … here
         } break;
