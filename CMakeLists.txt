@@ -88,6 +88,8 @@ if (APPLE)
     file(GLOB UMGEBUNG_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.mm
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/clipper/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
@@ -95,6 +97,8 @@ if (APPLE)
 elseif (UNIX)
     file(GLOB UMGEBUNG_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/clipper/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
@@ -102,6 +106,8 @@ elseif (UNIX)
 elseif (WIN32)
     file(GLOB UMGEBUNG_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/clipper/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/win32/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp
@@ -109,6 +115,8 @@ elseif (WIN32)
 else ()
     file(GLOB UMGEBUNG_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/clipper/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/ip/posix/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/osc/*.cpp

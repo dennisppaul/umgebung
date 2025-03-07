@@ -17,8 +17,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+#include <iostream>
+#include <vector>
+#include <array>
+#include <glm/glm.hpp>
+
+#include "earcut.hpp"
+#include "polypartition.h"
+#include "clipper2/clipper.h"
+
 #include "UmgebungFunctionsAdditional.h"
 #include "PGraphics.h"
+#include "Vertex.h"
+
+#include <UmgebungFunctionsPGraphics.h>
+#include <glm/gtc/epsilon.hpp>
 
 using namespace umgebung;
 
@@ -114,4 +128,101 @@ void PGraphics::resize_ellipse_points_LUT() {
         const float theta     = deltaTheta * static_cast<float>(i);
         ellipse_points_LUT[i] = {std::cos(theta), std::sin(theta)};
     }
+}
+
+/* --- triangulation / tesselation --- */
+
+// EARCUT
+
+std::vector<Vertex> PGraphics::triangulate_faster(const std::vector<Vertex>& vertices) {
+    std::vector<std::vector<std::array<float, 2>>> polygon;
+    polygon.emplace_back(); // Outer boundary
+
+    // convert Vertex to 2D format for earcut (ignore z)
+    for (const auto& v: vertices) {
+        polygon[0].push_back({v.position.x, v.position.y});
+    }
+
+    // perform triangulation
+    std::vector<uint32_t> indices = mapbox::earcut<uint32_t>(polygon);
+    std::vector<Vertex>   triangleList;
+
+    for (size_t i = 0; i < indices.size(); i++) {
+        const int index = indices[i];
+        if (i < indices.size()) {
+            triangleList.push_back(vertices[index]);
+        }
+    }
+    return triangleList;
+}
+
+// POLYPARTITION + CLIPPER
+
+Clipper2Lib::PathD convertToClipperPath(const std::vector<Vertex>& vertices) {
+    Clipper2Lib::PathD path;
+    for (const auto& v: vertices) {
+        path.push_back({v.position.x, v.position.y});
+    }
+    return path;
+}
+
+std::vector<TPPLPoly> convertToPolyPartition(const Clipper2Lib::PathsD& paths) {
+    std::vector<TPPLPoly> polys;
+    for (const auto& path: paths) {
+        TPPLPoly poly;
+        poly.Init(path.size());
+        for (size_t i = 0; i < path.size(); ++i) {
+            poly[i].x = path[i].x;
+            poly[i].y = path[i].y;
+        }
+        polys.push_back(poly);
+    }
+    return polys;
+}
+
+std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vertex>& vertices) {
+    glm::vec4 first_color = vertices[0].color;
+
+    TPPLPartition partitioner;
+
+    // Step 1: Use Clipper2 to resolve self-intersections
+    const Clipper2Lib::PathsD inputPaths = {convertToClipperPath(vertices)};
+    const Clipper2Lib::PathsD fixedPaths = Clipper2Lib::Union(inputPaths, Clipper2Lib::FillRule::NonZero);
+
+    if (fixedPaths.empty()) {
+        std::cerr << "Clipper2 failed to fix the polygon!" << std::endl;
+        return {};
+    }
+
+    // Step 2: Convert to PolyPartition format
+    std::vector<TPPLPoly> convexPolygons;
+    for (auto& poly: convertToPolyPartition(fixedPaths)) {
+        std::list<TPPLPoly> convexParts;
+        if (!partitioner.ConvexPartition_HM(&poly, &convexParts)) {
+            std::cerr << "Convex partitioning failed!" << std::endl;
+            continue;
+        }
+        convexPolygons.insert(convexPolygons.end(), convexParts.begin(), convexParts.end());
+    }
+
+    // Step 3: Triangulate each convex part
+    std::vector<Vertex> triangleList;
+    for (auto& part: convexPolygons) {
+        std::list<TPPLPoly> triangles;
+        if (!partitioner.Triangulate_EC(&part, &triangles)) {
+            std::cerr << "Triangulation failed for a convex part!" << std::endl;
+            continue;
+        }
+
+        // Extract triangle vertices
+        for (const auto& tri: triangles) {
+            for (int i = 0; i < 3; ++i) {
+                triangleList.push_back({static_cast<float>(tri[i].x), static_cast<float>(tri[i].y), 0.0f,
+                                        first_color.r, first_color.g, first_color.b, first_color.a,
+                                        0, 0});
+            }
+        }
+    }
+
+    return triangleList;
 }

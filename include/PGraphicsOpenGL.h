@@ -35,25 +35,6 @@
 namespace umgebung {
     class PGraphicsOpenGL : public PGraphics {
     public:
-        struct Vertex {
-            glm::vec3 position;
-            glm::vec4 color;
-            glm::vec2 tex_coord;
-            Vertex(const float x, const float y, const float z,
-                   const float r, const float g, const float b, const float a,
-                   const float u, const float v)
-                : position(x, y, z),
-                  color(r, g, b, a),
-                  tex_coord(u, v) {}
-            Vertex(const glm::vec3& position,
-                   const glm::vec4& color,
-                   const glm::vec2& tex_coord)
-                : position(position),
-                  color(color),
-                  tex_coord(tex_coord) {}
-            Vertex() : position(), color(), tex_coord() {}
-        };
-
         ~PGraphicsOpenGL() override = default;
         /* --- interface --- */
 

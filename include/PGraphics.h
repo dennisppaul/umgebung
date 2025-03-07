@@ -46,6 +46,7 @@ sphere() A sphere is a hollow ball made from tessellated triangles
 
 #include "UmgebungConstants.h"
 #include "PImage.h"
+#include "Vertex.h"
 
 namespace umgebung {
 
@@ -82,6 +83,9 @@ namespace umgebung {
         virtual void        unbind_texture() {}
         virtual std::string name() { return "PGraphics"; }
         virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
+
+        static std::vector<Vertex> triangulate_faster(const std::vector<Vertex>& vertices);
+        static std::vector<Vertex> triangulate_better_quality(const std::vector<Vertex>& vertices);
 
         /* --- interface --- */
 
