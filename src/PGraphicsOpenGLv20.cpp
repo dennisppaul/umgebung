@@ -224,9 +224,7 @@ void PGraphicsOpenGLv20::bezierDetail(const int detail) {
 }
 
 void PGraphicsOpenGLv20::pointSize(const float size) {
-    if (size >= open_gl_capabilities.point_size_min && size <= open_gl_capabilities.point_size_max) {
-        fPointSize = size;
-    }
+    fPointSize = size;
 }
 
 void PGraphicsOpenGLv20::point(const float x, const float y, const float z) {
@@ -242,17 +240,21 @@ void PGraphicsOpenGLv20::point(const float x, const float y, const float z) {
     //    rect(0, 0, fPointSize, fPointSize);
     //    glPopMatrix();
 
-    glPointSize(fPointSize); // @development when using antialiasing a point size of 1 produces a semitransparent point
+    const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
+
+    glPointSize(tmp_point_size); // @development when using antialiasing a point size of 1 produces a semitransparent point
     glBegin(GL_POINTS);
     glVertex3f(x, y, z);
     glEnd();
 }
 
 void PGraphicsOpenGLv20::beginShape(const int shape) {
+    // TODO collect vertices for outline
+    outline_vertices.clear();
+
     shape_has_begun = true;
     if (fEnabledTextureInShape) {
     }
-    glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
 
     int mShape;
     switch (shape) {
@@ -298,6 +300,22 @@ void PGraphicsOpenGLv20::endShape(bool close_shape) {
         glDisable(GL_TEXTURE_2D);
         fEnabledTextureInShape = false;
     }
+
+    /* --- stroke --- */
+
+    glLineWidth(fStrokeWeight * pixel_denisty);
+    if (!outline_vertices.empty()) {
+        if (close_shape) {
+            outline_vertices.push_back(outline_vertices[0]);
+        }
+        glBegin(GL_LINE_STRIP);
+        for (const auto v: outline_vertices) {
+            glColor4f(v.color.r, v.color.g, v.color.b, v.color.a);
+            glVertex3f(v.position.x, v.position.y, v.position.z);
+        }
+        glEnd();
+        outline_vertices.clear();
+    }
 }
 
 void PGraphicsOpenGLv20::vertex(const float x, const float y, const float z) {
@@ -305,7 +323,16 @@ void PGraphicsOpenGLv20::vertex(const float x, const float y, const float z) {
         console("`vertex()` should only be called between `beginShape()` and `endShape()`");
         return;
     }
-    glVertex3f(x, y, z);
+    if (color_fill.active) {
+        glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+        glVertex3f(x, y, z);
+    }
+
+    if (color_stroke.active) {
+        outline_vertices.emplace_back(x, y, z,
+                                      color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a,
+                                      0, 0);
+    }
 }
 
 
@@ -314,14 +341,23 @@ void PGraphicsOpenGLv20::vertex(const float x, const float y, const float z, con
         console("`vertex()` should only be called between `beginShape()` and `endShape()`");
         return;
     }
-    glTexCoord2f(u, v);
-    glVertex3f(x, y, z);
+    if (color_fill.active) {
+        glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+        glTexCoord2f(u, v);
+        glVertex3f(x, y, z);
+    }
+
+    if (color_stroke.active) {
+        outline_vertices.emplace_back(x, y, z,
+                                      color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a,
+                                      u, v);
+    }
 }
 
 /* font */
 
 PFont* PGraphicsOpenGLv20::loadFont(const std::string& file, const float size) {
-    auto* font = new PFont(file.c_str(), size, static_cast<float>(fPixelDensity));
+    auto* font = new PFont(file.c_str(), size, static_cast<float>(pixel_denisty));
     return font;
 }
 
@@ -360,12 +396,13 @@ float PGraphicsOpenGLv20::textWidth(const std::string& text) {
 #endif // DISABLE_GRAPHICS
 }
 
-void PGraphicsOpenGLv20::pixelDensity(const int value) {
-    if (value > 0 && value <= 3) {
-        fPixelDensity = value;
-    } else {
-        std::cerr << "PixelDensity can only be between 1 and 3." << std::endl;
+void PGraphicsOpenGLv20::pixelDensity(const int density) {
+    static bool emitted_warning = false;
+    if (!emitted_warning && init_properties_locked) {
+        warning("`pixelDensity()` should not be set after context is created. use `retina_support` in settings instead.");
+        emitted_warning = true;
     }
+    pixel_denisty = density;
 }
 
 void PGraphicsOpenGLv20::text(const char* value, const float x, const float y, const float z) {
@@ -649,6 +686,12 @@ void PGraphicsOpenGLv20::hint(const uint16_t property) {
             glDisable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
             break;
+        case HINT_ENABLE_LINE_RENDERING_MODE_NATIVE:
+            error("implement HINT_ENABLE_LINE_RENDERING_MODE_NATIVE");
+            break;
+        case HINT_DISABLE_LINE_RENDERING_MODE_NATIVE:
+            error("implement HINT_DISABLE_LINE_RENDERING_MODE_NATIVE");
+            break;
         default:
             break;
     }
@@ -658,7 +701,7 @@ void PGraphicsOpenGLv20::upload_texture(PImage* img, const uint32_t* pixel_data,
     error("`upload_texture` not implemented ( might be called from `PImage`, `Capture` ,or `Movie` )");
 }
 
-void PGraphicsOpenGLv20::download_texture(PImage* img, bool restore_texture) {
+void PGraphicsOpenGLv20::download_texture(PImage* img) {
     error("`download_texture` not implemented ( might be called from `PImage`, `Capture` ,or `Movie` )");
 }
 

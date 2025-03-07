@@ -23,11 +23,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "PGraphics.h"
+#include "PGraphicsOpenGL.h"
 
 namespace umgebung {
 
-    class PGraphicsOpenGLv33 final : public PGraphics {
+    class PGraphicsOpenGLv33 final : public PGraphicsOpenGL {
     public:
         explicit PGraphicsOpenGLv33(bool render_to_offscreen);
 
@@ -81,7 +81,7 @@ namespace umgebung {
         /* --- additional methods --- */
 
         void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
-        void        download_texture(PImage* img, bool restore_texture = true) override;
+        void        download_texture(PImage* img) override;
         void        bind_texture(const int texture_id) override { SHARED_bind_texture(texture_id); }
         void        unbind_texture() override { SHARED_bind_texture(texture_id_solid_color); }
         void        reset_matrices() override;
@@ -97,25 +97,6 @@ namespace umgebung {
                 : start_index(start), num_vertices(count), texture_id(texID) {}
         };
 
-        struct Vertex {
-            glm::vec3 position;
-            glm::vec4 color;
-            glm::vec2 tex_coord;
-            Vertex(const float x, const float y, const float z,
-                   const float r, const float g, const float b, const float a,
-                   const float u, const float v)
-                : position(x, y, z),
-                  color(r, g, b, a),
-                  tex_coord(u, v) {}
-            Vertex(const glm::vec3& position,
-                   const glm::vec4& color,
-                   const glm::vec2& tex_coord)
-                : position(position),
-                  color(color),
-                  tex_coord(tex_coord) {}
-            Vertex() : position(), color(), tex_coord() {}
-            // Vertex() : position(0, 0, 0), color(0, 0, 0, 0), tex_coord(0, 0) {}
-        };
 
         static constexpr uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
         static constexpr uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;

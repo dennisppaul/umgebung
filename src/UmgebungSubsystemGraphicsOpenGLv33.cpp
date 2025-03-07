@@ -227,15 +227,17 @@ static void setup_pre() {
         return;
     }
 
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_pre(begin)");
+
     int current_framebuffer_width;
     int current_framebuffer_height;
     SDL_GetWindowSizeInPixels(window, &current_framebuffer_width, &current_framebuffer_height);
     int current_framebuffer_width_in_pixel;
     int current_framebuffer_height_in_pixel;
     SDL_GetWindowSizeInPixels(window, &current_framebuffer_width_in_pixel, &current_framebuffer_height_in_pixel);
-    framebuffer_width   = static_cast<float>(current_framebuffer_width);
-    framebuffer_height  = static_cast<float>(current_framebuffer_height);
-    float pixel_density = SDL_GetWindowPixelDensity(window);
+    framebuffer_width         = static_cast<float>(current_framebuffer_width);
+    framebuffer_height        = static_cast<float>(current_framebuffer_height);
+    const float pixel_density = SDL_GetWindowPixelDensity(window);
 
     console("main renderer      : ", g->name());
     console("render to offscreen: ", g->render_to_offscreen ? "true" : "false");
@@ -243,7 +245,7 @@ static void setup_pre() {
     console("framebuffer size px: ", current_framebuffer_width_in_pixel, " x ", current_framebuffer_height_in_pixel);
     console("graphics size      : ", width, " x ", height);
     console("pixel_density      : ", pixel_density);
-    // console("( note that if these do not align the pixel density might not be 1 )");
+    g->pixelDensity(pixel_density); // NOTE setting pixel density from configuration
 
     pixelHeight = static_cast<int>(framebuffer_height / height);
     pixelWidth  = static_cast<int>(framebuffer_width / width);
@@ -251,17 +253,21 @@ static void setup_pre() {
     g->init(nullptr, static_cast<int>(framebuffer_width), static_cast<int>(framebuffer_height), 0, false);
     g->width  = static_cast<int>(width);
     g->height = static_cast<int>(height);
+    g->lock_init_properties(true);
+
     set_default_graphics_state();
     draw_pre();
     // <<< NOTE this is identical with the other OpenGL renderer
 
-    if (g->render_to_offscreen) {
-        init_FBO_drawing();
+    if (g->render_to_offscreen && !blit_framebuffer_object_to_screenbuffer) {
+        init_FBO_drawing(); // NOTE this is only necessary if FBO is not blitted
     }
+
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_pre(end)");
 }
 
 static void setup_post() {
-    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv33::setup_post");
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_post");
     draw_post();
 }
 
@@ -272,11 +278,11 @@ static void draw_pre() {
         glBindFramebuffer(GL_FRAMEBUFFER, g->framebuffer.id);
     }
     g->beginDraw();
-    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv33::draw_pre");
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw_pre");
 }
 
 static void draw_post() {
-    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv33::draw");
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw");
 
     if (window == nullptr) {
         return;
@@ -322,7 +328,7 @@ static void draw_post() {
         }
     }
 
-    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGLv33::draw_post");
+    checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw_post");
     SDL_GL_SwapWindow(window);
 }
 

@@ -76,11 +76,12 @@ namespace umgebung {
         /* --- additional --- */
 
         virtual void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {}
-        virtual void        download_texture(PImage* img, bool restore_texture = true) {}
+        virtual void        download_texture(PImage* img) {}
         virtual void        reset_matrices() {}
         virtual void        bind_texture(int texture_id) {}
         virtual void        unbind_texture() {}
         virtual std::string name() { return "PGraphics"; }
+        virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
 
         /* --- interface --- */
 
@@ -159,6 +160,7 @@ namespace umgebung {
 
         static constexpr uint16_t ELLIPSE_DETAIL_MIN     = 3;
         static constexpr uint16_t ELLIPSE_DETAIL_DEFAULT = 18;
+        bool                      init_properties_locked{false};
         PFont*                    current_font{nullptr};
         ColorState                color_stroke{};
         ColorState                color_fill{};

@@ -48,6 +48,8 @@ namespace umgebung {
     static constexpr int   CENTER                = 0x02;
     static constexpr int   RADIUS                = 0x03;
     /* HINTS */
-    static constexpr int HINT_ENABLE_SMOOTH_LINES  = 0xA0;
-    static constexpr int HINT_DISABLE_SMOOTH_LINES = 0xA1;
+    static constexpr int HINT_ENABLE_SMOOTH_LINES                = 0xA0;
+    static constexpr int HINT_DISABLE_SMOOTH_LINES               = 0xA1;
+    static constexpr int HINT_ENABLE_LINE_RENDERING_MODE_NATIVE  = 0xA2;
+    static constexpr int HINT_DISABLE_LINE_RENDERING_MODE_NATIVE = 0xA3;
 } // namespace umgebung
