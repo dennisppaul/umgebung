@@ -49,13 +49,6 @@
 
 /* --- UMGEBUNG_WINDOW_TITLE --- */
 
-#ifndef UMGEBUNG_NAMESPACE_BEGIN // TODO not sure if this is good … maybe remove it.
-#define UMGEBUNG_NAMESPACE_BEGIN namespace umgebung {
-#endif
-#ifndef UMGEBUNG_NAMESPACE_END
-#define UMGEBUNG_NAMESPACE_END }
-#endif
-
 #ifndef UMGEBUNG_WINDOW_TITLE // can be set in `CMakeLists.txt` // TODO consider setting this in settings?
 #define UMGEBUNG_WINDOW_TITLE DEFAULT_WINDOW_TITLE
 #endif

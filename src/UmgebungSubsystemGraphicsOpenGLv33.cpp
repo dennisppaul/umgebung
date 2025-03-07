@@ -21,7 +21,7 @@
 #include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv33.h"
 
-UMGEBUNG_NAMESPACE_BEGIN
+namespace umgebung {
 static void       setup_pre();
 static void       setup_post();
 static void       draw_pre();
@@ -345,7 +345,7 @@ static PGraphics* create_graphics(const bool render_to_offscreen) {
     return new PGraphicsOpenGLv33(render_to_offscreen);
 }
 
-UMGEBUNG_NAMESPACE_END
+} // umgebung
 
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv33() {
     auto* graphics            = new umgebung::SubsystemGraphics{};

@@ -21,19 +21,27 @@
 
 #include "UmgebungCallbacks.h"
 
-WEAK void arguments(const std::vector<std::string>& args) { SDL_Log("default arguments"); }
-WEAK void settings() { SDL_Log("default settings"); }
-WEAK void setup() { SDL_Log("default setup"); }
-WEAK void draw() { SDL_Log("default draw"); }
-WEAK void shutdown() { SDL_Log("default shutdown"); }
+#define ENABLE_UMGEBUNG_CALLBACK_LOGGING 0
 
-WEAK void keyPressed() { SDL_Log("default keyPressed"); }
-WEAK void keyReleased() { SDL_Log("default keyReleased"); }
-WEAK void mousePressed() { SDL_Log("default mousePressed"); }
-WEAK void mouseReleased() { SDL_Log("default mouseReleased"); }
-WEAK void mouseDragged() { SDL_Log("default mouseDragged"); }
-WEAK void mouseMoved() { SDL_Log("default mouseMoved"); }
-WEAK void mouseWheel(const float x, const float y) { SDL_Log("default mouseWheel: %f, %f", x, y); }
+#if ENABLE_UMGEBUNG_CALLBACK_LOGGING
+#define LOG_MSG(msg) SDL_Log(msg)
+#else
+#define LOG_MSG(msg) ((void) 0) // Does nothing when logging is disabled
+#endif
 
-WEAK void dropped(const char* dropped_filedir) { SDL_Log("default dropped: %s", dropped_filedir); }
+WEAK void arguments(const std::vector<std::string>& args) { LOG_MSG("default arguments"); }
+WEAK void settings() { LOG_MSG("default settings"); }
+WEAK void setup() { LOG_MSG("default setup"); }
+WEAK void draw() { LOG_MSG("default draw"); }
+WEAK void shutdown() { LOG_MSG("default shutdown"); }
+
+WEAK void keyPressed() { LOG_MSG("default keyPressed"); }
+WEAK void keyReleased() { LOG_MSG("default keyReleased"); }
+WEAK void mousePressed() { LOG_MSG("default mousePressed"); }
+WEAK void mouseReleased() { LOG_MSG("default mouseReleased"); }
+WEAK void mouseDragged() { LOG_MSG("default mouseDragged"); }
+WEAK void mouseMoved() { LOG_MSG("default mouseMoved"); }
+WEAK void mouseWheel(const float x, const float y) { LOG_MSG("default mouseWheel"); }
+
+WEAK void dropped(const char* dropped_filedir) { LOG_MSG("default dropped"); }
 WEAK bool sdl_event(SDL_Event* event) { return false; }

@@ -39,7 +39,7 @@ PGraphicsOpenGLv20::PGraphicsOpenGLv20(const bool render_to_offscreen) : PImage(
 }
 
 void PGraphicsOpenGLv20::strokeWeight(const float weight) {
-    fStrokeWeight = weight;
+    stroke_weight = weight;
     glLineWidth(weight);
 }
 
@@ -167,7 +167,7 @@ void PGraphicsOpenGLv20::bezier(const float x1, const float y1, const float x2, 
     }
     glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
 
-    const int   segments = fBezierDetail;
+    const int   segments = bezier_detail;
     const float step     = 1.0f / static_cast<float>(segments);
 
     glBegin(GL_LINE_STRIP);
@@ -197,7 +197,7 @@ void PGraphicsOpenGLv20::bezier(const float x1, const float y1, const float z1,
     }
     glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
 
-    const int   segments = fBezierDetail;
+    const int   segments = bezier_detail;
     const float step     = 1.0f / static_cast<float>(segments);
 
     glBegin(GL_LINE_STRIP);
@@ -220,11 +220,11 @@ void PGraphicsOpenGLv20::bezier(const float x1, const float y1, const float z1,
 }
 
 void PGraphicsOpenGLv20::bezierDetail(const int detail) {
-    fBezierDetail = detail;
+    bezier_detail = detail;
 }
 
 void PGraphicsOpenGLv20::pointSize(const float size) {
-    fPointSize = size;
+    point_size = size;
 }
 
 void PGraphicsOpenGLv20::point(const float x, const float y, const float z) {
@@ -236,8 +236,8 @@ void PGraphicsOpenGLv20::point(const float x, const float y, const float z) {
     glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
 
     //    glPushMatrix();
-    //    translate(x - fPointSize * 0.5, y - fPointSize * 0.5, z);
-    //    rect(0, 0, fPointSize, fPointSize);
+    //    translate(x - point_size * 0.5, y - point_size * 0.5, z);
+    //    rect(0, 0, point_size, point_size);
     //    glPopMatrix();
 
     const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
@@ -253,8 +253,6 @@ void PGraphicsOpenGLv20::beginShape(const int shape) {
     outline_vertices.clear();
 
     shape_has_begun = true;
-    if (fEnabledTextureInShape) {
-    }
 
     int mShape;
     switch (shape) {
@@ -296,14 +294,14 @@ void PGraphicsOpenGLv20::endShape(bool close_shape) {
         glEnd();
         shape_has_begun = false;
     }
-    if (fEnabledTextureInShape) {
+    if (enabled_texture_in_shape) {
         glDisable(GL_TEXTURE_2D);
-        fEnabledTextureInShape = false;
+        enabled_texture_in_shape = false;
     }
 
     /* --- stroke --- */
 
-    glLineWidth(fStrokeWeight * pixel_denisty);
+    glLineWidth(stroke_weight * pixel_density);
     if (!outline_vertices.empty()) {
         if (close_shape) {
             outline_vertices.push_back(outline_vertices[0]);
@@ -357,7 +355,7 @@ void PGraphicsOpenGLv20::vertex(const float x, const float y, const float z, con
 /* font */
 
 PFont* PGraphicsOpenGLv20::loadFont(const std::string& file, const float size) {
-    auto* font = new PFont(file.c_str(), size, static_cast<float>(pixel_denisty));
+    auto* font = new PFont(file.c_str(), size, static_cast<float>(pixel_density));
     return font;
 }
 
@@ -402,7 +400,7 @@ void PGraphicsOpenGLv20::pixelDensity(const int density) {
         warning("`pixelDensity()` should not be set after context is created. use `retina_support` in settings instead.");
         emitted_warning = true;
     }
-    pixel_denisty = density;
+    pixel_density = density;
 }
 
 void PGraphicsOpenGLv20::text(const char* value, const float x, const float y, const float z) {
@@ -545,52 +543,63 @@ void PGraphicsOpenGLv20::texture(PImage* img) {
         console("PGraphicsOpenGLv20::texture // uploaded texture image to GPU: ", img->texture_id);
     }
 
-    fEnabledTextureInShape = true;
+    enabled_texture_in_shape = true;
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, img->texture_id);
 }
 
 void PGraphicsOpenGLv20::popMatrix() {
+    PGraphics::popMatrix();
     glPopMatrix();
 }
 
 void PGraphicsOpenGLv20::pushMatrix() {
+    PGraphics::pushMatrix();
     glPushMatrix();
 }
 
 void PGraphicsOpenGLv20::translate(const float x, const float y, const float z) {
+    PGraphics::translate(x, y, z);
     glTranslatef(x, y, z);
 }
 
 void PGraphicsOpenGLv20::rotateX(const float angle) {
+    PGraphics::rotateX(angle);
     glRotatef(degrees(angle), 1.0f, 0.0f, 0.0f);
 }
 
 void PGraphicsOpenGLv20::rotateY(const float angle) {
+    PGraphics::rotateY(angle);
     glRotatef(degrees(angle), 0.0f, 1.0f, 0.0f);
 }
 
 void PGraphicsOpenGLv20::rotateZ(const float angle) {
+    PGraphics::rotateZ(angle);
     glRotatef(degrees(angle), 0.0f, 0.0f, 1.0f);
 }
 
 void PGraphicsOpenGLv20::rotate(const float angle) {
+    PGraphics::rotate(angle);
     glRotatef(degrees(angle), 0.0f, 0.0f, 1.0f);
 }
 
 void PGraphicsOpenGLv20::rotate(const float angle, const float x, const float y, const float z) {
+    PGraphics::rotate(angle, x, y, z);
     glRotatef(degrees(angle), x, y, z);
 }
 
 void PGraphicsOpenGLv20::scale(const float x) {
+    PGraphics::scale(x);
     glScalef(x, x, x);
 }
 
 void PGraphicsOpenGLv20::scale(const float x, const float y) {
+    PGraphics::scale(x, y);
     glScalef(x, y, 1.0f);
 }
 
 void PGraphicsOpenGLv20::scale(const float x, const float y, const float z) {
+    PGraphics::scale(x, y, z);
     glScalef(x, y, z);
 }
 

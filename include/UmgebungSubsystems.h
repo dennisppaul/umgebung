@@ -24,7 +24,7 @@
 #include "UmgebungDefines.h"
 #include "PGraphics.h"
 
-UMGEBUNG_NAMESPACE_BEGIN
+namespace umgebung {
 
 struct Subsystem {
     bool (*init)();
@@ -55,7 +55,7 @@ struct SubsystemAudio : Subsystem {
 inline SubsystemGraphics* (*create_subsystem_graphics)() = nullptr;
 inline SubsystemAudio* (*create_subsystem_audio)()       = nullptr;
 
-UMGEBUNG_NAMESPACE_END
+} // umgebung
 
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_default_2D();
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv20();

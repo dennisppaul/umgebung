@@ -27,6 +27,7 @@ namespace umgebung {
     public:
         explicit PGraphicsOpenGLv20(bool render_to_offscreen);
 
+        void    init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
         void    strokeWeight(float weight) override;
         void    background(float a, float b, float c, float d = 1.0f) override;
         void    background(float a) override;
@@ -36,14 +37,8 @@ namespace umgebung {
         void    line(float x1, float y1, float x2, float y2) override;
         void    line(float x1, float y1, float z1, float x2, float y2, float y3) override;
         void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override;
-        void    bezier(float x1, float y1,
-                       float x2, float y2,
-                       float x3, float y3,
-                       float x4, float y4) override;
-        void    bezier(float x1, float y1, float z1,
-                       float x2, float y2, float z2,
-                       float x3, float y3, float z3,
-                       float x4, float y4, float z4) override;
+        void    bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) override;
+        void    bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) override;
         void    bezierDetail(int detail) override;
         void    pointSize(float size) override;
         void    point(float x, float y, float z = 0.0f) override;
@@ -77,8 +72,6 @@ namespace umgebung {
         void    beginDraw() override;
         void    endDraw() override;
 
-        void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
-
         /* --- additional methods --- */
 
         void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
@@ -86,11 +79,7 @@ namespace umgebung {
         std::string name() override { return "PGraphicsOpenGLv22"; }
 
     private:
-        float               fPointSize             = 1;
-        float               fStrokeWeight          = 1;
-        bool                fEnabledTextureInShape = false;
-        int                 fBezierDetail          = 20;
-        int                 pixel_denisty          = 1;
+        bool                enabled_texture_in_shape = false;
         int                 previously_bound_FBO{0};
         std::vector<Vertex> outline_vertices;
     };

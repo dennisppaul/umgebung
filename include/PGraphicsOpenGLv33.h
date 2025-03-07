@@ -19,10 +19,6 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "PGraphicsOpenGL.h"
 
 namespace umgebung {
@@ -31,6 +27,7 @@ namespace umgebung {
     public:
         explicit PGraphicsOpenGLv33(bool render_to_offscreen);
 
+        void    init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
         void    strokeWeight(float weight) override;
         void    background(float a, float b, float c, float d = 1.0f) override;
         void    background(float a) override;
@@ -59,24 +56,11 @@ namespace umgebung {
         void    image(PImage* image, float x, float y, float w, float h) override; // NOTE: done
         void    image(PImage* img, float x, float y) override;                     // NOTE: done
         void    texture(PImage* img) override;                                     // NOTE: done
-        void    popMatrix() override;                                              // NOTE: done
-        void    pushMatrix() override;                                             // NOTE: done
-        void    translate(float x, float y, float z = 0.0f) override;              // NOTE: done
-        void    rotateX(float angle) override;                                     // NOTE: done
-        void    rotateY(float angle) override;                                     // NOTE: done
-        void    rotateZ(float angle) override;                                     // NOTE: done
-        void    rotate(float angle) override;                                      // NOTE: done
-        void    rotate(float angle, float x, float y, float z) override;           // NOTE: done
-        void    scale(float x) override;                                           // NOTE: done
-        void    scale(float x, float y) override;                                  // NOTE: done
-        void    scale(float x, float y, float z) override;                         // NOTE: done
         void    pixelDensity(int density) override;
         void    hint(uint16_t property) override;
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
         void    beginDraw() override;
         void    endDraw() override;
-        // void    bind() override;
-        void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
 
         /* --- additional methods --- */
 
@@ -97,6 +81,18 @@ namespace umgebung {
                 : start_index(start), num_vertices(count), texture_id(texID) {}
         };
 
+        struct PrimitiveVertexBuffer {
+            GLuint              VAO{0};
+            GLuint              VBO{0};
+            std::vector<Vertex> vertices{};
+            const uint32_t      num_vertices;
+            explicit PrimitiveVertexBuffer(const uint32_t vertex_count) : num_vertices(vertex_count) {
+                vertices.resize(vertex_count);
+            }
+            bool uninitialized() const {
+                return VAO == 0 || VBO == 0;
+            }
+        };
 
         static constexpr uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
         static constexpr uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
@@ -104,7 +100,11 @@ namespace umgebung {
         const float               DEFAULT_FOV                            = 2.0f * atan(0.5f); // = 53.1301f;
         static constexpr uint8_t  RENDER_MODE_IMMEDIATE                  = 0;
         static constexpr uint8_t  RENDER_MODE_RETAINED                   = 1;
-        uint8_t                   render_mode                            = RENDER_MODE_RETAINED;
+        uint8_t                   render_mode                            = RENDER_MODE_IMMEDIATE;
+        static const char*        vertex_shader_source_texture();
+        static const char*        fragment_shader_source_texture();
+        static const char*        vertex_shader_source_simple();
+        static const char*        fragment_shader_source_simple();
         // TODO @RENDER_MODE_RETAINED replace all `add_vertex...` methods with just
         //     fill ( rendered as `GL_TRIANGLES` ):
         //     - `RM_fill_add_vertex(Vertex v)`
@@ -128,15 +128,6 @@ namespace umgebung {
         GLuint                   texture_id_solid_color{};
         GLuint                   texture_id_current{};
         std::vector<RenderBatch> renderBatches;
-        glm::mat4                model_matrix_client{};
-        glm::mat4                model_matrix_shader{};
-        std::vector<glm::mat4>   model_matrix_stack{};
-        bool                     model_matrix_dirty{false};
-        glm::mat4                projection_matrix_2D{};
-        glm::mat4                projection_matrix_3D{};
-        glm::mat4                view_matrix{};
-        float                    stroke_weight{1};
-        int                      bezier_detail{20};
         bool                     render_lines_as_quads{true};
         std::vector<glm::vec3>   shape_stroke_vertex_cache_vec3_DEPRECATED{VBO_BUFFER_CHUNK_SIZE}; // TODO remove this
         std::vector<Vertex>      shape_stroke_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
@@ -144,33 +135,7 @@ namespace umgebung {
         int                      shape_mode_cache{POLYGON};
         int                      previously_bound_FBO{0};
 
-        //        PFont* fCurrentFont           = nullptr;
-        //        float  fStrokeWeight          = 1;
-        //        bool   fEnabledTextureInShape = false;
-        //        bool   fShapeBegun            = false;
-        //        int    fPixelDensity          = 1;
-
-        static const char* vertex_shader_source_texture();
-        static const char* fragment_shader_source_texture();
-        static const char* vertex_shader_source_simple();
-        static const char* fragment_shader_source_simple();
-
-        void IM_prepare_frame();
-
         /* --- RENDER_MODE_IMMEDIATE (IM) --- */
-
-        struct PrimitiveVertexBuffer {
-            GLuint              VAO{0};
-            GLuint              VBO{0};
-            std::vector<Vertex> vertices{};
-            const uint32_t      num_vertices;
-            explicit PrimitiveVertexBuffer(const uint32_t vertex_count) : num_vertices(vertex_count) {
-                vertices.resize(vertex_count);
-            }
-            bool uninitialized() const {
-                return VAO == 0 || VBO == 0;
-            }
-        };
 
         // TODO what about textures?!?
         PrimitiveVertexBuffer IM_primitive_line{2};
@@ -182,15 +147,13 @@ namespace umgebung {
         static std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon);
         std::vector<Vertex>        triangulateConcavePolygon(const std::vector<Vertex>& polygon) const;
 
+        void IM_prepare_frame();
         void IM_render_point(float x1, float y1, float z1);
         void IM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
         void IM_render_rect(float x, float y, float width, float height);
         void IM_render_ellipse(float x, float y, float width, float height);
-
         void IM_render_end_shape(bool close_shape);
         void IM_render_vertex_buffer(PrimitiveVertexBuffer& primitive, GLenum mode, std::vector<Vertex>& shape_vertices) const;
-
-        // ... triangle ( + textured ), quad ( + textured ), circle, etcetera
 
         /* --- RENDER_MODE_RETAINED (RM) --- */
 
@@ -203,7 +166,6 @@ namespace umgebung {
         void fill_resize_buffer(uint32_t newSize);
         void init_stroke_vertice_buffers();
         void init_fill_vertice_buffers();
-        void create_solid_color_texture();
 
         void RM_add_quad_as_triangles(const glm::vec3 v0, const glm::vec3 v1, const glm::vec3 v2, const glm::vec3 v3, const glm::vec4 color) {
             // triangle #1
@@ -217,8 +179,6 @@ namespace umgebung {
         }
 
         void add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position, const glm::vec4& color, float u = 0.0f, float v = 0.0f);
-        void to_screen_space(glm::vec3& world_position) const; // convert from model space to screen space
-        void to_world_space(glm::vec3& world_position) const;  // convert from model space to works space
         void RM_add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint batch_texture_id);
         void RM_render_line_strip_as_connected_quads(std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape);
         void RM_render_line_strip_as_quad_segments(const std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape, bool round_corners);
@@ -234,12 +194,12 @@ namespace umgebung {
                                         float r, float g, float b, float a = 1.0f);
         /* --- SHARED --- */
 
+        void          create_solid_color_texture();
         void          SHARED_bind_texture(GLuint bind_texture_id);
         bool          SHARED_generate_and_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`
         static void   SHARED_resize_vertex_buffer(size_t buffer_size_bytes);
         static void   SHARED_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);
         static void   SHARED_init_vertex_buffer(PrimitiveVertexBuffer& primitive);
-        static void   printMatrix(const glm::mat4& matrix);
         static GLuint SHARED_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
         static void   SHARED_checkShaderCompileStatus(GLuint shader);
         static void   SHARED_checkProgramLinkStatus(GLuint program);

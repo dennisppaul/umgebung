@@ -1,7 +1,28 @@
+/*
+* Umgebung
+ *
+ * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * Copyright (c) 2025 Dennis P Paul.
+ *
+ * This library is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <iostream>
 #include <vector>
 
 #include <GL/glew.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Umgebung.h"
 #include "PGraphicsOpenGL.h"
@@ -419,73 +440,6 @@ void PGraphicsOpenGLv33::texture(PImage* img) {
     //      mazbe if this called within begin-end-shape it restores the texture afterwards.
 }
 
-// NOTE: done
-void PGraphicsOpenGLv33::popMatrix() {
-    if (!model_matrix_stack.empty()) {
-        model_matrix_client = model_matrix_stack.back();
-        model_matrix_stack.pop_back();
-    }
-}
-
-// NOTE: done
-void PGraphicsOpenGLv33::pushMatrix() {
-    model_matrix_stack.push_back(model_matrix_client);
-}
-
-// NOTE: done
-void PGraphicsOpenGLv33::translate(const float x, const float y, const float z) {
-    model_matrix_client = glm::translate(model_matrix_client, glm::vec3(x, y, z));
-    model_matrix_dirty  = true;
-}
-
-// NOTE: done
-void PGraphicsOpenGLv33::rotateX(const float angle) {
-    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(1.0f, 0.0f, 0.0f));
-    model_matrix_dirty  = true;
-}
-
-// NOTE: done
-void PGraphicsOpenGLv33::rotateY(const float angle) {
-    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 1.0f, 0.0f));
-    model_matrix_dirty  = true;
-}
-
-// NOTE: done
-void PGraphicsOpenGLv33::rotateZ(const float angle) {
-    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-    model_matrix_dirty  = true;
-}
-
-// NOTE: done
-void PGraphicsOpenGLv33::rotate(const float angle) {
-    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-    model_matrix_dirty  = true;
-}
-
-// NOTE: done
-void PGraphicsOpenGLv33::rotate(const float angle, const float x, const float y, const float z) {
-    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(x, y, z));
-    model_matrix_dirty  = true;
-}
-
-// NOTE: done
-void PGraphicsOpenGLv33::scale(const float x) {
-    model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, x, x));
-    model_matrix_dirty  = true;
-}
-
-// NOTE: done
-void PGraphicsOpenGLv33::scale(const float x, const float y) {
-    model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, y, 1));
-    model_matrix_dirty  = true;
-}
-
-// NOTE: done
-void PGraphicsOpenGLv33::scale(const float x, const float y, const float z) {
-    model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, y, z));
-    model_matrix_dirty  = true;
-}
-
 void PGraphicsOpenGLv33::pixelDensity(const int density) {
     static bool emitted_warning = false;
     if (!emitted_warning && init_properties_locked) {
@@ -890,32 +844,6 @@ void PGraphicsOpenGLv33::add_fill_vertex_xyz_rgba_uv_raw(const glm::vec3 positio
     fill_vertices_xyz_rgba_uv.push_back(tex_coords.y); // Texture
 }
 
-void PGraphicsOpenGLv33::to_screen_space(glm::vec3& world_position) const {
-    // Transform world position to camera (view) space
-    const glm::vec4 viewPos = view_matrix * model_matrix_client * glm::vec4(world_position, 1.0f);
-
-    // Project onto clip space
-    glm::vec4 clipPos = projection_matrix_3D * viewPos;
-
-    // Perspective divide (convert to normalized device coordinates)
-    if (clipPos.w != 0.0f) {
-        clipPos.x /= clipPos.w;
-        clipPos.y /= clipPos.w;
-    }
-
-    // Now the coordinates are in NDC (-1 to 1 range)
-    // Convert NDC to screen space (assuming viewport width and height)
-    // TODO what is it? `width` or `framebuffer_width`
-    // float screenX = (clipPos.x * 0.5f + 0.5f) * static_cast<float>(framebuffer_width);
-    // float screenY = (1.0f - (clipPos.y * 0.5f + 0.5f)) * static_cast<float>(framebuffer_height);
-    const float screenX = (clipPos.x * 0.5f + 0.5f) * static_cast<float>(width);
-    const float screenY = (1.0f - (clipPos.y * 0.5f + 0.5f)) * static_cast<float>(height);
-
-    world_position.x = screenX;
-    world_position.y = screenY;
-    world_position.z = 0.0f;
-}
-
 // // TODO optimize … this is inefficient AF
 // void PGraphicsOpenGLv33::add_quad_line(const glm::vec3& p1,
 //                                        const glm::vec3& p2,
@@ -1129,17 +1057,6 @@ void PGraphicsOpenGLv33::SHARED_checkProgramLinkStatus(const GLuint program) {
         error("ERROR::SHADER::COMPILATION_FAILED\n", infoLog);
     }
 }
-
-void PGraphicsOpenGLv33::printMatrix(const glm::mat4& matrix) {
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            std::cout << matrix[j][i] << "\t";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-}
-
 
 const char* PGraphicsOpenGLv33::vertex_shader_source_texture() {
     const auto vertexShaderSource = R"(
