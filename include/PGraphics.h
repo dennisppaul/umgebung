@@ -56,8 +56,6 @@ namespace umgebung {
         PGraphics();
         ~PGraphics() override = default;
 
-        bool render_to_offscreen{true};
-
         /* --- implemented in base class PGraphics --- */
 
         virtual void fill(float r, float g, float b, float alpha = 1.0f);
@@ -83,9 +81,6 @@ namespace umgebung {
         virtual void        unbind_texture() {}
         virtual std::string name() { return "PGraphics"; }
         virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
-
-        static std::vector<Vertex> triangulate_faster(const std::vector<Vertex>& vertices);
-        static std::vector<Vertex> triangulate_better_quality(const std::vector<Vertex>& vertices);
 
         /* --- interface --- */
 
@@ -120,22 +115,25 @@ namespace umgebung {
         virtual void    image(PImage* img, float x, float y, float w, float h)                                             = 0;
         virtual void    image(PImage* img, float x, float y)                                                               = 0;
         virtual void    texture(PImage* img)                                                                               = 0;
-        virtual void    popMatrix()                                                                                        = 0;
-        virtual void    pushMatrix()                                                                                       = 0;
-        virtual void    translate(float x, float y, float z = 0.0f)                                                        = 0;
-        virtual void    rotateX(float angle)                                                                               = 0;
-        virtual void    rotateY(float angle)                                                                               = 0;
-        virtual void    rotateZ(float angle)                                                                               = 0;
-        virtual void    rotate(float angle)                                                                                = 0;
-        virtual void    rotate(float angle, float x, float y, float z)                                                     = 0;
-        virtual void    scale(float x)                                                                                     = 0;
-        virtual void    scale(float x, float y)                                                                            = 0;
-        virtual void    scale(float x, float y, float z)                                                                   = 0;
-        virtual void    pixelDensity(int density)                                                                          = 0;
-        virtual void    hint(uint16_t property)                                                                            = 0;
-        virtual void    beginDraw()                                                                                        = 0;
-        virtual void    endDraw()                                                                                          = 0;
-        virtual void    text_str(const std::string& text, float x, float y, float z = 0.0f)                                = 0; // TODO maybe make this private?
+        virtual void    popMatrix();
+        virtual void    pushMatrix();
+        virtual void    resetMatrix();
+        virtual void    printMatrix(const glm::mat4& matrix);
+        virtual void    printMatrix();
+        virtual void    translate(float x, float y, float z = 0.0f);
+        virtual void    rotateX(float angle);
+        virtual void    rotateY(float angle);
+        virtual void    rotateZ(float angle);
+        virtual void    rotate(float angle);
+        virtual void    rotate(float angle, float x, float y, float z);
+        virtual void    scale(float x);
+        virtual void    scale(float x, float y);
+        virtual void    scale(float x, float y, float z);
+        virtual void    pixelDensity(int density)                                           = 0;
+        virtual void    hint(uint16_t property)                                             = 0;
+        virtual void    beginDraw()                                                         = 0;
+        virtual void    endDraw()                                                           = 0;
+        virtual void    text_str(const std::string& text, float x, float y, float z = 0.0f) = 0; // TODO maybe make this private?
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) {
@@ -151,16 +149,13 @@ namespace umgebung {
             int          height{};
         };
 
-        FBO framebuffer{};
+        FBO  framebuffer{};
+        bool render_to_offscreen{true};
 
     protected:
         struct ColorState : glm::vec4 {
             bool active = false;
         };
-
-        static glm::vec4 as_vec4(const ColorState& color) {
-            return {color.r, color.g, color.b, color.a};
-        }
 
         static constexpr uint16_t ELLIPSE_DETAIL_MIN     = 3;
         static constexpr uint16_t ELLIPSE_DETAIL_DEFAULT = 18;
@@ -173,13 +168,34 @@ namespace umgebung {
         int                       ellipse_detail{0};
         std::vector<glm::vec2>    ellipse_points_LUT;
         float                     point_size{1};
+        float                     stroke_weight{1};
+        int                       bezier_detail{20};
         uint8_t                   pixel_density{1};
         int                       texture_id_current{};
         bool                      shape_has_begun{false};
-        int                       polygon_triangulation_strategy = POLYGON_TRIANGULATION_FASTER;
+        int                       polygon_triangulation_strategy = POLYGON_TRIANGULATION_BETTER;
 
-        void    resize_ellipse_points_LUT();
+        /* --- transform matrices --- */
+
+        glm::mat4              model_matrix_client{};
+        glm::mat4              model_matrix_shader{};
+        std::vector<glm::mat4> model_matrix_stack{};
+        bool                   model_matrix_dirty{false};
+        glm::mat4              projection_matrix_2D{};
+        glm::mat4              projection_matrix_3D{};
+        glm::mat4              view_matrix{};
+
+        static glm::vec4 as_vec4(const ColorState& color) {
+            return {color.r, color.g, color.b, color.a};
+        }
         uint8_t get_pixel_density() const { return pixel_density; }
+
+        static std::vector<Vertex> triangulate_faster(const std::vector<Vertex>& vertices);
+        static std::vector<Vertex> triangulate_better_quality(const std::vector<Vertex>& vertices);
+
+        void resize_ellipse_points_LUT();
+        void to_screen_space(glm::vec3& world_position) const; // convert from model space to screen space
+        void to_world_space(glm::vec3& model_position) const;  // convert from model space to works space
     };
 
 } // namespace umgebung

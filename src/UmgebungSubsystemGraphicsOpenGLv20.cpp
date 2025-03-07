@@ -26,7 +26,7 @@
 #include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv20.h"
 
-UMGEBUNG_NAMESPACE_BEGIN
+namespace umgebung {
 
 static SDL_Window*   window     = nullptr;
 static SDL_GLContext gl_context = nullptr;
@@ -336,7 +336,7 @@ static void set_flags(uint32_t& subsystem_flags) {
 static PGraphics* create_graphics(const bool render_to_offscreen) {
     return new PGraphicsOpenGLv20(render_to_offscreen);
 }
-UMGEBUNG_NAMESPACE_END
+} // umgebung
 
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv20() {
     auto* graphics            = new umgebung::SubsystemGraphics{};

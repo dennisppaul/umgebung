@@ -21,7 +21,10 @@
 #include <iostream>
 #include <vector>
 #include <array>
+
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "earcut.hpp"
 #include "polypartition.h"
@@ -32,7 +35,6 @@
 #include "Vertex.h"
 
 #include <UmgebungFunctionsPGraphics.h>
-#include <glm/gtc/epsilon.hpp>
 
 using namespace umgebung;
 
@@ -41,6 +43,95 @@ PGraphics::PGraphics() : PImage(0, 0, 0) {
     PGraphics::stroke(0.0f);
     PGraphics::ellipseDetail(ELLIPSE_DETAIL_DEFAULT);
 }
+
+/* --- transform matrices --- */
+
+// NOTE: done
+void PGraphics::popMatrix() {
+    if (!model_matrix_stack.empty()) {
+        model_matrix_client = model_matrix_stack.back();
+        model_matrix_stack.pop_back();
+    }
+}
+
+// NOTE: done
+void PGraphics::pushMatrix() {
+    model_matrix_stack.push_back(model_matrix_client);
+}
+
+void PGraphics::resetMatrix() {
+    model_matrix_client = glm::mat4(1.0f);
+}
+
+void PGraphics::printMatrix(const glm::mat4& matrix) {
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            std::cout << matrix[j][i] << "\t";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+void PGraphics::printMatrix() {
+    printMatrix(model_matrix_client);
+}
+
+// NOTE: done
+void PGraphics::translate(const float x, const float y, const float z) {
+    model_matrix_client = glm::translate(model_matrix_client, glm::vec3(x, y, z));
+    model_matrix_dirty  = true;
+}
+
+// NOTE: done
+void PGraphics::rotateX(const float angle) {
+    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(1.0f, 0.0f, 0.0f));
+    model_matrix_dirty  = true;
+}
+
+// NOTE: done
+void PGraphics::rotateY(const float angle) {
+    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+    model_matrix_dirty  = true;
+}
+
+// NOTE: done
+void PGraphics::rotateZ(const float angle) {
+    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    model_matrix_dirty  = true;
+}
+
+// NOTE: done
+void PGraphics::rotate(const float angle) {
+    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    model_matrix_dirty  = true;
+}
+
+// NOTE: done
+void PGraphics::rotate(const float angle, const float x, const float y, const float z) {
+    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(x, y, z));
+    model_matrix_dirty  = true;
+}
+
+// NOTE: done
+void PGraphics::scale(const float x) {
+    model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, x, x));
+    model_matrix_dirty  = true;
+}
+
+// NOTE: done
+void PGraphics::scale(const float x, const float y) {
+    model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, y, 1));
+    model_matrix_dirty  = true;
+}
+
+// NOTE: done
+void PGraphics::scale(const float x, const float y, const float z) {
+    model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, y, z));
+    model_matrix_dirty  = true;
+}
+
+/* --- color, stroke, and fill --- */
 
 void PGraphics::fill(const float r, const float g, const float b, const float alpha) {
     color_fill.r      = r;
@@ -105,7 +196,6 @@ void PGraphics::ellipseDetail(const int detail) {
         return;
     }
     if (detail < ELLIPSE_DETAIL_MIN) {
-        // error("ellipseDetail too small: ", detail, ". must be at least ", ELLIPSE_DETAIL_MIN);
         return;
     }
     ellipse_detail = detail;
@@ -223,6 +313,35 @@ std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vert
             }
         }
     }
-
     return triangleList;
+}
+
+void PGraphics::to_screen_space(glm::vec3& world_position) const {
+    // Transform world position to camera (view) space
+    const glm::vec4 viewPos = view_matrix * model_matrix_client * glm::vec4(world_position, 1.0f);
+
+    // Project onto clip space
+    glm::vec4 clipPos = projection_matrix_3D * viewPos;
+
+    // Perspective divide (convert to normalized device coordinates)
+    if (clipPos.w != 0.0f) {
+        clipPos.x /= clipPos.w;
+        clipPos.y /= clipPos.w;
+    }
+
+    // Now the coordinates are in NDC (-1 to 1 range)
+    // Convert NDC to screen space (assuming viewport width and height)
+    // TODO what is it? `width` or `framebuffer_width`
+    // float screenX = (clipPos.x * 0.5f + 0.5f) * static_cast<float>(framebuffer_width);
+    // float screenY = (1.0f - (clipPos.y * 0.5f + 0.5f)) * static_cast<float>(framebuffer_height);
+    const float screenX = (clipPos.x * 0.5f + 0.5f) * static_cast<float>(width);
+    const float screenY = (1.0f - (clipPos.y * 0.5f + 0.5f)) * static_cast<float>(height);
+
+    world_position.x = screenX;
+    world_position.y = screenY;
+    world_position.z = 0.0f;
+}
+
+void PGraphics::to_world_space(glm::vec3& model_position) const {
+    model_position = model_matrix_client * glm::vec4(model_position, 1.0f);
 }

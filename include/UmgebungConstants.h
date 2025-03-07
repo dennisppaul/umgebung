@@ -55,9 +55,8 @@ namespace umgebung {
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_BEVEL  = 0x03;
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NATIVE = 0x04;
     static constexpr float RENDER_LINE_STRIP_AS_QUADS_MAX_ANGLE          = 0.01;
-    /* HINTS */
-    static constexpr int HINT_ENABLE_SMOOTH_LINES                = 0xA0;
-    static constexpr int HINT_DISABLE_SMOOTH_LINES               = 0xA1;
-    static constexpr int HINT_ENABLE_LINE_RENDERING_MODE_NATIVE  = 0xA2;
-    static constexpr int HINT_DISABLE_LINE_RENDERING_MODE_NATIVE = 0xA3;
+    static constexpr int   HINT_ENABLE_SMOOTH_LINES                      = 0xA0;
+    static constexpr int   HINT_DISABLE_SMOOTH_LINES                     = 0xA1;
+    static constexpr int   HINT_ENABLE_LINE_RENDERING_MODE_NATIVE        = 0xA2;
+    static constexpr int   HINT_DISABLE_LINE_RENDERING_MODE_NATIVE       = 0xA3;
 } // namespace umgebung

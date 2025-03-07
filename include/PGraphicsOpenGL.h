@@ -36,6 +36,7 @@ namespace umgebung {
     class PGraphicsOpenGL : public PGraphics {
     public:
         ~PGraphicsOpenGL() override = default;
+
         /* --- interface --- */
 
         // TODO implement 3D version
@@ -70,17 +71,6 @@ namespace umgebung {
         void    image(PImage* img, float x, float y, float w, float h) override                                             = 0;
         void    image(PImage* img, float x, float y) override                                                               = 0;
         void    texture(PImage* img) override                                                                               = 0;
-        void    popMatrix() override                                                                                        = 0;
-        void    pushMatrix() override                                                                                       = 0;
-        void    translate(float x, float y, float z = 0.0f) override                                                        = 0;
-        void    rotateX(float angle) override                                                                               = 0;
-        void    rotateY(float angle) override                                                                               = 0;
-        void    rotateZ(float angle) override                                                                               = 0;
-        void    rotate(float angle) override                                                                                = 0;
-        void    rotate(float angle, float x, float y, float z) override                                                     = 0;
-        void    scale(float x) override                                                                                     = 0;
-        void    scale(float x, float y) override                                                                            = 0;
-        void    scale(float x, float y, float z) override                                                                   = 0;
         void    pixelDensity(int density) override                                                                          = 0;
         void    hint(uint16_t property) override                                                                            = 0;
         void    beginDraw() override                                                                                        = 0;
@@ -101,10 +91,9 @@ namespace umgebung {
     struct OpenGLCapabilities;
     static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
     static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
-
-    static constexpr int OPENGL_PROFILE_NONE          = -1;
-    static constexpr int OPENGL_PROFILE_CORE          = 1;
-    static constexpr int OPENGL_PROFILE_COMPATIBILITY = 2;
+    static constexpr int   OPENGL_PROFILE_NONE                    = -1;
+    static constexpr int   OPENGL_PROFILE_CORE                    = 1;
+    static constexpr int   OPENGL_PROFILE_COMPATIBILITY           = 2;
 
     inline double depth_range = 10000; // TODO this should be configurable … maybe in `reset_matrices()`
 
@@ -157,9 +146,6 @@ namespace umgebung {
 
     /* opengl capabilities */
 
-    struct OpenGLCapabilities;
-    void query_opengl_capabilities(OpenGLCapabilities& capabilities);
-
     struct OpenGLCapabilities {
         int   version_major{0};
         int   version_minor{0};
@@ -171,6 +157,10 @@ namespace umgebung {
         float point_size_max{0};
         float point_size_granularity{0};
     };
+
+    inline OpenGLCapabilities open_gl_capabilities;
+
+    void query_opengl_capabilities(OpenGLCapabilities& capabilities);
 
     inline void printOpenGLInfo(OpenGLCapabilities& capabilities) {
         const GLubyte* version         = glGetString(GL_VERSION);
@@ -201,8 +191,6 @@ namespace umgebung {
         }
         console(fl("Profile"), profile_str);
     }
-
-    inline OpenGLCapabilities open_gl_capabilities;
 
     inline void query_opengl_capabilities(OpenGLCapabilities& capabilities) {
         console(separator());
@@ -243,6 +231,6 @@ namespace umgebung {
         console(fl("point size granularity"), point_size_granularity);
         capabilities.point_size_granularity = point_size_granularity;
 
-        console("================================================================================");
+        console(separator());
     }
 } // namespace umgebung

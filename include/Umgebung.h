@@ -27,51 +27,51 @@
 #include "UmgebungFunctions.h"
 #include "UmgebungFunctionsPGraphics.h"
 
-UMGEBUNG_NAMESPACE_BEGIN
+namespace umgebung {
 
-/* public variables *for initialization only*  */
+    /* public variables *for initialization only*  */
 
-inline bool always_on_top       = false;
-inline int  antialiasing        = DEFAULT;
-inline int  audio_input_device  = DEFAULT_AUDIO_DEVICE;
-inline int  audio_output_device = DEFAULT_AUDIO_DEVICE;
-inline bool borderless          = false;
-inline int  display             = DEFAULT;
-inline bool fullscreen          = false;
-inline bool resizable           = false;
-inline bool retina_support      = true;
-inline bool vsync               = false;
-inline bool render_to_buffer    = false;
+    inline bool always_on_top       = false;
+    inline int  antialiasing        = DEFAULT;
+    inline int  audio_input_device  = DEFAULT_AUDIO_DEVICE;
+    inline int  audio_output_device = DEFAULT_AUDIO_DEVICE;
+    inline bool borderless          = false;
+    inline int  display             = DEFAULT;
+    inline bool fullscreen          = false;
+    inline bool resizable           = false;
+    inline bool retina_support      = true;
+    inline bool vsync               = false;
+    inline bool render_to_buffer    = false;
 
-/* public variables */
+    /* public variables */
 
-inline float width              = 1024;
-inline float height             = 768;
-inline float framebuffer_width  = width;
-inline float framebuffer_height = height;
-inline float frameCount         = 0;
-inline float frameRate          = 60;
-inline int   key                = 0;
-inline int   mouseButton        = DEFAULT;
-inline bool  is_mouse_pressed   = false;
-inline float mouseX             = 0;
-inline float mouseY             = 0;
-inline float pmouseX            = 0;
-inline float pmouseY            = 0;
-inline int   pixelHeight        = 1;
-inline int   pixelWidth         = 1;
+    inline float width              = 1024;
+    inline float height             = 768;
+    inline float framebuffer_width  = width; // TODO maybe i can clean this up at some point … it s always `width*pixelDensity`
+    inline float framebuffer_height = height;
+    inline float frameCount         = 0;
+    inline float frameRate          = 60;
+    inline int   key                = 0;
+    inline int   mouseButton        = DEFAULT;
+    inline bool  is_mouse_pressed   = false;
+    inline float mouseX             = 0;
+    inline float mouseY             = 0;
+    inline float pmouseX            = 0;
+    inline float pmouseY            = 0;
+    inline int   pixelHeight        = 1;
+    inline int   pixelWidth         = 1;
 
-/* public variables *mainly for internal use* */
+    /* public variables *mainly for internal use* */
 
-inline SubsystemGraphics*      subsystem_graphics = nullptr;
-inline SubsystemAudio*         subsystem_audio    = nullptr;
-inline std::vector<Subsystem*> subsystems;
+    inline SubsystemGraphics*      subsystem_graphics = nullptr;
+    inline SubsystemAudio*         subsystem_audio    = nullptr;
+    inline std::vector<Subsystem*> subsystems;
 
-// TODO should this go into `UmgebungFunctionsAdditional`
+    // TODO should this go into `UmgebungFunctionsAdditional`
 
-bool            is_initialized();
-std::string     get_window_title();
-void            set_frame_rate(float fps);
-SDL_WindowFlags get_SDL_WindowFlags(SDL_WindowFlags& flags);
+    bool            is_initialized();
+    std::string     get_window_title();
+    void            set_frame_rate(float fps);
+    SDL_WindowFlags get_SDL_WindowFlags(SDL_WindowFlags& flags);
 
-UMGEBUNG_NAMESPACE_END
+} // namespace umgebung

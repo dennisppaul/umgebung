@@ -22,7 +22,7 @@
 #include "Umgebung.h"
 #include "PGraphicsDefault2D.h"
 
-UMGEBUNG_NAMESPACE_BEGIN
+namespace umgebung {
 // TODO Ref https://github.com/libsdl-org/SDL/blob/main/docs/hello.c
 
 static SDL_Window*   window   = nullptr;
@@ -72,7 +72,7 @@ static PGraphics* create_graphics(const bool render_to_offscreen) {
     (void) render_to_offscreen;
     return new PGraphicsDefault2D(renderer);
 }
-UMGEBUNG_NAMESPACE_END
+} // umgebung
 
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_default_2D() {
     auto* graphics            = new umgebung::SubsystemGraphics{};

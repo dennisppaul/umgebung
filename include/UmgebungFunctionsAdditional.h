@@ -42,7 +42,6 @@ namespace umgebung {
     std::string              get_string_from_argument(const std::string& argument);
     std::string              timestamp();
 
-
     /* --- templated functions --- */
 
     template<typename T>
