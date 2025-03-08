@@ -48,7 +48,8 @@ namespace umgebung {
     static constexpr int   CENTER                                        = 0x02;
     static constexpr int   RADIUS                                        = 0x03;
     static constexpr int   POLYGON_TRIANGULATION_FASTER                  = 0x10;
-    static constexpr int   POLYGON_TRIANGULATION_BETTER                  = 0x11;
+    static constexpr int   POLYGON_TRIANGULATION_GOOD                    = 0x11;
+    static constexpr int   POLYGON_TRIANGULATION_BETTER                  = 0x12;
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NONE   = 0x00;
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_ROUND  = 0x01;
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_MITER  = 0x02;

@@ -220,7 +220,7 @@ void PGraphics::resize_ellipse_points_LUT() {
     }
 }
 
-/* --- triangulation / tesselation --- */
+/* --- triangulation --- */
 
 // EARCUT
 
@@ -268,6 +268,13 @@ std::vector<TPPLPoly> convertToPolyPartition(const Clipper2Lib::PathsD& paths) {
         polys.push_back(poly);
     }
     return polys;
+}
+
+const Triangulator PGraphics::triangulator;
+
+std::vector<Vertex> PGraphics::triangulate_good(const std::vector<Vertex>& vertices) {
+    const std::vector<Vertex> triangles = triangulator.triangulate(vertices, Triangulator::Winding::WINDING_ODD);
+    return triangles;
 }
 
 std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vertex>& vertices) {

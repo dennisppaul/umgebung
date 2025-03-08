@@ -47,6 +47,7 @@ sphere() A sphere is a hollow ball made from tessellated triangles
 #include "UmgebungConstants.h"
 #include "PImage.h"
 #include "Vertex.h"
+#include "Triangulator.h"
 
 namespace umgebung {
 
@@ -178,7 +179,8 @@ namespace umgebung {
         uint8_t                   pixel_density{1};
         int                       texture_id_current{};
         bool                      shape_has_begun{false};
-        int                       polygon_triangulation_strategy = POLYGON_TRIANGULATION_BETTER;
+        int                       polygon_triangulation_strategy = POLYGON_TRIANGULATION_GOOD;
+        static const Triangulator triangulator;
 
         /* --- transform matrices --- */
 
@@ -197,6 +199,7 @@ namespace umgebung {
 
         static std::vector<Vertex> triangulate_faster(const std::vector<Vertex>& vertices);
         static std::vector<Vertex> triangulate_better_quality(const std::vector<Vertex>& vertices);
+        static std::vector<Vertex> triangulate_good(const std::vector<Vertex>& vertices);
 
         void resize_ellipse_points_LUT();
         void to_screen_space(glm::vec3& world_position) const; // convert from model space to screen space
