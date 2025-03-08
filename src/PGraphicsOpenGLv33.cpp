@@ -1781,96 +1781,93 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
 
     /* --- render fill --- */
 
-    switch (tmp_shape_mode_cache) {
-        case POINTS:
-        case LINES:
-        case LINE_STRIP:
-            break;
-        case TRIANGLES:
-            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, shape_fill_vertex_cache);
-            break;
-        case TRIANGLE_FAN:
-            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, shape_fill_vertex_cache);
-            break;
-        case QUAD_STRIP: // NOTE does this just work?!?
-        case TRIANGLE_STRIP:
-            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_STRIP, shape_fill_vertex_cache);
-            break;
-        case QUADS: {
-            std::vector<Vertex> vertices_fill_quads = convertQuadsToTriangles(shape_fill_vertex_cache);
-            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill_quads);
-        } break;
-        default:
-        case POLYGON: {
-            std::vector<Vertex> vertices_fill_polygon;
-            if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_FASTER) {
-                // EARCUT
-                vertices_fill_polygon = triangulate_faster(shape_fill_vertex_cache);
-            } else if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_BETTER) {
-                // POLYPARTITION + CLIPPER2
-                vertices_fill_polygon = triangulate_better_quality(shape_fill_vertex_cache);
-            }
-            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill_polygon);
-            // TODO what if polygon has only 3 or 4 vertices? could shortcut … here
-        } break;
+    if (!shape_fill_vertex_cache.empty()) {
+        switch (tmp_shape_mode_cache) {
+            case POINTS:
+            case LINES:
+            case LINE_STRIP:
+                break;
+            case TRIANGLES:
+                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, shape_fill_vertex_cache);
+                break;
+            case TRIANGLE_FAN:
+                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, shape_fill_vertex_cache);
+                break;
+            case QUAD_STRIP: // NOTE does this just work?!?
+            case TRIANGLE_STRIP:
+                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_STRIP, shape_fill_vertex_cache);
+                break;
+            case QUADS: {
+                std::vector<Vertex> vertices_fill_quads = convertQuadsToTriangles(shape_fill_vertex_cache);
+                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill_quads);
+            } break;
+            default:
+            case POLYGON: {
+                std::vector<Vertex> vertices_fill_polygon;
+                if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_FASTER) {
+                    // EARCUT
+                    vertices_fill_polygon = triangulate_faster(shape_fill_vertex_cache);
+                } else if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_GOOD) {
+                    // LIBTESS2
+                    vertices_fill_polygon = triangulate_good(shape_fill_vertex_cache);
+                } else if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_BETTER) {
+                    // POLYPARTITION + CLIPPER2
+                    vertices_fill_polygon = triangulate_better_quality(shape_fill_vertex_cache);
+                }
+                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill_polygon);
+                // TODO what if polygon has only 3 or 4 vertices? could shortcut … here
+            } break;
+        }
     }
 
     /* --- render stroke --- */
+    if (!shape_stroke_vertex_cache.empty()) {
+        if (close_shape && (tmp_shape_mode_cache == POLYGON || tmp_shape_mode_cache == LINE_STRIP)) {
+            // NOTE add first vertex as last …
+            // TODO maybe only do this for certain shapes i.e `POLYGON`.
+            //      upon further consideration i am a bit uncertain of how to handle filled non-closed shapes?
+            //      is there such a thing? maybe for `LINE_STRIP` too?
+            shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
+            // shape_fill_vertex_cache.push_back(shape_fill_vertex_cache[0]);
+            shape_stroke_vertex_cache.push_back(shape_stroke_vertex_cache[0]);
+        }
 
-    if (close_shape && tmp_shape_mode_cache == POLYGON) {
-        // NOTE add first vertex as last …
-        // TODO maybe only do this for certain shapes i.e `POLYGON`.
-        //      upon further consideration i am a bit uncertain of how to handle filled non-closed shapes?
-        //      is there such a thing? maybe for `LINE_STRIP` too?
-        shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
-        // shape_fill_vertex_cache.push_back(shape_fill_vertex_cache[0]);
-        shape_stroke_vertex_cache.push_back(shape_stroke_vertex_cache[0]);
-    }
+        // TODO evaluate different line rendering styles:
+        //      - may render with GL_LINES or GL_LINE_STRIP if available and `stroke_weight==1.0f`
+        //      - may expand into triangles/quads
+        //      - evaluate corner mode ( NONE, ROUND, POINTY )
+        //          - strokeCap() :: Sets the style for rendering line endings -> SQUARE, PROJECT, and ROUND
+        //          - strokeJoin() :: Sets the style of the joints which connect line segments -> MITER, BEVEL, and ROUND
 
-    // TODO evaluate different line rendering styles:
-    //      - may render with GL_LINES or GL_LINE_STRIP if available and `stroke_weight==1.0f`
-    //      - may expand into triangles/quads
-    //      - evaluate corner mode ( NONE, ROUND, POINTY )
-    //          - strokeCap() :: Sets the style for rendering line endings -> SQUARE, PROJECT, and ROUND
-    //          - strokeJoin() :: Sets the style of the joints which connect line segments -> MITER, BEVEL, and ROUND
+        const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
+        const float tmp_line_width = std::max(std::min(stroke_weight, open_gl_capabilities.line_size_max), open_gl_capabilities.line_size_min);
+        glLineWidth(tmp_line_width);
 
-    const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
-    const float tmp_line_width = std::max(std::min(stroke_weight, open_gl_capabilities.line_size_max), open_gl_capabilities.line_size_min);
-    glLineWidth(tmp_line_width);
-
-    switch (tmp_shape_mode_cache) {
-        case POINTS:
-            glPointSize(tmp_point_size); // TODO does this still work under macOS? it renders squares … maybe texturize them
-            // TODO @OpenGLES3.1 replace with circle or textured quad
-            IM_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_cache);
-            break;
-        case LINES:
-            // TODO @OpenGLES3.1 replace with quad lines
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_cache);
-            break;
-        case LINE_STRIP:
-            // TODO @OpenGLES3.1 replace with quad lines
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
-            break;
-        case TRIANGLES:
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
-            break;
-        case TRIANGLE_FAN:
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
-            break;
-        case QUAD_STRIP: // NOTE does this just work?!?
-        case TRIANGLE_STRIP:
-            // TODO @OpenGLES3.1 replace with quad lines
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
-            break;
-        case QUADS: {
-            std::vector<Vertex> vertices_stroke_quads = convertQuadsToTriangles(shape_stroke_vertex_cache);
-            // TODO @OpenGLES3.1 replace with quad lines
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke_quads);
-        } break;
-        default:
-        case POLYGON: {
-            IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
-        } break;
+        switch (tmp_shape_mode_cache) {
+            case POINTS:
+                glPointSize(tmp_point_size); // TODO does this still work under macOS? it renders squares … maybe texturize them
+                // TODO @OpenGLES3.1 replace with circle or textured quad
+                IM_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_cache);
+                break;
+            case LINES:
+                // TODO @OpenGLES3.1 replace with quad lines
+                IM_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_cache);
+                break;
+            case QUADS: {
+                std::vector<Vertex> vertices_stroke_quads = convertQuadsToTriangles(shape_stroke_vertex_cache);
+                // TODO @OpenGLES3.1 replace with quad lines
+                IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke_quads);
+            } break;
+            default:
+            case LINE_STRIP:
+            case TRIANGLES:
+            case TRIANGLE_FAN:
+            case QUAD_STRIP: // NOTE does this just work?!?
+            case TRIANGLE_STRIP:
+            case POLYGON:
+                // TODO @OpenGLES3.1 replace with quad lines
+                IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
+                break;
+        }
     }
 }
