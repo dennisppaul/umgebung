@@ -52,6 +52,18 @@ namespace umgebung {
 
     class PFont;
     class PGraphics : public virtual PImage {
+    public: // TODO clean up
+        struct FBO {
+            unsigned int id{};
+            unsigned int texture_id{};
+            int          width{};
+            int          height{};
+        };
+
+        FBO framebuffer{};
+
+        virtual void render_framebuffer_to_screen(bool use_blit = false) {}
+
     public:
         PGraphics();
         ~PGraphics() override = default;
@@ -142,14 +154,6 @@ namespace umgebung {
             text_str(ss.str(), x, y, z);
         }
 
-        struct FBO {
-            unsigned int id{};
-            unsigned int texture_id{};
-            int          width{};
-            int          height{};
-        };
-
-        FBO  framebuffer{};
         bool render_to_offscreen{true};
 
     protected:
@@ -157,6 +161,7 @@ namespace umgebung {
             bool active = false;
         };
 
+        const float               DEFAULT_FOV            = 2.0f * atan(0.5f); // = 53.1301f;
         static constexpr uint16_t ELLIPSE_DETAIL_MIN     = 3;
         static constexpr uint16_t ELLIPSE_DETAIL_DEFAULT = 18;
         bool                      init_properties_locked{false};

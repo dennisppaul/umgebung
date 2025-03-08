@@ -316,6 +316,32 @@ std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vert
     return triangleList;
 }
 
+// void PGraphicsOpenGLv33::reset_matrices() {
+//     model_matrix_shader = glm::mat4(1.0f);
+//     model_matrix_client = glm::mat4(1.0f);
+//     model_matrix_dirty  = false;
+//
+//     const float viewport_width  = framebuffer_width;
+//     const float viewport_height = framebuffer_height;
+//
+//     glViewport(0, 0, static_cast<GLint>(viewport_width), static_cast<GLint>(viewport_height));
+//
+//     // Orthographic projection
+//     projection_matrix_2D = glm::ortho(0.0f, viewport_width, viewport_height, 0.0f);
+//
+//     const float fov            = DEFAULT_FOV;                       // distance from the camera = screen height
+//     const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f); // 1 unit = 1 pixel
+//
+//     // Perspective projection
+//     projection_matrix_3D = glm::perspective(fov, width / height, 0.1f, static_cast<float>(depth_range));
+//
+//     view_matrix = glm::lookAt(
+//         glm::vec3(width / 2.0f, height / 2.0f, -cameraDistance), // Flip Z to fix X-axis
+//         glm::vec3(width / 2.0f, height / 2.0f, 0.0f),            // Look at the center
+//         glm::vec3(0.0f, -1.0f, 0.0f)                             // Keep Y-up as normal
+//     );
+// }
+
 void PGraphics::to_screen_space(glm::vec3& world_position) const {
     // Transform world position to camera (view) space
     const glm::vec4 viewPos = view_matrix * model_matrix_client * glm::vec4(world_position, 1.0f);

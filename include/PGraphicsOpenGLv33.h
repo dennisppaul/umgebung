@@ -19,11 +19,134 @@
 
 #pragma once
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "PGraphicsOpenGL.h"
 
 namespace umgebung {
 
     class PGraphicsOpenGLv33 final : public PGraphicsOpenGL {
+    private: // TODO clean this up
+        // glm::mat4 model_matrix_shader;
+        // glm::mat4 model_matrix_client;
+        // glm::mat4 view_matrix;
+        // glm::mat4 projection_matrix_2D;
+        // glm::mat4 projection_matrix_3D;
+        // bool model_matrix_dirty = false;
+        //
+        // // Screen rendering resources
+        // GLuint screenVAO = 0;
+        // GLuint shaderProgram = 0;
+        // int framebuffer_width = 0;
+        // int framebuffer_height = 0;
+
+    public:
+        void setup_matrices() override {
+            reset_matrices();
+        }
+
+        void restore_matrices() override {
+            // No explicit matrix stack in modern OpenGL
+        }
+
+        void reset_matrices() override {
+            model_matrix_shader = glm::mat4(1.0f);
+            model_matrix_client = glm::mat4(1.0f);
+            model_matrix_dirty  = false;
+
+            framebuffer_width           = framebuffer.width;
+            framebuffer_height          = framebuffer.height;
+            const float viewport_width  = framebuffer_width;
+            const float viewport_height = framebuffer_height;
+
+            glViewport(0, 0, static_cast<GLint>(viewport_width), static_cast<GLint>(viewport_height));
+
+            // Orthographic projection
+            projection_matrix_2D = glm::ortho(0.0f, viewport_width, viewport_height, 0.0f);
+
+            const float fov            = DEFAULT_FOV;
+            const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f);
+
+            // Perspective projection
+            projection_matrix_3D = glm::perspective(fov, width / height, 0.1f, static_cast<float>(depth_range));
+
+            view_matrix = glm::lookAt(
+                glm::vec3(width / 2.0f, height / 2.0f, -cameraDistance),
+                glm::vec3(width / 2.0f, height / 2.0f, 0.0f),
+                glm::vec3(0.0f, -1.0f, 0.0f));
+        }
+
+        void prepare_frame() {
+            set_default_graphics_state();
+
+            if (render_mode == RENDER_MODE_IMMEDIATE) {
+                glUseProgram(fill_shader_program);
+
+                // Upload matrices
+                const GLint projLoc = glGetUniformLocation(fill_shader_program, "uProjection");
+                glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D));
+
+                const GLint viewLoc = glGetUniformLocation(fill_shader_program, "uViewMatrix");
+                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+
+                const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model_matrix_shader));
+
+                texture_id_current = 0;
+                SHARED_bind_texture(texture_id_solid_color);
+            }
+        }
+
+        void beginDraw() override {
+            if (render_to_offscreen) {
+                store_current_fbo();
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+            }
+            prepare_frame();
+            reset_matrices();
+        }
+
+        void endDraw() override {
+            if (render_mode == RENDER_MODE_RETAINED) {
+                RM_flush_fill();
+                RM_flush_stroke();
+            }
+
+            if (render_to_offscreen) {
+                restore_previous_fbo();
+            }
+        }
+
+        // Modern OpenGL framebuffer rendering method
+        void render_framebuffer_to_screen(bool use_blit = false) override {
+            if (use_blit) {
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.id);
+                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+                glBlitFramebuffer(0, 0, framebuffer.width, framebuffer.height,
+                                  0, 0, framebuffer.width, framebuffer.height,
+                                  GL_COLOR_BUFFER_BIT, GL_LINEAR); // TODO maybe GL_NEAREST is enough
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+            } else {
+                error("`render_framebuffer_to_screen` need to implement this ... maybe reuse existing shader");
+                // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                // glDisable(GL_DEPTH_TEST);
+                // glDisable(GL_BLEND);
+                //
+                // glUseProgram(shaderProgram);
+                // glBindVertexArray(screenVAO);
+                //
+                // bind_framebuffer_texture();
+                // glUniform1i(glGetUniformLocation(shaderProgram, "screenTexture"), 0);
+                //
+                // glDrawArrays(GL_TRIANGLES, 0, 6);
+                //
+                // glBindVertexArray(0);
+                // glUseProgram(0);
+            }
+        }
+
     public:
         explicit PGraphicsOpenGLv33(bool render_to_offscreen);
 
@@ -59,16 +182,16 @@ namespace umgebung {
         void    pixelDensity(int density) override;
         void    hint(uint16_t property) override;
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
-        void    beginDraw() override;
-        void    endDraw() override;
+        // void    beginDraw() override;
+        // void    endDraw() override;
 
         /* --- additional methods --- */
 
-        void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
-        void        download_texture(PImage* img) override;
-        void        bind_texture(const int texture_id) override { SHARED_bind_texture(texture_id); }
-        void        unbind_texture() override { SHARED_bind_texture(texture_id_solid_color); }
-        void        reset_matrices() override;
+        void upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
+        void download_texture(PImage* img) override;
+        void bind_texture(const int texture_id) override { SHARED_bind_texture(texture_id); }
+        void unbind_texture() override { SHARED_bind_texture(texture_id_solid_color); }
+        // void        reset_matrices() override;
         std::string name() override { return "PGraphicsOpenGLv33"; }
 
     private:
@@ -96,8 +219,7 @@ namespace umgebung {
 
         static constexpr uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
         static constexpr uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
-        static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024;       // 1MB
-        const float               DEFAULT_FOV                            = 2.0f * atan(0.5f); // = 53.1301f;
+        static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024; // 1MB
         static constexpr uint8_t  RENDER_MODE_IMMEDIATE                  = 0;
         static constexpr uint8_t  RENDER_MODE_RETAINED                   = 1;
         uint8_t                   render_mode                            = RENDER_MODE_IMMEDIATE;
@@ -133,7 +255,6 @@ namespace umgebung {
         std::vector<Vertex>      shape_stroke_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
         std::vector<Vertex>      shape_fill_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
         int                      shape_mode_cache{POLYGON};
-        int                      previously_bound_FBO{0};
 
         /* --- RENDER_MODE_IMMEDIATE (IM) --- */
 
@@ -147,7 +268,7 @@ namespace umgebung {
         static std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon);
         std::vector<Vertex>        triangulateConcavePolygon(const std::vector<Vertex>& polygon) const;
 
-        void IM_prepare_frame();
+        // void prepare_frame();
         void IM_render_point(float x1, float y1, float z1);
         void IM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
         void IM_render_rect(float x, float y, float width, float height);
