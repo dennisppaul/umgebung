@@ -471,50 +471,50 @@ void PGraphicsOpenGLv33::hint(const uint16_t property) {
     }
 }
 
-void PGraphicsOpenGLv33::beginDraw() {
-    if (render_to_offscreen) {
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previously_bound_FBO);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-    }
-    IM_prepare_frame();
-    reset_matrices();
-}
+// void PGraphicsOpenGLv33::beginDraw() {
+//     if (render_to_offscreen) {
+//         glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previously_bound_FBO);
+//         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+//     }
+//     prepare_frame();
+//     reset_matrices();
+// }
 
-void PGraphicsOpenGLv33::endDraw() {
-    if (render_to_offscreen) {
-        glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO);
-    }
-    if (render_mode == RENDER_MODE_RETAINED) {
-        RM_flush_fill();
-        RM_flush_stroke();
-        return;
-    }
-    if (render_mode == RENDER_MODE_IMMEDIATE) {
-        return;
-    }
-}
+// void PGraphicsOpenGLv33::endDraw() {
+//     if (render_to_offscreen) {
+//         glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO);
+//     }
+//     if (render_mode == RENDER_MODE_RETAINED) {
+//         RM_flush_fill();
+//         RM_flush_stroke();
+//         return;
+//     }
+//     if (render_mode == RENDER_MODE_IMMEDIATE) {
+//         return;
+//     }
+// }
 
-void PGraphicsOpenGLv33::IM_prepare_frame() {
-    if (render_mode == RENDER_MODE_IMMEDIATE) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        glUseProgram(fill_shader_program);
-
-        // Upload matrices
-        const GLint projLoc = glGetUniformLocation(fill_shader_program, "uProjection");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D));
-
-        const GLint viewLoc = glGetUniformLocation(fill_shader_program, "uViewMatrix");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-
-        const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model_matrix_shader));
-
-        texture_id_current = 0;
-        SHARED_bind_texture(texture_id_solid_color);
-    }
-}
+// void PGraphicsOpenGLv33::prepare_frame() {
+//     glEnable(GL_BLEND);
+//     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//
+//     if (render_mode == RENDER_MODE_IMMEDIATE) {
+//         glUseProgram(fill_shader_program);
+//
+//         // Upload matrices
+//         const GLint projLoc = glGetUniformLocation(fill_shader_program, "uProjection");
+//         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D));
+//
+//         const GLint viewLoc = glGetUniformLocation(fill_shader_program, "uViewMatrix");
+//         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+//
+//         const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
+//         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model_matrix_shader));
+//
+//         texture_id_current = 0;
+//         SHARED_bind_texture(texture_id_solid_color);
+//     }
+// }
 
 void PGraphicsOpenGLv33::upload_texture(PImage*         img,
                                         const uint32_t* pixel_data,
@@ -585,31 +585,31 @@ void PGraphicsOpenGLv33::download_texture(PImage* img) {
     SHARED_bind_texture(tmp_bound_texture);
 }
 
-void PGraphicsOpenGLv33::reset_matrices() {
-    model_matrix_shader = glm::mat4(1.0f);
-    model_matrix_client = glm::mat4(1.0f);
-    model_matrix_dirty  = false;
-
-    const float viewport_width  = framebuffer_width;
-    const float viewport_height = framebuffer_height;
-
-    glViewport(0, 0, static_cast<GLint>(viewport_width), static_cast<GLint>(viewport_height));
-
-    // Orthographic projection
-    projection_matrix_2D = glm::ortho(0.0f, viewport_width, viewport_height, 0.0f);
-
-    const float fov            = DEFAULT_FOV;                       // distance from the camera = screen height
-    const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f); // 1 unit = 1 pixel
-
-    // Perspective projection
-    projection_matrix_3D = glm::perspective(fov, width / height, 0.1f, static_cast<float>(depth_range));
-
-    view_matrix = glm::lookAt(
-        glm::vec3(width / 2.0f, height / 2.0f, -cameraDistance), // Flip Z to fix X-axis
-        glm::vec3(width / 2.0f, height / 2.0f, 0.0f),            // Look at the center
-        glm::vec3(0.0f, -1.0f, 0.0f)                             // Keep Y-up as normal
-    );
-}
+// void PGraphicsOpenGLv33::reset_matrices() {
+//     model_matrix_shader = glm::mat4(1.0f);
+//     model_matrix_client = glm::mat4(1.0f);
+//     model_matrix_dirty  = false;
+//
+//     const float viewport_width  = framebuffer_width;
+//     const float viewport_height = framebuffer_height;
+//
+//     glViewport(0, 0, static_cast<GLint>(viewport_width), static_cast<GLint>(viewport_height));
+//
+//     // Orthographic projection
+//     projection_matrix_2D = glm::ortho(0.0f, viewport_width, viewport_height, 0.0f);
+//
+//     const float fov            = DEFAULT_FOV;                       // distance from the camera = screen height
+//     const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f); // 1 unit = 1 pixel
+//
+//     // Perspective projection
+//     projection_matrix_3D = glm::perspective(fov, width / height, 0.1f, static_cast<float>(depth_range));
+//
+//     view_matrix = glm::lookAt(
+//         glm::vec3(width / 2.0f, height / 2.0f, -cameraDistance), // Flip Z to fix X-axis
+//         glm::vec3(width / 2.0f, height / 2.0f, 0.0f),            // Look at the center
+//         glm::vec3(0.0f, -1.0f, 0.0f)                             // Keep Y-up as normal
+//     );
+// }
 
 void PGraphicsOpenGLv33::init(uint32_t* pixels,
                               const int width,
@@ -726,8 +726,8 @@ void PGraphicsOpenGLv33::RM_flush_stroke() {
         return;
     }
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // glEnable(GL_BLEND);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindBuffer(GL_ARRAY_BUFFER, stroke_VBO_xyz_rgba);
     const unsigned long size = stroke_vertices_xyz_rgba.size() * sizeof(float);
@@ -757,8 +757,8 @@ void PGraphicsOpenGLv33::RM_flush_fill() {
         return;
     }
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // glEnable(GL_BLEND);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindBuffer(GL_ARRAY_BUFFER, fill_VBO_xyz_rgba_uv);
     const unsigned long size = fill_vertices_xyz_rgba_uv.size() * sizeof(float);

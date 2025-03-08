@@ -34,8 +34,58 @@
 
 namespace umgebung {
     class PGraphicsOpenGL : public PGraphics {
+    protected:
+        GLint previously_bound_FBO = 0;
+        float depth_range          = 10000.0f;
+
     public:
         ~PGraphicsOpenGL() override = default;
+
+        static void set_default_graphics_state() {
+            glClearColor(0, 0, 0, 1);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+
+        // Common FBO management (can be partially overridden)
+        virtual void store_current_fbo() {
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previously_bound_FBO);
+        }
+
+        virtual void restore_previous_fbo() {
+            glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO);
+        }
+
+        // matrix management is implementation-specific, so these are pure virtual
+        virtual void setup_matrices()   = 0;
+        virtual void restore_matrices() = 0;
+
+        void beginDraw() override {
+            if (render_to_offscreen) {
+                store_current_fbo();
+
+                // bind the FBO for offscreen rendering
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+                glViewport(0, 0, framebuffer.width, framebuffer.height);
+
+                setup_matrices();
+            }
+        }
+
+        void endDraw() override {
+            if (render_to_offscreen) {
+                restore_matrices();
+                restore_previous_fbo();
+            }
+        }
+
+        // Common method to bind a framebuffer texture
+        void bind_framebuffer_texture() const {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id);
+        }
 
         /* --- interface --- */
 
@@ -73,9 +123,9 @@ namespace umgebung {
         void    texture(PImage* img) override                                                                               = 0;
         void    pixelDensity(int density) override                                                                          = 0;
         void    hint(uint16_t property) override                                                                            = 0;
-        void    beginDraw() override                                                                                        = 0;
-        void    endDraw() override                                                                                          = 0;
-        void    text_str(const std::string& text, float x, float y, float z = 0.0f) override                                = 0; // TODO maybe make this private?
+        // void    beginDraw() override                                                                                        = 0;
+        // void    endDraw() override                                                                                          = 0;
+        void text_str(const std::string& text, float x, float y, float z = 0.0f) override = 0; // TODO maybe make this private?
 
         void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override = 0;
 

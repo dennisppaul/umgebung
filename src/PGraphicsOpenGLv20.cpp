@@ -603,51 +603,51 @@ void PGraphicsOpenGLv20::scale(const float x, const float y, const float z) {
     glScalef(x, y, z);
 }
 
-void PGraphicsOpenGLv20::beginDraw() {
-    if (render_to_offscreen) {
-        /* save state */
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previously_bound_FBO);
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
-        glPushMatrix();
-
-        // bind the FBO for offscreen rendering
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-        glViewport(0, 0, framebuffer.width, framebuffer.height);
-
-        /* setup projection and modelview matrices */
-
-        glMatrixMode(GL_PROJECTION);
-        // save the current projection matrix
-        glPushMatrix();
-        glLoadIdentity();
-        glOrtho(0, framebuffer.width, 0, framebuffer.height, -depth_range, depth_range);
-
-        glMatrixMode(GL_MODELVIEW);
-        // save the current modelview matrix
-        glPushMatrix();
-        glLoadIdentity();
-
-        /** flip y axis */
-        glScalef(1, -1, 1);
-        glTranslatef(0, -height, 0);
-    }
-}
-
-void PGraphicsOpenGLv20::endDraw() {
-    if (render_to_offscreen) {
-        // restore projection and modelview matrices
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-
-        glMatrixMode(GL_MODELVIEW);
-        glPopMatrix();
-
-        /* restore state */
-        glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO); // Restore the previously bound FBO
-        glPopMatrix();
-        glPopAttrib();
-    }
-}
+// void PGraphicsOpenGLv20::beginDraw() {
+//     if (render_to_offscreen) {
+//         /* save state */
+//         glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previously_bound_FBO);
+//         glPushAttrib(GL_ALL_ATTRIB_BITS);
+//         glPushMatrix();
+//
+//         // bind the FBO for offscreen rendering
+//         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+//         glViewport(0, 0, framebuffer.width, framebuffer.height);
+//
+//         /* setup projection and modelview matrices */
+//
+//         glMatrixMode(GL_PROJECTION);
+//         // save the current projection matrix
+//         glPushMatrix();
+//         glLoadIdentity();
+//         glOrtho(0, framebuffer.width, 0, framebuffer.height, -depth_range, depth_range);
+//
+//         glMatrixMode(GL_MODELVIEW);
+//         // save the current modelview matrix
+//         glPushMatrix();
+//         glLoadIdentity();
+//
+//         /** flip y axis */
+//         glScalef(1, -1, 1);
+//         glTranslatef(0, -height, 0);
+//     }
+// }
+//
+// void PGraphicsOpenGLv20::endDraw() {
+//     if (render_to_offscreen) {
+//         // restore projection and modelview matrices
+//         glMatrixMode(GL_PROJECTION);
+//         glPopMatrix();
+//
+//         glMatrixMode(GL_MODELVIEW);
+//         glPopMatrix();
+//
+//         /* restore state */
+//         glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO); // Restore the previously bound FBO
+//         glPopMatrix();
+//         glPopAttrib();
+//     }
+// }
 
 void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int height, int format, bool generate_mipmap) {
     this->width        = width;

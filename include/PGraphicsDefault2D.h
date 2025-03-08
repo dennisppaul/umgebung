@@ -182,8 +182,8 @@ namespace umgebung {
         void init(uint32_t* pixels, const int width, const int height, int format, bool generate_mipmap) override {
             this->width        = width;
             this->height       = height;
-            framebuffer.width  = width;
-            framebuffer.height = height;
+            // framebuffer.width  = width;
+            // framebuffer.height = height;
         }
 
     private:

@@ -24,6 +24,95 @@
 namespace umgebung {
 
     class PGraphicsOpenGLv20 final : public PGraphicsOpenGL {
+    public: // TODO clean this up
+        void setup_matrices() override {
+            glMatrixMode(GL_PROJECTION);
+            glPushMatrix();
+            glLoadIdentity();
+            glOrtho(0, framebuffer.width, 0, framebuffer.height, -depth_range, depth_range);
+
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix();
+            glLoadIdentity();
+
+            /** flip y axis */
+            glScalef(1, -1, 1);
+            glTranslatef(0, -height, 0);
+        }
+
+        void restore_matrices() override {
+            glMatrixMode(GL_PROJECTION);
+            glPopMatrix();
+
+            glMatrixMode(GL_MODELVIEW);
+            glPopMatrix();
+        }
+
+        void beginDraw() override {
+            if (render_to_offscreen) {
+                store_current_fbo();
+                glPushAttrib(GL_ALL_ATTRIB_BITS);
+                glPushMatrix();
+
+                // bind the FBO for offscreen rendering
+                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+                glViewport(0, 0, framebuffer.width, framebuffer.height);
+
+                setup_matrices();
+            }
+        }
+
+        void endDraw() override {
+            if (render_to_offscreen) {
+                restore_matrices();
+
+                glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO);
+                glPopMatrix();
+                glPopAttrib();
+            }
+        }
+
+        // Render framebuffer to screen (specific to OpenGL 2.0)
+        void render_framebuffer_to_screen(bool use_blit = false) override {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+            glDisable(GL_DEPTH_TEST);
+            glDisable(GL_BLEND);
+            glDisable(GL_ALPHA_TEST);
+
+            const float viewport_width  = framebuffer.width;
+            const float viewport_height = framebuffer.height;
+            const float ortho_width     = width;
+            const float ortho_height    = height;
+
+            glViewport(0, 0, viewport_width, viewport_height);
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glOrtho(0, ortho_width, 0, ortho_height, -1, 1);
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+
+            bind_framebuffer_texture();
+            glEnable(GL_TEXTURE_2D);
+            glColor4f(1, 1, 1, 1);
+
+            glBegin(GL_QUADS);
+            glTexCoord2f(0.0, 0.0);
+            glVertex2f(0, 0);
+            glTexCoord2f(1.0, 0.0);
+            glVertex2f(static_cast<float>(framebuffer.width), 0);
+            glTexCoord2f(1.0, 1.0);
+            glVertex2f(static_cast<float>(framebuffer.width),
+                       static_cast<float>(framebuffer.height));
+            glTexCoord2f(0.0, 1.0);
+            glVertex2f(0, static_cast<float>(framebuffer.height));
+            glEnd();
+
+            glDisable(GL_TEXTURE_2D);
+            glPopAttrib();
+        }
+
     public:
         explicit PGraphicsOpenGLv20(bool render_to_offscreen);
 
@@ -69,8 +158,8 @@ namespace umgebung {
         void    pixelDensity(int density) override;
         void    hint(uint16_t property) override;
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
-        void    beginDraw() override;
-        void    endDraw() override;
+        // void    beginDraw() override;
+        // void    endDraw() override;
 
         /* --- additional methods --- */
 
@@ -80,7 +169,6 @@ namespace umgebung {
 
     private:
         bool                enabled_texture_in_shape = false;
-        int                 previously_bound_FBO{0};
         std::vector<Vertex> outline_vertices;
     };
 } // namespace umgebung
