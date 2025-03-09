@@ -94,6 +94,8 @@ namespace umgebung {
         virtual void        unbind_texture() {}
         virtual std::string name() { return "PGraphics"; }
         virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
+        void                to_screen_space(glm::vec3& world_position) const; // convert from model space to screen space
+        void                to_world_space(glm::vec3& model_position) const;  // convert from model space to works space
 
         /* --- interface --- */
 
@@ -157,6 +159,31 @@ namespace umgebung {
 
         bool render_to_offscreen{true};
 
+        static bool are_almost_parallel(const glm::vec3& n1, const glm::vec3& n2, const float epsilon = 0.01f) {
+            const float dotProduct = glm::dot(n1, n2);
+            return -dotProduct > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
+            // return fabs(dotProduct) > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
+        }
+
+        static bool intersect_lines(const glm::vec2& p1, const glm::vec2& d1,
+                                    const glm::vec2& p2, const glm::vec2& d2,
+                                    glm::vec3& intersection) { // TODO move to Umgebung?!? or some utility class?
+            const float det = d1.x * d2.y - d1.y * d2.x;
+
+            if (fabs(det) < 1e-6f) {
+                return false; // Parallel or coincident lines
+            }
+
+            const float t = ((p2.x - p1.x) * d2.y - (p2.y - p1.y) * d2.x) / det;
+
+            intersection = glm::vec3(p1 + t * d1, 0);
+            return true;
+        }
+
+        static std::vector<Vertex> triangulate_faster(const std::vector<Vertex>& vertices);
+        static std::vector<Vertex> triangulate_better_quality(const std::vector<Vertex>& vertices);
+        static std::vector<Vertex> triangulate_good(const std::vector<Vertex>& vertices);
+
     protected:
         struct ColorState : glm::vec4 {
             bool active = false;
@@ -197,13 +224,7 @@ namespace umgebung {
         }
         uint8_t get_pixel_density() const { return pixel_density; }
 
-        static std::vector<Vertex> triangulate_faster(const std::vector<Vertex>& vertices);
-        static std::vector<Vertex> triangulate_better_quality(const std::vector<Vertex>& vertices);
-        static std::vector<Vertex> triangulate_good(const std::vector<Vertex>& vertices);
-
         void resize_ellipse_points_LUT();
-        void to_screen_space(glm::vec3& world_position) const; // convert from model space to screen space
-        void to_world_space(glm::vec3& model_position) const;  // convert from model space to works space
     };
 
 } // namespace umgebung

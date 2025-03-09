@@ -1,5 +1,5 @@
 /*
-* Umgebung
+ * Umgebung
  *
  * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
  * Copyright (c) 2025 Dennis P Paul.
@@ -199,27 +199,6 @@ void PGraphicsOpenGLv33::RM_add_texture_id_to_render_batch(const std::vector<flo
         renderBatches.back().num_vertices += num_vertices;
     }
 #endif
-}
-
-static bool intersect_lines(const glm::vec2& p1, const glm::vec2& d1,
-                            const glm::vec2& p2, const glm::vec2& d2,
-                            glm::vec3& intersection) {
-    const float det = d1.x * d2.y - d1.y * d2.x;
-
-    if (fabs(det) < 1e-6f) {
-        return false; // Parallel or coincident lines
-    }
-
-    const float t = ((p2.x - p1.x) * d2.y - (p2.y - p1.y) * d2.x) / det;
-
-    intersection = glm::vec3(p1 + t * d1, 0);
-    return true;
-}
-
-static bool are_almost_parallel(const glm::vec3& n1, const glm::vec3& n2, const float epsilon = 0.01f) {
-    const float dotProduct = glm::dot(n1, n2);
-    return -dotProduct > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
-    // return fabs(dotProduct) > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
 }
 
 // NOTE: done
