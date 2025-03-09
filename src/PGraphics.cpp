@@ -1,5 +1,5 @@
 /*
-* Umgebung
+ * Umgebung
  *
  * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
  * Copyright (c) 2025 Dennis P Paul.
