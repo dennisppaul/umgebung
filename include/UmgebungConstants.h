@@ -47,6 +47,11 @@ namespace umgebung {
     static constexpr int   CORNERS                                       = 0x01;
     static constexpr int   CENTER                                        = 0x02;
     static constexpr int   RADIUS                                        = 0x03;
+    static constexpr int   BEVEL                                         = 0x20;
+    static constexpr int   MITER                                         = 0x21;
+    static constexpr int   ROUND                                         = 0x22;
+    static constexpr int   NONE                                          = 0x23;
+    static constexpr int   BEVEL_TESSELATOR                              = 0x24;
     static constexpr int   POLYGON_TRIANGULATION_FASTER                  = 0x10;
     static constexpr int   POLYGON_TRIANGULATION_GOOD                    = 0x11;
     static constexpr int   POLYGON_TRIANGULATION_BETTER                  = 0x12;
