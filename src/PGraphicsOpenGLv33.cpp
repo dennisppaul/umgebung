@@ -28,6 +28,7 @@
 #include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv33.h"
 #include "Vertex.h"
+#include "Geometry.h"
 
 using namespace umgebung;
 
@@ -1326,11 +1327,11 @@ void PGraphicsOpenGLv33::RM_render_line_strip_as_connected_quads(std::vector<glm
         const glm::vec3 p3_left  = next_point + next_normal * half_width;
         const glm::vec3 p3_right = next_point - next_normal * half_width;
 
-        glm::vec3  intersection_left;
+        glm::vec2  intersection_left;
         const bool result_left = intersect_lines(p2_left, direction,
                                                  p3_left, next_direction,
                                                  intersection_left);
-        glm::vec3  intersection_right;
+        glm::vec2  intersection_right;
         const bool result_right = intersect_lines(p2_right, direction,
                                                   p3_right, next_direction,
                                                   intersection_right);
@@ -1365,12 +1366,12 @@ void PGraphicsOpenGLv33::RM_render_line_strip_as_connected_quads(std::vector<glm
                     vertex_count += 6;
                 } else {
                     RM_add_quad_as_triangles(p1_left,
-                                             intersection_left,
-                                             intersection_right,
+                                             glm::vec3(intersection_left, 0),
+                                             glm::vec3(intersection_right, 0),
                                              p1_right,
                                              color);
-                    p1_left  = intersection_left;
-                    p1_right = intersection_right;
+                    p1_left  = glm::vec3(intersection_left, 0);
+                    p1_right = glm::vec3(intersection_right, 0);
                     vertex_count += 6;
                 }
             } else {
@@ -1378,8 +1379,8 @@ void PGraphicsOpenGLv33::RM_render_line_strip_as_connected_quads(std::vector<glm
                     p1_left  = next_point - normal * half_width;
                     p1_right = next_point + normal * half_width;
                 } else {
-                    p1_left  = intersection_left;
-                    p1_right = intersection_right;
+                    p1_left  = glm::vec3(intersection_left, 0);
+                    p1_right = glm::vec3(intersection_right, 0);
                 }
             }
         } else {
@@ -1405,12 +1406,12 @@ void PGraphicsOpenGLv33::RM_render_line_strip_as_connected_quads(std::vector<glm
                     vertex_count += 6;
                 } else {
                     RM_add_quad_as_triangles(p2_left,
-                                             intersection_left,
-                                             intersection_right,
+                                             glm::vec3(intersection_left, 0),
+                                             glm::vec3(intersection_right, 0),
                                              p2_right,
                                              color);
-                    p1_left  = intersection_left;
-                    p1_right = intersection_right;
+                    p1_left  = glm::vec3(intersection_left, 0);
+                    p1_right = glm::vec3(intersection_right, 0);
                     vertex_count += 6;
                 }
             } else if (i == num_line_segments - 2) {
@@ -1436,12 +1437,12 @@ void PGraphicsOpenGLv33::RM_render_line_strip_as_connected_quads(std::vector<glm
                     vertex_count += 6;
                 } else {
                     RM_add_quad_as_triangles(p1_left,
-                                             intersection_left,
-                                             intersection_right,
+                                             glm::vec3(intersection_left, 0),
+                                             glm::vec3(intersection_right, 0),
                                              p1_right,
                                              color);
-                    p1_left  = intersection_left;
-                    p1_right = intersection_right;
+                    p1_left  = glm::vec3(intersection_left, 0);
+                    p1_right = glm::vec3(intersection_right, 0);
                     vertex_count += 6;
                 }
             }
@@ -1801,53 +1802,104 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
     }
 
     /* --- render stroke --- */
+
     if (!shape_stroke_vertex_cache.empty()) {
-        if (close_shape && (tmp_shape_mode_cache == POLYGON || tmp_shape_mode_cache == LINE_STRIP)) {
-            // NOTE add first vertex as last …
-            // TODO maybe only do this for certain shapes i.e `POLYGON`.
-            //      upon further consideration i am a bit uncertain of how to handle filled non-closed shapes?
-            //      is there such a thing? maybe for `LINE_STRIP` too?
-            shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
-            // shape_fill_vertex_cache.push_back(shape_fill_vertex_cache[0]);
-            shape_stroke_vertex_cache.push_back(shape_stroke_vertex_cache[0]);
+        if (tmp_shape_mode_cache == POINTS) {
+            // TODO does this still work under macOS? it renders squares … maybe texturize them
+            // TODO @OpenGLES3.1 replace with circle or textured quad
+            const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
+            glPointSize(tmp_point_size);
+            IM_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_cache);
+            return;
         }
 
-        // TODO evaluate different line rendering styles:
-        //      - may render with GL_LINES or GL_LINE_STRIP if available and `stroke_weight==1.0f`
-        //      - may expand into triangles/quads
-        //      - evaluate corner mode ( NONE, ROUND, POINTY )
-        //          - strokeCap() :: Sets the style for rendering line endings -> SQUARE, PROJECT, and ROUND
-        //          - strokeJoin() :: Sets the style of the joints which connect line segments -> MITER, BEVEL, and ROUND
+        if (line_render_mode == LINE_RENDER_MODE_TRIANGLES) {
+            switch (tmp_shape_mode_cache) {
+                case LINES:
+                    static bool printed = false;
+                    if (!printed) {
+                        console("LINES in line render mode LINE_RENDER_MODE_TRIANGLES are not yet implemented!");
+                        printed = true;
+                    }
+                    // IM_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_cache);
+                    break;
+                default:
+                case QUADS:
+                case LINE_STRIP:
+                case TRIANGLES:
+                case TRIANGLE_FAN:
+                case QUAD_STRIP: // NOTE does this just work?!?
+                case TRIANGLE_STRIP:
+                case POLYGON:
+                    const glm::vec4        color = shape_stroke_vertex_cache[0].color;
+                    std::vector<glm::vec2> points(shape_stroke_vertex_cache.size());
+                    std::vector<glm::vec2> triangles;
+                    for (int i = 0; i < shape_stroke_vertex_cache.size(); ++i) {
+                        points[i] = shape_stroke_vertex_cache[i].position;
+                    }
+                    line_strip(points,
+                               close_shape,
+                               stroke_weight,
+                               stroke_join_mode,
+                               stroke_cap_mode,
+                               stroke_join_round_resolution,
+                               stroke_cap_round_resolution,
+                               stroke_join_miter_max_angle,
+                               triangles);
+                    std::vector<Vertex> line_vertices;
+                    line_vertices.reserve(triangles.size());
+                    for (const auto& triangle: triangles) {
+                        line_vertices.emplace_back(glm::vec3(triangle, 0.0f), color, glm::vec2(0.0f, 0.0f));
+                    }
+                    IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, line_vertices);
+                    break;
+            }
+            return;
+        }
 
-        const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
-        const float tmp_line_width = std::max(std::min(stroke_weight, open_gl_capabilities.line_size_max), open_gl_capabilities.line_size_min);
-        glLineWidth(tmp_line_width);
+        if (line_render_mode == LINE_RENDER_MODE_NATIVE) {
+            if (close_shape && (tmp_shape_mode_cache == POLYGON || tmp_shape_mode_cache == LINE_STRIP)) {
+                // NOTE add first vertex as last …
+                // TODO maybe only do this for certain shapes i.e `POLYGON`.
+                //      upon further consideration i am a bit uncertain of how to handle filled non-closed shapes?
+                //      is there such a thing? maybe for `LINE_STRIP` too?
+                shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
+                // shape_fill_vertex_cache.push_back(shape_fill_vertex_cache[0]);
+                shape_stroke_vertex_cache.push_back(shape_stroke_vertex_cache[0]);
+            }
 
-        switch (tmp_shape_mode_cache) {
-            case POINTS:
-                glPointSize(tmp_point_size); // TODO does this still work under macOS? it renders squares … maybe texturize them
-                // TODO @OpenGLES3.1 replace with circle or textured quad
-                IM_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_cache);
-                break;
-            case LINES:
-                // TODO @OpenGLES3.1 replace with quad lines
-                IM_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_cache);
-                break;
-            case QUADS: {
-                std::vector<Vertex> vertices_stroke_quads = convertQuadsToTriangles(shape_stroke_vertex_cache);
-                // TODO @OpenGLES3.1 replace with quad lines
-                IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke_quads);
-            } break;
-            default:
-            case LINE_STRIP:
-            case TRIANGLES:
-            case TRIANGLE_FAN:
-            case QUAD_STRIP: // NOTE does this just work?!?
-            case TRIANGLE_STRIP:
-            case POLYGON:
-                // TODO @OpenGLES3.1 replace with quad lines
-                IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
-                break;
+            // TODO evaluate different line rendering styles:
+            //      - may render with GL_LINES or GL_LINE_STRIP if available and `stroke_weight==1.0f`
+            //      - may expand into triangles/quads
+            //      - evaluate corner mode ( NONE, ROUND, POINTY )
+            //          - strokeCap() :: Sets the style for rendering line endings -> SQUARE, PROJECT, and ROUND
+            //          - strokeJoin() :: Sets the style of the joints which connect line segments -> MITER, BEVEL, and ROUND
+
+            const float tmp_line_width = std::max(std::min(stroke_weight, open_gl_capabilities.line_size_max), open_gl_capabilities.line_size_min);
+            glLineWidth(tmp_line_width);
+
+            switch (tmp_shape_mode_cache) {
+                case LINES:
+                    // TODO @OpenGLES3.1 replace with quad lines
+                    IM_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_cache);
+                    break;
+                case QUADS: {
+                    std::vector<Vertex> vertices_stroke_quads = convertQuadsToTriangles(shape_stroke_vertex_cache);
+                    // TODO @OpenGLES3.1 replace with quad lines
+                    IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke_quads);
+                } break;
+                default:
+                case LINE_STRIP:
+                case TRIANGLES:
+                case TRIANGLE_FAN:
+                case QUAD_STRIP: // NOTE does this just work?!?
+                case TRIANGLE_STRIP:
+                case POLYGON:
+                    // TODO @OpenGLES3.1 replace with quad lines
+                    IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
+                    break;
+            }
+            return;
         }
     }
 }

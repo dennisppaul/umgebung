@@ -183,6 +183,14 @@ void PGraphics::noStroke() {
     color_stroke.active = false;
 }
 
+void PGraphics::strokeJoin(const int join) {
+    stroke_join_mode = join;
+}
+
+void PGraphics::strokeCap(const int cap) {
+    stroke_cap_mode = cap;
+}
+
 void PGraphics::rectMode(const int mode) {
     rect_mode = mode;
 }
@@ -234,8 +242,8 @@ std::vector<Vertex> PGraphics::triangulate_faster(const std::vector<Vertex>& ver
     }
 
     // perform triangulation
-    std::vector<uint32_t> indices = mapbox::earcut<uint32_t>(polygon);
-    std::vector<Vertex>   triangleList;
+    const std::vector<uint32_t> indices = mapbox::earcut<uint32_t>(polygon);
+    std::vector<Vertex>         triangleList;
 
     for (size_t i = 0; i < indices.size(); i++) {
         const int index = indices[i];

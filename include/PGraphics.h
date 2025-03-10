@@ -80,10 +80,26 @@ namespace umgebung {
         virtual void stroke(float a);
         virtual void stroke_color(uint32_t c);
         virtual void noStroke();
+        virtual void strokeJoin(int join);
+        virtual void strokeCap(int cap);
         virtual void rectMode(int mode);
         virtual void ellipseMode(int mode);
         virtual void ellipseDetail(int detail);
         virtual void pointSize(float size);
+        virtual void popMatrix();
+        virtual void pushMatrix();
+        virtual void resetMatrix();
+        virtual void printMatrix(const glm::mat4& matrix);
+        virtual void printMatrix();
+        virtual void translate(float x, float y, float z = 0.0f);
+        virtual void rotateX(float angle);
+        virtual void rotateY(float angle);
+        virtual void rotateZ(float angle);
+        virtual void rotate(float angle);
+        virtual void rotate(float angle, float x, float y, float z);
+        virtual void scale(float x);
+        virtual void scale(float x, float y);
+        virtual void scale(float x, float y, float z);
 
         /* --- additional --- */
 
@@ -96,29 +112,41 @@ namespace umgebung {
         virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
         void                to_screen_space(glm::vec3& world_position) const; // convert from model space to screen space
         void                to_world_space(glm::vec3& model_position) const;  // convert from model space to works space
+        void                line_mode(const int line_render_mode) { this->line_render_mode = line_render_mode; }
+        void                stroke_properties(const float stroke_join_round_resolution,
+                                              const float stroke_cap_round_resolution,
+                                              const float stroke_join_miter_max_angle) {
+            this->stroke_join_round_resolution = stroke_join_round_resolution;
+            this->stroke_cap_round_resolution  = stroke_cap_round_resolution;
+            this->stroke_join_miter_max_angle  = stroke_join_miter_max_angle;
+        }
 
-        /* --- interface --- */
+        /* --- interface ( pure virtual ) --- */
 
         // TODO implement 3D version
         // virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)    = 0;
 
-        virtual void    strokeWeight(float weight)                                                                         = 0;
         virtual void    background(float a, float b, float c, float d = 1.0f)                                              = 0;
         virtual void    background(float a)                                                                                = 0;
-        virtual void    rect(float x, float y, float width, float height)                                                  = 0;
-        virtual void    ellipse(float x, float y, float width, float height)                                               = 0;
-        virtual void    circle(float x, float y, float radius)                                                             = 0;
-        virtual void    line(float x1, float y1, float x2, float y2)                                                       = 0;
-        virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)                                   = 0;
-        virtual void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) = 0;
+        virtual void    beginShape(int shape = POLYGON)                                                                    = 0;
+        virtual void    endShape(bool close_shape = false)                                                                 = 0;
         virtual void    bezier(float x1, float y1, float x2, float y2,
                                float x3, float y3, float x4, float y4)                                                     = 0;
         virtual void    bezier(float x1, float y1, float z1, float x2, float y2, float z2,
                                float x3, float y3, float z3, float x4, float y4, float z4)                                 = 0;
         virtual void    bezierDetail(int detail)                                                                           = 0;
+        virtual void    circle(float x, float y, float radius)                                                             = 0;
+        virtual void    ellipse(float x, float y, float width, float height)                                               = 0;
+        virtual void    image(PImage* img, float x, float y, float w, float h)                                             = 0;
+        virtual void    image(PImage* img, float x, float y)                                                               = 0;
+        virtual void    texture(PImage* img)                                                                               = 0;
+        virtual PImage* loadImage(const std::string& filename)                                                             = 0;
+        virtual void    line(float x1, float y1, float x2, float y2)                                                       = 0;
+        virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)                                   = 0;
+        virtual void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) = 0;
         virtual void    point(float x, float y, float z = 0.0f)                                                            = 0;
-        virtual void    beginShape(int shape = POLYGON)                                                                    = 0;
-        virtual void    endShape(bool close_shape = false)                                                                 = 0;
+        virtual void    rect(float x, float y, float width, float height)                                                  = 0;
+        virtual void    strokeWeight(float weight)                                                                         = 0;
         virtual void    vertex(float x, float y, float z = 0.0f)                                                           = 0;
         virtual void    vertex(float x, float y, float z, float u, float v)                                                = 0;
         virtual PFont*  loadFont(const std::string& file, float size)                                                      = 0;
@@ -126,29 +154,14 @@ namespace umgebung {
         virtual void    textSize(float size)                                                                               = 0;
         virtual void    text(const char* value, float x, float y, float z = 0.0f)                                          = 0;
         virtual float   textWidth(const std::string& text)                                                                 = 0;
-        virtual PImage* loadImage(const std::string& filename)                                                             = 0;
-        virtual void    image(PImage* img, float x, float y, float w, float h)                                             = 0;
-        virtual void    image(PImage* img, float x, float y)                                                               = 0;
-        virtual void    texture(PImage* img)                                                                               = 0;
-        virtual void    popMatrix();
-        virtual void    pushMatrix();
-        virtual void    resetMatrix();
-        virtual void    printMatrix(const glm::mat4& matrix);
-        virtual void    printMatrix();
-        virtual void    translate(float x, float y, float z = 0.0f);
-        virtual void    rotateX(float angle);
-        virtual void    rotateY(float angle);
-        virtual void    rotateZ(float angle);
-        virtual void    rotate(float angle);
-        virtual void    rotate(float angle, float x, float y, float z);
-        virtual void    scale(float x);
-        virtual void    scale(float x, float y);
-        virtual void    scale(float x, float y, float z);
-        virtual void    pixelDensity(int density)                                           = 0;
-        virtual void    hint(uint16_t property)                                             = 0;
-        virtual void    beginDraw()                                                         = 0;
-        virtual void    endDraw()                                                           = 0;
-        virtual void    text_str(const std::string& text, float x, float y, float z = 0.0f) = 0; // TODO maybe make this private?
+
+        /* --- additional ( pure virtual ) --- */
+
+        virtual void pixelDensity(int density)                                           = 0;
+        virtual void hint(uint16_t property)                                             = 0;
+        virtual void beginDraw()                                                         = 0;
+        virtual void endDraw()                                                           = 0;
+        virtual void text_str(const std::string& text, float x, float y, float z = 0.0f) = 0; // TODO maybe make this private?
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) {
@@ -158,27 +171,6 @@ namespace umgebung {
         }
 
         bool render_to_offscreen{true};
-
-        static bool are_almost_parallel(const glm::vec3& n1, const glm::vec3& n2, const float epsilon = 0.01f) {
-            const float dotProduct = glm::dot(n1, n2);
-            return -dotProduct > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
-            // return fabs(dotProduct) > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
-        }
-
-        static bool intersect_lines(const glm::vec2& p1, const glm::vec2& d1,
-                                    const glm::vec2& p2, const glm::vec2& d2,
-                                    glm::vec3& intersection) { // TODO move to Umgebung?!? or some utility class?
-            const float det = d1.x * d2.y - d1.y * d2.x;
-
-            if (fabs(det) < 1e-6f) {
-                return false; // Parallel or coincident lines
-            }
-
-            const float t = ((p2.x - p1.x) * d2.y - (p2.y - p1.y) * d2.x) / det;
-
-            intersection = glm::vec3(p1 + t * d1, 0);
-            return true;
-        }
 
         static std::vector<Vertex> triangulate_faster(const std::vector<Vertex>& vertices);
         static std::vector<Vertex> triangulate_better_quality(const std::vector<Vertex>& vertices);
@@ -207,6 +199,12 @@ namespace umgebung {
         int                       texture_id_current{};
         bool                      shape_has_begun{false};
         int                       polygon_triangulation_strategy = POLYGON_TRIANGULATION_GOOD;
+        int                       line_render_mode               = LINE_RENDER_MODE_TRIANGLES;
+        int                       stroke_join_mode               = ROUND;
+        int                       stroke_cap_mode                = PROJECT;
+        float                     stroke_join_round_resolution   = glm::radians(20.0f); // TODO maybe make these configurable
+        float                     stroke_cap_round_resolution    = glm::radians(20.0f); // 20° resolution i.e 18 segment for whole circle
+        float                     stroke_join_miter_max_angle    = 165.0f;
         static const Triangulator triangulator;
 
         /* --- transform matrices --- */

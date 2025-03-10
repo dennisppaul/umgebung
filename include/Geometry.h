@@ -29,9 +29,6 @@
 // #define GEOMETRY_DRAW_DEBUG
 
 namespace umgebung {
-    constexpr float stroke_join_miter_max_angle  = 165.0f;
-    constexpr float stroke_cap_round_resolution  = glm::radians(20.0f); // 20° resolution i.e 18 segment for whole circle
-    constexpr float stroke_join_round_resolution = glm::radians(20.0f);
 
     struct Segment {
         glm::vec2 position;
@@ -65,6 +62,12 @@ namespace umgebung {
         return angle;
     }
 
+    inline bool are_almost_parallel(const glm::vec3& n1, const glm::vec3& n2, const float epsilon = 0.01f) {
+        const float dotProduct = glm::dot(n1, n2);
+        return -dotProduct > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
+        // return fabs(dotProduct) > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
+    }
+
     inline bool intersect_lines(const glm::vec2& p1, const glm::vec2& d1,
                                 const glm::vec2& p2, const glm::vec2& d2,
                                 glm::vec2& intersection) {
@@ -80,10 +83,12 @@ namespace umgebung {
         return true;
     }
 
-    inline void add_cap(const float half_width,
-                        const int   stroke_cap_mode,
-                        const float direction, std::vector<glm::vec2>& poly_list,
-                        const Segment& cap_seg) {
+    inline void add_cap(const Segment&          cap_seg,
+                        const float             half_width,
+                        const int               stroke_cap_mode,
+                        const float             direction,
+                        const float             stroke_cap_round_resolution,
+                        std::vector<glm::vec2>& poly_list) {
         /* POINTED */
         if (stroke_cap_mode == POINTED) {
             const glm::vec2 cap_point_project = cap_seg.position - cap_seg.direction * half_width * direction;
@@ -105,11 +110,10 @@ namespace umgebung {
             const float angle       = atan2(cap_seg.normal.y, cap_seg.normal.x) - 3.0f * HALF_PI * direction;
             const float angle_start = angle - HALF_PI;
             const float angle_end   = angle + HALF_PI;
-            for (float r = angle_start; r <= angle_end; r += stroke_cap_round_resolution) {
-                glm::vec2 circle_segment = cap_seg.position + glm::vec2{
-                                                                  cos(r),
-                                                                  sin(r)} *
-                                                                  half_width;
+            const float step        = direction * stroke_cap_round_resolution;
+            const bool  forward     = direction == 1.0f;
+            for (float r = (forward ? angle_start : angle_end); forward ? r <= angle_end : r >= angle_start; r += step) {
+                glm::vec2 circle_segment = cap_seg.position + glm::vec2{cos(r), sin(r)} * half_width;
                 poly_list.push_back(circle_segment);
 #ifdef GEOMETRY_DRAW_DEBUG
                 fill(0, 0.5f, 1);
@@ -126,6 +130,9 @@ namespace umgebung {
                                               const float                 half_width,
                                               const int                   stroke_join_mode,
                                               const int                   stroke_cap_mode,
+                                              const float                 stroke_join_round_resolution,
+                                              const float                 stroke_cap_round_resolution,
+                                              const float                 stroke_join_miter_max_angle,
                                               const std::vector<Segment>& segments) {
         std::vector<glm::vec2> outline_left;
         std::vector<glm::vec2> outline_right;
@@ -138,7 +145,7 @@ namespace umgebung {
             constexpr float         direction = 1.0f;
             std::vector<glm::vec2>& poly_list = outline_left;
             const Segment           cap_seg   = segments[seg_index];
-            add_cap(half_width, stroke_cap_mode, direction, poly_list, cap_seg);
+            add_cap(cap_seg, half_width, stroke_cap_mode, direction, stroke_cap_round_resolution, poly_list);
         }
 
         const int num_segments = segments.size() + (close_shape ? +1 : 0);
@@ -256,7 +263,7 @@ namespace umgebung {
             constexpr float         direction = -1.0f;
             std::vector<glm::vec2>& poly_list = outline_right;
             const Segment           cap_seg   = segments[seg_index];
-            add_cap(half_width, stroke_cap_mode, direction, poly_list, cap_seg);
+            add_cap(cap_seg, half_width, stroke_cap_mode, direction, stroke_cap_round_resolution, poly_list);
         }
 
         std::vector<glm::vec2> polygon_outline;
@@ -355,6 +362,7 @@ namespace umgebung {
     inline void create_stroke_join_miter(std::vector<glm::vec2>& triangles,
                                          const bool              close_shape,
                                          const float             half_width,
+                                         const float             stroke_join_miter_max_angle,
                                          std::vector<Segment>&   segments) {
         glm::vec2 p_prev_left{};
         glm::vec2 p_prev_right{};
@@ -425,22 +433,18 @@ namespace umgebung {
         }
     }
 
-    void create_stroke_join_tessellate(std::vector<glm::vec2>&     triangles,
-                                       bool                        close_shape,
-                                       float                       half_width,
-                                       int                         stroke_join_mode,
-                                       int                         stroke_cap_mode,
-                                       const std::vector<Segment>& segments);
-
-    inline void line_strip(const std::vector<glm::vec3>& points,
+    inline void line_strip(const std::vector<glm::vec2>& polygon_outline,
                            const bool                    close_shape,
                            const float                   stroke_weight,
                            const int                     stroke_join_mode,
                            const int                     stroke_cap_mode,
-                           std::vector<glm::vec2>&       triangles) {
+                           const float                   stroke_join_round_resolution,
+                           const float                   stroke_cap_round_resolution,
+                           const float                   stroke_join_miter_max_angle,
+                           std::vector<glm::vec2>&       triangle_vertices) {
         const float half_width = stroke_weight * 0.5f;
 
-        // TODO test this case
+        // TODO handle this case i.e LINES
         // if (points.size() < 2) {
         //     return triangles;
         // }
@@ -450,19 +454,19 @@ namespace umgebung {
         //     return triangles;
         // }
 
-        std::vector<Segment> segments(points.size());
-        for (int i = 0; i < points.size(); ++i) {
+        std::vector<Segment> segments(polygon_outline.size());
+        for (int i = 0; i < polygon_outline.size(); ++i) {
             Segment s;
-            s.position = glm::vec2(points[i].x, points[i].y);
-            if (i == points.size() - 1) { // last point needs special care
-                if (close_shape) {        // copy first point for closed shapes
-                    s.next_position = glm::vec2(points[0].x, points[0].y);
+            s.position = glm::vec2(polygon_outline[i].x, polygon_outline[i].y);
+            if (i == polygon_outline.size() - 1) { // last point needs special care
+                if (close_shape) {                 // copy first point for closed shapes
+                    s.next_position = glm::vec2(polygon_outline[0].x, polygon_outline[0].y);
                 } else { // project point last for open shapes
-                    s.next_position = points[i] + (points[i] - points[i - 1]);
+                    s.next_position = polygon_outline[i] + (polygon_outline[i] - polygon_outline[i - 1]);
                 }
             } else { // for all other segments use next point
-                const int ii    = (i + 1) % points.size();
-                s.next_position = glm::vec2(points[ii].x, points[ii].y);
+                const int ii    = (i + 1) % polygon_outline.size();
+                s.next_position = glm::vec2(polygon_outline[ii].x, polygon_outline[ii].y);
             }
             s.direction = s.next_position - s.position;
             // s.normal    = glm::normalize(s.direction);
@@ -478,19 +482,27 @@ namespace umgebung {
 
         switch (stroke_join_mode) {
             case NONE:
-                create_stroke_join_none(triangles, close_shape, half_width, segments);
+                create_stroke_join_none(triangle_vertices, close_shape, half_width, segments);
                 break;
             case MITER_FAST:
-                create_stroke_join_miter(triangles, close_shape, half_width, segments);
+                create_stroke_join_miter(triangle_vertices, close_shape, half_width, stroke_join_miter_max_angle, segments);
                 break;
             case BEVEL_FAST:
-                create_stroke_join_bevel(triangles, close_shape, half_width, segments);
+                create_stroke_join_bevel(triangle_vertices, close_shape, half_width, segments);
                 break;
             case BEVEL:
             case MITER:
             case ROUND:
             default:
-                create_stroke_join_tessellate(triangles, close_shape, half_width, stroke_join_mode, stroke_cap_mode, segments);
+                create_stroke_join_tessellate(triangle_vertices,
+                                              close_shape,
+                                              half_width,
+                                              stroke_join_mode,
+                                              stroke_cap_mode,
+                                              stroke_join_round_resolution,
+                                              stroke_cap_round_resolution,
+                                              stroke_join_miter_max_angle,
+                                              segments);
         }
     }
 } // namespace umgebung
