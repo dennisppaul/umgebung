@@ -28,19 +28,18 @@ namespace umgebung {
 
     class PGraphicsOpenGLv33 final : public PGraphicsOpenGL {
     private: // TODO clean this up
-        // glm::mat4 model_matrix_shader;
-        // glm::mat4 model_matrix_client;
-        // glm::mat4 view_matrix;
-        // glm::mat4 projection_matrix_2D;
-        // glm::mat4 projection_matrix_3D;
-        // bool model_matrix_dirty = false;
-        //
-        // // Screen rendering resources
-        // GLuint screenVAO = 0;
-        // GLuint shaderProgram = 0;
-        // int framebuffer_width = 0;
-        // int framebuffer_height = 0;
-
+             // glm::mat4 model_matrix_shader;
+             // glm::mat4 model_matrix_client;
+             // glm::mat4 view_matrix;
+             // glm::mat4 projection_matrix_2D;
+             // glm::mat4 projection_matrix_3D;
+             // bool model_matrix_dirty = false;
+             //
+             // // Screen rendering resources
+             // GLuint screenVAO = 0;
+             // GLuint shaderProgram = 0;
+             // int framebuffer_width = 0;
+             // int framebuffer_height = 0;
     public:
         void setup_matrices() override {
             reset_matrices();
@@ -217,6 +216,8 @@ namespace umgebung {
             }
         };
 
+        static constexpr bool     RENDER_POINT_AS_CIRCLE                = true;
+        static constexpr bool     RENDER_PRIMITVES_AS_SHAPES             = true;
         static constexpr uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
         static constexpr uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
         static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024; // 1MB
@@ -252,8 +253,8 @@ namespace umgebung {
         std::vector<RenderBatch> renderBatches;
         bool                     render_lines_as_quads{true};
         std::vector<glm::vec3>   shape_stroke_vertex_cache_vec3_DEPRECATED{VBO_BUFFER_CHUNK_SIZE}; // TODO remove this
-        std::vector<Vertex>      shape_stroke_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
-        std::vector<Vertex>      shape_fill_vertex_cache{VBO_BUFFER_CHUNK_SIZE};
+        std::vector<Vertex>      shape_stroke_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
+        std::vector<Vertex>      shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
         int                      shape_mode_cache{POLYGON};
 
         /* --- RENDER_MODE_IMMEDIATE (IM) --- */
@@ -315,6 +316,7 @@ namespace umgebung {
                                         float r, float g, float b, float a = 1.0f);
         /* --- SHARED --- */
 
+        void          triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
         void          create_solid_color_texture();
         void          SHARED_bind_texture(GLuint bind_texture_id);
         bool          SHARED_generate_and_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`

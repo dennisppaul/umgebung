@@ -434,49 +434,49 @@ namespace umgebung {
         }
     }
 
-    inline void line_strip(const std::vector<glm::vec2>& polygon_outline,
-                           bool                          close_shape,
-                           const float                   stroke_weight,
-                           const int                     stroke_join_mode,
-                           const int                     stroke_cap_mode,
-                           const float                   stroke_join_round_resolution,
-                           const float                   stroke_cap_round_resolution,
-                           const float                   stroke_join_miter_max_angle,
-                           std::vector<glm::vec2>&       triangle_vertices) {
+    inline void triangulate_line_strip(const std::vector<glm::vec2>& line_strip,
+                                       bool                          close_shape,
+                                       const float                   stroke_weight,
+                                       const int                     stroke_join_mode,
+                                       const int                     stroke_cap_mode,
+                                       const float                   stroke_join_round_resolution,
+                                       const float                   stroke_cap_round_resolution,
+                                       const float                   stroke_join_miter_max_angle,
+                                       std::vector<glm::vec2>&       triangle_vertices) {
 
-        // NOTE join mode NONE, MITER_FAST, and BEVEL_FAST ignore stroke caps.
+        // NOTE join mode NONE, MITER_FAST, and BEVEL_FAST ignore stroke caps
         // NOTE if stroke weight is 1 it is best to use NONE for best performance
 
         if (stroke_weight <= 0.0f) {
             return;
         }
 
-        if (polygon_outline.size() < 2) {
+        if (line_strip.size() < 2) {
             return;
         }
 
-        if (polygon_outline.size() < 3) {
+        if (line_strip.size() < 3) {
             close_shape = false;
         }
 
         const float half_width = stroke_weight * 0.5f;
 
         std::vector<Segment> segments;
-        segments.reserve(polygon_outline.size());
-        const int size = static_cast<int>(polygon_outline.size());
+        segments.reserve(line_strip.size());
+        const int size = static_cast<int>(line_strip.size());
 
         for (int i = 0; i < size; ++i) {
             Segment s;
-            s.position = glm::vec2(polygon_outline[i].x, polygon_outline[i].y);
+            s.position = glm::vec2(line_strip[i].x, line_strip[i].y);
             if (i == size - 1) {   // last point needs special care
                 if (close_shape) { // copy first point for closed shapes
-                    s.next_position = glm::vec2(polygon_outline[0].x, polygon_outline[0].y);
+                    s.next_position = glm::vec2(line_strip[0].x, line_strip[0].y);
                 } else { // project point last for open shapes
-                    s.next_position = polygon_outline[i] + (polygon_outline[i] - polygon_outline[i - 1]);
+                    s.next_position = line_strip[i] + (line_strip[i] - line_strip[i - 1]);
                 }
             } else { // for all other segments use next point
                 const int ii    = (i + 1) % size;
-                s.next_position = glm::vec2(polygon_outline[ii].x, polygon_outline[ii].y);
+                s.next_position = glm::vec2(line_strip[ii].x, line_strip[ii].y);
             }
             s.direction = s.next_position - s.position;
             if (s.direction.x * s.direction.x + s.direction.y + s.direction.y > 0.0001f * 0.0001f) {

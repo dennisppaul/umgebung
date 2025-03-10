@@ -44,6 +44,12 @@ PGraphics::PGraphics() : PImage(0, 0, 0) {
     PGraphics::ellipseDetail(ELLIPSE_DETAIL_DEFAULT);
 }
 
+void PGraphics::background(PImage* img) {
+    background(0, 0, 0, 0);
+    fill(1);
+    image(img, 0, 0, framebuffer.width, framebuffer.height);
+}
+
 /* --- transform matrices --- */
 
 // NOTE: done

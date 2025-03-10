@@ -56,8 +56,8 @@ namespace umgebung {
     static constexpr int   SQUARE                                        = 0x26; // strokeCap
     static constexpr int   PROJECT                                       = 0x27;
     static constexpr int   POINTED                                       = 0x28;
-    static constexpr int   LINE_RENDER_MODE_NATIVE                       = 0x30; // line render mode
-    static constexpr int   LINE_RENDER_MODE_TRIANGLES               = 0x31;
+    static constexpr int   STROKE_RENDER_MODE_NATIVE                     = 0x30; // line render mode
+    static constexpr int   STROKE_RENDER_MODE_TRIANGULATE                = 0x31;
     static constexpr int   POLYGON_TRIANGULATION_FASTER                  = 0x10;
     static constexpr int   POLYGON_TRIANGULATION_GOOD                    = 0x11;
     static constexpr int   POLYGON_TRIANGULATION_BETTER                  = 0x12;
@@ -67,8 +67,6 @@ namespace umgebung {
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_BEVEL  = 0x03;
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NATIVE = 0x04;
     static constexpr float RENDER_LINE_STRIP_AS_QUADS_MAX_ANGLE          = 0.01;
-    static constexpr int   HINT_ENABLE_SMOOTH_LINES                      = 0xA0;
+    static constexpr int   HINT_ENABLE_SMOOTH_LINES                      = 0xA0; // hints
     static constexpr int   HINT_DISABLE_SMOOTH_LINES                     = 0xA1;
-    static constexpr int   HINT_ENABLE_LINE_RENDERING_MODE_NATIVE        = 0xA2;
-    static constexpr int   HINT_DISABLE_LINE_RENDERING_MODE_NATIVE       = 0xA3;
 } // namespace umgebung
