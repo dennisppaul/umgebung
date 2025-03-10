@@ -34,6 +34,13 @@ namespace umgebung {
         g->background(a, b, c, d);
     }
 
+    void background(PImage* img) {
+        if (g == nullptr) {
+            return;
+        }
+        g->background(img);
+    }
+
     void beginShape(const int shape) {
         if (g == nullptr) {
             return;
@@ -195,6 +202,13 @@ namespace umgebung {
         g->rect(x, y, width, height);
     }
 
+    void square(const float x, const float y, const float extent) {
+        if (g == nullptr) {
+            return;
+        }
+        g->square(x, y, extent);
+    }
+
     void stroke(const float r, const float g, const float b, const float a) {
         if (umgebung::g == nullptr) {
             return;
@@ -237,14 +251,14 @@ namespace umgebung {
         g->strokeWeight(weight);
     }
 
-    void strokeJoin(int join) {
+    void strokeJoin(const int join) {
         if (g == nullptr) {
             return;
         }
         g->strokeJoin(join);
     }
 
-    void strokeCap(int cap) {
+    void strokeCap(const int cap) {
         if (g == nullptr) {
             return;
         }

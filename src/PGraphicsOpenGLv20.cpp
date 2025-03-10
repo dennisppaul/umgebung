@@ -695,12 +695,6 @@ void PGraphicsOpenGLv20::hint(const uint16_t property) {
             glDisable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
             break;
-        case HINT_ENABLE_LINE_RENDERING_MODE_NATIVE:
-            error("implement HINT_ENABLE_LINE_RENDERING_MODE_NATIVE");
-            break;
-        case HINT_DISABLE_LINE_RENDERING_MODE_NATIVE:
-            error("implement HINT_DISABLE_LINE_RENDERING_MODE_NATIVE");
-            break;
         default:
             break;
     }

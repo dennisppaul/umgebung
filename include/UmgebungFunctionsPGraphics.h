@@ -31,6 +31,7 @@ namespace umgebung {
     /* --- functions --- */
     void    background(float a);
     void    background(float a, float b, float c, float d = 1.0);
+    void    background(PImage* img);
     void    beginShape(int shape = POLYGON);
     void    endShape(bool close_shape = false);
     void    bezier(float x1, float y1,
@@ -60,6 +61,7 @@ namespace umgebung {
     void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
     void    point(float x, float y, float z = 0.0);
     void    rect(float x, float y, float width, float height);
+    void    square(float x, float y, float extent);
     void    stroke(float r, float g, float b, float a = 1.0);
     void    stroke(float brightness, float a);
     void    stroke(float a);

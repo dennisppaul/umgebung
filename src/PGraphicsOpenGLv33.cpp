@@ -36,16 +36,19 @@ PGraphicsOpenGLv33::PGraphicsOpenGLv33(const bool render_to_offscreen) : PImage(
     this->render_to_offscreen = render_to_offscreen;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::strokeWeight(const float weight) {
     stroke_weight = weight;
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::background(const float a, const float b, const float c, const float d) {
     glClearColor(a, b, c, d);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // TODO should this also flush bins?
 }
 
+// NOTE: done
 void PGraphicsOpenGLv33::background(const float a) {
     background(a, a, a);
 }
@@ -90,7 +93,16 @@ void PGraphicsOpenGLv33::line(const float x1, const float y1, const float z1,
         return;
     }
     if (render_mode == RENDER_MODE_IMMEDIATE) {
-        IM_render_line(x1, y1, z1, x2, y2, z2);
+        if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
+            const float tmp_line_width = std::max(std::min(stroke_weight, open_gl_capabilities.line_size_max), open_gl_capabilities.line_size_min);
+            glLineWidth(tmp_line_width);
+            IM_render_line(x1, y1, z1, x2, y2, z2);
+        } else {
+            beginShape(LINES);
+            vertex(x1, y1, z1);
+            vertex(x2, y2, z2);
+            endShape();
+        }
     }
     if (render_mode == RENDER_MODE_RETAINED) {
         RM_render_line(x1, y1, z1, x2, y2, z2);
@@ -210,11 +222,26 @@ void PGraphicsOpenGLv33::bezierDetail(const int detail) {
 // NOTE: done
 void PGraphicsOpenGLv33::point(const float x, const float y, const float z) {
     // TODO this could be replaced by dedicated shader, also point size might not wqork in all contexts
-    // TODO maybe implement point by rect
     if (render_mode == RENDER_MODE_IMMEDIATE) {
-        beginShape(POINTS);
-        vertex(x, y, z);
-        endShape();
+        // TODO maybe move this to begin-end-shape
+        if (RENDER_POINT_AS_CIRCLE) {
+            if (!color_stroke.active) {
+                return;
+            }
+            // TODO push/pop ellipseMode
+            // TODO optimize this by rendering precomputed shape
+            push_color_state(color_stroke, color_stroke_stack);
+            push_color_state(color_fill, color_fill_stack);
+            noStroke();
+            fill(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+            circle(x, y, point_size);
+            pop_color_state(color_stroke, color_stroke_stack);
+            pop_color_state(color_fill, color_fill_stack);
+        } else {
+            beginShape(POINTS);
+            vertex(x, y, z);
+            endShape();
+        }
     }
     if (render_mode == RENDER_MODE_RETAINED) {
     }
@@ -227,8 +254,8 @@ void PGraphicsOpenGLv33::pointSize(const float size) {
 
 // NOTE: done
 void PGraphicsOpenGLv33::beginShape(const int shape) {
-    shape_fill_vertex_cache.clear();
-    shape_stroke_vertex_cache.clear();
+    shape_fill_vertex_buffer.clear();
+    shape_stroke_vertex_buffer.clear();
     shape_stroke_vertex_cache_vec3_DEPRECATED.clear();
     shape_mode_cache = shape;
     shape_has_begun  = true;
@@ -255,8 +282,8 @@ void PGraphicsOpenGLv33::endShape(const bool close_shape) {
                 break;
         }
     }
-    shape_fill_vertex_cache.clear();
-    shape_stroke_vertex_cache.clear();
+    shape_fill_vertex_buffer.clear();
+    shape_stroke_vertex_buffer.clear();
     shape_stroke_vertex_cache_vec3_DEPRECATED.clear();
     shape_has_begun = false;
 }
@@ -277,12 +304,12 @@ void PGraphicsOpenGLv33::vertex(const float x, const float y, const float z, con
     if (color_stroke.active) {
         shape_stroke_vertex_cache_vec3_DEPRECATED.emplace_back(position);
         const glm::vec4 strokeColor = as_vec4(color_stroke);
-        shape_stroke_vertex_cache.emplace_back(position, strokeColor, glm::vec2{u, v});
+        shape_stroke_vertex_buffer.emplace_back(position, strokeColor, glm::vec2{u, v});
     }
 
     if (color_fill.active) {
         const glm::vec4 fillColor = as_vec4(color_fill);
-        shape_fill_vertex_cache.emplace_back(position, fillColor, glm::vec2{u, v});
+        shape_fill_vertex_buffer.emplace_back(position, fillColor, glm::vec2{u, v});
     }
 }
 
@@ -439,12 +466,6 @@ void PGraphicsOpenGLv33::hint(const uint16_t property) {
         case HINT_DISABLE_SMOOTH_LINES:
             glDisable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
-            break;
-        case HINT_ENABLE_LINE_RENDERING_MODE_NATIVE:
-            error("implement HINT_ENABLE_LINE_RENDERING_MODE_NATIVE");
-            break;
-        case HINT_DISABLE_LINE_RENDERING_MODE_NATIVE:
-            error("implement HINT_DISABLE_LINE_RENDERING_MODE_NATIVE");
             break;
         default:
             break;
@@ -1593,34 +1614,54 @@ void PGraphicsOpenGLv33::IM_render_rect(const float x, const float y, const floa
         glm::vec2{1, 0},
         glm::vec2{1, 1},
         glm::vec2{0, 1}};
+    if (RENDER_PRIMITVES_AS_SHAPES) {
+        beginShape(POLYGON);
+        vertex(rect_vertices[0].x, rect_vertices[0].y);
+        vertex(rect_vertices[1].x, rect_vertices[1].y);
+        vertex(rect_vertices[2].x, rect_vertices[2].y);
+        vertex(rect_vertices[3].x, rect_vertices[3].y);
+        endShape(CLOSE);
+    } else {
+        if (color_fill.active) {
+            if (IM_primitive_rect_fill.uninitialized()) {
+                SHARED_init_vertex_buffer(IM_primitive_rect_fill);
+            }
 
-    if (color_fill.active) {
-        if (IM_primitive_rect_fill.uninitialized()) {
-            SHARED_init_vertex_buffer(IM_primitive_rect_fill);
+            for (int i = 0; i < NUM_VERTICES; ++i) {
+                IM_primitive_rect_fill.vertices[i].position  = rect_vertices[i];
+                IM_primitive_rect_fill.vertices[i].color     = fill_color;
+                IM_primitive_rect_fill.vertices[i].tex_coord = rect_tex_coords[i];
+            }
+
+            IM_render_vertex_buffer(IM_primitive_rect_fill, GL_TRIANGLE_FAN, IM_primitive_rect_fill.vertices);
         }
 
-        for (int i = 0; i < NUM_VERTICES; ++i) {
-            IM_primitive_rect_fill.vertices[i].position  = rect_vertices[i];
-            IM_primitive_rect_fill.vertices[i].color     = fill_color;
-            IM_primitive_rect_fill.vertices[i].tex_coord = rect_tex_coords[i];
+        if (color_stroke.active) {
+            if (IM_primitive_rect_stroke.uninitialized()) {
+                SHARED_init_vertex_buffer(IM_primitive_rect_stroke);
+            }
+            if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
+                // NOTE only need 4 vertices because shape is closed by triangulation
+                constexpr int       tmp_num_vertices = 4;
+                std::vector<Vertex> tmp_vertices;
+                tmp_vertices.reserve(tmp_num_vertices);
+                for (int i = 0; i < tmp_num_vertices; ++i) {
+                    tmp_vertices.emplace_back(rect_vertices[i], stroke_color, rect_tex_coords[i]);
+                }
+                std::vector<Vertex> line_vertices;
+                triangulate_line_strip_vertex(tmp_vertices, true, line_vertices);
+                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, line_vertices);
+            }
+            if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
+                for (int i = 0; i < IM_primitive_rect_stroke.vertices.size(); ++i) {
+                    IM_primitive_rect_stroke.vertices[i].position  = rect_vertices[i];
+                    IM_primitive_rect_stroke.vertices[i].color     = stroke_color;
+                    IM_primitive_rect_stroke.vertices[i].tex_coord = rect_tex_coords[i];
+                }
+                IM_primitive_rect_stroke.vertices[NUM_VERTICES] = IM_primitive_rect_stroke.vertices[0];
+                IM_render_vertex_buffer(IM_primitive_rect_stroke, GL_LINE_STRIP, IM_primitive_rect_stroke.vertices);
+            }
         }
-
-        IM_render_vertex_buffer(IM_primitive_rect_fill, GL_TRIANGLE_FAN, IM_primitive_rect_fill.vertices);
-    }
-
-    if (color_stroke.active) {
-        if (IM_primitive_rect_stroke.uninitialized()) {
-            SHARED_init_vertex_buffer(IM_primitive_rect_stroke);
-        }
-
-        for (int i = 0; i < NUM_VERTICES; ++i) {
-            IM_primitive_rect_stroke.vertices[i].position  = rect_vertices[i];
-            IM_primitive_rect_stroke.vertices[i].color     = stroke_color;
-            IM_primitive_rect_stroke.vertices[i].tex_coord = rect_tex_coords[i];
-        }
-        IM_primitive_rect_stroke.vertices[NUM_VERTICES] = IM_primitive_rect_stroke.vertices[0];
-
-        IM_render_vertex_buffer(IM_primitive_rect_stroke, GL_LINE_STRIP, IM_primitive_rect_stroke.vertices);
     }
 }
 
@@ -1645,31 +1686,47 @@ void PGraphicsOpenGLv33::IM_render_ellipse(const float x, const float y, const f
                             0.0f);
     }
 
-    shape_fill_vertex_cache.clear();
-    shape_fill_vertex_cache.reserve(ellipse_detail + 2);
-
-    const glm::vec3 center{x, y, 0};
-
-    if (color_fill.active) {
-        const glm::vec4 fill_color = as_vec4(color_fill);
-
-        shape_fill_vertex_cache.emplace_back(center, fill_color, tex_coord);
+    if (RENDER_PRIMITVES_AS_SHAPES) {
+        beginShape(POLYGON);
+        points.pop_back();
         for (const auto& p: points) {
-            shape_fill_vertex_cache.emplace_back(p, fill_color, tex_coord);
+            vertex(p.x, p.y);
+        }
+        endShape(CLOSE);
+    } else {
+        shape_fill_vertex_buffer.clear();
+        shape_fill_vertex_buffer.reserve(ellipse_detail + 2);
+
+        const glm::vec3 center{x, y, 0};
+
+        if (color_fill.active) {
+            const glm::vec4 fill_color = as_vec4(color_fill);
+
+            shape_fill_vertex_buffer.emplace_back(center, fill_color, tex_coord);
+            for (const auto& p: points) {
+                shape_fill_vertex_buffer.emplace_back(p, fill_color, tex_coord);
+            }
+
+            IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, shape_fill_vertex_buffer);
         }
 
-        IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, shape_fill_vertex_cache);
-    }
+        if (color_stroke.active) {
+            const glm::vec4 stroke_color = as_vec4(color_stroke);
 
-    if (color_stroke.active) {
-        const glm::vec4 stroke_color = as_vec4(color_stroke);
-
-        shape_fill_vertex_cache.clear();
-        for (const auto& p: points) {
-            shape_fill_vertex_cache.emplace_back(p, stroke_color, tex_coord);
+            shape_fill_vertex_buffer.clear();
+            for (const auto& p: points) {
+                shape_fill_vertex_buffer.emplace_back(p, stroke_color, tex_coord);
+            }
+            if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
+                std::vector<Vertex> line_vertices;
+                shape_fill_vertex_buffer.pop_back();
+                triangulate_line_strip_vertex(shape_fill_vertex_buffer, true, line_vertices);
+                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, line_vertices);
+            }
+            if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
+                IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_fill_vertex_buffer);
+            }
         }
-
-        IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_fill_vertex_cache);
     }
 }
 
@@ -1742,6 +1799,27 @@ std::vector<Vertex> PGraphicsOpenGLv33::convertQuadsToTriangles(const std::vecto
     return triangles;
 }
 
+void PGraphicsOpenGLv33::triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, const bool close_shape, std::vector<Vertex>& line_vertices) const {
+    const glm::vec4        color = line_strip[0].color;
+    std::vector<glm::vec2> points(line_strip.size());
+    std::vector<glm::vec2> triangles;
+    for (int i = 0; i < line_strip.size(); ++i) {
+        points[i] = line_strip[i].position;
+    }
+    triangulate_line_strip(points,
+                           close_shape,
+                           stroke_weight,
+                           stroke_join_mode,
+                           stroke_cap_mode,
+                           stroke_join_round_resolution,
+                           stroke_cap_round_resolution,
+                           stroke_join_miter_max_angle,
+                           triangles);
+    line_vertices.reserve(triangles.size());
+    for (const auto& triangle: triangles) {
+        line_vertices.emplace_back(glm::vec3(triangle, 0.0f), color, glm::vec2(0.0f, 0.0f));
+    }
+}
 void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
     if (IM_primitive_shape.uninitialized()) {
         SHARED_init_vertex_buffer(IM_primitive_shape);
@@ -1761,24 +1839,24 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
 
     /* --- render fill --- */
 
-    if (!shape_fill_vertex_cache.empty()) {
+    if (!shape_fill_vertex_buffer.empty()) {
         switch (tmp_shape_mode_cache) {
             case POINTS:
             case LINES:
             case LINE_STRIP:
                 break;
             case TRIANGLES:
-                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, shape_fill_vertex_cache);
+                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, shape_fill_vertex_buffer);
                 break;
             case TRIANGLE_FAN:
-                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, shape_fill_vertex_cache);
+                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, shape_fill_vertex_buffer);
                 break;
             case QUAD_STRIP: // NOTE does this just work?!?
             case TRIANGLE_STRIP:
-                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_STRIP, shape_fill_vertex_cache);
+                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_STRIP, shape_fill_vertex_buffer);
                 break;
             case QUADS: {
-                std::vector<Vertex> vertices_fill_quads = convertQuadsToTriangles(shape_fill_vertex_cache);
+                std::vector<Vertex> vertices_fill_quads = convertQuadsToTriangles(shape_fill_vertex_buffer);
                 IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill_quads);
             } break;
             default:
@@ -1786,14 +1864,14 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
                 std::vector<Vertex> vertices_fill_polygon;
                 if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_FASTER) {
                     // EARCUT
-                    vertices_fill_polygon = triangulate_faster(shape_fill_vertex_cache);
+                    vertices_fill_polygon = triangulate_faster(shape_fill_vertex_buffer);
                 } else if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_GOOD) {
                     // LIBTESS2
-                    vertices_fill_polygon = triangulate_good(shape_fill_vertex_cache);
+                    vertices_fill_polygon = triangulate_good(shape_fill_vertex_buffer);
                 } else if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_BETTER) {
                     // TODO maybe remove this option
                     // POLYPARTITION + CLIPPER2
-                    vertices_fill_polygon = triangulate_better_quality(shape_fill_vertex_cache);
+                    vertices_fill_polygon = triangulate_better_quality(shape_fill_vertex_buffer);
                 }
                 IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill_polygon);
                 // TODO what if polygon has only 3 or 4 vertices? could shortcut … here
@@ -1803,89 +1881,59 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
 
     /* --- render stroke --- */
 
-    if (!shape_stroke_vertex_cache.empty()) {
+    if (!shape_stroke_vertex_buffer.empty()) {
         if (tmp_shape_mode_cache == POINTS) {
             // TODO does this still work under macOS? it renders squares … maybe texturize them
             // TODO @OpenGLES3.1 replace with circle or textured quad
             const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
             glPointSize(tmp_point_size);
-            IM_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_cache);
+            IM_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_buffer);
             return;
         }
 
-        if (line_render_mode == LINE_RENDER_MODE_TRIANGLES) {
+        if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
             switch (tmp_shape_mode_cache) {
-                case LINES:
-                    static bool printed = false;
-                    if (!printed) {
-                        console("LINES in line render mode LINE_RENDER_MODE_TRIANGLES are not yet implemented!");
-                        printed = true;
+                case LINES: {
+                    const int buffer_size = shape_stroke_vertex_buffer.size() / 2 * 2;
+                    for (int i = 0; i < buffer_size; i += 2) {
+                        std::vector<Vertex> line_vertices;
+                        std::vector         line = {shape_stroke_vertex_buffer[i], shape_stroke_vertex_buffer[i + 1]};
+                        triangulate_line_strip_vertex(line, FALSE, line_vertices);
+                        IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, line_vertices);
                     }
-                    // IM_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_cache);
-                    break;
+                } break;
                 default:
-                case QUADS:
                 case LINE_STRIP:
+                case QUADS:
                 case TRIANGLES:
                 case TRIANGLE_FAN:
                 case QUAD_STRIP: // NOTE does this just work?!?
                 case TRIANGLE_STRIP:
-                case POLYGON:
-                    const glm::vec4        color = shape_stroke_vertex_cache[0].color;
-                    std::vector<glm::vec2> points(shape_stroke_vertex_cache.size());
-                    std::vector<glm::vec2> triangles;
-                    for (int i = 0; i < shape_stroke_vertex_cache.size(); ++i) {
-                        points[i] = shape_stroke_vertex_cache[i].position;
-                    }
-                    line_strip(points,
-                               close_shape,
-                               stroke_weight,
-                               stroke_join_mode,
-                               stroke_cap_mode,
-                               stroke_join_round_resolution,
-                               stroke_cap_round_resolution,
-                               stroke_join_miter_max_angle,
-                               triangles);
+                case POLYGON: {
                     std::vector<Vertex> line_vertices;
-                    line_vertices.reserve(triangles.size());
-                    for (const auto& triangle: triangles) {
-                        line_vertices.emplace_back(glm::vec3(triangle, 0.0f), color, glm::vec2(0.0f, 0.0f));
-                    }
+                    triangulate_line_strip_vertex(shape_stroke_vertex_buffer, close_shape, line_vertices);
                     IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, line_vertices);
-                    break;
+                } break;
             }
             return;
         }
 
-        if (line_render_mode == LINE_RENDER_MODE_NATIVE) {
+        // NOTE handles GL_LINES and GL_LINE_STRIP not compatible with OpenGL ES 3.1 and OpenGL 3.3 core
+        if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
+
             if (close_shape && (tmp_shape_mode_cache == POLYGON || tmp_shape_mode_cache == LINE_STRIP)) {
                 // NOTE add first vertex as last …
-                // TODO maybe only do this for certain shapes i.e `POLYGON`.
-                //      upon further consideration i am a bit uncertain of how to handle filled non-closed shapes?
-                //      is there such a thing? maybe for `LINE_STRIP` too?
                 shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
-                // shape_fill_vertex_cache.push_back(shape_fill_vertex_cache[0]);
-                shape_stroke_vertex_cache.push_back(shape_stroke_vertex_cache[0]);
+                shape_stroke_vertex_buffer.push_back(shape_stroke_vertex_buffer[0]);
             }
-
-            // TODO evaluate different line rendering styles:
-            //      - may render with GL_LINES or GL_LINE_STRIP if available and `stroke_weight==1.0f`
-            //      - may expand into triangles/quads
-            //      - evaluate corner mode ( NONE, ROUND, POINTY )
-            //          - strokeCap() :: Sets the style for rendering line endings -> SQUARE, PROJECT, and ROUND
-            //          - strokeJoin() :: Sets the style of the joints which connect line segments -> MITER, BEVEL, and ROUND
-
             const float tmp_line_width = std::max(std::min(stroke_weight, open_gl_capabilities.line_size_max), open_gl_capabilities.line_size_min);
             glLineWidth(tmp_line_width);
-
             switch (tmp_shape_mode_cache) {
                 case LINES:
-                    // TODO @OpenGLES3.1 replace with quad lines
-                    IM_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_cache);
+                    IM_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_buffer);
                     break;
                 case QUADS: {
-                    std::vector<Vertex> vertices_stroke_quads = convertQuadsToTriangles(shape_stroke_vertex_cache);
-                    // TODO @OpenGLES3.1 replace with quad lines
+                    std::vector<Vertex> vertices_stroke_quads = convertQuadsToTriangles(shape_stroke_vertex_buffer);
                     IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke_quads);
                 } break;
                 default:
@@ -1895,8 +1943,7 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
                 case QUAD_STRIP: // NOTE does this just work?!?
                 case TRIANGLE_STRIP:
                 case POLYGON:
-                    // TODO @OpenGLES3.1 replace with quad lines
-                    IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_cache);
+                    IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_buffer);
                     break;
             }
             return;

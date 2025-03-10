@@ -24,12 +24,8 @@
 /*
 // TODO implement 2D Primitives
 arc() Draws an arc in the display window
-circle() Draws a circle to the screen
-ellipse() Draws an ellipse (oval) in the display window
-line() Draws a line (a direct path between two points) to the screen  // 3D
 point() Draws a point, a coordinate in space at the dimension of one pixel // 3D
 quad() A quad is a quadrilateral, a four sided polygon
-rect() Draws a rectangle to the screen
 square() Draws a square to the screen
 triangle() A triangle is a plane created by connecting three points
 // TODO implement 3D Primitives
@@ -43,6 +39,7 @@ sphere() A sphere is a hollow ball made from tessellated triangles
 
 #include <sstream>
 #include <glm/glm.hpp>
+#include <stack>
 
 #include "UmgebungConstants.h"
 #include "PImage.h"
@@ -71,6 +68,7 @@ namespace umgebung {
 
         /* --- implemented in base class PGraphics --- */
 
+        virtual void background(PImage* img);
         virtual void fill(float r, float g, float b, float alpha = 1.0f);
         virtual void fill(float gray, float alpha = 1.0f);
         virtual void fill_color(uint32_t c);
@@ -83,6 +81,7 @@ namespace umgebung {
         virtual void strokeJoin(int join);
         virtual void strokeCap(int cap);
         virtual void rectMode(int mode);
+        virtual void square(const float x, const float y, const float extent) { rect(x, y, extent, extent); }
         virtual void ellipseMode(int mode);
         virtual void ellipseDetail(int detail);
         virtual void pointSize(float size);
@@ -112,7 +111,7 @@ namespace umgebung {
         virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
         void                to_screen_space(glm::vec3& world_position) const; // convert from model space to screen space
         void                to_world_space(glm::vec3& model_position) const;  // convert from model space to works space
-        void                line_mode(const int line_render_mode) { this->line_render_mode = line_render_mode; }
+        void                stroke_mode(const int line_render_mode) { this->line_render_mode = line_render_mode; }
         void                stroke_properties(const float stroke_join_round_resolution,
                                               const float stroke_cap_round_resolution,
                                               const float stroke_join_miter_max_angle) {
@@ -183,7 +182,7 @@ namespace umgebung {
 
         const float               DEFAULT_FOV            = 2.0f * atan(0.5f); // = 53.1301f;
         static constexpr uint16_t ELLIPSE_DETAIL_MIN     = 3;
-        static constexpr uint16_t ELLIPSE_DETAIL_DEFAULT = 18;
+        static constexpr uint16_t ELLIPSE_DETAIL_DEFAULT = 36;
         bool                      init_properties_locked{false};
         PFont*                    current_font{nullptr};
         ColorState                color_stroke{};
@@ -199,13 +198,16 @@ namespace umgebung {
         int                       texture_id_current{};
         bool                      shape_has_begun{false};
         int                       polygon_triangulation_strategy = POLYGON_TRIANGULATION_GOOD;
-        int                       line_render_mode               = LINE_RENDER_MODE_TRIANGLES;
+        int                       line_render_mode               = STROKE_RENDER_MODE_TRIANGULATE;
         int                       stroke_join_mode               = ROUND;
         int                       stroke_cap_mode                = PROJECT;
         float                     stroke_join_round_resolution   = glm::radians(20.0f); // TODO maybe make these configurable
         float                     stroke_cap_round_resolution    = glm::radians(20.0f); // 20° resolution i.e 18 segment for whole circle
         float                     stroke_join_miter_max_angle    = 165.0f;
         static const Triangulator triangulator;
+        std::vector<ColorState>   color_stroke_stack;
+        std::vector<ColorState>   color_fill_stack;
+
 
         /* --- transform matrices --- */
 
@@ -220,6 +222,18 @@ namespace umgebung {
         static glm::vec4 as_vec4(const ColorState& color) {
             return {color.r, color.g, color.b, color.a};
         }
+
+        void push_color_state(const ColorState& current, std::vector<ColorState>& stack) const {
+            stack.push_back(current);
+        }
+
+        void pop_color_state(ColorState& current, std::vector<ColorState>& stack) const {
+            if (!stack.empty()) {
+                current = stack.back();
+                stack.pop_back();
+            }
+        }
+
         uint8_t get_pixel_density() const { return pixel_density; }
 
         void resize_ellipse_points_LUT();
