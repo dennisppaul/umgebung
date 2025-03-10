@@ -237,6 +237,20 @@ namespace umgebung {
         g->strokeWeight(weight);
     }
 
+    void strokeJoin(int join) {
+        if (g == nullptr) {
+            return;
+        }
+        g->strokeJoin(join);
+    }
+
+    void strokeCap(int cap) {
+        if (g == nullptr) {
+            return;
+        }
+        g->strokeCap(cap);
+    }
+
     void vertex(const float x, const float y, const float z) {
         if (g == nullptr) {
             return;

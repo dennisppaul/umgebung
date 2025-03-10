@@ -56,10 +56,12 @@ namespace umgebung {
     static constexpr int   SQUARE                                        = 0x26; // strokeCap
     static constexpr int   PROJECT                                       = 0x27;
     static constexpr int   POINTED                                       = 0x28;
+    static constexpr int   LINE_RENDER_MODE_NATIVE                       = 0x30; // line render mode
+    static constexpr int   LINE_RENDER_MODE_TRIANGLES               = 0x31;
     static constexpr int   POLYGON_TRIANGULATION_FASTER                  = 0x10;
     static constexpr int   POLYGON_TRIANGULATION_GOOD                    = 0x11;
     static constexpr int   POLYGON_TRIANGULATION_BETTER                  = 0x12;
-    static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NONE   = 0x00;
+    static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NONE   = 0x00; // TODO deprecated, remove these
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_ROUND  = 0x01;
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_MITER  = 0x02;
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_BEVEL  = 0x03;

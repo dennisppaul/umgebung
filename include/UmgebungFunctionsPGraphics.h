@@ -66,6 +66,8 @@ namespace umgebung {
     void    stroke_color(uint32_t c);
     void    noStroke();
     void    strokeWeight(float weight);
+    void    strokeJoin(int join);
+    void    strokeCap(int cap);
     void    vertex(float x, float y, float z = 0.0);
     void    vertex(float x, float y, float z, float u, float v);
     PFont*  loadFont(const std::string& file, float size); // @development maybe use smart pointers here
