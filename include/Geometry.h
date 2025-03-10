@@ -23,6 +23,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/geometric.hpp>
 
 #include "UmgebungConstants.h"
 
@@ -64,7 +65,7 @@ namespace umgebung {
 
     inline bool are_almost_parallel(const glm::vec3& n1, const glm::vec3& n2, const float epsilon = 0.01f) {
         const float dotProduct = glm::dot(n1, n2);
-        return -dotProduct > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
+        return -dotProduct > 1.0f - epsilon; // Closer to 1 or -1 means nearly parallel
         // return fabs(dotProduct) > (1.0f - epsilon); // Closer to 1 or -1 means nearly parallel
     }
 
@@ -112,7 +113,7 @@ namespace umgebung {
             const float angle_end   = angle + HALF_PI;
             const float step        = direction * stroke_cap_round_resolution;
             const bool  forward     = direction == 1.0f;
-            for (float r = (forward ? angle_start : angle_end); forward ? r <= angle_end : r >= angle_start; r += step) {
+            for (float r = forward ? angle_start : angle_end; forward ? r <= angle_end : r >= angle_start; r += step) {
                 glm::vec2 circle_segment = cap_seg.position + glm::vec2{cos(r), sin(r)} * half_width;
                 poly_list.push_back(circle_segment);
 #ifdef GEOMETRY_DRAW_DEBUG
@@ -150,7 +151,7 @@ namespace umgebung {
 
         const int num_segments = segments.size() + (close_shape ? +1 : 0);
         for (int i = 0; i < num_segments; ++i) {
-            const Segment& s1 = segments[(i) % segments.size()];
+            const Segment& s1 = segments[i % segments.size()];
             const Segment& s2 = segments[(i + 1) % segments.size()];
 #ifdef GEOMETRY_DRAW_DEBUG
             stroke(0);
@@ -206,7 +207,7 @@ namespace umgebung {
                     while (angular_diff > PI) {
                         angular_diff -= TWO_PI;
                     }
-                    float r_offset = (angular_diff > 0) ? PI : 0.0f;
+                    float r_offset = angular_diff > 0 ? PI : 0.0f;
                     // flip the start/end if segment goes in the wrong direction
                     if (angular_diff < 0) {
                         std::swap(angle_s1, angle_s2);
@@ -434,7 +435,7 @@ namespace umgebung {
     }
 
     inline void line_strip(const std::vector<glm::vec2>& polygon_outline,
-                           const bool                    close_shape,
+                           bool                          close_shape,
                            const float                   stroke_weight,
                            const int                     stroke_join_mode,
                            const int                     stroke_cap_mode,
@@ -442,42 +443,49 @@ namespace umgebung {
                            const float                   stroke_cap_round_resolution,
                            const float                   stroke_join_miter_max_angle,
                            std::vector<glm::vec2>&       triangle_vertices) {
+
+        // NOTE join mode NONE, MITER_FAST, and BEVEL_FAST ignore stroke caps.
+        // NOTE if stroke weight is 1 it is best to use NONE for best performance
+
+        if (stroke_weight <= 0.0f) {
+            return;
+        }
+
+        if (polygon_outline.size() < 2) {
+            return;
+        }
+
+        if (polygon_outline.size() < 3) {
+            close_shape = false;
+        }
+
         const float half_width = stroke_weight * 0.5f;
 
-        // TODO handle this case i.e LINES
-        // if (points.size() < 2) {
-        //     return triangles;
-        // }
+        std::vector<Segment> segments;
+        segments.reserve(polygon_outline.size());
+        const int size = static_cast<int>(polygon_outline.size());
 
-        // TODO does this still work?
-        // if (points.size() < 3) {
-        //     return triangles;
-        // }
-
-        std::vector<Segment> segments(polygon_outline.size());
-        for (int i = 0; i < polygon_outline.size(); ++i) {
+        for (int i = 0; i < size; ++i) {
             Segment s;
             s.position = glm::vec2(polygon_outline[i].x, polygon_outline[i].y);
-            if (i == polygon_outline.size() - 1) { // last point needs special care
-                if (close_shape) {                 // copy first point for closed shapes
+            if (i == size - 1) {   // last point needs special care
+                if (close_shape) { // copy first point for closed shapes
                     s.next_position = glm::vec2(polygon_outline[0].x, polygon_outline[0].y);
                 } else { // project point last for open shapes
                     s.next_position = polygon_outline[i] + (polygon_outline[i] - polygon_outline[i - 1]);
                 }
             } else { // for all other segments use next point
-                const int ii    = (i + 1) % polygon_outline.size();
+                const int ii    = (i + 1) % size;
                 s.next_position = glm::vec2(polygon_outline[ii].x, polygon_outline[ii].y);
             }
             s.direction = s.next_position - s.position;
-            // s.normal    = glm::normalize(s.direction);
-            // s.normal    = glm::vec2(-s.normal.y, s.normal.x);
-            if (glm::length(s.direction) > 0.0001f) {
+            if (s.direction.x * s.direction.x + s.direction.y + s.direction.y > 0.0001f * 0.0001f) {
                 s.direction = glm::normalize(s.direction);
                 s.normal    = glm::vec2(-s.direction.y, s.direction.x);
             } else {
                 s.normal = glm::vec2(1.0f, 0.0f);
             }
-            segments[i] = s;
+            segments.emplace_back(s);
         }
 
         switch (stroke_join_mode) {
