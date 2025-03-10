@@ -26,6 +26,8 @@
 
 #include "UmgebungConstants.h"
 
+// #define GEOMETRY_DRAW_DEBUG
+
 namespace umgebung {
     constexpr float stroke_join_miter_max_angle  = 165.0f;
     constexpr float stroke_cap_round_resolution  = glm::radians(20.0f); // 20° resolution i.e 18 segment for whole circle
@@ -38,29 +40,22 @@ namespace umgebung {
         glm::vec2 next_position;
     };
 
-    inline void tessellate_polygon(const std::vector<glm::vec2>& polygon_outline,
-                                   std::vector<glm::vec2>&       triangles) {
-
+    inline void triangulate_polygon(const std::vector<glm::vec2>& polygon_outline,
+                                    std::vector<glm::vec2>&       resulting_triangles) {
         TESStesselator* tess = tessNewTess(nullptr);
         tessAddContour(tess, 2, polygon_outline.data(), sizeof(glm::vec2), polygon_outline.size());
-
         if (tessTesselate(tess, TESS_WINDING_NONZERO, TESS_POLYGONS, 3, 2, nullptr)) {
             const float*     verts  = tessGetVertices(tess);
             const TESSindex* elems  = tessGetElements(tess);
             const int        nelems = tessGetElementCount(tess);
-
+            resulting_triangles.reserve(nelems * 3);
             for (int i = 0; i < nelems; ++i) {
                 const TESSindex* tri = &elems[i * 3];
-                glm::vec2        v1  = glm::make_vec2(&verts[tri[0] * 2]);
-                glm::vec2        v2  = glm::make_vec2(&verts[tri[1] * 2]);
-                glm::vec2        v3  = glm::make_vec2(&verts[tri[2] * 2]);
-
-                triangles.push_back(v1);
-                triangles.push_back(v2);
-                triangles.push_back(v3);
+                resulting_triangles.insert(resulting_triangles.end(), {glm::make_vec2(&verts[tri[0] * 2]),
+                                                                       glm::make_vec2(&verts[tri[1] * 2]),
+                                                                       glm::make_vec2(&verts[tri[2] * 2])});
             }
         }
-
         tessDeleteTess(tess);
     }
 
@@ -93,8 +88,10 @@ namespace umgebung {
         if (stroke_cap_mode == POINTED) {
             const glm::vec2 cap_point_project = cap_seg.position - cap_seg.direction * half_width * direction;
             poly_list.push_back(cap_point_project);
+#ifdef GEOMETRY_DRAW_DEBUG
             fill(0, 0.5f, 1);
             circle(cap_point_project.x, cap_point_project.y, 10);
+#endif // GEOMETRY_DRAW_DEBUG
         }
         /* PROJECT */
         if (stroke_cap_mode == PROJECT) {
@@ -114,8 +111,10 @@ namespace umgebung {
                                                                   sin(r)} *
                                                                   half_width;
                 poly_list.push_back(circle_segment);
+#ifdef GEOMETRY_DRAW_DEBUG
                 fill(0, 0.5f, 1);
                 circle(circle_segment.x, circle_segment.y, 3);
+#endif // GEOMETRY_DRAW_DEBUG
             }
         }
         /* SQUARE */
@@ -146,20 +145,20 @@ namespace umgebung {
         for (int i = 0; i < num_segments; ++i) {
             const Segment& s1 = segments[(i) % segments.size()];
             const Segment& s2 = segments[(i + 1) % segments.size()];
-
+#ifdef GEOMETRY_DRAW_DEBUG
             stroke(0);
             fill(0);
             circle(s1.position.x, s1.position.y, 10);
             noFill();
             circle(s2.position.x, s2.position.y, 15);
-
+#endif // GEOMETRY_DRAW_DEBUG
             const glm::vec2 s1_norm  = s1.normal * half_width;
             const glm::vec2 s1_left  = s1.position - s1_norm;
             const glm::vec2 s1_right = s1.position + s1_norm;
             const glm::vec2 s2_left  = s2.position - s1_norm;
             const glm::vec2 s2_right = s2.position + s1_norm;
             const glm::vec2 s2_norm  = s2.normal * half_width;
-
+#ifdef GEOMETRY_DRAW_DEBUG
             fill(1, 0, 0);
             circle(s1_left.x, s1_left.y, 10 + i * 2);
             fill(0, 1, 0);
@@ -170,7 +169,7 @@ namespace umgebung {
             circle(s2_left.x, s2_left.y, 10 + i * 2);
             stroke(0, 1, 0);
             circle(s2_right.x, s2_right.y, 10 + i * 2);
-
+#endif // GEOMETRY_DRAW_DEBUG
             if (close_shape) {
                 outline_left.push_back(s1_left);
                 outline_left.push_back(s2_left);
@@ -263,7 +262,7 @@ namespace umgebung {
         std::vector<glm::vec2> polygon_outline;
         polygon_outline.insert(polygon_outline.end(), outline_left.begin(), outline_left.end());
         polygon_outline.insert(polygon_outline.end(), outline_right.rbegin(), outline_right.rend());
-        tessellate_polygon(polygon_outline, triangles);
+        triangulate_polygon(polygon_outline, triangles);
     }
 
     inline void add_quad_as_triangles(std::vector<glm::vec2>& triangles,
@@ -426,60 +425,6 @@ namespace umgebung {
         }
     }
 
-    inline void create_stroke_join_none_tessellate(std::vector<glm::vec2>& triangles,
-                                                   const bool              close_shape,
-                                                   const float             half_width,
-                                                   std::vector<Segment>&   segments) {
-        std::vector<glm::vec2> outline_points;
-
-        const int num_segments = segments.size() - (close_shape ? 0 : 1);
-        for (int i = 0; i < num_segments; ++i) {
-            Segment&        s1           = segments[i];
-            const glm::vec2 p1_line_norm = s1.normal * half_width;
-            const glm::vec2 p1_left      = s1.position + p1_line_norm;
-            const glm::vec2 p2_left      = s1.next_position + p1_line_norm;
-
-            // add left side points
-            outline_points.push_back(p1_left);
-            outline_points.push_back(p2_left);
-        }
-
-        // Then traverse segments backwards to get right-side points correctly ordered:
-        for (int i = num_segments - 1; i >= 0; --i) {
-            Segment&        s1           = segments[i];
-            const glm::vec2 p1_line_norm = s1.normal * half_width;
-            const glm::vec2 p2_right     = s1.next_position - p1_line_norm;
-            const glm::vec2 p1_right     = s1.position - p1_line_norm;
-
-            // add right side points
-            outline_points.push_back(p2_right);
-            outline_points.push_back(p1_right);
-        }
-
-        // Now send these points to libtess2 (as shown above)
-        TESStesselator* tess = tessNewTess(nullptr);
-        tessAddContour(tess, 2, outline_points.data(), sizeof(glm::vec2), outline_points.size());
-
-        if (tessTesselate(tess, TESS_WINDING_NONZERO, TESS_POLYGONS, 3, 2, nullptr)) {
-            const float*     verts  = tessGetVertices(tess);
-            const TESSindex* elems  = tessGetElements(tess);
-            const int        nelems = tessGetElementCount(tess);
-
-            for (int i = 0; i < nelems; ++i) {
-                const TESSindex* tri = &elems[i * 3];
-                glm::vec2        v1  = glm::make_vec2(&verts[tri[0] * 2]);
-                glm::vec2        v2  = glm::make_vec2(&verts[tri[1] * 2]);
-                glm::vec2        v3  = glm::make_vec2(&verts[tri[2] * 2]);
-
-                triangles.push_back(v1);
-                triangles.push_back(v2);
-                triangles.push_back(v3);
-            }
-        }
-
-        tessDeleteTess(tess);
-    }
-
     void create_stroke_join_tessellate(std::vector<glm::vec2>&     triangles,
                                        bool                        close_shape,
                                        float                       half_width,
@@ -541,10 +486,6 @@ namespace umgebung {
             case BEVEL_FAST:
                 create_stroke_join_bevel(triangles, close_shape, half_width, segments);
                 break;
-                // case BEVEL_TESSELATOR: // NOT USEFUL
-                //     // create_stroke_join_none_tessellate(triangles, close_shape, half_width, segments);
-                //     create_stroke_join_miter_tessellate(triangles, close_shape, half_width, segments);
-                // break;
             case BEVEL:
             case MITER:
             case ROUND:

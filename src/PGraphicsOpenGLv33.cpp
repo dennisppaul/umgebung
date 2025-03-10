@@ -1790,6 +1790,7 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
                     // LIBTESS2
                     vertices_fill_polygon = triangulate_good(shape_fill_vertex_cache);
                 } else if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_BETTER) {
+                    // TODO maybe remove this option
                     // POLYPARTITION + CLIPPER2
                     vertices_fill_polygon = triangulate_better_quality(shape_fill_vertex_cache);
                 }
