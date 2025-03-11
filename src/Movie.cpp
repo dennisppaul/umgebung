@@ -19,6 +19,8 @@
 
 #include "Movie.h"
 
+#include <UmgebungFunctionsAdditional.h>
+
 // TODO look into audio processing
 // TODO look into camera access
 // TODO implement `MovieListener` including callback
@@ -467,14 +469,14 @@ void Movie::noLoop() {
 #else
 
 Movie::Movie(const std::string& filename, int _channels) : PImage() {
-    std::cerr << "Movie - ERROR: video is disabled" << std::endl;
+    error("Movie - ERROR: video is disabled");
 }
 
 Movie::~Movie() {}
 
 bool Movie::available() { return false; }
 
-bool Movie::read() { return false; }
+bool read(PGraphics* graphics = g) { return false; }
 
 int Movie::init_from_file(const std::string& filename, int _channels) { return -1; }
 

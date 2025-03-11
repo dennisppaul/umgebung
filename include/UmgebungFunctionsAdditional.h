@@ -24,13 +24,12 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <iomanip>
 
 #include "UmgebungDefines.h"
 
 namespace umgebung {
 
-    void                     audio_devices(int input_device, int output_device);
+    // void                     audio_devices(int input_device, int output_device);
     bool                     begins_with(const std::string& str, const std::string& prefix);
     void                     color_inv(uint32_t color, float& r, float& g, float& b, float& a);
     bool                     exists(const std::string& file_path);

@@ -22,10 +22,9 @@
 #include "UmgebungDefines.h"
 #include "UmgebungConstants.h"
 #include "UmgebungCallbacks.h"
-#include "UmgebungSubsystems.h"
-#include "UmgebungFunctionsAdditional.h"
 #include "UmgebungFunctions.h"
-#include "UmgebungFunctionsPGraphics.h"
+#include "UmgebungFunctionsGraphics.h"
+#include "UmgebungSubsystems.h"
 
 namespace umgebung {
 
@@ -45,21 +44,38 @@ namespace umgebung {
 
     /* public variables */
 
-    inline float width              = 1024;
-    inline float height             = 768;
-    inline float framebuffer_width  = width; // TODO maybe i can clean this up at some point … it s always `width*pixelDensity`
-    inline float framebuffer_height = height;
-    inline float frameCount         = 0;
-    inline float frameRate          = 60;
-    inline int   key                = 0;
-    inline int   mouseButton        = DEFAULT;
-    inline bool  is_mouse_pressed   = false;
-    inline float mouseX             = 0;
-    inline float mouseY             = 0;
-    inline float pmouseX            = 0;
-    inline float pmouseY            = 0;
-    inline int   pixelHeight        = 1;
-    inline int   pixelWidth         = 1;
+    inline PGraphics* g                  = nullptr; // graphics
+    inline bool       enable_graphics    = true;
+    inline float      width              = 1024;
+    inline float      height             = 768;
+    inline float      framebuffer_width  = width; // TODO maybe i can clean this up at some point … it s always `width*pixelDensity`
+    inline float      framebuffer_height = height;
+    inline float      frameCount         = 0;
+    inline float      frameRate          = 60;
+    inline int        key                = 0; // events
+    inline int        mouseButton        = DEFAULT;
+    inline bool       is_mouse_pressed   = false;
+    inline float      mouseX             = 0;
+    inline float      mouseY             = 0;
+    inline float      pmouseX            = 0;
+    inline float      pmouseY            = 0;
+    inline int        pixelHeight        = 1;
+    inline int        pixelWidth         = 1;
+    inline PAudio*    a                  = nullptr; // audio
+    inline bool       enable_audio       = true;
+    inline int        audio_device_id    = DEFAULT;
+    inline int        input_channels     = 0; // TODO populate with default values
+    inline int        output_channels    = 0;
+    inline int        audio_buffer_size  = 0;
+    inline int        sample_rate        = 0;
+    inline int        audio_format       = 0;
+
+    // NOTE just a quick reflection on the above: `PGraphics* g` as well as `PAudio* a` represent
+    //      the default or main device infrastructure. the properties ( e.g `width` or `sample_rate` )
+    //      represent values used for configuration at application start. they should be up to date
+    //      while the application is running but are not guaranteed to be. also the properties are
+    //      are redundant as the *actual* values are stored in the respective device objects. it is
+    //      not good design but reflects the processing.org idiom.
 
     /* public variables *mainly for internal use* */
 

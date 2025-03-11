@@ -29,10 +29,10 @@
 
 namespace umgebung {
 
-    void audio_devices(const int input_device, const int output_device) {
-        audio_input_device  = input_device;
-        audio_output_device = output_device;
-    }
+    // void audio_devices(const int input_device, const int output_device) {
+    //     audio_input_device  = input_device;
+    //     audio_output_device = output_device;
+    // }
 
     bool begins_with(const std::string& str, const std::string& prefix) {
         if (prefix.size() > str.size()) {

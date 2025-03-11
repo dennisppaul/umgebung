@@ -24,6 +24,7 @@
 #include <string>
 
 #include "Umgebung.h"
+#include "PAudio.h"
 
 namespace umgebung {
     static std::chrono::high_resolution_clock::time_point lastFrameTime         = {};
@@ -83,8 +84,6 @@ namespace umgebung {
 } // namespace umgebung
 
 // TODO move the functions to the respective subsystems
-void umgebung_subsystem_audio_init();
-void umgebung_subsystem_audio_poll_devices();
 void umgebung_subsystem_events_init();
 
 // TODO add console ( e.g SDL_log )
@@ -115,7 +114,6 @@ static uint32_t compile_subsystems_flag() {
      * - `SDL_INIT_NOPARACHUTE`: compatibility; this flag is ignored
      */
     uint32_t subsystem_flags = 0;
-    subsystem_flags |= SDL_INIT_AUDIO; // TODO move this to device?
     subsystem_flags |= SDL_INIT_EVENTS;
     return subsystem_flags;
 }
@@ -136,38 +134,67 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     settings();
 
     /* check graphics subsystem */
-    if (umgebung::subsystem_graphics == nullptr) {
-        if (umgebung::create_subsystem_graphics != nullptr) {
-            umgebung::subsystem_graphics = umgebung::create_subsystem_graphics();
-        } else {
-            umgebung::console("No graphics subsystem provided, using default.");
-            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_default_2D();
-            // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
-            umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
-        }
+    if (umgebung::enable_graphics) {
         if (umgebung::subsystem_graphics == nullptr) {
-            umgebung::console("Couldn't create graphics subsystem.");
-            return SDL_APP_FAILURE;
+            if (umgebung::create_subsystem_graphics != nullptr) {
+                umgebung::console("creating graphics subsystem with callback.");
+                umgebung::subsystem_graphics = umgebung::create_subsystem_graphics();
+            } else {
+                umgebung::console("No graphics subsystem provided, using default.");
+                // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_sdl2d();
+                // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
+                umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
+            }
+            if (umgebung::subsystem_graphics == nullptr) {
+                umgebung::console("Did not create graphics subsystem.");
+            }
+        } else {
+            umgebung::console("Client provided graphics subsystem.");
         }
+        // TODO check if this causes any problem … but it could nicely clean up things!!!
+        // umgebung::subsystems.push_back(umgebung::subsystem_graphics);
     } else {
-        umgebung::console("Client provided graphics subsystem.");
+        umgebung::console("graphics disabled.");
     }
 
-    /* check graphics subsystem */
-    if (umgebung::subsystem_audio == nullptr) {
-        if (umgebung::create_subsystem_audio != nullptr) {
-            umgebung::subsystem_audio = umgebung::create_subsystem_audio();
+    /* check audio subsystem */
+    if (umgebung::enable_audio) {
+        if (umgebung::subsystem_audio == nullptr) {
+            if (umgebung::create_subsystem_audio != nullptr) {
+                umgebung::console("+++ creating audio subsystem with callback.");
+                umgebung::subsystem_audio = umgebung::create_subsystem_audio();
+            } else {
+                umgebung::console("+++ no audio subsystem provided, using default.");
+                umgebung::subsystem_audio = umgebung_subsystem_audio_create_sdl();
+            }
+            if (umgebung::subsystem_audio == nullptr) {
+                umgebung::console("+++ did not create audio subsystem.");
+            }
         } else {
-            umgebung::console("No audio subsystem provided, using default.");
-            // umgebung::subsystem_audio = umgebung_create_audio_subsystem_default();
+            umgebung::console("+++ client provided audio subsystem.");
         }
+        umgebung::console("+++ adding audio subsystem.");
+        umgebung::subsystems.push_back(umgebung::subsystem_audio);
+    } else {
+        umgebung::console("audio disabled.");
     }
+
 
     /* 2. initialize SDL */
 
     uint32_t subsystem_flags = compile_subsystems_flag();
-    if (umgebung::subsystem_graphics->set_flags != nullptr) {
-        umgebung::subsystem_graphics->set_flags(subsystem_flags);
+
+    // TODO maybe move this to subsytems vector
+    if (umgebung::subsystem_graphics != nullptr) {
+        if (umgebung::subsystem_graphics->set_flags != nullptr) {
+            umgebung::subsystem_graphics->set_flags(subsystem_flags);
+        }
+    }
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem->set_flags != nullptr) {
+            subsystem->set_flags(subsystem_flags);
+        }
     }
 
     if (!SDL_Init(subsystem_flags)) {
@@ -180,10 +207,12 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     /* 3. initialize graphics */
     // - init
-    if (umgebung::subsystem_graphics->init != nullptr) {
-        if (!umgebung::subsystem_graphics->init()) {
-            SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
-            return SDL_APP_FAILURE;
+    if (umgebung::subsystem_graphics != nullptr) {
+        if (umgebung::subsystem_graphics->init != nullptr) {
+            if (!umgebung::subsystem_graphics->init()) {
+                SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
+                // return SDL_APP_FAILURE;
+            }
         }
     }
 
@@ -191,26 +220,49 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         if (subsystem->init != nullptr) {
             if (!subsystem->init()) {
                 umgebung::warning("Couldn't initialize subsystem.");
-                return SDL_APP_FAILURE;
+                // return SDL_APP_FAILURE;
             }
         }
     }
 
-    if (umgebung::subsystem_graphics->create_graphics != nullptr) {
-        umgebung::g = umgebung::subsystem_graphics->create_graphics(umgebung::render_to_buffer);
+    if (umgebung::subsystem_graphics != nullptr) {
+        if (umgebung::subsystem_graphics->create_graphics != nullptr) {
+            umgebung::g = umgebung::subsystem_graphics->create_graphics(umgebung::render_to_buffer);
+        }
+    }
+
+    if (umgebung::subsystem_audio != nullptr) {
+        if (umgebung::subsystem_audio->create_audio != nullptr) {
+            // NOTE fill in the values from `Umgebung.h`
+            umgebung::AudioDeviceInfo ai;
+            ai.id              = umgebung::audio_device_id;
+            ai.input_buffer    = nullptr;
+            ai.input_channels  = umgebung::input_channels;
+            ai.output_buffer   = nullptr;
+            ai.output_channels = umgebung::output_channels;
+            ai.buffer_size     = umgebung::audio_buffer_size;
+            ai.sample_rate     = umgebung::sample_rate;
+            ai.format          = umgebung::audio_format;
+            ai.name            = ""; // TODO detail, but is this good
+            umgebung::a        = umgebung::subsystem_audio->create_audio(&ai);
+        }
     }
 
     umgebung::initialized = true;
 
     // - setup_pre
 
-    if (umgebung::subsystem_graphics->setup_pre != nullptr) {
-        umgebung::subsystem_graphics->setup_pre();
+    if (umgebung::subsystem_graphics != nullptr) {
+        if (umgebung::subsystem_graphics->setup_pre != nullptr) {
+            umgebung::subsystem_graphics->setup_pre();
+        }
     }
 
-    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
-        if (subsystem->setup_pre != nullptr) {
-            subsystem->setup_pre();
+    if (umgebung::subsystem_graphics != nullptr) {
+        for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+            if (subsystem->setup_pre != nullptr) {
+                subsystem->setup_pre();
+            }
         }
     }
 
@@ -218,8 +270,10 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     // - setup_post
 
-    if (umgebung::subsystem_graphics->setup_post != nullptr) {
-        umgebung::subsystem_graphics->setup_post();
+    if (umgebung::subsystem_graphics != nullptr) {
+        if (umgebung::subsystem_graphics->setup_post != nullptr) {
+            umgebung::subsystem_graphics->setup_post();
+        }
     }
 
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
@@ -235,9 +289,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
 static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed, bool& fWindowIsResized) {
     // imgui_processevent(event);
-    //
-    // // generic sdl event handler
-    // sdlEvent(event);
+
+    // generic sdl event handler
+    sdl_event(event);
 
     switch (event.type) {
         // case SDL_EVENT_WINDOW_EVENT:
@@ -248,6 +302,9 @@ static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMou
         //     }
         //     break;
         case SDL_EVENT_WINDOW_RESIZED:
+            // TODO implement window resize … how will the subsystems be updated?
+            umgebung::warning("TODO window resized subsystem needs to be update …");
+            windowResized(-1, -1);
             fWindowIsResized = true;
             break;
         case SDL_EVENT_QUIT:
@@ -301,7 +358,6 @@ static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMou
             // if (imgui_is_mouse_captured()) { break; }
             mouseWheel(event.wheel.mouse_x, event.wheel.mouse_y);
             break;
-
         case SDL_EVENT_DROP_FILE: {
             // only allow drag and drop on main window
             // if (event.drop.windowID != 1) { break; }
@@ -312,6 +368,11 @@ static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMou
         default: break;
     }
 }
+
+// TODO ugly hack … this needs to be handled differently
+static bool _app_is_running    = true;
+static bool _mouse_is_pressed  = false;
+static bool _window_is_resized = false;
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
@@ -332,18 +393,10 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
      * 2. key events
      * 3. quit events
      */
-    // TODO this need to be handled differently
-    static bool fAppIsRunning    = true;
-    static bool fMouseIsPressed  = false;
-    static bool fWindowIsResized = false;
-    handle_event(*event, fAppIsRunning, fMouseIsPressed, fWindowIsResized);
-    if (!fAppIsRunning) {
+    handle_event(*event, _app_is_running, _mouse_is_pressed, _window_is_resized);
+    if (!_app_is_running) {
         return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
     }
-    // if (event->type == SDL_EVENT_KEY_DOWN ||
-    //     event->type == SDL_EVENT_QUIT) {
-    //     return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
-    // }
     return SDL_APP_CONTINUE;
 }
 
@@ -377,6 +430,13 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
     const high_resolution_clock::time_point currentFrameTime = high_resolution_clock::now();
     const auto                              frameDuration    = duration_cast<duration<double>>(currentFrameTime - umgebung::lastFrameTime);
     const double                            frame_duration   = frameDuration.count();
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem->loop != nullptr) {
+            subsystem->loop();
+        }
+    }
+
     if (frame_duration >= umgebung::target_frame_duration) {
         handle_draw();
 

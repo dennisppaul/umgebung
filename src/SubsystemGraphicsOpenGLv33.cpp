@@ -289,67 +289,6 @@ namespace umgebung {
         SDL_GL_SwapWindow(window);
     }
 
-    // static void draw_pre() {
-    //     if (g->render_to_offscreen && g->framebuffer.id > 0) {
-    //         // NOTE if `g->framebuffer.id` is `0` i.e not initialized
-    //         //      the bound buffer is the default color buffer … hmmm
-    //         glBindFramebuffer(GL_FRAMEBUFFER, g->framebuffer.id);
-    //     }
-    //     g->beginDraw();
-    //     checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw_pre");
-    // }
-    //
-    // static void draw_post() {
-    //     checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw");
-    //
-    //     if (window == nullptr) {
-    //         return;
-    //     }
-    //
-    //     if (g == nullptr) {
-    //         return;
-    //     }
-    //
-    //     g->endDraw();
-    //
-    //     if (g->render_to_offscreen && g->framebuffer.id > 0) {
-    //         // NOTE if `g->framebuffer.id` is `0` the framebuffer has not been initialized and nothing needs to be done
-    //         if (blit_framebuffer_object_to_screenbuffer) {
-    //             glBindFramebuffer(GL_FRAMEBUFFER, 0);                      // Unbind FBO
-    //             glBindFramebuffer(GL_READ_FRAMEBUFFER, g->framebuffer.id); // Bind the FBO as the source
-    //             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);                 // Bind the default framebuffer (screen) as the destination
-    //             glBlitFramebuffer(0, 0, g->framebuffer.width, g->framebuffer.height,
-    //                               0, 0, g->framebuffer.width, g->framebuffer.height,
-    //                               GL_COLOR_BUFFER_BIT, GL_LINEAR);
-    //             // GL_COLOR_BUFFER_BIT, GL_NEAREST); // TODO does this also work? i.e is it good enough?
-    //             glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    //         } else {
-    //             GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0)); // Unbind FBO
-    //                                                            // Disable depth testing and blending
-    //             GL_CALL(glDisable(GL_DEPTH_TEST));
-    //             GL_CALL(glDisable(GL_BLEND));
-    //
-    //             // Use shader
-    //             GL_CALL(glUseProgram(shaderProgram));
-    //             GL_CALL(glBindVertexArray(screenVAO));
-    //
-    //             // Bind FBO texture and set uniform
-    //             GL_CALL(glActiveTexture(GL_TEXTURE0));
-    //             GL_CALL(glBindTexture(GL_TEXTURE_2D, g->framebuffer.texture_id));
-    //             GL_CALL(glUniform1i(glGetUniformLocation(shaderProgram, "screenTexture"), 0));
-    //
-    //             // Draw fullscreen quad
-    //             GL_CALL(glDrawArrays(GL_TRIANGLES, 0, 6));
-    //
-    //             GL_CALL(glBindVertexArray(0));
-    //             GL_CALL(glUseProgram(0));
-    //         }
-    //     }
-    //
-    //     checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw_post");
-    //     SDL_GL_SwapWindow(window);
-    // }
-
     static void shutdown() {
         SDL_GL_DestroyContext(gl_context);
         SDL_DestroyWindow(window);
@@ -359,6 +298,8 @@ namespace umgebung {
         subsystem_flags |= SDL_INIT_VIDEO;
     }
 
+    static void event(SDL_Event* event) {}
+
     static PGraphics* create_graphics(const bool render_to_offscreen) {
         return new PGraphicsOpenGLv33(render_to_offscreen);
     }
@@ -367,13 +308,14 @@ namespace umgebung {
 
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv33() {
     auto* graphics            = new umgebung::SubsystemGraphics{};
+    graphics->set_flags       = umgebung::set_flags;
     graphics->init            = umgebung::init;
     graphics->setup_pre       = umgebung::setup_pre;
     graphics->setup_post      = umgebung::setup_post;
     graphics->draw_pre        = umgebung::draw_pre;
     graphics->draw_post       = umgebung::draw_post;
     graphics->shutdown        = umgebung::shutdown;
-    graphics->set_flags       = umgebung::set_flags;
+    graphics->event           = umgebung::event;
     graphics->create_graphics = umgebung::create_graphics;
     return graphics;
 }

@@ -17,7 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "UmgebungFunctionsPGraphics.h"
+#include "Umgebung.h"
+#include "UmgebungFunctionsGraphics.h"
 
 namespace umgebung {
     void background(const float a) {

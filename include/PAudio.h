@@ -19,31 +19,26 @@
 
 #pragma once
 
-#include <SDL3/SDL.h>
+#include <string>
 
-#include <vector>
-#include "UmgebungDefines.h"
-#include "UmgebungSubsystems.h"
-#include "PAudio.h"
+namespace umgebung {
+    struct AudioDeviceInfo {
+        int         id;
+        float**     input_buffer; // TODO should this go to PAudio?
+        int         input_channels;
+        float**     output_buffer; // TODO should this go to PAudio?
+        int         output_channels;
+        int         buffer_size;
+        int         sample_rate;
+        int         format;
+        std::string name;
+    };
 
-WEAK void arguments(const std::vector<std::string>& args);
-WEAK void settings();
-WEAK void setup();
-WEAK void draw();
-WEAK void shutdown();
+    class PAudio : public AudioDeviceInfo {
+    public:
+        explicit PAudio(const AudioDeviceInfo* device_info);
+         // PAudio(const AudioDeviceInfo* device_info) : AudioDeviceInfo(*device_info);
 
-WEAK void keyPressed();
-WEAK void keyReleased();
-WEAK void mousePressed();
-WEAK void mouseReleased();
-WEAK void mouseDragged();
-WEAK void mouseMoved();
-WEAK void mouseWheel(float x, float y);
-
-/* --- additional callbacks --- */
-
-WEAK void dropped(const char* dropped_filedir);
-WEAK bool sdl_event(const SDL_Event& event);
-WEAK void windowResized(int width, int height);
-WEAK void audioEvent(const umgebung::AudioDeviceInfo& device);
-WEAK void audioEvent();
+        void copy_input_buffer_to_output_buffer() const;
+    };
+} // namespace umgebung

@@ -30,11 +30,10 @@
 #include "polypartition.h"
 #include "clipper2/clipper.h"
 
+#include "UmgebungFunctionsGraphics.h"
 #include "UmgebungFunctionsAdditional.h"
 #include "PGraphics.h"
 #include "Vertex.h"
-
-#include <UmgebungFunctionsPGraphics.h>
 
 using namespace umgebung;
 

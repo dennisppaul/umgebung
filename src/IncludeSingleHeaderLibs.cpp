@@ -5,10 +5,10 @@
 //
 
 
-#define DR_WAV_IMPLEMENTATION
+// #define DR_WAV_IMPLEMENTATION
 // NOLINTNEXTLINE
-#include "dr_wav.h"
+// #include "dr_wav.h"
 
-#define DR_MP3_IMPLEMENTATION
+// #define DR_MP3_IMPLEMENTATION
 // NOLINTNEXTLINE
-#include "dr_mp3.h"
+// #include "dr_mp3.h"

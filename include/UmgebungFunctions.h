@@ -27,6 +27,7 @@
 #include <regex>
 
 #include "UmgebungFunctionsAdditional.h"
+#include "PAudio.h"
 
 namespace umgebung {
 

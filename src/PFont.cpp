@@ -23,7 +23,7 @@
 using namespace umgebung;
 
 #ifdef PFONT_DEBUG_FONT
-#define STB_IMAGE_WRITE_IMPLEMENTATION // TOOD why does this cause a duplicate symbol error?
+#define STB_IMAGE_WRITE_IMPLEMENTATION // TODO why does this cause a duplicate symbol error?
 #include "stb_image_write.h"
 #endif //PFONT_DEBUG_FONT
 

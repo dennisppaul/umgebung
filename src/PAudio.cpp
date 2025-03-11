@@ -1,5 +1,5 @@
 /*
- * Umgebung
+* Umgebung
  *
  * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
  * Copyright (c) 2025 Dennis P Paul.
@@ -17,33 +17,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#include <SDL3/SDL.h>
-
-#include <vector>
-#include "UmgebungDefines.h"
-#include "UmgebungSubsystems.h"
+#include "Umgebung.h"
 #include "PAudio.h"
 
-WEAK void arguments(const std::vector<std::string>& args);
-WEAK void settings();
-WEAK void setup();
-WEAK void draw();
-WEAK void shutdown();
+using namespace umgebung;
 
-WEAK void keyPressed();
-WEAK void keyReleased();
-WEAK void mousePressed();
-WEAK void mouseReleased();
-WEAK void mouseDragged();
-WEAK void mouseMoved();
-WEAK void mouseWheel(float x, float y);
+PAudio::PAudio(const AudioDeviceInfo* device_info) : AudioDeviceInfo(*device_info) {
+    console("created audio device: ");
+    console("name       : ", name);
+    console("id         : ", id);
+    console("sample_rate: ", sample_rate);
+}
 
-/* --- additional callbacks --- */
-
-WEAK void dropped(const char* dropped_filedir);
-WEAK bool sdl_event(const SDL_Event& event);
-WEAK void windowResized(int width, int height);
-WEAK void audioEvent(const umgebung::AudioDeviceInfo& device);
-WEAK void audioEvent();
+void PAudio::copy_input_buffer_to_output_buffer() const {
+    std::memcpy(output_buffer,                                 // destination
+                input_buffer,                                  // source
+                input_channels * buffer_size * sizeof(float)); // size
+}

@@ -25,10 +25,6 @@
 #include "PFont.h"
 
 namespace umgebung {
-    /* --- fields --- */
-    inline PGraphics* g = nullptr;
-
-    /* --- functions --- */
     void    background(float a);
     void    background(float a, float b, float c, float d = 1.0);
     void    background(PImage* img);

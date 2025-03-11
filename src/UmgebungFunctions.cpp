@@ -269,6 +269,13 @@ namespace umgebung {
         umgebung::height = height;
     }
 
+    void add_audio_device(int id, int sample_rate) {
+        if (is_initialized()) {
+            warning("`audio()` must be called before or within `settings()`.");
+            return;
+        }
+    }
+
     std::string nf(const int num, const int digits) {
         std::ostringstream oss;
         oss << std::setw(digits) << std::setfill('0') << num;
