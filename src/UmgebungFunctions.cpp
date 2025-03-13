@@ -402,4 +402,19 @@ namespace umgebung {
         const size_t last = str.find_last_not_of(" \t\n\r\f\v");
         return str.substr(first, (last - first + 1));
     }
+
+    PGraphics* createGraphics() {
+        if (subsystem_graphics == nullptr) {
+            return nullptr;
+        }
+        return subsystem_graphics->create_graphics(true); // TODO make this an option?
+    }
+
+    PAudio* createAudio(const AudioDeviceInfo* device_info) {
+        if (subsystem_audio == nullptr) {
+            return nullptr;
+        }
+        return subsystem_audio->create_audio(device_info);
+    }
+
 } // namespace umgebung

@@ -43,7 +43,9 @@ namespace umgebung {
     };
 
     struct SubsystemAudio : Subsystem {
-        PAudio* (*create_audio)(AudioDeviceInfo* device_info);
+        void (*start)(PAudio* device);
+        void (*stop)(PAudio* device);
+        PAudio* (*create_audio)(const AudioDeviceInfo* device_info);
     };
 
     /**

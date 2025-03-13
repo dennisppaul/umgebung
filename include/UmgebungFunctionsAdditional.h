@@ -29,7 +29,8 @@
 
 namespace umgebung {
 
-    // void                     audio_devices(int input_device, int output_device);
+    class PAudio;
+
     bool                     begins_with(const std::string& str, const std::string& prefix);
     void                     color_inv(uint32_t color, float& r, float& g, float& b, float& a);
     bool                     exists(const std::string& file_path);
@@ -40,6 +41,9 @@ namespace umgebung {
     int                      get_int_from_argument(const std::string& argument);
     std::string              get_string_from_argument(const std::string& argument);
     std::string              timestamp();
+    void                     audio(int input_channels, int output_channels, int sample_rate, int buffer_size=1024);
+    void                     audio_start(PAudio* device = nullptr);
+    void                     audio_stop(PAudio* device = nullptr);
 
     /* --- templated functions --- */
 
@@ -101,10 +105,14 @@ namespace umgebung {
 #endif
     }
 
-    inline std::string format_label(const std::string& label, size_t width) {
+    inline std::string format_label(const std::string& label, const size_t width) {
         if (label.length() >= width) {
             return label + " : "; // Ensure spacing even if label is too long
         }
         return label + std::string(width - label.length(), ' ') + " : ";
+    }
+
+    inline std::string separator(const bool equal_sign = true, const std::size_t length = 80) {
+        return std::string(length, equal_sign ? '=' : '-');
     }
 } // namespace umgebung

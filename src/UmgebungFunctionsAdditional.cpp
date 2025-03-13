@@ -29,11 +29,6 @@
 
 namespace umgebung {
 
-    // void audio_devices(const int input_device, const int output_device) {
-    //     audio_input_device  = input_device;
-    //     audio_output_device = output_device;
-    // }
-
     bool begins_with(const std::string& str, const std::string& prefix) {
         if (prefix.size() > str.size()) {
             return false;
@@ -151,5 +146,28 @@ namespace umgebung {
         std::ostringstream oss;
         oss << std::put_time(std::localtime(&timer), "%Y-%m-%d %H:%M:%S") << '.' << std::setfill('0') << std::setw(3) << ms.count();
         return oss.str();
+    }
+
+    void audio(const int input_channels, const int output_channels, const int sample_rate, const int buffer_size) {
+        umgebung::input_channels    = input_channels;
+        umgebung::output_channels   = output_channels;
+        umgebung::sample_rate       = sample_rate;
+        umgebung::audio_buffer_size = buffer_size;
+    }
+
+    void audio_start(PAudio* device) {
+        if (device == nullptr) {
+            subsystem_audio->start(a);
+        } else {
+            subsystem_audio->start(device);
+        }
+    }
+
+    void audio_stop(PAudio* device) {
+        if (device == nullptr) {
+            subsystem_audio->stop(a);
+        } else {
+            subsystem_audio->stop(device);
+        }
     }
 } // namespace umgebung

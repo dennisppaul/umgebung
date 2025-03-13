@@ -242,9 +242,17 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
             ai.output_channels = umgebung::output_channels;
             ai.buffer_size     = umgebung::audio_buffer_size;
             ai.sample_rate     = umgebung::sample_rate;
-            ai.format          = umgebung::audio_format;
-            ai.name            = ""; // TODO detail, but is this good
-            umgebung::a        = umgebung::subsystem_audio->create_audio(&ai);
+            // TODO currently finding a device by name does not work
+            // ai.name                       = "";
+            umgebung::a = umgebung::subsystem_audio->create_audio(&ai);
+            // NOTE copy back values after initialization
+            umgebung::audio_device_id     = umgebung::a->id;
+            umgebung::audio_input_buffer  = umgebung::a->input_buffer;
+            umgebung::input_channels      = umgebung::a->input_channels;
+            umgebung::audio_output_buffer = umgebung::a->output_buffer;
+            umgebung::output_channels     = umgebung::a->output_channels;
+            umgebung::audio_buffer_size   = umgebung::a->buffer_size;
+            umgebung::sample_rate         = umgebung::a->sample_rate;
         }
     }
 

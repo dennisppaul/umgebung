@@ -175,14 +175,6 @@ namespace umgebung {
         return format_label(text, column_width);
     }
 
-    static std::string separator(const bool equal_sign = true) {
-        if (equal_sign) {
-            return "================================================================================";
-        } else {
-            return "--------------------------------------------------------------------------------";
-        }
-    }
-
     static void get_OpenGL_version(int& major, int& minor) {
         const auto versionStr = reinterpret_cast<const char*>(glGetString(GL_VERSION));
         if (!versionStr) {

@@ -33,19 +33,19 @@
 /* --- DEFAULTS --- */
 
 #define DEFAULT                           (-1)
-#define DEFAULT_NUMBER_OF_INPUT_CHANNELS  1 // TODO make this configurable
-#define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2 // TODO make this configurable
+// #define DEFAULT_NUMBER_OF_INPUT_CHANNELS  1 // TODO make this configurable
+// #define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2 // TODO make this configurable
 #define DEFAULT_WINDOW_WIDTH              1024
 #define DEFAULT_WINDOW_HEIGHT             768
 #define DEFAULT_WINDOW_TITLE              "Umgebung"
 
-#ifndef DEFAULT_AUDIO_SAMPLE_RATE
-#define DEFAULT_AUDIO_SAMPLE_RATE 48000 // TODO make this configurable
-#endif
+// #ifndef DEFAULT_AUDIO_SAMPLE_RATE
+// #define DEFAULT_AUDIO_SAMPLE_RATE 48000 // TODO make this configurable
+// #endif
 
-#ifndef DEFAULT_FRAMES_PER_BUFFER
-#define DEFAULT_FRAMES_PER_BUFFER 2048 // TODO make this configurable
-#endif
+// #ifndef DEFAULT_FRAMES_PER_BUFFER
+// #define DEFAULT_FRAMES_PER_BUFFER 2048 // TODO make this configurable
+// #endif
 
 /* --- UMGEBUNG_WINDOW_TITLE --- */
 

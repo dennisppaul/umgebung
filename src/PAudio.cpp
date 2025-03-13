@@ -23,10 +23,10 @@
 using namespace umgebung;
 
 PAudio::PAudio(const AudioDeviceInfo* device_info) : AudioDeviceInfo(*device_info) {
-    console("created audio device: ");
-    console("name       : ", name);
-    console("id         : ", id);
-    console("sample_rate: ", sample_rate);
+    // console("PAudio / created audio device: ");
+    // console("name       : ", name);
+    // console("id         : ", (id == DEFAULT_AUDIO_DEVICE ? "DEFAULT_AUDIO_DEVICE" : (id == FIND_AUDIO_DEVICE_BY_NAME ? "FIND_AUDIO_DEVICE_BY_NAME" : std::to_string(id))));
+    // console("sample_rate: ", sample_rate);
 }
 
 void PAudio::copy_input_buffer_to_output_buffer() const {

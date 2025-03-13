@@ -23,22 +23,20 @@
 
 namespace umgebung {
     struct AudioDeviceInfo {
-        int         id;
-        float**     input_buffer; // TODO should this go to PAudio?
-        int         input_channels;
-        float**     output_buffer; // TODO should this go to PAudio?
-        int         output_channels;
-        int         buffer_size;
-        int         sample_rate;
-        int         format;
+        int    id{DEFAULT_AUDIO_DEVICE};
+        float* input_buffer{nullptr}; // TODO should this go to PAudio?
+        int    input_channels{0};
+        float* output_buffer{nullptr}; // TODO should this go to PAudio?
+        int    output_channels{0};
+        int    buffer_size{DEFAULT_AUDIO_BUFFER_SIZE};
+        int    sample_rate{DEFAULT_SAMPLE_RATE};
+        // int         format; // TODO currently supporting F32
         std::string name;
     };
 
     class PAudio : public AudioDeviceInfo {
     public:
         explicit PAudio(const AudioDeviceInfo* device_info);
-         // PAudio(const AudioDeviceInfo* device_info) : AudioDeviceInfo(*device_info);
-
         void copy_input_buffer_to_output_buffer() const;
     };
 } // namespace umgebung
