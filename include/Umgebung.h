@@ -32,8 +32,8 @@ namespace umgebung {
 
     inline bool always_on_top       = false;
     inline int  antialiasing        = DEFAULT;
-    inline int  audio_input_device  = DEFAULT_AUDIO_DEVICE;
-    inline int  audio_output_device = DEFAULT_AUDIO_DEVICE;
+    inline int  audio_input_device  = AUDIO_DEVICE_DEFAULT;
+    inline int  audio_output_device = AUDIO_DEVICE_DEFAULT;
     inline bool borderless          = false;
     inline int  display             = DEFAULT;
     inline bool fullscreen          = false;
@@ -63,7 +63,7 @@ namespace umgebung {
     inline int        pixelWidth          = 1;
     inline PAudio*    a                   = nullptr; // audio
     inline bool       enable_audio        = true;
-    inline int        audio_device_id     = DEFAULT_AUDIO_DEVICE;
+    inline int        audio_device_id     = AUDIO_DEVICE_DEFAULT;
     inline int        input_channels      = 0; // TODO populate with default values
     inline float*     audio_input_buffer  = nullptr;
     inline int        output_channels     = 0;

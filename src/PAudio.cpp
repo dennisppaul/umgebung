@@ -22,15 +22,12 @@
 
 using namespace umgebung;
 
-PAudio::PAudio(const AudioDeviceInfo* device_info) : AudioDeviceInfo(*device_info) {
-    // console("PAudio / created audio device: ");
-    // console("name       : ", name);
-    // console("id         : ", (id == DEFAULT_AUDIO_DEVICE ? "DEFAULT_AUDIO_DEVICE" : (id == FIND_AUDIO_DEVICE_BY_NAME ? "FIND_AUDIO_DEVICE_BY_NAME" : std::to_string(id))));
-    // console("sample_rate: ", sample_rate);
-}
+PAudio::PAudio(const AudioDeviceInfo* device_info) : AudioDeviceInfo(*device_info) {}
 
 void PAudio::copy_input_buffer_to_output_buffer() const {
-    std::memcpy(output_buffer,                                 // destination
-                input_buffer,                                  // source
-                input_channels * buffer_size * sizeof(float)); // size
+    if (umgebung::output_channels == umgebung::input_channels) {
+        std::memcpy(output_buffer,                                 // destination
+                    input_buffer,                                  // source
+                    input_channels * buffer_size * sizeof(float)); // size
+    }
 }

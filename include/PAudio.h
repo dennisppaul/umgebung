@@ -23,14 +23,38 @@
 
 namespace umgebung {
     struct AudioDeviceInfo {
-        int    id{DEFAULT_AUDIO_DEVICE};
-        float* input_buffer{nullptr}; // TODO should this go to PAudio?
+        /** device id as specified by audio driver.
+         * to use the default device as selected in system preferences set to `AUDIO_DEVICE_DEFAULT`:
+         * <code>
+         * audio_device_info.id   = AUDIO_DEVICE_DEFAULT;
+         * </code>
+         * to identify the device by name set to `FIND_AUDIO_DEVICE_BY_NAME`:
+         * <code>
+         * audio_device_info.id   = FIND_AUDIO_DEVICE_BY_NAME;
+         * </code>
+         * might be reset by audio system.
+         */
+        int id{AUDIO_DEVICE_DEFAULT};
+        /** buffer for audio input samples. buffer is interleaved, i.e. samples for each channel are contiguous in memory. */
+        float* input_buffer{nullptr};
         int    input_channels{0};
-        float* output_buffer{nullptr}; // TODO should this go to PAudio?
+        /** buffer for audio output samples. buffer is interleaved, i.e. samples for each channel are contiguous in memory. */
+        float* output_buffer{nullptr};
         int    output_channels{0};
-        int    buffer_size{DEFAULT_AUDIO_BUFFER_SIZE};
-        int    sample_rate{DEFAULT_SAMPLE_RATE};
-        // int         format; // TODO currently supporting F32
+        /** number of samples per channel ( also referred to as *frames* )
+         * e.g for a 2 channel device with `output_channels = 2` length of `output_buffer` length is `output_channels * buffer_size`
+         */
+        int buffer_size{DEFAULT_AUDIO_BUFFER_SIZE}; // TODO this defines the size in samples per channel. research if it is good that it s the same for input and out buffer
+        int sample_rate{DEFAULT_SAMPLE_RATE};
+        // int         format; // TODO currently supporting F32 only
+        /** name of the audio device.
+         * if audio device is supposed to be intialized by this name make sure to set `id` to `FIND_AUDIO_DEVICE_BY_NAME`.
+         * <code>
+         * audio_device_info.id   = FIND_AUDIO_DEVICE_BY_NAME;
+         * audio_device_info.name = "MacBook";
+         * </code>
+         * might be reset by audio system if device is intialized by `id`.
+         */
         std::string name;
     };
 

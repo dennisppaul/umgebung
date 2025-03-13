@@ -123,7 +123,7 @@ namespace umgebung {
     static void init_audio(int input_channels, int output_channels) {
         PaError err;
 
-        if (audio_input_device == DEFAULT_AUDIO_DEVICE && audio_output_device == DEFAULT_AUDIO_DEVICE) {
+        if (audio_input_device == AUDIO_DEVICE_DEFAULT && audio_output_device == AUDIO_DEVICE_DEFAULT) {
             std::cout << "Opening default audio device." << std::endl;
             err = Pa_OpenDefaultStream(&stream,
                                        input_channels,
