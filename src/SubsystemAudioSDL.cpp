@@ -41,6 +41,7 @@ namespace umgebung {
     // static bool _audio_device_callback_mode = false;
 
     static void setup_pre() {}
+    static void setup_post() {}
     static void draw_pre() {}
     static void draw_post() {}
     static void event(SDL_Event* event) {}
@@ -244,7 +245,7 @@ namespace umgebung {
         // TODO see https://github.com/libsdl-org/SDL/blob/main/examples/audio
 
         separator_headline();
-        console("initializing audio system");
+        console("initializing SDL audio system");
         separator_headline();
         get_audio_info();
 
@@ -331,11 +332,6 @@ namespace umgebung {
             // TODO maybe do this on device level:
             // SDL_ResumeAudioDevice(_paudio_sdl->logical_output_device_id);
         }
-    }
-
-    static void setup_post() {
-        // TODO decide if audio should be started here or later by client
-        // start(a);
     }
 
     static void loop() {
@@ -465,7 +461,7 @@ namespace umgebung {
         // }
 
         if (device->input_channels < 1 && device->output_channels < 1) {
-            error("either input channels or output channels must be greater than 0.",
+            error("either input channels or output channels must be greater than 0. ",
                   "not creating audio device: ", device->input_device_name, "/", device->output_device_name);
             return;
         }

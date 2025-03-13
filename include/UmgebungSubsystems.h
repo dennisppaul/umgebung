@@ -76,3 +76,4 @@ umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_sdl2d();
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv20();
 umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv33();
 umgebung::SubsystemAudio*    umgebung_subsystem_audio_create_sdl();
+umgebung::SubsystemAudio*    umgebung_subsystem_audio_create_portaudio();

@@ -24,8 +24,18 @@
 #include <utility>
 #include "portaudio.h"
 
-#ifdef IMPLEMENT_PORT_AUDIO
 namespace umgebung {
+
+    static void setup_pre() {}
+    static void setup_post() {}
+    static void draw_pre() {}
+    static void draw_post() {}
+    static void event(SDL_Event* event) {}
+
+    static void set_flags(uint32_t& subsystem_flags) {
+        subsystem_flags |= SDL_INIT_AUDIO;
+    }
+
     static PaStream* stream;
 
     static int audioCallback(const void* inputBuffer, void* outputBuffer,
@@ -39,41 +49,41 @@ namespace umgebung {
         // assuming the sample format is paFloat32
         auto in  = static_cast<const float*>(inputBuffer);
         auto out = static_cast<float*>(outputBuffer);
-
-        // create 2D arrays on stack for input and output
-        std::vector<std::vector<float>> inputArray(audio_input_channels, std::vector<float>(framesPerBuffer));
-        std::vector<std::vector<float>> outputArray(audio_output_channels, std::vector<float>(framesPerBuffer));
-
-        // pointers array to pass to processing function
-        std::vector<float*> inputPtrs(audio_input_channels);
-        std::vector<float*> outputPtrs(audio_output_channels);
-
-        // fill input arrays from input buffer and setup pointers
-        for (unsigned int ch = 0; ch < audio_input_channels; ++ch) {
-            inputPtrs[ch] = inputArray[ch].data();
-            for (unsigned long i = 0; i < framesPerBuffer; ++i) {
-                if (audio_input_channels > 0) {
-                    inputArray[ch][i] = in[i * audio_input_channels + ch];
-                }
-            }
-        }
-
-        // setup output pointers
-        for (unsigned int ch = 0; ch < audio_output_channels; ++ch) {
-            outputPtrs[ch] = outputArray[ch].data();
-        }
-
-        // process audio block
-        if (fApplet != nullptr) {
-            fApplet->audioblock(inputPtrs.data(), outputPtrs.data(), static_cast<int>(framesPerBuffer));
-        }
-
-        // write processed output to output buffer
-        for (unsigned int ch = 0; ch < audio_output_channels; ++ch) {
-            for (unsigned long i = 0; i < framesPerBuffer; ++i) {
-                out[i * audio_output_channels + ch] = outputArray[ch][i];
-            }
-        }
+        //
+        // // create 2D arrays on stack for input and output
+        // std::vector<std::vector<float>> inputArray(audio_input_channels, std::vector<float>(framesPerBuffer));
+        // std::vector<std::vector<float>> outputArray(audio_output_channels, std::vector<float>(framesPerBuffer));
+        //
+        // // pointers array to pass to processing function
+        // std::vector<float*> inputPtrs(audio_input_channels);
+        // std::vector<float*> outputPtrs(audio_output_channels);
+        //
+        // // fill input arrays from input buffer and setup pointers
+        // for (unsigned int ch = 0; ch < audio_input_channels; ++ch) {
+        //     inputPtrs[ch] = inputArray[ch].data();
+        //     for (unsigned long i = 0; i < framesPerBuffer; ++i) {
+        //         if (audio_input_channels > 0) {
+        //             inputArray[ch][i] = in[i * audio_input_channels + ch];
+        //         }
+        //     }
+        // }
+        //
+        // // setup output pointers
+        // for (unsigned int ch = 0; ch < audio_output_channels; ++ch) {
+        //     outputPtrs[ch] = outputArray[ch].data();
+        // }
+        //
+        // // process audio block
+        // if (fApplet != nullptr) {
+        //     fApplet->audioblock(inputPtrs.data(), outputPtrs.data(), static_cast<int>(framesPerBuffer));
+        // }
+        //
+        // // write processed output to output buffer
+        // for (unsigned int ch = 0; ch < audio_output_channels; ++ch) {
+        //     for (unsigned long i = 0; i < framesPerBuffer; ++i) {
+        //         out[i * audio_output_channels + ch] = outputArray[ch][i];
+        //     }
+        // }
         return paContinue;
     }
 
@@ -120,7 +130,10 @@ namespace umgebung {
         return 0;
     }
 
-    static void init_audio(int input_channels, int output_channels) {
+    static void init_audio(int           input_channels,
+                           int           output_channels,
+                           double        audio_sample_rate,
+                           unsigned long audio_samples_per_frame) {
         PaError err;
 
         if (audio_input_device == AUDIO_DEVICE_DEFAULT && audio_output_device == AUDIO_DEVICE_DEFAULT) {
@@ -178,6 +191,7 @@ namespace umgebung {
                                 nullptr);
             std::cout << "OK." << std::endl;
         }
+
         if (err != paNoError) {
             std::cerr << "+++ error when opening stream: " << Pa_GetErrorText(err) << std::endl;
             return;
@@ -190,20 +204,39 @@ namespace umgebung {
         }
     }
 
-#if (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_PORTAUDIO)
-    static int run_application(std::vector<std::string> args) {
-        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-            std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
-            return 1;
-        }
-        PaError err;
-        err = Pa_Initialize();
-        if (err != paNoError) {
-            std::cerr << "Error message: " << Pa_GetErrorText(err) << std::endl;
-            return -1;
-        }
+    static PAudio* create_audio(const AudioUnitInfo* device_info) {
+        const auto audio_device = new PAudio{device_info};
+        // register_audio_devices(audio_device);
+        audio_device->input_buffer  = new float[audio_device->input_channels * audio_device->buffer_size]{};
+        audio_device->output_buffer = new float[audio_device->output_channels * audio_device->buffer_size]{};
+        return audio_device;
     }
-#endif // UMGEBUNG_AUDIO_DRIVER
+
+    static bool init() {
+        // NOTE not sure if we should use the AudioStream concept. currently the mental model
+        //     is slightly different: a subsystem correlates to an audio driver ( e.g SDL or PortAudio )
+        //     and the actual audio devices are represented by `PAudio`. so each `create_audio` call
+        //     would need to open a device and create a single stream for that device. this is different
+        //     from `PGraphics` and graphics susbsytem where we have a single window and multiple contexts.
+
+        // TODO see https://github.com/libsdl-org/SDL/blob/main/examples/audio
+
+        console("initializing PortAudio audio system");
+        const PaError err = Pa_Initialize();
+        if (err != paNoError) {
+            error("Error message: ", Pa_GetErrorText(err));
+            return false;
+        }
+
+        print_audio_devices();
+
+        return true;
+    }
+
+    static void loop() {}
+    static void shutdown() {}
+    static void start(PAudio* device) {}
+    static void stop(PAudio* device) {}
 
 } // namespace umgebung
 
@@ -219,6 +252,7 @@ umgebung::SubsystemAudio* umgebung_subsystem_audio_create_portaudio() { // TODO 
     audio->shutdown     = umgebung::shutdown;
     audio->event        = umgebung::event;
     audio->create_audio = umgebung::create_audio;
+    audio->start        = umgebung::start;
+    audio->stop         = umgebung::stop;
     return audio;
 }
-#endif // IMPLEMENT_PORT_AUDIO
