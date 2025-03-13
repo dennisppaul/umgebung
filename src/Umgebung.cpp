@@ -137,24 +137,24 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     if (umgebung::enable_graphics) {
         if (umgebung::subsystem_graphics == nullptr) {
             if (umgebung::create_subsystem_graphics != nullptr) {
-                umgebung::console("creating graphics subsystem with callback.");
+                umgebung::console("+++ creating graphics subsystem with callback.");
                 umgebung::subsystem_graphics = umgebung::create_subsystem_graphics();
             } else {
-                umgebung::console("No graphics subsystem provided, using default.");
+                umgebung::console("+++ no graphics subsystem provided, using default.");
                 // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_sdl2d();
                 // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
                 umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
             }
             if (umgebung::subsystem_graphics == nullptr) {
-                umgebung::console("Did not create graphics subsystem.");
+                umgebung::console("+++ did not create graphics subsystem.");
             }
         } else {
-            umgebung::console("Client provided graphics subsystem.");
+            umgebung::console("+++ client provided graphics subsystem.");
         }
         // TODO check if this causes any problem … but it could nicely clean up things!!!
         // umgebung::subsystems.push_back(umgebung::subsystem_graphics);
     } else {
-        umgebung::console("graphics disabled.");
+        umgebung::console("+++ graphics disabled.");
     }
 
     /* check audio subsystem */
@@ -176,7 +176,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         umgebung::console("+++ adding audio subsystem.");
         umgebung::subsystems.push_back(umgebung::subsystem_audio);
     } else {
-        umgebung::console("audio disabled.");
+        umgebung::console("+++ audio disabled.");
     }
 
 
@@ -234,8 +234,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     if (umgebung::subsystem_audio != nullptr) {
         if (umgebung::subsystem_audio->create_audio != nullptr) {
             // NOTE fill in the values from `Umgebung.h`
-            umgebung::AudioDeviceInfo ai;
-            ai.id              = umgebung::audio_device_id;
+            umgebung::AudioUnitInfo ai;
             ai.input_buffer    = nullptr;
             ai.input_channels  = umgebung::input_channels;
             ai.output_buffer   = nullptr;
@@ -245,8 +244,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
             // TODO currently finding a device by name does not work
             // ai.name                       = "";
             umgebung::a = umgebung::subsystem_audio->create_audio(&ai);
-            // NOTE copy back values after initialization
-            umgebung::audio_device_id     = umgebung::a->id;
+            // NOTE copy values back to global variables after initialization … a bit hackish but well.
+            umgebung::audio_device_id     = umgebung::a->unique_id; // NOTE this is assigned by the subsystem
             umgebung::audio_input_buffer  = umgebung::a->input_buffer;
             umgebung::input_channels      = umgebung::a->input_channels;
             umgebung::audio_output_buffer = umgebung::a->output_buffer;

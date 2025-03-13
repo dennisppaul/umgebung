@@ -410,7 +410,7 @@ namespace umgebung {
         return subsystem_graphics->create_graphics(true); // TODO make this an option?
     }
 
-    PAudio* createAudio(const AudioDeviceInfo* device_info) {
+    PAudio* createAudio(const AudioUnitInfo* device_info) {
         if (subsystem_audio == nullptr) {
             return nullptr;
         }

@@ -26,6 +26,7 @@
 #include <string>
 
 #include "UmgebungDefines.h"
+#include "UmgebungConstants.h"
 
 namespace umgebung {
 
@@ -41,7 +42,7 @@ namespace umgebung {
     int                      get_int_from_argument(const std::string& argument);
     std::string              get_string_from_argument(const std::string& argument);
     std::string              timestamp();
-    void                     audio(int input_channels, int output_channels, int sample_rate, int buffer_size=1024);
+    void                     audio(int input_channels, int output_channels, int sample_rate, int buffer_size = 1024, int device_id = AUDIO_DEVICE_DEFAULT);
     void                     audio_start(PAudio* device = nullptr);
     void                     audio_stop(PAudio* device = nullptr);
 

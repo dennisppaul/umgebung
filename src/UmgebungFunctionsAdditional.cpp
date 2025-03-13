@@ -148,11 +148,12 @@ namespace umgebung {
         return oss.str();
     }
 
-    void audio(const int input_channels, const int output_channels, const int sample_rate, const int buffer_size) {
+    auto audio(const int input_channels, const int output_channels, const int sample_rate, const int buffer_size, const int device_id) -> void {
         umgebung::input_channels    = input_channels;
         umgebung::output_channels   = output_channels;
         umgebung::sample_rate       = sample_rate;
         umgebung::audio_buffer_size = buffer_size;
+        umgebung::audio_device_id   = device_id;
     }
 
     void audio_start(PAudio* device) {

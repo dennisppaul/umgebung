@@ -22,7 +22,7 @@
 
 using namespace umgebung;
 
-PAudio::PAudio(const AudioDeviceInfo* device_info) : AudioDeviceInfo(*device_info) {}
+PAudio::PAudio(const AudioUnitInfo* device_info) : AudioUnitInfo(*device_info) {}
 
 void PAudio::copy_input_buffer_to_output_buffer() const {
     if (umgebung::output_channels == umgebung::input_channels) {

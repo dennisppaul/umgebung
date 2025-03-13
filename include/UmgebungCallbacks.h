@@ -45,5 +45,5 @@ WEAK void mouseWheel(float x, float y);
 WEAK void dropped(const char* dropped_filedir);
 WEAK bool sdl_event(const SDL_Event& event);
 WEAK void windowResized(int width, int height);
-WEAK void audioEvent(const umgebung::AudioDeviceInfo& device);
+WEAK void audioEvent(const umgebung::AudioUnitInfo& device);
 WEAK void audioEvent();

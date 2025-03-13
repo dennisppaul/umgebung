@@ -119,5 +119,5 @@ namespace umgebung {
     std::string trim(const std::string& str);
 
     PGraphics* createGraphics();
-    PAudio*    createAudio(const AudioDeviceInfo* device_info);
+    PAudio*    createAudio(const AudioUnitInfo* device_info);
 } // namespace umgebung

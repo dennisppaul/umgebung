@@ -22,7 +22,7 @@
 #include <string>
 
 namespace umgebung {
-    struct AudioDeviceInfo {
+    struct AudioUnitInfo {
         /** device id as specified by audio driver.
          * to use the default device as selected in system preferences set to `AUDIO_DEVICE_DEFAULT`:
          * <code>
@@ -34,7 +34,7 @@ namespace umgebung {
          * </code>
          * might be reset by audio system.
          */
-        int id{AUDIO_DEVICE_DEFAULT};
+        int unique_id{AUDIO_DEVICE_NOT_INITIALIZED};
         /** buffer for audio input samples. buffer is interleaved, i.e. samples for each channel are contiguous in memory. */
         float* input_buffer{nullptr};
         int    input_channels{0};
@@ -55,12 +55,15 @@ namespace umgebung {
          * </code>
          * might be reset by audio system if device is intialized by `id`.
          */
-        std::string name;
+        // TODO does this really make sense how e.g does portaudio handle this? also 2 names for in and output … i think not
+        std::string input_device_name;
+        std::string output_device_name;
+        // std::string unit_name; // TODO maybe better do it like this but how do we then choose the device?
     };
 
-    class PAudio : public AudioDeviceInfo {
+    class PAudio : public AudioUnitInfo {
     public:
-        explicit PAudio(const AudioDeviceInfo* device_info);
+        explicit PAudio(const AudioUnitInfo* device_info);
         void copy_input_buffer_to_output_buffer() const;
     };
 } // namespace umgebung
