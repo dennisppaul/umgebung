@@ -46,5 +46,5 @@ WEAK void mouseWheel(const float x, const float y) { LOG_MSG("default mouseWheel
 WEAK void dropped(const char* dropped_filedir) { LOG_MSG("default dropped"); }
 WEAK bool sdl_event(const SDL_Event& event) { LOG_MSG("sdl event"); return false; }
 WEAK void windowResized(int width, int height) {}
-WEAK void audioEvent(const umgebung::AudioUnitInfo& device) {}
+WEAK void audioEvent(const umgebung::PAudio& device) {}
 WEAK void audioEvent() { /* NOTE same as above but for default audio device */ }

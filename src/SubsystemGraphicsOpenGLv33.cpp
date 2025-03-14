@@ -306,7 +306,7 @@ namespace umgebung {
 
 } // namespace umgebung
 
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv33() {
+umgebung::SubsystemGraphics* umgebung_subsystem_graphics_openglv33_create() {
     auto* graphics            = new umgebung::SubsystemGraphics{};
     graphics->set_flags       = umgebung::set_flags;
     graphics->init            = umgebung::init;

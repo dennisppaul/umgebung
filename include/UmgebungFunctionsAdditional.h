@@ -31,6 +31,7 @@
 namespace umgebung {
 
     class PAudio;
+    struct AudioUnitInfo;
 
     bool                     begins_with(const std::string& str, const std::string& prefix);
     void                     color_inv(uint32_t color, float& r, float& g, float& b, float& a);
@@ -42,7 +43,19 @@ namespace umgebung {
     int                      get_int_from_argument(const std::string& argument);
     std::string              get_string_from_argument(const std::string& argument);
     std::string              timestamp();
-    void                     audio(int input_channels, int output_channels, int sample_rate, int buffer_size = 1024, int device_id = AUDIO_DEVICE_DEFAULT);
+    void                     audio(int input_channels  = DEFAULT_INPUT_CHANNELS,
+                                   int output_channels = DEFAULT_OUTPUT_CHANNELS,
+                                   int sample_rate     = DEFAULT_SAMPLE_RATE,
+                                   int buffer_size     = DEFAULT_AUDIO_BUFFER_SIZE,
+                                   int input_device    = DEFAULT_AUDIO_DEVICE,
+                                   int output_device   = DEFAULT_AUDIO_DEVICE);
+    void                     audio(int                input_channels,
+                                   int                output_channels,
+                                   int                sample_rate,
+                                   int                buffer_size,
+                                   const std::string& input_device_name,
+                                   const std::string& output_device_name);
+    void                     audio(const AudioUnitInfo& info);
     void                     audio_start(PAudio* device = nullptr);
     void                     audio_stop(PAudio* device = nullptr);
 

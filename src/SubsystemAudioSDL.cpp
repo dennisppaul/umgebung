@@ -18,7 +18,7 @@
  */
 
 #include "Umgebung.h"
-#include "UmgebungSubsystems.h"
+#include "Subsystems.h"
 #include "PAudio.h"
 
 namespace umgebung {
@@ -242,8 +242,6 @@ namespace umgebung {
         //     would need to open a device and create a single stream for that device. this is different
         //     from `PGraphics` and graphics susbsytem where we have a single window and multiple contexts.
 
-        // TODO see https://github.com/libsdl-org/SDL/blob/main/examples/audio
-
         separator_headline();
         console("initializing SDL audio system");
         separator_headline();
@@ -435,7 +433,7 @@ namespace umgebung {
         //     device->input_channels = 0;
         // }
 
-        // if (device->id == AUDIO_DEVICE_DEFAULT) {
+        // if (device->id == DEFAULT_AUDIO_DEVICE) {
         //     console("trying to create default audio device");
         //     if (device->input_channels > 0) {
         //         device->id = SDL_AUDIO_DEVICE_DEFAULT_RECORDING;
@@ -456,7 +454,7 @@ namespace umgebung {
         //     const int _id = find_audio_devices_by_name(_devices_found, device->name);
         //     if (_id == AUDIO_DEVICE_NOT_FOUND) {
         //         console("did not find audio device '", device->name, "' trying default device");
-        //         device->id = AUDIO_DEVICE_DEFAULT;
+        //         device->id = DEFAULT_AUDIO_DEVICE;
         //     }
         // }
 
@@ -466,9 +464,9 @@ namespace umgebung {
             return;
         }
 
-
         /* find and open audio devices and streams */
 
+        // ReSharper disable once CppDFAMemoryLeak
         const auto _device = new PAudioSDL();
 
         warning("currently only default devices are supported");
@@ -481,7 +479,7 @@ namespace umgebung {
             // std::vector<AudioUnitInfoSDL> _devices_found;
             // find_audio_input_devices(_devices_found);
             // TODO find logical id from name … or name
-            console("currently only default devices are supported");
+            warning("currently only default devices are supported");
             SDL_AudioSpec stream_specs; // NOTE these will be used as stream specs for input and output streams
             SDL_zero(stream_specs);
             stream_specs.format              = SDL_AUDIO_F32; // NOTE currently only F32 is supported
@@ -489,7 +487,6 @@ namespace umgebung {
             stream_specs.channels            = device->input_channels;
             _device->logical_input_device_id = SDL_OpenAudioDevice(_device->logical_input_device_id, nullptr);
             _device->sdl_input_stream        = SDL_CreateAudioStream(nullptr, &stream_specs);
-            // _device->sdl_input_stream        = SDL_CreateAudioStream(&stream_specs, nullptr);
             if (_device->sdl_input_stream != nullptr && _device->logical_input_device_id > 0) {
                 console("created audio input: ", _device->logical_input_device_id);
                 /* --- */
@@ -548,7 +545,7 @@ namespace umgebung {
 
         const char* _input_device_name = SDL_GetAudioDeviceName(_device->logical_input_device_id);
         if (_input_device_name == nullptr) {
-            device->input_device_name = "(nA)"; // TODO can we need to do better than that?
+            device->input_device_name = DEFAULT_AUDIO_DEVICE_NOT_USED; // TODO can we need to do better than that?
         } else {
             if (device->input_device_name != _input_device_name) {
                 console("updating input device name from '", device->input_device_name, "' to '", _input_device_name, "'");
@@ -558,7 +555,7 @@ namespace umgebung {
 
         const char* _output_device_name = SDL_GetAudioDeviceName(_device->logical_output_device_id);
         if (_output_device_name == nullptr) {
-            device->output_device_name = "(nA)"; // TODO can we need to do better than that?
+            device->output_device_name = DEFAULT_AUDIO_DEVICE_NOT_USED; // TODO can we need to do better than that?
         } else {
             if (device->output_device_name != _output_device_name) {
                 console("updating output device name from '", device->output_device_name, "' to '", _output_device_name, "'");
@@ -580,7 +577,7 @@ namespace umgebung {
     }
 } // namespace umgebung
 
-umgebung::SubsystemAudio* umgebung_subsystem_audio_create_sdl() {
+umgebung::SubsystemAudio* umgebung_subsystem_audio_sdl_create() {
     auto* audio         = new umgebung::SubsystemAudio{};
     audio->set_flags    = umgebung::set_flags;
     audio->init         = umgebung::init;

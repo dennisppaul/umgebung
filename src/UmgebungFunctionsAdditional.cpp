@@ -148,17 +148,59 @@ namespace umgebung {
         return oss.str();
     }
 
-    auto audio(const int input_channels, const int output_channels, const int sample_rate, const int buffer_size, const int device_id) -> void {
+    void audio(const int input_channels,
+               const int output_channels,
+               const int sample_rate,
+               const int buffer_size,
+               const int input_device,
+               const int output_device) {
         if (is_initialized()) {
             warning("`audio()` must be called before or within `settings()`.");
             return;
         }
-        umgebung::enable_audio = true;
-        umgebung::input_channels    = input_channels;
-        umgebung::output_channels   = output_channels;
-        umgebung::sample_rate       = sample_rate;
-        umgebung::audio_buffer_size = buffer_size;
-        umgebung::audio_unit_id   = device_id;
+        umgebung::enable_audio           = true;
+        umgebung::input_channels         = input_channels;
+        umgebung::output_channels        = output_channels;
+        umgebung::sample_rate            = sample_rate;
+        umgebung::audio_buffer_size      = buffer_size;
+        umgebung::audio_input_device_id  = input_device;
+        umgebung::audio_output_device_id = output_device;
+    }
+
+    void audio(const int          input_channels,
+               const int          output_channels,
+               const int          sample_rate,
+               const int          buffer_size,
+               const std::string& input_device_name,
+               const std::string& output_device_name) {
+        if (is_initialized()) {
+            warning("`audio()` must be called before or within `settings()`.");
+            return;
+        }
+        umgebung::enable_audio             = true;
+        umgebung::input_channels           = input_channels;
+        umgebung::output_channels          = output_channels;
+        umgebung::sample_rate              = sample_rate;
+        umgebung::audio_buffer_size        = buffer_size;
+        umgebung::audio_input_device_id    = AUDIO_DEVICE_FIND_BY_NAME;
+        umgebung::audio_output_device_id   = AUDIO_DEVICE_FIND_BY_NAME;
+        umgebung::audio_input_device_name  = input_device_name;
+        umgebung::audio_output_device_name = output_device_name;
+    }
+    void audio(const AudioUnitInfo& info) {
+        if (is_initialized()) {
+            warning("`audio()` must be called before or within `settings()`.");
+            return;
+        }
+        umgebung::enable_audio             = true;
+        umgebung::audio_input_device_id    = info.input_device_id;
+        umgebung::audio_input_device_name  = info.input_device_name;
+        umgebung::input_channels           = info.input_channels;
+        umgebung::audio_output_device_id   = info.output_device_id;
+        umgebung::audio_output_device_name = info.output_device_name;
+        umgebung::output_channels          = info.output_channels;
+        umgebung::audio_buffer_size        = info.buffer_size;
+        umgebung::sample_rate              = info.sample_rate;
     }
 
     void audio_start(PAudio* device) {

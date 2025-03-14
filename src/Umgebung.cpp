@@ -141,9 +141,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
                 umgebung::subsystem_graphics = umgebung::create_subsystem_graphics();
             } else {
                 umgebung::console("+++ no graphics subsystem provided, using default.");
-                // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_sdl2d();
-                // umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv20();
-                umgebung::subsystem_graphics = umgebung_subsystem_graphics_create_openglv33();
+                // umgebung::subsystem_graphics = umgebung_subsystem_graphics_sdl2d_create();
+                // umgebung::subsystem_graphics = umgebung_subsystem_graphics_openglv20_create();
+                umgebung::subsystem_graphics = umgebung_subsystem_graphics_openglv33_create();
             }
             if (umgebung::subsystem_graphics == nullptr) {
                 umgebung::console("+++ did not create graphics subsystem.");
@@ -165,7 +165,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
                 umgebung::subsystem_audio = umgebung::create_subsystem_audio();
             } else {
                 umgebung::console("+++ no audio subsystem provided, using default.");
-                umgebung::subsystem_audio = umgebung_subsystem_audio_create_sdl();
+                umgebung::subsystem_audio = umgebung_subsystem_audio_sdl_create();
             }
             if (umgebung::subsystem_audio == nullptr) {
                 umgebung::console("+++ did not create audio subsystem.");
@@ -178,7 +178,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     } else {
         umgebung::console("+++ audio disabled.");
     }
-
 
     /* 2. initialize SDL */
 
@@ -208,12 +207,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     SDL_SetAppMetadata("Umgebung Application", "1.0", "de.dennisppaul.umgebung.application");
 
     /* 3. initialize graphics */
-    // - init
+    /* - init */
     if (umgebung::subsystem_graphics != nullptr) {
         if (umgebung::subsystem_graphics->init != nullptr) {
             if (!umgebung::subsystem_graphics->init()) {
                 SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
-                // return SDL_APP_FAILURE;
             }
         }
     }
@@ -223,7 +221,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
             if (subsystem->init != nullptr) {
                 if (!subsystem->init()) {
                     umgebung::warning("Couldn't initialize subsystem.");
-                    // return SDL_APP_FAILURE;
                 }
             }
         }
@@ -241,23 +238,26 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         if (umgebung::subsystem_audio != nullptr) {
             if (umgebung::subsystem_audio->create_audio != nullptr) {
                 // NOTE fill in the values from `Umgebung.h`
-                umgebung::AudioUnitInfo ai;
-                ai.input_buffer    = nullptr;
-                ai.input_channels  = umgebung::input_channels;
-                ai.output_buffer   = nullptr;
-                ai.output_channels = umgebung::output_channels;
-                ai.buffer_size     = umgebung::audio_buffer_size;
-                ai.sample_rate     = umgebung::sample_rate;
-                // TODO currently finding a device by name does not work
-                // ai.name                       = "";
-                umgebung::a = umgebung::subsystem_audio->create_audio(&ai);
+                umgebung::AudioUnitInfo _audio_unit_info;
+                // _audio_unit_info.unique_id       = 0; // NOTE set by subsystem
+                _audio_unit_info.input_buffer       = nullptr;
+                _audio_unit_info.input_channels     = umgebung::input_channels;
+                _audio_unit_info.output_buffer      = nullptr;
+                _audio_unit_info.output_channels    = umgebung::output_channels;
+                _audio_unit_info.buffer_size        = umgebung::audio_buffer_size;
+                _audio_unit_info.sample_rate        = umgebung::sample_rate;
+                _audio_unit_info.input_device_id    = umgebung::audio_input_device_id;
+                _audio_unit_info.input_device_name  = umgebung::audio_input_device_name;
+                _audio_unit_info.output_device_id   = umgebung::audio_output_device_id;
+                _audio_unit_info.output_device_name = umgebung::audio_output_device_name;
+                umgebung::a                         = umgebung::subsystem_audio->create_audio(&_audio_unit_info);
             }
         }
     }
 
     umgebung::initialized = true;
 
-    // - setup_pre
+    /* - setup_pre */
 
     if (umgebung::subsystem_graphics != nullptr) {
         if (umgebung::subsystem_graphics->setup_pre != nullptr) {
@@ -285,18 +285,21 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     }
     if (umgebung::a != nullptr && umgebung::enable_audio) {
         // NOTE copy values back to global variables after initialization … a bit hackish but well.
-        umgebung::audio_unit_id       = umgebung::a->unique_id; // NOTE this is assigned by the subsystem
-        umgebung::audio_input_buffer  = umgebung::a->input_buffer;
-        umgebung::input_channels      = umgebung::a->input_channels;
-        umgebung::audio_output_buffer = umgebung::a->output_buffer;
-        umgebung::output_channels     = umgebung::a->output_channels;
-        umgebung::audio_buffer_size   = umgebung::a->buffer_size;
-        umgebung::sample_rate         = umgebung::a->sample_rate;
+        umgebung::audio_input_buffer       = umgebung::a->input_buffer;
+        umgebung::input_channels           = umgebung::a->input_channels;
+        umgebung::audio_output_buffer      = umgebung::a->output_buffer;
+        umgebung::output_channels          = umgebung::a->output_channels;
+        umgebung::audio_buffer_size        = umgebung::a->buffer_size;
+        umgebung::sample_rate              = umgebung::a->sample_rate;
+        umgebung::audio_input_device_id    = umgebung::a->input_device_id;
+        umgebung::audio_input_device_name  = umgebung::a->input_device_name;
+        umgebung::audio_output_device_id   = umgebung::a->output_device_id;
+        umgebung::audio_output_device_name = umgebung::a->output_device_name;
     }
 
     setup();
 
-    // - setup_post
+    /* - setup_post */
 
     if (umgebung::subsystem_graphics != nullptr) {
         if (umgebung::subsystem_graphics->setup_post != nullptr) {

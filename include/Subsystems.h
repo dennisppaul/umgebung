@@ -49,7 +49,9 @@ namespace umgebung {
     };
 
     /**
-    * this function pointer is used to create an audio subsystem. it can be used like this:
+    * this function pointer is used to create an audio subsystem.
+    *
+    * it can be used e.g like this:
     *
     *     create_subsystem_audio = []() -> SubsystemAudio* {
     *         return umgebung_subsystem_audio_create_sdl();
@@ -72,8 +74,8 @@ namespace umgebung {
 
 /* implemented devices */
 
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_sdl2d();
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv20();
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv33();
-umgebung::SubsystemAudio*    umgebung_subsystem_audio_create_sdl();
-umgebung::SubsystemAudio*    umgebung_subsystem_audio_create_portaudio();
+umgebung::SubsystemGraphics* umgebung_subsystem_graphics_sdl2d_create();
+umgebung::SubsystemGraphics* umgebung_subsystem_graphics_openglv20_create();
+umgebung::SubsystemGraphics* umgebung_subsystem_graphics_openglv33_create();
+umgebung::SubsystemAudio*    umgebung_subsystem_audio_sdl_create();
+umgebung::SubsystemAudio*    umgebung_subsystem_audio_portaudio_create();

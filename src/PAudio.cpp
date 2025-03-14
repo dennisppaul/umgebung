@@ -22,6 +22,26 @@
 
 using namespace umgebung;
 
+void umgebung::merge_interleaved_stereo(float* left, float* right, float* interleaved, size_t frames) {
+    if (left == nullptr || right == nullptr || interleaved == nullptr) {
+        return;
+    }
+    for (size_t i = 0; i < frames; ++i) {
+        interleaved[i * 2]     = left[i];  // Left channel
+        interleaved[i * 2 + 1] = right[i]; // Right channel
+    }
+}
+
+void umgebung::split_interleaved_stereo(float* left, float* right, const float* interleaved, const size_t frames) {
+    if (left == nullptr || right == nullptr || interleaved == nullptr) {
+        return;
+    }
+    for (size_t i = 0; i < frames; ++i) {
+        left[i]  = interleaved[i * 2];     // Extract left channel
+        right[i] = interleaved[i * 2 + 1]; // Extract right channel
+    }
+}
+
 PAudio::PAudio(const AudioUnitInfo* device_info) : AudioUnitInfo(*device_info) {}
 
 void PAudio::copy_input_buffer_to_output_buffer() const {

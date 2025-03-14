@@ -22,7 +22,7 @@
 
 #include "Umgebung.h"
 #include "UmgebungFunctionsGraphics.h"
-#include "UmgebungSubsystems.h"
+#include "Subsystems.h"
 #include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv20.h"
 
@@ -348,7 +348,7 @@ namespace umgebung {
     }
 } // namespace umgebung
 
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_create_openglv20() {
+umgebung::SubsystemGraphics* umgebung_subsystem_graphics_openglv20_create() {
     auto* graphics            = new umgebung::SubsystemGraphics{};
     graphics->init            = umgebung::init;
     graphics->setup_pre       = umgebung::setup_pre;

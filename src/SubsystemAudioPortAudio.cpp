@@ -25,41 +25,53 @@
 #include <thread>
 
 #include "Umgebung.h"
-#include "UmgebungSubsystems.h"
+#include "Subsystems.h"
 #include "UmgebungFunctionsAdditional.h"
 #include "PAudio.h"
 
 namespace umgebung {
 
+    struct AudioDevice {
+        std::string name;
+        int         max_input_channels;
+        float       sample_rate;
+        int         logical_device_id;
+    };
+
+    class PAudioPortAudio;
+    static std::vector<AudioDevice>      audio_input_devices;
+    static std::vector<AudioDevice>      audio_output_devices;
+    static std::vector<PAudioPortAudio*> audio_devices;
+
     class PAudioPortAudio {
     public:
-        PAudio* audio;
-
-        // #define SAMPLE_RATE       44100
-        // #define FRAMES_PER_BUFFER 512
-        // #define NUM_CHANNELS      2 // Stereo input/output
-
-        PaStream* stream;
+        PAudio*   audio{nullptr};
+        PaStream* stream{nullptr};
 
         explicit PAudioPortAudio(PAudio* audio) : audio(audio),
                                                   update_interval((audio->buffer_size * 1000) / audio->sample_rate) {
             this->audio = audio;
             if (!init()) {
                 error("PAudioPortAudio: could not intialize");
+                return;
             }
             if (audio->input_channels > 0) {
                 audio->input_buffer = new float[audio->buffer_size * audio->input_channels]{0};
             } else {
-                audio->input_buffer = nullptr; // TODO maybe do this in sdl subsytem as well
+                audio->input_buffer = nullptr;
             }
             if (audio->output_channels > 0) {
                 audio->output_buffer = new float[audio->buffer_size * audio->output_channels]{0};
             } else {
-                audio->output_buffer = nullptr; // TODO maybe do this in sdl subsytem as well
+                audio->output_buffer = nullptr;
             }
         }
 
         void start() {
+            if (stream == nullptr) {
+                return;
+            }
+
             isPaused = false;
             if (Pa_IsStreamStopped(stream)) {
                 Pa_StartStream(stream);
@@ -67,6 +79,9 @@ namespace umgebung {
         }
 
         void stop() {
+            if (stream == nullptr) {
+                return;
+            }
             isPaused = true;
             if (Pa_IsStreamActive(stream)) {
                 Pa_StopStream(stream);
@@ -84,8 +99,6 @@ namespace umgebung {
 
             const auto now = std::chrono::high_resolution_clock::now();
             if (now - last_audio_update >= update_interval) {
-                // TODO PROBLEM if either of the devices is not present i.e channel count is 0
-                //      the application crashes or is not updated. need to move audioEvent().
                 // check if input is available
                 const long availableInputFrames = Pa_GetStreamReadAvailable(stream);
                 if (availableInputFrames >= audio->buffer_size) {
@@ -102,7 +115,6 @@ namespace umgebung {
                 // call audioevent resepcting non-present audio devices and available frames
                 if ((availableInputFrames >= audio->buffer_size || audio->input_channels == 0) &&
                     (availableOutputFrames >= audio->buffer_size || audio->output_channels == 0)) {
-                    // TODO request audio block from PAudio
                     if (a != nullptr && audio == umgebung::a) {
                         audioEvent();
                     }
@@ -135,61 +147,130 @@ namespace umgebung {
         std::chrono::milliseconds                                   update_interval;
         std::chrono::time_point<std::chrono::high_resolution_clock> last_audio_update;
 
-        bool init() {
-            warning("currently only default devices are supported");
-            int audio_input_device  = AUDIO_DEVICE_DEFAULT;
-            int audio_output_device = AUDIO_DEVICE_DEFAULT;
-
-            if (audio_input_device == AUDIO_DEVICE_DEFAULT) {
-                audio_input_device = Pa_GetDefaultInputDevice();
-                console("Using default input device with ID : ", audio_input_device);
+        int find_logical_device_id_by_name(const std::vector<AudioDevice>& devices, const std::string& name) const {
+            for (int i = 0; i < devices.size(); i++) {
+                if (begins_with(devices[i].name, name)) {
+                    console("found device ", devices[i].name);
+                    return devices[i].logical_device_id;
+                }
             }
-            if (audio_output_device == AUDIO_DEVICE_DEFAULT) {
-                audio_output_device = Pa_GetDefaultOutputDevice();
-                console("Using default output device with ID: ", audio_output_device);
+            console("could not find device by name: '", name, "' using default device.");
+            return DEFAULT_AUDIO_DEVICE;
+        }
+
+        int find_logical_device_id_by_id(const std::vector<AudioDevice>& devices, const int device_id) const {
+            if (device_id >= 0 && device_id < devices.size()) {
+                console("found device by id: ", device_id, "[", devices[device_id].logical_device_id, "] ", devices[device_id].name);
+                return devices[device_id].logical_device_id;
+            }
+            console("could not find device by id '", device_id, "' using default device.");
+            return DEFAULT_AUDIO_DEVICE;
+        }
+
+        bool init() {
+            if (audio == nullptr) {
+                error("PAudioPortAudio: audio is nullptr");
+                return false;
+            }
+            if (audio->input_channels == 0 && audio->output_channels == 0) {
+                error("PAudioPortAudio: no input or output channels specified");
+                return false;
+            }
+
+            int _audio_input_device  = DEFAULT_AUDIO_DEVICE;
+            int _audio_output_device = DEFAULT_AUDIO_DEVICE;
+
+            /* try to find audio devices */
+            if (audio->input_device_id == AUDIO_DEVICE_FIND_BY_NAME && audio->input_device_name != DEFAULT_AUDIO_DEVICE_NAME) {
+                _audio_input_device = find_logical_device_id_by_name(audio_input_devices, audio->input_device_name);
+            } else if (audio->input_device_id > DEFAULT_AUDIO_DEVICE) {
+                _audio_input_device = find_logical_device_id_by_id(audio_input_devices, audio->input_device_id);
+            }
+            if (audio->output_device_id == AUDIO_DEVICE_FIND_BY_NAME && audio->output_device_name != DEFAULT_AUDIO_DEVICE_NAME) {
+                _audio_output_device = find_logical_device_id_by_name(audio_output_devices, audio->output_device_name);
+            } else if (audio->output_device_id > DEFAULT_AUDIO_DEVICE) {
+                _audio_output_device = find_logical_device_id_by_id(audio_output_devices, audio->output_device_id);
+            }
+
+            /* use default devices */
+            if (_audio_input_device == DEFAULT_AUDIO_DEVICE) {
+                _audio_input_device = Pa_GetDefaultInputDevice();
+                console("using default input device with ID : ", _audio_input_device);
+            }
+            if (_audio_output_device == DEFAULT_AUDIO_DEVICE) {
+                _audio_output_device = Pa_GetDefaultOutputDevice();
+                console("using default output device with ID: ", _audio_output_device);
             }
 
             console("Opening audio device (input/output): (",
-                    audio_input_device, "/",
-                    audio_output_device, ")");
+                    _audio_input_device, "/",
+                    _audio_output_device, ")");
 
-            const PaDeviceInfo*  deviceInfo  = Pa_GetDeviceInfo(audio_output_device);
-            const PaHostApiInfo* hostApiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
+            const PaDeviceInfo*  _device_info   = Pa_GetDeviceInfo(_audio_output_device);
+            const PaHostApiInfo* _host_api_info = Pa_GetHostApiInfo(_device_info->hostApi);
 
-            console("Opening stream for device with ID: ", deviceInfo->name,
-                    "( Host API: ", hostApiInfo->name,
-                    ", Channels (input/output): (", input_channels,
-                    "/", output_channels, ")",
+            console("Opening stream for device with ID: ", _device_info->name,
+                    "( Host API: ", _host_api_info->name,
+                    ", Channels (input/output): (", audio->input_channels,
+                    "/", audio->output_channels, ")",
                     " ) ... ");
 
             /* input */
 
             PaStreamParameters inputParams;
             if (audio->input_channels > 0) {
-                inputParams.device = Pa_GetDefaultInputDevice();
+                inputParams.device = _audio_input_device;
                 if (inputParams.device == paNoDevice) {
                     error("No default input device found.");
                     return false;
                 }
+
+                const int input_channels = Pa_GetDeviceInfo(inputParams.device)->maxInputChannels;
+                if (input_channels < audio->input_channels) {
+                    warning("Requested input channels: ", audio->input_channels,
+                            " but device only supports: ", input_channels, ".",
+                            " Setting input channels to: ", input_channels);
+                    audio->input_channels = input_channels;
+                }
+
                 inputParams.channelCount              = audio->input_channels;
                 inputParams.sampleFormat              = paFloat32;
                 inputParams.suggestedLatency          = Pa_GetDeviceInfo(inputParams.device)->defaultLowInputLatency;
                 inputParams.hostApiSpecificStreamInfo = nullptr;
+
+                const char* device_name  = Pa_GetDeviceInfo(inputParams.device)->name;
+                audio->input_device_name = device_name;
+            } else {
+                audio->input_device_name = DEFAULT_AUDIO_DEVICE_NOT_USED;
             }
 
             /* output */
 
             PaStreamParameters outputParams;
             if (audio->output_channels > 0) {
-                outputParams.device = Pa_GetDefaultOutputDevice();
+                outputParams.device = _audio_output_device;
                 if (outputParams.device == paNoDevice) {
                     error("No default output device found.");
                     return false;
                 }
+
+                const int output_channels = Pa_GetDeviceInfo(outputParams.device)->maxOutputChannels;
+                if (output_channels < audio->output_channels) {
+                    warning("Requested output channels: ", audio->output_channels,
+                            " but device only supports: ", output_channels, ".",
+                            " Setting input channels to: ", output_channels);
+                    audio->output_channels = output_channels;
+                }
+
                 outputParams.channelCount              = audio->output_channels;
                 outputParams.sampleFormat              = paFloat32;
                 outputParams.suggestedLatency          = Pa_GetDeviceInfo(outputParams.device)->defaultLowOutputLatency;
                 outputParams.hostApiSpecificStreamInfo = nullptr;
+
+                const char* device_name   = Pa_GetDeviceInfo(outputParams.device)->name;
+                audio->output_device_name = device_name;
+            } else {
+                audio->output_device_name = DEFAULT_AUDIO_DEVICE_NOT_USED;
             }
 
             // --- Open Duplex Stream (input + output) ---
@@ -219,86 +300,6 @@ namespace umgebung {
         }
     };
 
-    // TODO move some of this code to PAudioPortAudio
-    /*
-  static void init_audio(int           input_channels,
-                           int           output_channels,
-                           double        audio_sample_rate,
-                           unsigned long audio_samples_per_frame) {
-        PaError err;
-
-        if (audio_input_device == AUDIO_DEVICE_DEFAULT && audio_output_device == AUDIO_DEVICE_DEFAULT) {
-            console("Opening default audio device.");
-            err = Pa_OpenDefaultStream(&stream,
-                                       input_channels,
-                                       output_channels,
-                                       paFloat32,
-                                       audio_sample_rate,
-                                       audio_samples_per_frame,
-                                       audioCallback,
-                                       nullptr);
-        } else {
-            print_audio_devices();
-
-            if (audio_input_device < 0) {
-                audio_input_device = Pa_GetDefaultInputDevice();
-                console("Using default input device with ID: ",audio_input_device);
-            }
-            if (audio_output_device < 0) {
-                audio_output_device = Pa_GetDefaultOutputDevice();
-                console("Using default output device with ID: ",audio_output_device);
-            }
-
-            console("Opening audio device (input/output): (",audio_input_device, "/",audio_output_device, ")");
-            const PaDeviceInfo*  deviceInfo  = Pa_GetDeviceInfo(audio_output_device);
-            const PaHostApiInfo* hostApiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
-
-            console("Opening stream for device with ID: ",deviceInfo->name;
-            console("( Host API: ",hostApiInfo->name;
-            console(", Channels (input/output): (",input_channels, "/",output_channels, ")";
-            console(" ) ... ";
-
-            PaStreamParameters inputParameters;
-            inputParameters.device                    = audio_input_device;
-            inputParameters.channelCount              = input_channels;
-            inputParameters.sampleFormat              = paFloat32;
-            inputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_input_device)->defaultLowInputLatency;
-            inputParameters.hostApiSpecificStreamInfo = nullptr;
-
-            PaStreamParameters outputParameters;
-            outputParameters.device                    = audio_output_device;
-            outputParameters.channelCount              = output_channels;
-            outputParameters.sampleFormat              = paFloat32;
-            outputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_output_device)->defaultLowOutputLatency;
-            outputParameters.hostApiSpecificStreamInfo = nullptr;
-
-            err = Pa_OpenStream(&stream,
-                                &inputParameters,
-                                &outputParameters,
-                                audio_sample_rate,
-                                audio_samples_per_frame,
-                                paClipOff,
-                                nullptr,
-                                //                                audioCallback,
-                                nullptr);
-            console("OK.");
-        }
-
-        if (err != paNoError) {
-            error("+++ error when opening stream: ",Pa_GetErrorText(err));
-            return;
-        }
-
-        err = Pa_StartStream(stream);
-        if (err != paNoError) {
-            error("++ error when starting stream: ",Pa_GetErrorText(err));
-            return;
-        }
-    }
- */
-
-    static std::vector<PAudioPortAudio*> audio_devices;
-
     static void setup_post() {}
     static void draw_pre() {}
     static void draw_post() {}
@@ -307,73 +308,6 @@ namespace umgebung {
     static void set_flags(uint32_t& subsystem_flags) {
         subsystem_flags |= SDL_INIT_AUDIO;
     }
-
-    // static PaStream* stream;
-    // static int audioCallback(const void* inputBuffer, void* outputBuffer,
-    //                          unsigned long                   framesPerBuffer,
-    //                          const PaStreamCallbackTimeInfo* timeInfo,
-    //                          PaStreamCallbackFlags           statusFlags,
-    //                          void*                           userData) {
-    //     (void) timeInfo;
-    //     (void) statusFlags;
-    //     (void) userData;
-    //     // assuming the sample format is paFloat32
-    //     auto in  = static_cast<const float*>(inputBuffer);
-    //     auto out = static_cast<float*>(outputBuffer);
-    //     //
-    //     // // create 2D arrays on stack for input and output
-    //     // std::vector<std::vector<float>> inputArray(audio_input_channels, std::vector<float>(framesPerBuffer));
-    //     // std::vector<std::vector<float>> outputArray(audio_output_channels, std::vector<float>(framesPerBuffer));
-    //     //
-    //     // // pointers array to pass to processing function
-    //     // std::vector<float*> inputPtrs(audio_input_channels);
-    //     // std::vector<float*> outputPtrs(audio_output_channels);
-    //     //
-    //     // // fill input arrays from input buffer and setup pointers
-    //     // for (unsigned int ch = 0; ch < audio_input_channels; ++ch) {
-    //     //     inputPtrs[ch] = inputArray[ch].data();
-    //     //     for (unsigned long i = 0; i < framesPerBuffer; ++i) {
-    //     //         if (audio_input_channels > 0) {
-    //     //             inputArray[ch][i] = in[i * audio_input_channels + ch];
-    //     //         }
-    //     //     }
-    //     // }
-    //     //
-    //     // // setup output pointers
-    //     // for (unsigned int ch = 0; ch < audio_output_channels; ++ch) {
-    //     //     outputPtrs[ch] = outputArray[ch].data();
-    //     // }
-    //     //
-    //     // // process audio block
-    //     // if (fApplet != nullptr) {
-    //     //     fApplet->audioblock(inputPtrs.data(), outputPtrs.data(), static_cast<int>(framesPerBuffer));
-    //     // }
-    //     //
-    //     // // write processed output to output buffer
-    //     // for (unsigned int ch = 0; ch < audio_output_channels; ++ch) {
-    //     //     for (unsigned long i = 0; i < framesPerBuffer; ++i) {
-    //     //         out[i * audio_output_channels + ch] = outputArray[ch][i];
-    //     //     }
-    //     // }
-    //     return paContinue;
-    // }
-    // static void shutdown_audio() {
-    //     PaError err;
-    //
-    //     err = Pa_StopStream(stream);
-    //     if (err != paNoError) {
-    //         error("+++ error when stopping stream: ",Pa_GetErrorText(err));
-    //         return;
-    //     }
-    //
-    //     err = Pa_CloseStream(stream);
-    //     if (err != paNoError) {
-    //         error("+++ error when closing stream: ",Pa_GetErrorText(err));
-    //         return;
-    //     }
-    //
-    //     Pa_Terminate();
-    // }
 
     int print_audio_devices() {
         const int numDevices = Pa_GetDeviceCount();
@@ -401,14 +335,16 @@ namespace umgebung {
     }
 
     static bool init() {
+        Pa_Initialize();
+        print_audio_devices();
+        Pa_Terminate();
+
         console("initializing PortAudio audio system");
         const PaError err = Pa_Initialize();
         if (err != paNoError) {
             error("Error message: ", Pa_GetErrorText(err));
             return false;
         }
-
-        print_audio_devices();
 
         return true;
     }
@@ -441,6 +377,7 @@ namespace umgebung {
         return nullptr;
     }
 
+    // ReSharper disable once CppParameterMayBeConstPtrOrRef
     static void start(PAudio* device) {
         PAudioPortAudio* _audio = find_device(device);
         if (_audio != nullptr) {
@@ -448,6 +385,7 @@ namespace umgebung {
         }
     }
 
+    // ReSharper disable once CppParameterMayBeConstPtrOrRef
     static void stop(PAudio* device) {
         PAudioPortAudio* _audio = find_device(device);
         if (_audio != nullptr) {
@@ -463,20 +401,64 @@ namespace umgebung {
         }
     }
 
+    static void update_audio_devices() {
+        audio_input_devices.clear();
+        audio_output_devices.clear();
+        const int numDevices = Pa_GetDeviceCount();
+        if (numDevices < 0) {
+            error("+++ PortAudio error when counting devices: ", numDevices, ": ", Pa_GetErrorText(numDevices));
+        }
+        for (int i = 0; i < numDevices; i++) {
+            const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+            if (deviceInfo->maxInputChannels > 0) {
+                AudioDevice _audio_device_info;
+                _audio_device_info.name               = deviceInfo->name;
+                _audio_device_info.max_input_channels = deviceInfo->maxInputChannels;
+                _audio_device_info.sample_rate        = deviceInfo->defaultSampleRate;
+                _audio_device_info.logical_device_id  = i;
+                audio_input_devices.push_back(_audio_device_info);
+            }
+            if (deviceInfo->maxOutputChannels > 0) {
+                AudioDevice _audio_device_info;
+                _audio_device_info.name               = deviceInfo->name;
+                _audio_device_info.max_input_channels = deviceInfo->maxOutputChannels;
+                _audio_device_info.sample_rate        = deviceInfo->defaultSampleRate;
+                _audio_device_info.logical_device_id  = i;
+                audio_output_devices.push_back(_audio_device_info);
+            }
+        }
+    }
+
     static PAudio* create_audio(const AudioUnitInfo* device_info) {
+        update_audio_devices();
+        console("update_audio_devices");
+        int i = 0;
+        console("    INPUT DEVICES");
+        for (auto ad: audio_input_devices) {
+            console("    [", i, "]::", ad.name, " (", ad.max_input_channels, " channels, ", ad.sample_rate, " Hz)");
+            i++;
+        }
+        i = 0;
+        console("    OUTPUT DEVICES");
+        for (auto ad: audio_output_devices) {
+            console("    [", i, "]::", ad.name, " (", ad.max_input_channels, " channels, ", ad.sample_rate, " Hz)");
+            i++;
+        }
+
         const auto _device = new PAudio{device_info};
         _device->unique_id = audio_unique_device_id++;
-        const auto _audio  = new PAudioPortAudio{_device};
+        // ReSharper disable once CppDFAMemoryLeak
+        const auto _audio = new PAudioPortAudio{_device};
         _audio->stop();
         audio_devices.push_back(_audio);
-        // TODO newing the arrays happens in class … need to check and align with SDL implementation
+        // NOTE newing the arrays happens in class … need to check and align with SDL implementation
         // audio_device->input_buffer  = new float[audio_device->input_channels * audio_device->buffer_size]{};
         // audio_device->output_buffer = new float[audio_device->output_channels * audio_device->buffer_size]{};
         return _device;
     }
 } // namespace umgebung
 
-umgebung::SubsystemAudio* umgebung_subsystem_audio_create_portaudio() { // TODO maybe rename all subsytems to `umgebung_subsystem_audio_portaudio_create`
+umgebung::SubsystemAudio* umgebung_subsystem_audio_portaudio_create() {
     auto* audio         = new umgebung::SubsystemAudio{};
     audio->set_flags    = umgebung::set_flags;
     audio->init         = umgebung::init;

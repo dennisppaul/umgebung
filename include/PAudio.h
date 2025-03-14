@@ -22,43 +22,41 @@
 #include <string>
 
 namespace umgebung {
+
+    void merge_interleaved_stereo(float* left, float* right, float* interleaved, size_t frames);
+    void split_interleaved_stereo(float* left, float* right, const float* interleaved, size_t frames);
+
     struct AudioUnitInfo {
-        /** device id as specified by audio driver.
-         * to use the default device as selected in system preferences set to `AUDIO_DEVICE_DEFAULT`:
-         * <code>
-         * audio_device_info.id   = AUDIO_DEVICE_DEFAULT;
-         * </code>
-         * to identify the device by name set to `FIND_AUDIO_DEVICE_BY_NAME`:
-         * <code>
-         * audio_device_info.id   = FIND_AUDIO_DEVICE_BY_NAME;
-         * </code>
-         * might be reset by audio system.
+        /**
+         * unique id of audio unit. id is set by audio subsystem. it is not to be confused with the device id.
+         * a unit is a combination of input and output device.
          */
-        int unique_id{AUDIO_DEVICE_NOT_INITIALIZED};
+        int unique_id{AUDIO_UNIT_NOT_INITIALIZED};
+        /** case-sensitive audio device name ( or beginning of the name )
+         * if audio device is supposed to be intialized by name
+         * make sure to set `input_device_id` to `FIND_AUDIO_DEVICE_BY_NAME`.
+         * <code>
+         * audio_device_info.input_device_id = FIND_AUDIO_DEVICE_BY_NAME;
+         * audio_device_info.name            = "MacBook";
+         * </code>
+         * name may be reset or completed by audio system.
+         */
+        int         input_device_id{DEFAULT_AUDIO_DEVICE};
+        std::string input_device_name{DEFAULT_AUDIO_DEVICE_NAME};
         /** buffer for audio input samples. buffer is interleaved, i.e. samples for each channel are contiguous in memory. */
-        float* input_buffer{nullptr};
-        int    input_channels{0};
+        float*      input_buffer{nullptr};
+        int         input_channels{0};
+        int         output_device_id{DEFAULT_AUDIO_DEVICE};
+        std::string output_device_name{DEFAULT_AUDIO_DEVICE_NAME};
         /** buffer for audio output samples. buffer is interleaved, i.e. samples for each channel are contiguous in memory. */
         float* output_buffer{nullptr};
         int    output_channels{0};
         /** number of samples per channel ( also referred to as *frames* )
          * e.g for a 2 channel device with `output_channels = 2` length of `output_buffer` length is `output_channels * buffer_size`
          */
-        int buffer_size{DEFAULT_AUDIO_BUFFER_SIZE}; // TODO this defines the size in samples per channel. research if it is good that it s the same for input and out buffer
+        int buffer_size{DEFAULT_AUDIO_BUFFER_SIZE};
         int sample_rate{DEFAULT_SAMPLE_RATE};
         // int         format; // TODO currently supporting F32 only
-        /** name of the audio device.
-         * if audio device is supposed to be intialized by this name make sure to set `id` to `FIND_AUDIO_DEVICE_BY_NAME`.
-         * <code>
-         * audio_device_info.id   = FIND_AUDIO_DEVICE_BY_NAME;
-         * audio_device_info.name = "MacBook";
-         * </code>
-         * might be reset by audio system if device is intialized by `id`.
-         */
-        // TODO does this really make sense how e.g does portaudio handle this? also 2 names for in and output … i think not
-        std::string input_device_name;
-        std::string output_device_name;
-        // std::string unit_name; // TODO maybe better do it like this but how do we then choose the device?
     };
 
     class PAudio : public AudioUnitInfo {

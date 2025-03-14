@@ -24,32 +24,33 @@
 #include "UmgebungCallbacks.h"
 #include "UmgebungFunctions.h"
 #include "UmgebungFunctionsGraphics.h"
-#include "UmgebungSubsystems.h"
+#include "Subsystems.h"
 
 namespace umgebung {
 
     /* public variables *for initialization only*  */
 
-    inline bool   enable_graphics     = false; // graphics
-    inline bool   always_on_top       = false;
-    inline int    antialiasing        = DEFAULT;
-    inline bool   borderless          = false;
-    inline int    display             = DEFAULT;
-    inline bool   fullscreen          = false;
-    inline bool   resizable           = false;
-    inline bool   retina_support      = true;
-    inline bool   vsync               = false;
-    inline bool   render_to_buffer    = false;
-    inline bool   enable_audio        = false;                 // audio
-    inline int    audio_unit_id       = AUDIO_DEVICE_DEFAULT; // TODO a unit is a made up of an input and an output device therefore we NEED two separate identifiers
-    inline float* audio_input_buffer  = nullptr;
-    inline int    input_channels      = 1; // TODO populate with default values
-    inline float* audio_output_buffer = nullptr;
-    inline int    output_channels     = 2; // TODO populate with default values
-    inline int    audio_buffer_size   = 0;
-    inline int    sample_rate         = 0;
-    // inline int    audio_input_device  = AUDIO_DEVICE_DEFAULT;
-    // inline int    audio_output_device = AUDIO_DEVICE_DEFAULT;
+    inline bool        enable_graphics          = false; // graphics
+    inline bool        always_on_top            = false;
+    inline int         antialiasing             = DEFAULT;
+    inline bool        borderless               = false;
+    inline int         display                  = DEFAULT;
+    inline bool        fullscreen               = false;
+    inline bool        resizable                = false;
+    inline bool        retina_support           = true;
+    inline bool        vsync                    = false;
+    inline bool        render_to_buffer         = false;
+    inline bool        enable_audio             = false; // audio
+    inline int         audio_input_device_id    = DEFAULT_AUDIO_DEVICE;
+    inline int         audio_output_device_id   = DEFAULT_AUDIO_DEVICE;
+    inline std::string audio_input_device_name  = DEFAULT_AUDIO_DEVICE_NAME;
+    inline std::string audio_output_device_name = DEFAULT_AUDIO_DEVICE_NAME;
+    inline float*      audio_input_buffer       = nullptr;
+    inline int         input_channels           = DEFAULT_INPUT_CHANNELS;
+    inline float*      audio_output_buffer      = nullptr;
+    inline int         output_channels          = DEFAULT_OUTPUT_CHANNELS;
+    inline int         audio_buffer_size        = 0;
+    inline int         sample_rate              = 0;
     // inline int        audio_format       = 0; // TODO currently only supporting F32
     inline int audio_unique_device_id = 0x0010;
 

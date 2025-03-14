@@ -20,12 +20,16 @@
 #pragma once
 
 namespace umgebung {
-    static constexpr int   AUDIO_DEVICE_DEFAULT                          = -1;
+    static constexpr int   DEFAULT_AUDIO_DEVICE                          = -1;
+    static constexpr auto  DEFAULT_AUDIO_DEVICE_NAME                     = "";
+    static constexpr auto  DEFAULT_AUDIO_DEVICE_NOT_USED                 = "NOOP";
     static constexpr int   DEFAULT_SAMPLE_RATE                           = 48000;
     static constexpr int   DEFAULT_AUDIO_BUFFER_SIZE                     = 1024;
-    static constexpr int   AUDIO_DEVICE_NOT_INITIALIZED                  = -1;
+    static constexpr int   DEFAULT_INPUT_CHANNELS                        = 1;
+    static constexpr int   DEFAULT_OUTPUT_CHANNELS                       = 2;
     static constexpr int   AUDIO_DEVICE_FIND_BY_NAME                     = -2;
     static constexpr int   AUDIO_DEVICE_NOT_FOUND                        = -3;
+    static constexpr int   AUDIO_UNIT_NOT_INITIALIZED                    = -4;
     static constexpr int   BUFFER_SIZE_UNDEFINED                         = -1;
     static constexpr int   TEXTURE_NOT_GENERATED                         = -1;
     static constexpr int   TEXTURE_NOT_UPDATED                           = -2;
