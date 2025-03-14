@@ -30,47 +30,48 @@ namespace umgebung {
 
     /* public variables *for initialization only*  */
 
-    inline bool always_on_top       = false;
-    inline int  antialiasing        = DEFAULT;
-    inline int  audio_input_device  = AUDIO_DEVICE_DEFAULT;
-    inline int  audio_output_device = AUDIO_DEVICE_DEFAULT;
-    inline bool borderless          = false;
-    inline int  display             = DEFAULT;
-    inline bool fullscreen          = false;
-    inline bool resizable           = false;
-    inline bool retina_support      = true;
-    inline bool vsync               = false;
-    inline bool render_to_buffer    = false;
+    inline bool   enable_graphics     = false; // graphics
+    inline bool   always_on_top       = false;
+    inline int    antialiasing        = DEFAULT;
+    inline bool   borderless          = false;
+    inline int    display             = DEFAULT;
+    inline bool   fullscreen          = false;
+    inline bool   resizable           = false;
+    inline bool   retina_support      = true;
+    inline bool   vsync               = false;
+    inline bool   render_to_buffer    = false;
+    inline bool   enable_audio        = false;                 // audio
+    inline int    audio_unit_id       = AUDIO_DEVICE_DEFAULT; // TODO a unit is a made up of an input and an output device therefore we NEED two separate identifiers
+    inline float* audio_input_buffer  = nullptr;
+    inline int    input_channels      = 1; // TODO populate with default values
+    inline float* audio_output_buffer = nullptr;
+    inline int    output_channels     = 2; // TODO populate with default values
+    inline int    audio_buffer_size   = 0;
+    inline int    sample_rate         = 0;
+    // inline int    audio_input_device  = AUDIO_DEVICE_DEFAULT;
+    // inline int    audio_output_device = AUDIO_DEVICE_DEFAULT;
+    // inline int        audio_format       = 0; // TODO currently only supporting F32
+    inline int audio_unique_device_id = 0x0010;
 
     /* public variables */
 
-    inline PGraphics* g                   = nullptr; // graphics
-    inline bool       enable_graphics     = true;
-    inline float      width               = 1024;
-    inline float      height              = 768;
-    inline float      framebuffer_width   = width; // TODO maybe i can clean this up at some point … it s always `width*pixelDensity`
-    inline float      framebuffer_height  = height;
-    inline float      frameCount          = 0;
-    inline float      frameRate           = 60;
-    inline int        key                 = 0; // events
-    inline int        mouseButton         = DEFAULT;
-    inline bool       is_mouse_pressed    = false;
-    inline float      mouseX              = 0;
-    inline float      mouseY              = 0;
-    inline float      pmouseX             = 0;
-    inline float      pmouseY             = 0;
-    inline int        pixelHeight         = 1;
-    inline int        pixelWidth          = 1;
-    inline PAudio*    a                   = nullptr; // audio
-    inline bool       enable_audio        = true;
-    inline int        audio_device_id     = AUDIO_DEVICE_DEFAULT;
-    inline int        input_channels      = 0; // TODO populate with default values
-    inline float*     audio_input_buffer  = nullptr;
-    inline int        output_channels     = 0;
-    inline float*     audio_output_buffer = nullptr;
-    inline int        audio_buffer_size   = 0;
-    inline int        sample_rate         = 0;
-    // inline int        audio_format       = 0; // TODO currently only supporting F32
+    inline PGraphics* g                  = nullptr; // graphics
+    inline PAudio*    a                  = nullptr; // audio
+    inline float      width              = 1024;    // TODO populate with default values
+    inline float      height             = 768;     // TODO populate with default values
+    inline float      framebuffer_width  = width;   // TODO maybe i can clean this up at some point … it s always `width*pixelDensity`
+    inline float      framebuffer_height = height;
+    inline float      frameCount         = 0;
+    inline float      frameRate          = 60;
+    inline int        key                = 0; // events
+    inline int        mouseButton        = DEFAULT;
+    inline bool       is_mouse_pressed   = false;
+    inline float      mouseX             = 0;
+    inline float      mouseY             = 0;
+    inline float      pmouseX            = 0;
+    inline float      pmouseY            = 0;
+    // inline int        pixelHeight        = 1;
+    // inline int        pixelWidth         = 1;
 
     // NOTE just a quick reflection on the above: `PGraphics* g` as well as `PAudio* a` represent
     //      the default or main device infrastructure. the properties ( e.g `width` or `sample_rate` )

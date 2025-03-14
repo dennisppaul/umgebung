@@ -162,6 +162,8 @@ namespace umgebung {
         virtual void endDraw()                                                           = 0;
         virtual void text_str(const std::string& text, float x, float y, float z = 0.0f) = 0; // TODO maybe make this private?
 
+        int getPixelDensity() const { return pixel_density; }
+
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) {
             std::ostringstream ss;

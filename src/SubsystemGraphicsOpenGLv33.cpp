@@ -231,16 +231,16 @@ namespace umgebung {
         framebuffer_height        = static_cast<float>(current_framebuffer_height);
         const float pixel_density = SDL_GetWindowPixelDensity(window);
 
-        console("main renderer      : ", g->name());
-        console("render to offscreen: ", g->render_to_offscreen ? "true" : "false");
-        console("framebuffer size   : ", framebuffer_width, " x ", framebuffer_height);
-        console("framebuffer size px: ", current_framebuffer_width_in_pixel, " x ", current_framebuffer_height_in_pixel);
-        console("graphics size      : ", width, " x ", height);
-        console("pixel_density      : ", pixel_density);
+        console("main renderer        : ", g->name());
+        console("render to offscreen  : ", g->render_to_offscreen ? "true" : "false");
+        console("framebuffer size     : ", framebuffer_width, " x ", framebuffer_height);
+        console("framebuffer size (px): ", current_framebuffer_width_in_pixel, " x ", current_framebuffer_height_in_pixel);
+        console("graphics size        : ", width, " x ", height);
+        console("pixel_density        : ", pixel_density);
         g->pixelDensity(pixel_density); // NOTE setting pixel density from configuration
 
-        pixelHeight = static_cast<int>(framebuffer_height / height);
-        pixelWidth  = static_cast<int>(framebuffer_width / width);
+        // pixelHeight = static_cast<int>(framebuffer_height / height);
+        // pixelWidth  = static_cast<int>(framebuffer_width / width);
 
         g->init(nullptr, static_cast<int>(framebuffer_width), static_cast<int>(framebuffer_height), 0, false);
         g->width  = static_cast<int>(width);

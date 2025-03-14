@@ -265,6 +265,7 @@ namespace umgebung {
             warning("`size()` must be called before or within `settings()`.");
             return;
         }
+        umgebung::enable_graphics = true;
         umgebung::width  = width;
         umgebung::height = height;
     }

@@ -466,9 +466,14 @@ namespace umgebung {
             return;
         }
 
+
         /* find and open audio devices and streams */
 
         const auto _device = new PAudioSDL();
+
+        warning("currently only default devices are supported");
+        _device->logical_input_device_id  = SDL_AUDIO_DEVICE_DEFAULT_RECORDING; // TODO get this info from PAudio device
+        _device->logical_output_device_id = SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK;  // TODO get this info from PAudio device
 
         if (device->input_channels > 0) {
             // TODO do we want the callback way still? maybe just for input?
@@ -476,12 +481,12 @@ namespace umgebung {
             // std::vector<AudioUnitInfoSDL> _devices_found;
             // find_audio_input_devices(_devices_found);
             // TODO find logical id from name … or name
+            console("currently only default devices are supported");
             SDL_AudioSpec stream_specs; // NOTE these will be used as stream specs for input and output streams
             SDL_zero(stream_specs);
             stream_specs.format              = SDL_AUDIO_F32; // NOTE currently only F32 is supported
             stream_specs.freq                = device->sample_rate;
             stream_specs.channels            = device->input_channels;
-            _device->logical_input_device_id = SDL_AUDIO_DEVICE_DEFAULT_RECORDING;
             _device->logical_input_device_id = SDL_OpenAudioDevice(_device->logical_input_device_id, nullptr);
             _device->sdl_input_stream        = SDL_CreateAudioStream(nullptr, &stream_specs);
             // _device->sdl_input_stream        = SDL_CreateAudioStream(&stream_specs, nullptr);
@@ -518,7 +523,6 @@ namespace umgebung {
             stream_specs.format               = SDL_AUDIO_F32; // NOTE currently only F32 is supported
             stream_specs.freq                 = device->sample_rate;
             stream_specs.channels             = device->output_channels;
-            _device->logical_output_device_id = SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK;
             _device->logical_output_device_id = SDL_OpenAudioDevice(_device->logical_output_device_id, nullptr);
             _device->sdl_output_stream        = SDL_CreateAudioStream(&stream_specs, nullptr);
             if (_device->sdl_output_stream != nullptr && _device->logical_output_device_id > 0) {
@@ -562,17 +566,16 @@ namespace umgebung {
             device->output_device_name = _output_device_name;
         }
 
-        static int _unique_device_id = 1;
-        _device->audio_device        = device;
-        device->unique_id            = _unique_device_id++;
+        _device->audio_device = device;
+        device->input_buffer  = new float[device->input_channels * device->buffer_size]{};
+        device->output_buffer = new float[device->output_channels * device->buffer_size]{};
+        device->unique_id     = audio_unique_device_id++;
         _audio_devices.push_back(_device);
     }
 
     static PAudio* create_audio(const AudioUnitInfo* device_info) {
         const auto audio_device = new PAudio{device_info};
         register_audio_devices(audio_device);
-        audio_device->input_buffer  = new float[audio_device->input_channels * audio_device->buffer_size]{};
-        audio_device->output_buffer = new float[audio_device->output_channels * audio_device->buffer_size]{};
         return audio_device;
     }
 } // namespace umgebung
@@ -588,8 +591,8 @@ umgebung::SubsystemAudio* umgebung_subsystem_audio_create_sdl() {
     audio->draw_post    = umgebung::draw_post;
     audio->shutdown     = umgebung::shutdown;
     audio->event        = umgebung::event;
-    audio->create_audio = umgebung::create_audio;
     audio->start        = umgebung::start;
     audio->stop         = umgebung::stop;
+    audio->create_audio = umgebung::create_audio;
     return audio;
 }

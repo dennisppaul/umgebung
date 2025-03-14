@@ -185,8 +185,9 @@ namespace umgebung {
         console("pixel_density      : ", pixel_density);
         g->pixelDensity(pixel_density); // NOTE setting pixel density from configuration
 
-        pixelHeight = static_cast<int>(framebuffer_height / height);
-        pixelWidth  = static_cast<int>(framebuffer_width / width);
+        // pixelHeight = static_cast<int>(framebuffer_height / height);
+        // pixelWidth  = static_cast<int>(framebuffer_width / width);
+
         g->init(nullptr, static_cast<int>(framebuffer_width), static_cast<int>(framebuffer_height), 0, false);
         g->width  = static_cast<int>(width);
         g->height = static_cast<int>(height);
