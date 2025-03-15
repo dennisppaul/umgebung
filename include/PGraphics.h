@@ -205,7 +205,7 @@ namespace umgebung {
         uint8_t                   pixel_density{1};
         int                       texture_id_current{};
         bool                      shape_has_begun{false};
-        int                       polygon_triangulation_strategy = POLYGON_TRIANGULATION_GOOD;
+        int                       polygon_triangulation_strategy = POLYGON_TRIANGULATION_BETTER;
         int                       line_render_mode               = STROKE_RENDER_MODE_TRIANGULATE;
         int                       stroke_join_mode               = ROUND;
         int                       stroke_cap_mode                = PROJECT;

@@ -1862,12 +1862,12 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
             case POLYGON: {
                 std::vector<Vertex> vertices_fill_polygon;
                 if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_FASTER) {
-                    // EARCUT
+                    // EARCUT :: supports concave polygons, textures but no holes or selfintersection
                     vertices_fill_polygon = triangulate_faster(shape_fill_vertex_buffer);
-                } else if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_GOOD) {
-                    // LIBTESS2
-                    vertices_fill_polygon = triangulate_good(shape_fill_vertex_buffer);
                 } else if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_BETTER) {
+                    // LIBTESS2 :: supports concave polygons, textures, holes and selfintersection but no textures
+                    vertices_fill_polygon = triangulate_good(shape_fill_vertex_buffer);
+                } else if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_MID) {
                     // TODO maybe remove this option
                     // POLYPARTITION + CLIPPER2
                     vertices_fill_polygon = triangulate_better_quality(shape_fill_vertex_buffer);
