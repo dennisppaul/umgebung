@@ -72,9 +72,11 @@ namespace umgebung {
     static constexpr int   POINTED                                       = 0x28;
     static constexpr int   STROKE_RENDER_MODE_NATIVE                     = 0x30; // line render mode
     static constexpr int   STROKE_RENDER_MODE_TRIANGULATE                = 0x31;
+    static constexpr int   POINT_RENDER_MODE_NATIVE                      = 0x32;
+    static constexpr int   POINT_RENDER_MODE_TRIANGULATE                     = 0x33;
     static constexpr int   POLYGON_TRIANGULATION_FASTER                  = 0x10;
-    static constexpr int   POLYGON_TRIANGULATION_BETTER                    = 0x11;
-    static constexpr int   POLYGON_TRIANGULATION_MID                  = 0x12;
+    static constexpr int   POLYGON_TRIANGULATION_BETTER                  = 0x11;
+    static constexpr int   POLYGON_TRIANGULATION_MID                     = 0x12;
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NONE   = 0x00; // TODO deprecated, remove these
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_ROUND  = 0x01;
     static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_MITER  = 0x02;

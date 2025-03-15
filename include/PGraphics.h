@@ -207,7 +207,8 @@ namespace umgebung {
         bool                      shape_has_begun{false};
         int                       polygon_triangulation_strategy = POLYGON_TRIANGULATION_BETTER;
         int                       line_render_mode               = STROKE_RENDER_MODE_TRIANGULATE;
-        int                       stroke_join_mode               = ROUND;
+        int                       point_render_mode              = POINT_RENDER_MODE_TRIANGULATE;
+        int                       stroke_join_mode               = BEVEL_FAST;
         int                       stroke_cap_mode                = PROJECT;
         float                     stroke_join_round_resolution   = glm::radians(20.0f); // TODO maybe make these configurable
         float                     stroke_cap_round_resolution    = glm::radians(20.0f); // 20° resolution i.e 18 segment for whole circle

@@ -212,7 +212,7 @@ namespace umgebung {
         };
 
         static constexpr bool     RENDER_POINT_AS_CIRCLE                 = true;
-        static constexpr bool     RENDER_PRIMITVES_AS_SHAPES             = false;
+        static constexpr bool     RENDER_PRIMITVES_AS_SHAPES             = true;
         static constexpr uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
         static constexpr uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
         static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024; // 1MB
@@ -252,6 +252,16 @@ namespace umgebung {
         std::vector<Vertex>      shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
         int                      shape_mode_cache{POLYGON};
 
+        // TODO check if all vertex attributes are copied i.e color and tex_coords
+        std::vector<Vertex>        convertQuadStripToQuads(const std::vector<Vertex>& quadStrip) const;
+        std::vector<Vertex>        convertPointsToTriangles(const std::vector<Vertex>& points, float size) const;
+        static std::vector<Vertex> convertQuadsToTriangles(const std::vector<Vertex>& quads);
+        static std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon);
+        std::vector<Vertex>        convertTriangleFanToTriangles(const std::vector<Vertex>& fan) const;
+        std::vector<Vertex>        convertTriangleStripToTriangles(const std::vector<Vertex>& strip) const;
+
+        void SHARED_triangle_collector(std::vector<Vertex>& triangle_vertices);
+
         /* --- RENDER_MODE_IMMEDIATE (IM) --- */
 
         // TODO what about textures?!?
@@ -260,11 +270,6 @@ namespace umgebung {
         PrimitiveVertexBuffer IM_primitive_rect_fill{4};
         PrimitiveVertexBuffer IM_primitive_shape{VBO_BUFFER_CHUNK_SIZE};
 
-        static std::vector<Vertex> convertQuadsToTriangles(const std::vector<Vertex>& quads);
-        static std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon);
-        std::vector<Vertex>        triangulateConcavePolygon(const std::vector<Vertex>& polygon) const;
-
-        // void prepare_frame();
         void IM_render_point(float x1, float y1, float z1);
         void IM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
         void IM_render_rect(float x, float y, float width, float height);
@@ -311,7 +316,7 @@ namespace umgebung {
                                         float r, float g, float b, float a = 1.0f);
         /* --- SHARED --- */
 
-        void          triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
+        void          SHARED_triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
         void          create_solid_color_texture();
         void          SHARED_bind_texture(GLuint bind_texture_id);
         bool          SHARED_generate_and_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`

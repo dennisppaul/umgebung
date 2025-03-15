@@ -1631,7 +1631,6 @@ void PGraphicsOpenGLv33::IM_render_rect(const float x, const float y, const floa
                 IM_primitive_rect_fill.vertices[i].color     = fill_color;
                 IM_primitive_rect_fill.vertices[i].tex_coord = rect_tex_coords[i];
             }
-
             IM_render_vertex_buffer(IM_primitive_rect_fill, GL_TRIANGLE_FAN, IM_primitive_rect_fill.vertices);
         }
 
@@ -1648,8 +1647,8 @@ void PGraphicsOpenGLv33::IM_render_rect(const float x, const float y, const floa
                     tmp_vertices.emplace_back(rect_vertices[i], stroke_color, rect_tex_coords[i]);
                 }
                 std::vector<Vertex> line_vertices;
-                triangulate_line_strip_vertex(tmp_vertices, true, line_vertices);
-                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, line_vertices);
+                SHARED_triangulate_line_strip_vertex(tmp_vertices, true, line_vertices);
+                SHARED_triangle_collector(line_vertices);
             }
             if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
                 for (int i = 0; i < IM_primitive_rect_stroke.vertices.size(); ++i) {
@@ -1719,8 +1718,8 @@ void PGraphicsOpenGLv33::IM_render_ellipse(const float x, const float y, const f
             if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
                 std::vector<Vertex> line_vertices;
                 shape_fill_vertex_buffer.pop_back();
-                triangulate_line_strip_vertex(shape_fill_vertex_buffer, true, line_vertices);
-                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, line_vertices);
+                SHARED_triangulate_line_strip_vertex(shape_fill_vertex_buffer, true, line_vertices);
+                SHARED_triangle_collector(line_vertices);
             }
             if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
                 IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_fill_vertex_buffer);
@@ -1729,9 +1728,21 @@ void PGraphicsOpenGLv33::IM_render_ellipse(const float x, const float y, const f
     }
 }
 
+void PGraphicsOpenGLv33::SHARED_triangle_collector(std::vector<Vertex>& triangle_vertices) {
+    // TODO this is the magic place. here we can do everything we want with the vertices
+    //      e.g export to PDF or SVG, or even do some post processing.
+    //      ideally up until here everything could stau in PGraphics i.e all client side drawing
+    //      like point, line, rect, ellipse and begin-end-shape
+    IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, triangle_vertices);
+    // TODO collect triangles and current texture information for retained mode here.
+}
+
 void PGraphicsOpenGLv33::IM_render_vertex_buffer(PrimitiveVertexBuffer& primitive,
                                                  const GLenum           mode,
                                                  std::vector<Vertex>&   shape_vertices) const {
+    // TODO check against primitive mode. every mode except GL_TRIANGLES should be converted to triangles,
+    //      or at least be warned about under certain conditions.
+
     // ensure there are vertices to render
     if (shape_vertices.empty()) {
         return;
@@ -1776,6 +1787,81 @@ std::vector<Vertex> PGraphicsOpenGLv33::convertPolygonToTriangleFan(const std::v
     return fan;
 }
 
+std::vector<Vertex> PGraphicsOpenGLv33::convertTriangleStripToTriangles(const std::vector<Vertex>& strip) const {
+    if (strip.size() < 3) {
+        return {}; // Not enough vertices for a triangle
+    }
+
+    const size_t        numTriangles = strip.size() - 2; // Number of triangles in the strip
+    std::vector<Vertex> triangles;
+    triangles.reserve(numTriangles * 3); // Pre-allocate memory
+
+    for (size_t i = 0; i < numTriangles; ++i) {
+        if (i % 2 == 0) {
+            // Regular order: v[i], v[i+1], v[i+2]
+            triangles.emplace_back(strip[i + 0]);
+            triangles.emplace_back(strip[i + 1]);
+            triangles.emplace_back(strip[i + 2]);
+        } else {
+            // Swapped order: v[i+1], v[i], v[i+2] (to maintain correct winding order)
+            triangles.emplace_back(strip[i + 1]);
+            triangles.emplace_back(strip[i + 0]);
+            triangles.emplace_back(strip[i + 2]);
+        }
+    }
+
+    return triangles;
+}
+
+std::vector<Vertex> PGraphicsOpenGLv33::convertTriangleFanToTriangles(const std::vector<Vertex>& fan) const {
+    if (fan.size() < 3) {
+        return {}; // Not enough vertices for a triangle
+    }
+
+    const size_t        numTriangles = fan.size() - 2; // Number of triangles in the fan
+    std::vector<Vertex> triangles;
+    triangles.reserve(numTriangles * 3); // Pre-allocate memory
+
+    const Vertex& anchor = fan[0]; // The first vertex is the anchor
+
+    for (size_t i = 1; i < fan.size() - 1; ++i) {
+        // Form a triangle using:
+        // - anchor (fan[0])
+        // - fan[i]
+        // - fan[i + 1]
+        triangles.emplace_back(anchor);
+        triangles.emplace_back(fan[i]);
+        triangles.emplace_back(fan[i + 1]);
+    }
+
+    return triangles;
+}
+
+std::vector<Vertex> PGraphicsOpenGLv33::convertQuadStripToQuads(const std::vector<Vertex>& quadStrip) const {
+    if (quadStrip.size() < 4) {
+        return {}; // Not enough vertices to form at least one quad
+    }
+
+    size_t              numQuads = (quadStrip.size() - 2) / 2; // Each quad requires 2 new vertices
+    std::vector<Vertex> quads;
+    quads.reserve(numQuads * 4); // Each quad has 4 vertices
+
+    for (size_t i = 0; i < quadStrip.size() - 2; i += 2) {
+        // Each quad consists of:
+        // v0 = quadStrip[i]
+        // v1 = quadStrip[i + 1]
+        // v2 = quadStrip[i + 3]
+        // v3 = quadStrip[i + 2]
+
+        quads.emplace_back(quadStrip[i]);     // Bottom-left
+        quads.emplace_back(quadStrip[i + 1]); // Bottom-right
+        quads.emplace_back(quadStrip[i + 3]); // Top-right
+        quads.emplace_back(quadStrip[i + 2]); // Top-left
+    }
+
+    return quads;
+}
+
 std::vector<Vertex> PGraphicsOpenGLv33::convertQuadsToTriangles(const std::vector<Vertex>& quads) {
     if (quads.size() < 4) {
         return {};
@@ -1798,7 +1884,43 @@ std::vector<Vertex> PGraphicsOpenGLv33::convertQuadsToTriangles(const std::vecto
     return triangles;
 }
 
-void PGraphicsOpenGLv33::triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, const bool close_shape, std::vector<Vertex>& line_vertices) const {
+std::vector<Vertex> PGraphicsOpenGLv33::convertPointsToTriangles(const std::vector<Vertex>& points, float size) const {
+    if (points.empty()) {
+        return {};
+    }
+
+    std::vector<Vertex> triangles;
+    triangles.reserve(points.size() * 6); // Each point → 2 triangles → 6 vertices
+
+    float halfSize = size * 0.5f;
+
+    for (const Vertex& p: points) {
+        // Define the four corners of the quad centered at (p.x, p.y)
+        Vertex v0 = {p.position.x - halfSize, p.position.y - halfSize, p.position.z}; // Bottom-left
+        Vertex v1 = {p.position.x + halfSize, p.position.y - halfSize, p.position.z}; // Bottom-right
+        Vertex v2 = {p.position.x + halfSize, p.position.y + halfSize, p.position.z}; // Top-right
+        Vertex v3 = {p.position.x - halfSize, p.position.y + halfSize, p.position.z}; // Top-left
+
+        v0.color = p.color;
+        v1.color = p.color;
+        v2.color = p.color;
+        v3.color = p.color;
+
+        // Triangle 1: v0 → v1 → v2
+        triangles.emplace_back(v0);
+        triangles.emplace_back(v1);
+        triangles.emplace_back(v2);
+
+        // Triangle 2: v2 → v3 → v0
+        triangles.emplace_back(v2);
+        triangles.emplace_back(v3);
+        triangles.emplace_back(v0);
+    }
+
+    return triangles;
+}
+
+void PGraphicsOpenGLv33::SHARED_triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, const bool close_shape, std::vector<Vertex>& line_vertices) const {
     const glm::vec4        color = line_strip[0].color;
     std::vector<glm::vec2> points(line_strip.size());
     std::vector<glm::vec2> triangles;
@@ -1819,6 +1941,7 @@ void PGraphicsOpenGLv33::triangulate_line_strip_vertex(const std::vector<Vertex>
         line_vertices.emplace_back(glm::vec3(triangle, 0.0f), color, glm::vec2(0.0f, 0.0f));
     }
 }
+
 void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
     if (IM_primitive_shape.uninitialized()) {
         SHARED_init_vertex_buffer(IM_primitive_shape);
@@ -1845,18 +1968,20 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
             case LINE_STRIP:
                 break;
             case TRIANGLES:
-                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, shape_fill_vertex_buffer);
+                SHARED_triangle_collector(shape_fill_vertex_buffer);
                 break;
-            case TRIANGLE_FAN:
-                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, shape_fill_vertex_buffer);
-                break;
+            case TRIANGLE_FAN: {
+                std::vector<Vertex> vertices_fill_quads = convertTriangleFanToTriangles(shape_fill_vertex_buffer);
+                SHARED_triangle_collector(vertices_fill_quads);
+            } break;
             case QUAD_STRIP: // NOTE does this just work?!?
-            case TRIANGLE_STRIP:
-                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_STRIP, shape_fill_vertex_buffer);
-                break;
+            case TRIANGLE_STRIP: {
+                std::vector<Vertex> vertices_fill_quads = convertTriangleStripToTriangles(shape_fill_vertex_buffer);
+                SHARED_triangle_collector(vertices_fill_quads);
+            } break;
             case QUADS: {
                 std::vector<Vertex> vertices_fill_quads = convertQuadsToTriangles(shape_fill_vertex_buffer);
-                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill_quads);
+                SHARED_triangle_collector(vertices_fill_quads);
             } break;
             default:
             case POLYGON: {
@@ -1872,7 +1997,7 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
                     // POLYPARTITION + CLIPPER2
                     vertices_fill_polygon = triangulate_better_quality(shape_fill_vertex_buffer);
                 }
-                IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, vertices_fill_polygon);
+                SHARED_triangle_collector(vertices_fill_polygon);
                 // TODO what if polygon has only 3 or 4 vertices? could shortcut … here
             } break;
         }
@@ -1882,11 +2007,17 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
 
     if (!shape_stroke_vertex_buffer.empty()) {
         if (tmp_shape_mode_cache == POINTS) {
-            // TODO does this still work under macOS? it renders squares … maybe texturize them
-            // TODO @OpenGLES3.1 replace with circle or textured quad
-            const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
-            glPointSize(tmp_point_size);
-            IM_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_buffer);
+            if (point_render_mode == POINT_RENDER_MODE_NATIVE) {
+                // TODO does this still work under macOS? it renders squares … maybe texturize them
+                // TODO @OpenGLES3.1 replace with circle or textured quad
+                const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
+                glPointSize(tmp_point_size);
+                IM_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_buffer);
+            }
+            if (point_render_mode == POINT_RENDER_MODE_TRIANGULATE) {
+                std::vector<Vertex> line_vertices = convertPointsToTriangles(shape_stroke_vertex_buffer, point_size);
+                SHARED_triangle_collector(line_vertices);
+            }
             return;
         }
 
@@ -1897,21 +2028,64 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
                     for (int i = 0; i < buffer_size; i += 2) {
                         std::vector<Vertex> line_vertices;
                         std::vector         line = {shape_stroke_vertex_buffer[i], shape_stroke_vertex_buffer[i + 1]};
-                        triangulate_line_strip_vertex(line, FALSE, line_vertices);
-                        IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, line_vertices);
+                        SHARED_triangulate_line_strip_vertex(line, false, line_vertices);
+                        SHARED_triangle_collector(line_vertices);
+                    }
+                } break;
+                case TRIANGLE_FAN: {
+                    const std::vector<Vertex> _triangle_vertices = convertTriangleFanToTriangles(shape_stroke_vertex_buffer);
+                    const int                 buffer_size        = _triangle_vertices.size() / 3 * 3;
+                    for (int i = 0; i < buffer_size; i += 3) {
+                        std::vector<Vertex> _vertices;
+                        std::vector         line = {_triangle_vertices[i], _triangle_vertices[i + 1], _triangle_vertices[i + 2]};
+                        SHARED_triangulate_line_strip_vertex(line, true, _vertices);
+                        SHARED_triangle_collector(_vertices);
+                    }
+                } break;
+                case TRIANGLES: {
+                    const int buffer_size = shape_stroke_vertex_buffer.size() / 3 * 3;
+                    for (int i = 0; i < buffer_size; i += 3) {
+                        std::vector<Vertex> _vertices;
+                        std::vector         line = {shape_stroke_vertex_buffer[i], shape_stroke_vertex_buffer[i + 1], shape_stroke_vertex_buffer[i + 2]};
+                        SHARED_triangulate_line_strip_vertex(line, true, _vertices);
+                        SHARED_triangle_collector(_vertices);
+                    }
+                } break;
+                case TRIANGLE_STRIP: {
+                    const std::vector<Vertex> _triangle_vertices = convertTriangleStripToTriangles(shape_stroke_vertex_buffer);
+                    const int                 buffer_size        = _triangle_vertices.size() / 3 * 3;
+                    for (int i = 0; i < buffer_size; i += 3) {
+                        std::vector<Vertex> _vertices;
+                        std::vector         line = {_triangle_vertices[i], _triangle_vertices[i + 1], _triangle_vertices[i + 2]};
+                        SHARED_triangulate_line_strip_vertex(line, true, _vertices);
+                        SHARED_triangle_collector(_vertices);
+                    }
+                } break;
+                case QUAD_STRIP: {
+                    const std::vector<Vertex> _quad_vertices = convertQuadStripToQuads(shape_stroke_vertex_buffer);
+                    const int                 buffer_size    = _quad_vertices.size() / 4 * 4;
+                    for (int i = 0; i < buffer_size; i += 4) {
+                        std::vector<Vertex> _vertices;
+                        std::vector         line = {_quad_vertices[i], _quad_vertices[i + 1], _quad_vertices[i + 2], _quad_vertices[i + 3]};
+                        SHARED_triangulate_line_strip_vertex(line, true, _vertices);
+                        SHARED_triangle_collector(_vertices);
+                    }
+                } break;
+                case LINE_STRIP: {
+                    const int buffer_size = shape_stroke_vertex_buffer.size() / 2 * 2;
+                    for (int i = 0; i < buffer_size - 1; i++) {
+                        std::vector<Vertex> line_vertices;
+                        std::vector         line = {shape_stroke_vertex_buffer[i], shape_stroke_vertex_buffer[i + 1]};
+                        SHARED_triangulate_line_strip_vertex(line, false, line_vertices);
+                        SHARED_triangle_collector(line_vertices);
                     }
                 } break;
                 default:
-                case LINE_STRIP:
                 case QUADS:
-                case TRIANGLES:
-                case TRIANGLE_FAN:
-                case QUAD_STRIP: // NOTE does this just work?!?
-                case TRIANGLE_STRIP:
                 case POLYGON: {
                     std::vector<Vertex> line_vertices;
-                    triangulate_line_strip_vertex(shape_stroke_vertex_buffer, close_shape, line_vertices);
-                    IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, line_vertices);
+                    SHARED_triangulate_line_strip_vertex(shape_stroke_vertex_buffer, close_shape, line_vertices);
+                    SHARED_triangle_collector(line_vertices);
                 } break;
             }
             return;
@@ -1919,7 +2093,6 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
 
         // NOTE handles GL_LINES and GL_LINE_STRIP not compatible with OpenGL ES 3.1 and OpenGL 3.3 core
         if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
-
             if (close_shape && (tmp_shape_mode_cache == POLYGON || tmp_shape_mode_cache == LINE_STRIP)) {
                 // NOTE add first vertex as last …
                 shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
