@@ -27,9 +27,14 @@
 #include "PAudio.h"
 
 namespace umgebung {
-    static std::chrono::high_resolution_clock::time_point lastFrameTime         = {};
-    static bool                                           initialized           = false;
-    static double                                         target_frame_duration = 1.0 / frameRate;
+    static std::chrono::high_resolution_clock::time_point lastFrameTime                     = {};
+    static bool                                           initialized                       = false;
+    static double                                         target_frame_duration             = 1.0 / frameRate;
+    static bool                                           handle_subsystem_graphics_cleanup = false;
+    static bool                                           handle_subsystem_audio_cleanup    = false;
+
+    // TODO move the functions to the respective subsystems
+    void umgebung_subsystem_events_init();
 
     bool is_initialized() {
         return initialized;
@@ -83,11 +88,6 @@ namespace umgebung {
     }
 } // namespace umgebung
 
-// TODO move the functions to the respective subsystems
-void umgebung_subsystem_events_init();
-
-// TODO add console ( e.g SDL_log )
-// TODO not in umgebung namespace?
 static void handle_arguments(const int argc, char* argv[]) {
     std::vector<std::string> args;
     if (argc > 1) {
@@ -138,12 +138,14 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         if (umgebung::subsystem_graphics == nullptr) {
             if (umgebung::create_subsystem_graphics != nullptr) {
                 umgebung::console("+++ creating graphics subsystem with callback.");
-                umgebung::subsystem_graphics = umgebung::create_subsystem_graphics();
+                umgebung::subsystem_graphics                = umgebung::create_subsystem_graphics();
+                umgebung::handle_subsystem_graphics_cleanup = true;
             } else {
                 umgebung::console("+++ no graphics subsystem provided, using default.");
-                // umgebung::subsystem_graphics = umgebung_subsystem_graphics_sdl2d_create();
-                // umgebung::subsystem_graphics = umgebung_subsystem_graphics_openglv20_create();
-                umgebung::subsystem_graphics = umgebung_subsystem_graphics_openglv33_create();
+                // umgebung::subsystem_graphics = umgebung_create_subsystem_graphics_sdl2d();
+                // umgebung::subsystem_graphics = umgebung_create_subsystem_graphics_openglv20();
+                umgebung::subsystem_graphics                = umgebung_create_subsystem_graphics_openglv33();
+                umgebung::handle_subsystem_graphics_cleanup = true;
             }
             if (umgebung::subsystem_graphics == nullptr) {
                 umgebung::console("+++ did not create graphics subsystem.");
@@ -151,6 +153,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         } else {
             umgebung::console("+++ client provided graphics subsystem.");
         }
+        // TODO move graphics subsystem to subsystems vector
         // TODO check if this causes any problem … but it could nicely clean up things!!!
         // umgebung::subsystems.push_back(umgebung::subsystem_graphics);
     } else {
@@ -161,11 +164,13 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     if (umgebung::enable_audio) {
         if (umgebung::subsystem_audio == nullptr) {
             if (umgebung::create_subsystem_audio != nullptr) {
-                umgebung::console("+++ creating audio subsystem with callback.");
-                umgebung::subsystem_audio = umgebung::create_subsystem_audio();
+                umgebung::console("+++ creating audio subsystem via callback.");
+                umgebung::subsystem_audio                = umgebung::create_subsystem_audio();
+                umgebung::handle_subsystem_audio_cleanup = true;
             } else {
                 umgebung::console("+++ no audio subsystem provided, using default.");
-                umgebung::subsystem_audio = umgebung_subsystem_audio_sdl_create();
+                umgebung::subsystem_audio                = umgebung_create_subsystem_audio_sdl();
+                umgebung::handle_subsystem_audio_cleanup = true;
             }
             if (umgebung::subsystem_audio == nullptr) {
                 umgebung::console("+++ did not create audio subsystem.");
@@ -505,17 +510,17 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 }
 
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
-    /*
-     * 1. call `void umgebung::quit()`(?)
-     * 2. clean up subsytems e.g audio, graphics, ...
-     */
+    // NOTE 1. call `void umgebung::shutdown()`(?)
+    //      2. clean up subsytems e.g audio, graphics, ...
     if (umgebung::subsystem_graphics != nullptr) {
         if (umgebung::subsystem_graphics->shutdown != nullptr) {
             if (umgebung::subsystem_graphics != nullptr) {
                 umgebung::subsystem_graphics->shutdown();
             }
         }
-        delete umgebung::subsystem_graphics;
+        if (umgebung::handle_subsystem_graphics_cleanup) {
+            delete umgebung::subsystem_graphics;
+        }
         umgebung::subsystem_graphics = nullptr;
     }
 
@@ -524,9 +529,19 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result) {
             if (subsystem->shutdown != nullptr) {
                 subsystem->shutdown();
             }
-            delete subsystem;
+            // NOTE custom subsystems must be cleaned by client
+            // delete subsystem;
         }
     }
+
+    // NOTE clean up audio subsystem if created internally
+    if (umgebung::subsystem_audio != nullptr) {
+        if (umgebung::handle_subsystem_audio_cleanup) {
+            delete umgebung::subsystem_audio;
+        }
+        umgebung::subsystem_audio = nullptr;
+    }
+
     umgebung::subsystems.clear();
 
     shutdown();

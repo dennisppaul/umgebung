@@ -348,7 +348,7 @@ namespace umgebung {
     }
 } // namespace umgebung
 
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_openglv20_create() {
+umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv20() {
     auto* graphics            = new umgebung::SubsystemGraphics{};
     graphics->init            = umgebung::init;
     graphics->setup_pre       = umgebung::setup_pre;

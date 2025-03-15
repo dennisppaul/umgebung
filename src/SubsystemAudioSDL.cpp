@@ -577,7 +577,7 @@ namespace umgebung {
     }
 } // namespace umgebung
 
-umgebung::SubsystemAudio* umgebung_subsystem_audio_sdl_create() {
+umgebung::SubsystemAudio* umgebung_create_subsystem_audio_sdl() {
     auto* audio         = new umgebung::SubsystemAudio{};
     audio->set_flags    = umgebung::set_flags;
     audio->init         = umgebung::init;

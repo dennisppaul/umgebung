@@ -32,20 +32,7 @@
 
 /* --- DEFAULTS --- */
 
-#define DEFAULT                           (-1)
-// #define DEFAULT_NUMBER_OF_INPUT_CHANNELS  1 // TODO make this configurable
-// #define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2 // TODO make this configurable
-#define DEFAULT_WINDOW_WIDTH              1024
-#define DEFAULT_WINDOW_HEIGHT             768
-#define DEFAULT_WINDOW_TITLE              "Umgebung"
-
-// #ifndef DEFAULT_AUDIO_SAMPLE_RATE
-// #define DEFAULT_AUDIO_SAMPLE_RATE 48000 // TODO make this configurable
-// #endif
-
-// #ifndef DEFAULT_FRAMES_PER_BUFFER
-// #define DEFAULT_FRAMES_PER_BUFFER 2048 // TODO make this configurable
-// #endif
+#define DEFAULT_WINDOW_TITLE "Umgebung"
 
 /* --- UMGEBUNG_WINDOW_TITLE --- */
 
@@ -53,18 +40,41 @@
 #define UMGEBUNG_WINDOW_TITLE DEFAULT_WINDOW_TITLE
 #endif
 
-#ifndef UMGEBUNG_PRINT_ERRORS
-#define UMGEBUNG_PRINT_ERRORS TRUE
-#endif
-#ifndef UMGEBUNG_PRINT_WARNINGS
-#define UMGEBUNG_PRINT_WARNINGS TRUE
-#endif
-#ifndef UMGEBUNG_PRINT_CONSOLE
-#define UMGEBUNG_PRINT_CONSOLE TRUE
-#endif
+// #ifndef UMGEBUNG_PRINT_ERRORS
+// #define UMGEBUNG_PRINT_ERRORS TRUE
+// #endif
+// #ifndef UMGEBUNG_PRINT_WARNINGS
+// #define UMGEBUNG_PRINT_WARNINGS TRUE
+// #endif
+// #ifndef UMGEBUNG_PRINT_CONSOLE
+// #define UMGEBUNG_PRINT_CONSOLE TRUE
+// #endif
 
 /* --- TOOLS --- */
 
 #ifndef RGBA
 #define RGBA(r, g, b, a) (((uint32_t) (a) << 24) | ((uint32_t) (b) << 16) | ((uint32_t) (g) << 8) | ((uint32_t) (r)))
 #endif
+#ifndef HSBA
+#define HSBA(h, s, b, a) ({                         \
+    float _h = (h) * 360.0f, _s = (s), _b = (b);    \
+    float _r, _g, _bb, _f, _p, _q, _t;              \
+    int   _i = (int) (_h / 60.0f) % 6;              \
+    _f       = (_h / 60.0f) - _i;                   \
+    _p       = _b * (1.0f - _s);                    \
+    _q       = _b * (1.0f - _f * _s);               \
+    _t       = _b * (1.0f - (1.0f - _f) * _s);      \
+    switch (_i) {                                   \
+        case 0: _r = _b, _g = _t, _bb = _p; break;  \
+        case 1: _r = _q, _g = _b, _bb = _p; break;  \
+        case 2: _r = _p, _g = _b, _bb = _t; break;  \
+        case 3: _r = _p, _g = _q, _bb = _b; break;  \
+        case 4: _r = _t, _g = _p, _bb = _b; break;  \
+        default: _r = _b, _g = _p, _bb = _q; break; \
+    }                                               \
+    ((uint32_t) ((uint8_t) ((a) * 255.0f) << 24) |  \
+     (uint32_t) ((uint8_t) (_bb * 255.0f) << 16) |  \
+     (uint32_t) ((uint8_t) (_g * 255.0f) << 8) |    \
+     (uint32_t) ((uint8_t) (_r * 255.0f)));         \
+})
+#endif // HSBA

@@ -239,9 +239,6 @@ namespace umgebung {
         console("pixel_density        : ", pixel_density);
         g->pixelDensity(pixel_density); // NOTE setting pixel density from configuration
 
-        // pixelHeight = static_cast<int>(framebuffer_height / height);
-        // pixelWidth  = static_cast<int>(framebuffer_width / width);
-
         g->init(nullptr, static_cast<int>(framebuffer_width), static_cast<int>(framebuffer_height), 0, false);
         g->width  = static_cast<int>(width);
         g->height = static_cast<int>(height);
@@ -306,7 +303,7 @@ namespace umgebung {
 
 } // namespace umgebung
 
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_openglv33_create() {
+umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv33() {
     auto* graphics            = new umgebung::SubsystemGraphics{};
     graphics->set_flags       = umgebung::set_flags;
     graphics->init            = umgebung::init;

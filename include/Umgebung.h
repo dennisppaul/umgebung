@@ -56,14 +56,14 @@ namespace umgebung {
 
     /* public variables */
 
-    inline PGraphics* g                  = nullptr; // graphics
-    inline PAudio*    a                  = nullptr; // audio
-    inline float      width              = 1024;    // TODO populate with default values
-    inline float      height             = 768;     // TODO populate with default values
-    inline float      framebuffer_width  = width;   // TODO maybe i can clean this up at some point … it s always `width*pixelDensity`
+    inline PGraphics* g                  = nullptr;               // graphics
+    inline PAudio*    a                  = nullptr;               // audio
+    inline float      width              = DEFAULT_WINDOW_WIDTH;  // TODO populate with default values
+    inline float      height             = DEFAULT_WINDOW_HEIGHT; // TODO populate with default values
+    inline float      framebuffer_width  = width;                 // TODO maybe i can clean this up at some point … it s always `width*pixelDensity`
     inline float      framebuffer_height = height;
     inline float      frameCount         = 0;
-    inline float      frameRate          = 60;
+    inline float      frameRate          = DEFAULT_FRAME_RATE;
     inline int        key                = 0; // events
     inline int        mouseButton        = DEFAULT;
     inline bool       is_mouse_pressed   = false;

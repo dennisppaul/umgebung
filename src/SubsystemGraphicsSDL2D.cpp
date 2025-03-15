@@ -74,7 +74,7 @@ static PGraphics* create_graphics(const bool render_to_offscreen) {
 }
 } // umgebung
 
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_sdl2d_create() {
+umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_sdl2d() {
     auto* graphics            = new umgebung::SubsystemGraphics{};
     graphics->init            = umgebung::init;
     graphics->setup_pre       = umgebung::setup_pre;

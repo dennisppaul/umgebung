@@ -74,8 +74,8 @@ namespace umgebung {
 
 /* implemented devices */
 
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_sdl2d_create();
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_openglv20_create();
-umgebung::SubsystemGraphics* umgebung_subsystem_graphics_openglv33_create();
-umgebung::SubsystemAudio*    umgebung_subsystem_audio_sdl_create();
-umgebung::SubsystemAudio*    umgebung_subsystem_audio_portaudio_create();
+umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_sdl2d();
+umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv20();
+umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv33();
+umgebung::SubsystemAudio*    umgebung_create_subsystem_audio_sdl();
+umgebung::SubsystemAudio*    umgebung_create_subsystem_audio_portaudio();
