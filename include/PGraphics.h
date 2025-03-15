@@ -105,8 +105,6 @@ namespace umgebung {
         virtual void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {}
         virtual void        download_texture(PImage* img) {}
         virtual void        reset_matrices() {}
-        virtual void        bind_texture(int texture_id) {}
-        virtual void        unbind_texture() {}
         virtual std::string name() { return "PGraphics"; }
         virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
         void                to_screen_space(glm::vec3& world_position) const; // convert from model space to screen space
@@ -138,7 +136,7 @@ namespace umgebung {
         virtual void    ellipse(float x, float y, float width, float height)                                               = 0;
         virtual void    image(PImage* img, float x, float y, float w, float h)                                             = 0;
         virtual void    image(PImage* img, float x, float y)                                                               = 0;
-        virtual void    texture(PImage* img)                                                                               = 0;
+        virtual void    texture(PImage* img = nullptr)                                                                     = 0;
         virtual PImage* loadImage(const std::string& filename)                                                             = 0;
         virtual void    line(float x1, float y1, float x2, float y2)                                                       = 0;
         virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)                                   = 0;
@@ -153,6 +151,10 @@ namespace umgebung {
         virtual void    textSize(float size)                                                                               = 0;
         virtual void    text(const char* value, float x, float y, float z = 0.0f)                                          = 0;
         virtual float   textWidth(const std::string& text)                                                                 = 0;
+        // TODO implement
+        // virtual void    box(float width, float height, float depth)                                                        = 0;
+        // virtual void    sphere(float width, float height, float depth)                                                     = 0;
+        // virtual void    lights()                                                                                           = 0;
 
         /* --- additional ( pure virtual ) --- */
 
@@ -163,6 +165,10 @@ namespace umgebung {
         virtual void text_str(const std::string& text, float x, float y, float z = 0.0f) = 0; // TODO maybe make this private?
 
         int getPixelDensity() const { return pixel_density; }
+
+        // TODO implement
+        // virtual void box(const float size) { box(size, size, size); }
+        // virtual void sphere(const float size) { sphere(size, size, size); }
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) {
@@ -220,6 +226,10 @@ namespace umgebung {
         glm::mat4              projection_matrix_2D{};
         glm::mat4              projection_matrix_3D{};
         glm::mat4              view_matrix{};
+
+        void vertex_vec(const glm::vec3& position, const glm::vec2& tex_coords) {
+            vertex(position.x, position.y, position.z, tex_coords.x, tex_coords.y);
+        }
 
         static glm::vec4 as_vec4(const ColorState& color) {
             return {color.r, color.g, color.b, color.a};

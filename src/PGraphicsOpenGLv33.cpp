@@ -423,6 +423,7 @@ void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y) {
 // NOTE: done
 void PGraphicsOpenGLv33::texture(PImage* img) {
     if (img == nullptr) {
+        SHARED_bind_texture(texture_id_solid_color);
         return;
     }
 
@@ -1213,7 +1214,6 @@ void PGraphicsOpenGLv33::SHARED_render_vertex_buffer(PrimitiveVertexBuffer&     
 }
 
 void PGraphicsOpenGLv33::SHARED_bind_texture(const GLuint bind_texture_id) {
-    // `SHARED_bind_texture()` and `bind_texture()` are redundant
     if (bind_texture_id != texture_id_current) {
         texture_id_current = bind_texture_id;
         glBindTexture(GL_TEXTURE_2D, texture_id_current); // NOTE this should be the only glBindTexture ( except for initializations )
@@ -1616,10 +1616,9 @@ void PGraphicsOpenGLv33::IM_render_rect(const float x, const float y, const floa
         glm::vec2{0, 1}};
     if (RENDER_PRIMITVES_AS_SHAPES) {
         beginShape(POLYGON);
-        vertex(rect_vertices[0].x, rect_vertices[0].y);
-        vertex(rect_vertices[1].x, rect_vertices[1].y);
-        vertex(rect_vertices[2].x, rect_vertices[2].y);
-        vertex(rect_vertices[3].x, rect_vertices[3].y);
+        for (int i = 0; i < rect_vertices.size(); ++i) {
+            vertex_vec(rect_vertices[i], rect_tex_coords[i]);
+        }
         endShape(CLOSE);
     } else {
         if (color_fill.active) {
@@ -1787,14 +1786,14 @@ std::vector<Vertex> PGraphicsOpenGLv33::convertQuadsToTriangles(const std::vecto
 
     for (size_t i = 0; i < validQuadCount * 4; i += 4) {
         // First triangle (0-1-2)
-        triangles.push_back(quads[i]);
+        triangles.push_back(quads[i + 0]);
         triangles.push_back(quads[i + 1]);
         triangles.push_back(quads[i + 2]);
 
-        // Second triangle (1-3-2)
-        triangles.push_back(quads[i + 1]);
-        triangles.push_back(quads[i + 3]);
+        // Second triangle (2-3-1)
         triangles.push_back(quads[i + 2]);
+        triangles.push_back(quads[i + 3]);
+        triangles.push_back(quads[i + 0]);
     }
     return triangles;
 }

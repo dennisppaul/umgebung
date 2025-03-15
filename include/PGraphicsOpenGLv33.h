@@ -181,16 +181,11 @@ namespace umgebung {
         void    pixelDensity(int density) override;
         void    hint(uint16_t property) override;
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
-        // void    beginDraw() override;
-        // void    endDraw() override;
 
         /* --- additional methods --- */
 
-        void upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
-        void download_texture(PImage* img) override;
-        void bind_texture(const int texture_id) override { SHARED_bind_texture(texture_id); }
-        void unbind_texture() override { SHARED_bind_texture(texture_id_solid_color); }
-        // void        reset_matrices() override;
+        void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
+        void        download_texture(PImage* img) override;
         std::string name() override { return "PGraphicsOpenGLv33"; }
 
     private:
@@ -216,8 +211,8 @@ namespace umgebung {
             }
         };
 
-        static constexpr bool     RENDER_POINT_AS_CIRCLE                = true;
-        static constexpr bool     RENDER_PRIMITVES_AS_SHAPES             = true;
+        static constexpr bool     RENDER_POINT_AS_CIRCLE                 = true;
+        static constexpr bool     RENDER_PRIMITVES_AS_SHAPES             = false;
         static constexpr uint8_t  NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV = 9;
         static constexpr uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
         static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024; // 1MB
