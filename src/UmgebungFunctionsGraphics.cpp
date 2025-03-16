@@ -189,6 +189,13 @@ namespace umgebung {
         g->triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
     }
 
+    void quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) {
+        if (g == nullptr) {
+            return;
+        }
+        g->quad(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
+    }
+
     void point(const float x, const float y, const float z) {
         if (g == nullptr) {
             return;
@@ -420,5 +427,33 @@ namespace umgebung {
             return;
         }
         g->hint(property);
+    }
+
+    void box(const float size) {
+        if (g == nullptr) {
+            return;
+        }
+        g->box(size);
+    }
+
+    void box(const float width, const float height, const float depth) {
+        if (g == nullptr) {
+            return;
+        }
+        g->box(width, height, depth);
+    }
+
+    void sphere(const float size) {
+        if (g == nullptr) {
+            return;
+        }
+        g->sphere(size);
+    }
+
+    void phere(const float width, const float height, const float depth) {
+        if (g == nullptr) {
+            return;
+        }
+        g->sphere(width, height, depth);
     }
 } // namespace umgebung

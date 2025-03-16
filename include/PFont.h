@@ -104,7 +104,7 @@ namespace umgebung {
             pixels = new uint32_t[static_cast<int>(width * height)];
             copy_atlas_to_rgba(*font, reinterpret_cast<unsigned char*>(pixels));
 
-            console("PFont:created atlas");
+            console("PFont     :  created atlas");
             console("size      : ", width, "×", height);
             console("texture id: ", texture_id == TEXTURE_NOT_GENERATED ? "(NOT YET GENERATED)" : to_string(texture_id));
 #ifdef PFONT_DEBUG_FONT

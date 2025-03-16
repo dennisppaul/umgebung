@@ -41,6 +41,8 @@ PGraphics::PGraphics() : PImage(0, 0, 0) {
     PGraphics::fill(1.0f);
     PGraphics::stroke(0.0f);
     PGraphics::ellipseDetail(ELLIPSE_DETAIL_DEFAULT);
+    generate_box(box_vertices_LUT);
+    generate_sphere(sphere_vertices_LUT);
 }
 
 void PGraphics::background(PImage* img) {
@@ -188,10 +190,18 @@ void PGraphics::noStroke() {
     color_stroke.active = false;
 }
 
+/**
+ *  can be MITER, BEVEL, ROUND, NONE, BEVEL_FAST or MITER_FAST
+ * @param join
+ */
 void PGraphics::strokeJoin(const int join) {
     stroke_join_mode = join;
 }
 
+/**
+ * can be PROJECT, ROUND, POINTED or SQUARE
+ * @param cap
+ */
 void PGraphics::strokeCap(const int cap) {
     stroke_cap_mode = cap;
 }
@@ -217,6 +227,31 @@ void PGraphics::ellipseDetail(const int detail) {
 
 void PGraphics::pointSize(const float size) { point_size = size < 1 ? 1 : size; }
 
+void PGraphics::quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) {
+    beginShape(QUADS);
+    vertex(x1, y1, z1, 1, 1);
+    vertex(x2, y2, z2, 0, 1);
+    vertex(x3, y3, z3, 0, 0);
+    vertex(x4, y4, z4, 1, 0);
+    endShape();
+}
+
+void PGraphics::box(const float width, const float height, const float depth) {
+    beginShape(TRIANGLES);
+    for (const auto& v: box_vertices_LUT) {
+        vertex(v.x * width, v.y * height, v.z * depth);
+    }
+    endShape();
+}
+
+void PGraphics::sphere(const float width, const float height, const float depth) {
+    beginShape(TRIANGLES);
+    for (const auto& v: sphere_vertices_LUT) {
+        vertex(v.x * width, v.y * height, v.z * depth);
+    }
+    endShape();
+}
+
 void PGraphics::resize_ellipse_points_LUT() {
     if (ellipse_detail < ELLIPSE_DETAIL_MIN) {
         return;
@@ -230,6 +265,82 @@ void PGraphics::resize_ellipse_points_LUT() {
     for (int i = 0; i <= ellipse_detail; ++i) {
         const float theta     = deltaTheta * static_cast<float>(i);
         ellipse_points_LUT[i] = {std::cos(theta), std::sin(theta)};
+    }
+}
+
+void PGraphics::generate_box(std::vector<glm::vec3>& vertices) {
+    // Define 8 corner points of a unit cube (centered at origin)
+    glm::vec3 p0(-0.5f, -0.5f, -0.5f); // Bottom-left-back
+    glm::vec3 p1(0.5f, -0.5f, -0.5f);  // Bottom-right-back
+    glm::vec3 p2(0.5f, 0.5f, -0.5f);   // Top-right-back
+    glm::vec3 p3(-0.5f, 0.5f, -0.5f);  // Top-left-back
+    glm::vec3 p4(-0.5f, -0.5f, 0.5f);  // Bottom-left-front
+    glm::vec3 p5(0.5f, -0.5f, 0.5f);   // Bottom-right-front
+    glm::vec3 p6(0.5f, 0.5f, 0.5f);    // Top-right-front
+    glm::vec3 p7(-0.5f, 0.5f, 0.5f);   // Top-left-front
+
+    // Define triangles for each of the 6 faces (2 triangles per face)
+    std::vector<glm::vec3> triangles = {
+        // Back Face (-Z)
+        p0, p1, p2, p2, p3, p0,
+        // Front Face (+Z)
+        p5, p4, p7, p7, p6, p5,
+        // Left Face (-X)
+        p4, p0, p3, p3, p7, p4,
+        // Right Face (+X)
+        p1, p5, p6, p6, p2, p1,
+        // Bottom Face (-Y)
+        p4, p5, p1, p1, p0, p4,
+        // Top Face (+Y)
+        p3, p2, p6, p6, p7, p3};
+
+    // Convert to Vertex format
+    for (const auto& pos: triangles) {
+        vertices.push_back({pos});
+    }
+}
+
+void PGraphics::generate_sphere(std::vector<glm::vec3>& vertices, const int stacks, const int slices, const float radius) {
+    // Loop through latitude (stacks)
+    for (int i = 0; i < stacks; ++i) {
+        const float theta1 = glm::pi<float>() * (static_cast<float>(i) / stacks); // From 0 to PI
+        const float theta2 = glm::pi<float>() * (static_cast<float>(i + 1) / stacks);
+
+        // Loop through longitude (slices)
+        for (int j = 0; j < slices; ++j) {
+            const float phi1 = 2.0f * glm::pi<float>() * (static_cast<float>(j) / slices); // From 0 to 2PI
+            const float phi2 = 2.0f * glm::pi<float>() * (static_cast<float>(j + 1) / slices);
+
+            // Convert spherical coordinates to Cartesian (x, y, z)
+            glm::vec3 p0 = glm::vec3(
+                radius * sin(theta1) * cos(phi1),
+                radius * cos(theta1),
+                radius * sin(theta1) * sin(phi1));
+
+            glm::vec3 p1 = glm::vec3(
+                radius * sin(theta2) * cos(phi1),
+                radius * cos(theta2),
+                radius * sin(theta2) * sin(phi1));
+
+            glm::vec3 p2 = glm::vec3(
+                radius * sin(theta2) * cos(phi2),
+                radius * cos(theta2),
+                radius * sin(theta2) * sin(phi2));
+
+            glm::vec3 p3 = glm::vec3(
+                radius * sin(theta1) * cos(phi2),
+                radius * cos(theta1),
+                radius * sin(theta1) * sin(phi2));
+
+            // Two triangles per quad
+            vertices.push_back({p0});
+            vertices.push_back({p1});
+            vertices.push_back({p2});
+
+            vertices.push_back({p2});
+            vertices.push_back({p3});
+            vertices.push_back({p0});
+        }
     }
 }
 

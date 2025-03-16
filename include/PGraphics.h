@@ -141,19 +141,19 @@ namespace umgebung {
         virtual void    line(float x1, float y1, float x2, float y2)                                                       = 0;
         virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)                                   = 0;
         virtual void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) = 0;
-        virtual void    point(float x, float y, float z = 0.0f)                                                            = 0;
-        virtual void    rect(float x, float y, float width, float height)                                                  = 0;
-        virtual void    strokeWeight(float weight)                                                                         = 0;
-        virtual void    vertex(float x, float y, float z = 0.0f)                                                           = 0;
-        virtual void    vertex(float x, float y, float z, float u, float v)                                                = 0;
-        virtual PFont*  loadFont(const std::string& file, float size)                                                      = 0;
-        virtual void    textFont(PFont* font)                                                                              = 0;
-        virtual void    textSize(float size)                                                                               = 0;
-        virtual void    text(const char* value, float x, float y, float z = 0.0f)                                          = 0;
-        virtual float   textWidth(const std::string& text)                                                                 = 0;
-        // TODO implement
-        // virtual void    box(float width, float height, float depth)                                                        = 0;
-        // virtual void    sphere(float width, float height, float depth)                                                     = 0;
+        virtual void    quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
+        virtual void    point(float x, float y, float z = 0.0f)                   = 0;
+        virtual void    rect(float x, float y, float width, float height)         = 0;
+        virtual void    strokeWeight(float weight)                                = 0;
+        virtual void    vertex(float x, float y, float z = 0.0f)                  = 0;
+        virtual void    vertex(float x, float y, float z, float u, float v)       = 0;
+        virtual PFont*  loadFont(const std::string& file, float size)             = 0;
+        virtual void    textFont(PFont* font)                                     = 0;
+        virtual void    textSize(float size)                                      = 0;
+        virtual void    text(const char* value, float x, float y, float z = 0.0f) = 0;
+        virtual float   textWidth(const std::string& text)                        = 0;
+        virtual void    box(float width, float height, float depth);
+        virtual void    sphere(float width, float height, float depth);
         // virtual void    lights()                                                                                           = 0;
 
         /* --- additional ( pure virtual ) --- */
@@ -163,12 +163,13 @@ namespace umgebung {
         virtual void beginDraw()                                                         = 0;
         virtual void endDraw()                                                           = 0;
         virtual void text_str(const std::string& text, float x, float y, float z = 0.0f) = 0; // TODO maybe make this private?
+        virtual void debug_text(const std::string& text, float x, float y) {}
 
         int getPixelDensity() const { return pixel_density; }
 
         // TODO implement
-        // virtual void box(const float size) { box(size, size, size); }
-        // virtual void sphere(const float size) { sphere(size, size, size); }
+        virtual void box(const float size) { box(size, size, size); }
+        virtual void sphere(const float size) { sphere(size, size, size); }
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) {
@@ -216,7 +217,8 @@ namespace umgebung {
         static const Triangulator triangulator;
         std::vector<ColorState>   color_stroke_stack;
         std::vector<ColorState>   color_fill_stack;
-
+        std::vector<glm::vec3>    box_vertices_LUT;
+        std::vector<glm::vec3>    sphere_vertices_LUT;
 
         /* --- transform matrices --- */
 
@@ -249,7 +251,8 @@ namespace umgebung {
 
         uint8_t get_pixel_density() const { return pixel_density; }
 
-        void resize_ellipse_points_LUT();
+        void        resize_ellipse_points_LUT();
+        static void generate_box(std::vector<glm::vec3>& vertices);
+        static void generate_sphere(std::vector<glm::vec3>& vertices, int stacks = 10, int slices = 10, float radius = 0.5f);
     };
-
 } // namespace umgebung

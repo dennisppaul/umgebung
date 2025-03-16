@@ -23,6 +23,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "PGraphicsOpenGL.h"
+#include "UFont.h"
 
 namespace umgebung {
 
@@ -187,6 +188,8 @@ namespace umgebung {
         void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
         void        download_texture(PImage* img) override;
         std::string name() override { return "PGraphicsOpenGLv33"; }
+        void        debug_text(const std::string& text, float x, float y) override;
+        UFont       debug_font;
 
     private:
         struct RenderBatch {
@@ -253,6 +256,7 @@ namespace umgebung {
         int                      shape_mode_cache{POLYGON};
 
         // TODO check if all vertex attributes are copied i.e color and tex_coords
+        // TODO move to Geometry class
         std::vector<Vertex>        convertQuadStripToQuads(const std::vector<Vertex>& quadStrip) const;
         std::vector<Vertex>        convertPointsToTriangles(const std::vector<Vertex>& points, float size) const;
         static std::vector<Vertex> convertQuadsToTriangles(const std::vector<Vertex>& quads);

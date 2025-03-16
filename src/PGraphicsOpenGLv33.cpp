@@ -32,6 +32,26 @@
 
 using namespace umgebung;
 
+void PGraphicsOpenGLv33::debug_text(const std::string& text, const float x, const float y) {
+     std::vector<Vertex> triangle_vertices = debug_font.generate(text, x, y, glm::vec4(color_fill));
+    // beginShape(TRIANGLES);
+    // for (const Vertex& v : triangle_vertices) {
+    // console("v: ", v.position.x,",", v.position.y,",", v.position.z,",", v.tex_coord.x,",", v.tex_coord.y);
+    //     vertex(v.position.x, v.position.y, v.position.z, v.tex_coord.x, v.tex_coord.y);
+    // }
+    // endShape();
+    // // IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, triangle_vertices);
+    const int tmp_bound_texture = texture_id_current;
+    SHARED_bind_texture(debug_font.textureID);
+    // beginShape(TRIANGLES);
+    // for (const Vertex& v : triangle_vertices) {
+    //     vertex(v.position.x, v.position.y, v.position.z, v.tex_coord.x, v.tex_coord.y);
+    // }
+    // endShape();
+    IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, triangle_vertices);
+    SHARED_bind_texture(tmp_bound_texture);
+}
+
 PGraphicsOpenGLv33::PGraphicsOpenGLv33(const bool render_to_offscreen) : PImage(0, 0, 0) {
     this->render_to_offscreen = render_to_offscreen;
 }
@@ -119,11 +139,11 @@ void PGraphicsOpenGLv33::linse(const float x1, const float y1,
 void PGraphicsOpenGLv33::triangle(const float x1, const float y1, const float z1,
                                   const float x2, const float y2, const float z2,
                                   const float x3, const float y3, const float z3) {
-    beginShape(POLYGON);
+    beginShape(TRIANGLES);
     vertex(x1, y1, z1);
     vertex(x2, y2, z2);
     vertex(x3, y3, z3);
-    endShape(CLOSE);
+    endShape();
 }
 
 // NOTE: done
@@ -1174,7 +1194,7 @@ void PGraphicsOpenGLv33::SHARED_resize_vertex_buffer(const size_t buffer_size_by
     if (buffer_size_bytes > static_cast<size_t>(bufferSize)) {
         // Allocate extra space to reduce reallocations
         const size_t growSize = std::max(static_cast<int>(buffer_size_bytes), bufferSize + static_cast<int>(VBO_BUFFER_CHUNK_SIZE));
-        console("increasing vertex buffer array to ", growSize, " ( should be all good )");
+        console("increasing vertex buffer array to ", growSize, " ( no worries, this should be all good )");
         glBufferData(GL_ARRAY_BUFFER, static_cast<int>(growSize), nullptr, GL_DYNAMIC_DRAW);
     }
 }
@@ -1615,11 +1635,11 @@ void PGraphicsOpenGLv33::IM_render_rect(const float x, const float y, const floa
         glm::vec2{1, 1},
         glm::vec2{0, 1}};
     if (RENDER_PRIMITVES_AS_SHAPES) {
-        beginShape(POLYGON);
+        beginShape(QUADS);
         for (int i = 0; i < rect_vertices.size(); ++i) {
             vertex_vec(rect_vertices[i], rect_tex_coords[i]);
         }
-        endShape(CLOSE);
+        endShape();
     } else {
         if (color_fill.active) {
             if (IM_primitive_rect_fill.uninitialized()) {
@@ -1685,6 +1705,7 @@ void PGraphicsOpenGLv33::IM_render_ellipse(const float x, const float y, const f
     }
 
     if (RENDER_PRIMITVES_AS_SHAPES) {
+        // maybe separate into TRIANGLE_FAN and LINE_STRIP
         beginShape(POLYGON);
         points.pop_back();
         for (const auto& p: points) {
@@ -1735,6 +1756,16 @@ void PGraphicsOpenGLv33::SHARED_triangle_collector(std::vector<Vertex>& triangle
     //      like point, line, rect, ellipse and begin-end-shape
     IM_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, triangle_vertices);
     // TODO collect triangles and current texture information for retained mode here.
+
+    // TODO for RM mode:
+    //      - maybe sort by transparency ( and by depth )
+    //      - maybe sort transparent triangles by depth
+    //      - maybe sort by fill and stroke
+    //      ```C
+    //      add_stroke_vertex_xyz_rgba(position, color, tex_coord); // applies transformation
+    //      ... // add more vertices … maybe optimize by adding multiple vertices at once
+    //      RM_add_texture_id_to_render_batch(vertices,num_vertices,batch_texture_id);
+    //      ```
 }
 
 void PGraphicsOpenGLv33::IM_render_vertex_buffer(PrimitiveVertexBuffer& primitive,
@@ -1774,7 +1805,7 @@ void PGraphicsOpenGLv33::IM_render_vertex_buffer(PrimitiveVertexBuffer& primitiv
 
 std::vector<Vertex> PGraphicsOpenGLv33::convertPolygonToTriangleFan(const std::vector<Vertex>& polygon) {
     if (polygon.size() < 3) {
-        return {}; // Need at least 3 vertices
+        return {};
     }
 
     std::vector<Vertex> fan;
@@ -1924,8 +1955,11 @@ void PGraphicsOpenGLv33::SHARED_triangulate_line_strip_vertex(const std::vector<
     const glm::vec4        color = line_strip[0].color;
     std::vector<glm::vec2> points(line_strip.size());
     std::vector<glm::vec2> triangles;
+
     for (int i = 0; i < line_strip.size(); ++i) {
-        points[i] = line_strip[i].position;
+        glm::vec3 _position = line_strip[i].position;
+        to_screen_space(_position);
+        points[i] = _position;
     }
     triangulate_line_strip(points,
                            close_shape,
@@ -1993,12 +2027,11 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
                     // LIBTESS2 :: supports concave polygons, textures, holes and selfintersection but no textures
                     vertices_fill_polygon = triangulate_good(shape_fill_vertex_buffer);
                 } else if (polygon_triangulation_strategy == POLYGON_TRIANGULATION_MID) {
-                    // TODO maybe remove this option
-                    // POLYPARTITION + CLIPPER2
+                    // POLYPARTITION + CLIPPER2 // TODO maybe remove this option
                     vertices_fill_polygon = triangulate_better_quality(shape_fill_vertex_buffer);
                 }
                 SHARED_triangle_collector(vertices_fill_polygon);
-                // TODO what if polygon has only 3 or 4 vertices? could shortcut … here
+                // TODO what if polygon has only 3 ( triangle ) or 4 vertices ( quad )? could shortcut … here
             } break;
         }
     }
@@ -2018,7 +2051,7 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
                 std::vector<Vertex> line_vertices = convertPointsToTriangles(shape_stroke_vertex_buffer, point_size);
                 SHARED_triangle_collector(line_vertices);
             }
-            return;
+            return; // NOTE rendered as points exit early
         }
 
         if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
@@ -2049,6 +2082,7 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
                         std::vector         line = {shape_stroke_vertex_buffer[i], shape_stroke_vertex_buffer[i + 1], shape_stroke_vertex_buffer[i + 2]};
                         SHARED_triangulate_line_strip_vertex(line, true, _vertices);
                         SHARED_triangle_collector(_vertices);
+                        // SHARED_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, _vertices);
                     }
                 } break;
                 case TRIANGLE_STRIP: {
@@ -2088,7 +2122,7 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
                     SHARED_triangle_collector(line_vertices);
                 } break;
             }
-            return;
+            return; // NOTE rendered as triangles exit early
         }
 
         // NOTE handles GL_LINES and GL_LINE_STRIP not compatible with OpenGL ES 3.1 and OpenGL 3.3 core
@@ -2112,13 +2146,13 @@ void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
                 case LINE_STRIP:
                 case TRIANGLES:
                 case TRIANGLE_FAN:
-                case QUAD_STRIP: // NOTE does this just work?!?
+                case QUAD_STRIP:
                 case TRIANGLE_STRIP:
                 case POLYGON:
                     IM_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_buffer);
                     break;
             }
-            return;
+            return; // NOTE rendered as native lines ( if supported ) exit early
         }
     }
 }

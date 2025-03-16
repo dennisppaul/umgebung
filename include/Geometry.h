@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -37,6 +38,31 @@ namespace umgebung {
         glm::vec2 direction;
         glm::vec2 next_position;
     };
+
+    // Struct to hold a triangle with computed depth
+    struct Triangle {
+        Vertex v0, v1, v2;
+        float  depth; // Depth for sorting
+    };
+
+    /**
+     * depth sorting function ( back-to-front )
+     * @param triangles
+     * @param cameraPosition
+     */
+    inline void depth_sort_triangles(std::vector<Triangle>& triangles, const glm::vec3& cameraPosition) {
+        // compute depth for each triangle
+        for (auto& tri: triangles) {
+            glm::vec3 centroid = (tri.v0.position + tri.v1.position + tri.v2.position) / 3.0f;
+            tri.depth          = glm::dot(cameraPosition - centroid, cameraPosition - centroid); // Squared distance for efficiency
+        }
+
+        // sort triangles by depth (Back-to-Front)
+        std::sort(triangles.begin(), triangles.end(), [](const Triangle& a, const Triangle& b) {
+            return a.depth > b.depth; // Sorting from farthest to closest
+        });
+        // TODO one day replace by Weighted Blended Order-Independent Transparency (WBOIT)
+    }
 
     inline void triangulate_polygon(const std::vector<glm::vec2>& polygon_outline,
                                     std::vector<glm::vec2>&       resulting_triangles) {

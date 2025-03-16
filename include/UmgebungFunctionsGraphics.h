@@ -55,6 +55,7 @@ namespace umgebung {
     void    line(float x1, float y1, float x2, float y2);
     void    line(float x1, float y1, float z1, float x2, float y2, float z2);
     void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
+    void    quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
     void    point(float x, float y, float z = 0.0);
     void    rect(float x, float y, float width, float height);
     void    square(float x, float y, float extent);
@@ -88,4 +89,9 @@ namespace umgebung {
     void    hint(uint16_t property);
     void    rectMode(int mode);
     void    ellipseMode(int mode);
+    void    box(float size);
+    void    box(float width, float height, float depth);
+    void    sphere(float size);
+    void    sphere(float width, float height, float depth);
+
 } // namespace umgebung
