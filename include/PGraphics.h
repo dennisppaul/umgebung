@@ -222,13 +222,16 @@ namespace umgebung {
 
         /* --- transform matrices --- */
 
-        glm::mat4              model_matrix_client{};
-        glm::mat4              model_matrix_shader{};
+    public:
+        glm::mat4 model_matrix_client{};
+        glm::mat4 model_matrix_shader{};
+        glm::mat4 view_matrix{};
+        glm::mat4 projection_matrix_2D{};
+        glm::mat4 projection_matrix_3D{};
+
+    protected:
         std::vector<glm::mat4> model_matrix_stack{};
         bool                   model_matrix_dirty{false};
-        glm::mat4              projection_matrix_2D{};
-        glm::mat4              projection_matrix_3D{};
-        glm::mat4              view_matrix{};
 
         void vertex_vec(const glm::vec3& position, const glm::vec2& tex_coords) {
             vertex(position.x, position.y, position.z, tex_coords.x, tex_coords.y);

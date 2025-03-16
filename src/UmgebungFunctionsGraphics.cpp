@@ -259,6 +259,10 @@ namespace umgebung {
         g->strokeWeight(weight);
     }
 
+    /**
+     *  can be MITER, BEVEL, ROUND, NONE, BEVEL_FAST or MITER_FAST
+     * @param join
+     */
     void strokeJoin(const int join) {
         if (g == nullptr) {
             return;
@@ -266,6 +270,10 @@ namespace umgebung {
         g->strokeJoin(join);
     }
 
+    /**
+     * can be PROJECT, ROUND, POINTED or SQUARE
+     * @param cap
+     */
     void strokeCap(const int cap) {
         if (g == nullptr) {
             return;

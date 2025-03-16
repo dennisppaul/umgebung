@@ -312,22 +312,22 @@ void PGraphics::generate_sphere(std::vector<glm::vec3>& vertices, const int stac
             const float phi2 = 2.0f * glm::pi<float>() * (static_cast<float>(j + 1) / slices);
 
             // Convert spherical coordinates to Cartesian (x, y, z)
-            glm::vec3 p0 = glm::vec3(
+            auto p0 = glm::vec3(
                 radius * sin(theta1) * cos(phi1),
                 radius * cos(theta1),
                 radius * sin(theta1) * sin(phi1));
 
-            glm::vec3 p1 = glm::vec3(
+            auto p1 = glm::vec3(
                 radius * sin(theta2) * cos(phi1),
                 radius * cos(theta2),
                 radius * sin(theta2) * sin(phi1));
 
-            glm::vec3 p2 = glm::vec3(
+            auto p2 = glm::vec3(
                 radius * sin(theta2) * cos(phi2),
                 radius * cos(theta2),
                 radius * sin(theta2) * sin(phi2));
 
-            glm::vec3 p3 = glm::vec3(
+            auto p3 = glm::vec3(
                 radius * sin(theta1) * cos(phi2),
                 radius * cos(theta1),
                 radius * sin(theta1) * sin(phi2));
@@ -476,6 +476,7 @@ std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vert
 void PGraphics::to_screen_space(glm::vec3& world_position) const {
     // Transform world position to camera (view) space
     const glm::vec4 viewPos = view_matrix * model_matrix_client * glm::vec4(world_position, 1.0f);
+    // const glm::vec4 viewPos = view_matrix * model_matrix_client * glm::vec4(world_position, 1.0f);
 
     // Project onto clip space
     glm::vec4 clipPos = projection_matrix_3D * viewPos;
