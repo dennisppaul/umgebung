@@ -73,7 +73,7 @@ namespace umgebung {
     static constexpr int   STROKE_RENDER_MODE_NATIVE                     = 0x30; // line render mode
     static constexpr int   STROKE_RENDER_MODE_TRIANGULATE                = 0x31;
     static constexpr int   POINT_RENDER_MODE_NATIVE                      = 0x32;
-    static constexpr int   POINT_RENDER_MODE_TRIANGULATE                     = 0x33;
+    static constexpr int   POINT_RENDER_MODE_TRIANGULATE                 = 0x33;
     static constexpr int   POLYGON_TRIANGULATION_FASTER                  = 0x10;
     static constexpr int   POLYGON_TRIANGULATION_BETTER                  = 0x11;
     static constexpr int   POLYGON_TRIANGULATION_MID                     = 0x12;

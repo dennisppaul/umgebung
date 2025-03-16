@@ -356,27 +356,28 @@ static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMou
                 // if (!imgui_is_keyboard_captured()) {
                 keyPressed();
                 // }
+                umgebung::isKeyPressed = true;
             }
             break;
         case SDL_EVENT_KEY_UP:
             // if (imgui_is_keyboard_captured()) { break; }
-            umgebung::key = static_cast<int>(event.key.key);
+            umgebung::key            = static_cast<int>(event.key.key);
+            umgebung::isKeyPressed = false;
             keyReleased();
-
             break;
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
             // if (imgui_is_mouse_captured()) { break; }
             umgebung::mouseButton = event.button.button;
             fMouseIsPressed       = true;
             mousePressed();
-            umgebung::is_mouse_pressed = true;
+            umgebung::isMousePressed = true;
             break;
         case SDL_EVENT_MOUSE_BUTTON_UP:
             // if (imgui_is_mouse_captured()) { break; }
             fMouseIsPressed       = false;
             umgebung::mouseButton = -1;
             mouseReleased();
-            umgebung::is_mouse_pressed = false;
+            umgebung::isMousePressed = false;
             break;
         case SDL_EVENT_MOUSE_MOTION:
             // if (imgui_is_mouse_captured()) { break; }

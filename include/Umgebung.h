@@ -65,8 +65,9 @@ namespace umgebung {
     inline float      frameCount         = 0;
     inline float      frameRate          = DEFAULT_FRAME_RATE;
     inline int        key                = 0; // events
+    inline bool       isKeyPressed       = false;
     inline int        mouseButton        = DEFAULT;
-    inline bool       is_mouse_pressed   = false;
+    inline bool       isMousePressed     = false;
     inline float      mouseX             = 0;
     inline float      mouseY             = 0;
     inline float      pmouseX            = 0;
