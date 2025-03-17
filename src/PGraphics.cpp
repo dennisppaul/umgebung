@@ -1027,7 +1027,7 @@ void PGraphics::to_world_space(glm::vec3& model_position) const {
     model_position = model_matrix_client * glm::vec4(model_position, 1.0f);
 }
 
-void PGraphics::PGRAPHICS_triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, const bool close_shape, std::vector<Vertex>& line_vertices) const {
+void PGraphics::triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, const bool close_shape, std::vector<Vertex>& line_vertices) const {
     const glm::vec4        color = line_strip[0].color;
     std::vector<glm::vec2> points(line_strip.size());
     std::vector<glm::vec2> triangles;

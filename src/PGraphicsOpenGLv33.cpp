@@ -32,15 +32,9 @@
 
 using namespace umgebung;
 
-/*
- * OpenGL ES 3.1 is stricter:
- *
- * 1.	No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
- * 2.	No glLineWidth support at all.
- * 3.	Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
- *
- * i.e GL_LINES + GL_LINE_STRIP must be emulated
- */
+PGraphicsOpenGLv33::PGraphicsOpenGLv33(const bool render_to_offscreen) : PImage(0, 0, 0) {
+    this->render_to_offscreen = render_to_offscreen;
+}
 
 void PGraphicsOpenGLv33::IMPL_background(float a, float b, float c, float d) {
     glClearColor(a, b, c, d);
@@ -51,8 +45,7 @@ void PGraphicsOpenGLv33::IMPL_background(float a, float b, float c, float d) {
 void PGraphicsOpenGLv33::IMPL_bind_texture(const int bind_texture_id) {
     if (bind_texture_id != texture_id_current) {
         texture_id_current = bind_texture_id;
-        glBindTexture(GL_TEXTURE_2D, texture_id_current);
-        // NOTE this should be the only glBindTexture ( except for initializations )
+        glBindTexture(GL_TEXTURE_2D, texture_id_current); // NOTE this should be the only glBindTexture ( except for initializations )
     }
 }
 
@@ -78,13 +71,108 @@ void PGraphicsOpenGLv33::IMPL_set_texture(PImage* img) {
 
     IMPL_bind_texture(img->texture_id);
     // TODO so this is interesting: we could leave the texture bound and require the client
-    //      to unbind it with `texture_unbind()` or should `endShape()` alsways reset to
+    //      to unbind it with `texture_unbind()` or should `endShape()` always reset to
     //      `texture_id_solid_color` with `texture_unbind()`.
-    //      mazbe if this called within begin-end-shape it restores the texture afterwards.
 }
 
-PGraphicsOpenGLv33::PGraphicsOpenGLv33(const bool render_to_offscreen) : PImage(0, 0, 0) {
-    this->render_to_offscreen = render_to_offscreen;
+/**
+ * implement this method for respective renderer e.g
+ *
+ * - OpenGLv3.3 ( shader based, buffered mode, vertex array objects ),
+ * - OpenGLv2.0 ( fixed function pipeline, immediate mode, vertex buffer arrays ),
+ * - SDL2
+ *
+ * and maybe later vulkan, metal, etc.
+ *
+ * @param line_strip_vertices
+ * @param line_strip_closed
+ */
+void PGraphicsOpenGLv33::emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, const bool line_strip_closed) {
+    // NOTE relevant information for this method
+    //     - closed
+    //     - stroke_weight
+    //     - stroke_join
+    //     - stroke_cap
+    //     - (shader_id)
+    //     - (texture_id)
+
+    // NOTE this is a very central method! up until everything should have been done in generic PGraphics.
+    //      - vertices are in model space
+    //      - vertices are in line strip format ( i.e not triangulated or anything yet )
+    //      - decide on rendering mode ( triangulated, native, etcetera )
+    //      - this method is usually accessed from `endShape()`
+
+    // TODO maybe add stroke recorder here ( need to transform vertices to world space )
+
+    if (render_mode == RENDER_MODE_BUFFERED) {
+        if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
+            std::vector<Vertex> line_vertices;
+            triangulate_line_strip_vertex(line_strip_vertices, line_strip_closed, line_vertices);
+            // TODO collect `line_vertices` and render as `GL_TRIANGLES` at end of frame
+        }
+        if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
+            // TODO collect `line_strip_vertices` and render as `GL_LINE_STRIP` at end of frame
+        }
+    }
+
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        if (vertex_buffer_data.uninitialized()) {
+            OGL3_init_vertex_buffer(vertex_buffer_data);
+        }
+        if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
+            std::vector<Vertex> line_vertices;
+            triangulate_line_strip_vertex(line_strip_vertices, line_strip_closed, line_vertices);
+            OGL3_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, line_vertices);
+        }
+        if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
+            OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_LINE_STRIP, line_strip_vertices);
+        }
+    }
+
+    /*
+     * OpenGL ES 3.1 is stricter:
+     *
+     * 1.	No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
+     * 2.	No glLineWidth support at all.
+     * 3.	Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
+     *
+     * i.e GL_LINES + GL_LINE_STRIP must be emulated
+     */
+}
+
+void PGraphicsOpenGLv33::emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) {
+    // NOTE relevant information for this method
+    //     - textured_id
+    //     - normal
+    //     - (shader_id)
+
+    // NOTE this is a very central method! up until everything should have been done in generic PGraphics.
+    //      - vertices are in model space
+
+    // NOTE this is the magic place. here we can do everything we want with the triangle_vertices
+    //      e.g export to PDF or SVG, or even do some post processing.
+    //      ideally up until here everything could stau in PGraphics i.e all client side drawing
+    //      like point, line, rect, ellipse and begin-end-shape
+
+    // TODO maybe add triangle recorder here ( need to transform vertices to world space )
+
+    if (render_mode == RENDER_MODE_BUFFERED) {
+        // TODO collect triangles and current texture information for retained mode here.
+        //      - maybe sort by transparency ( and by depth )
+        //      - maybe sort transparent triangles by depth
+        //      - maybe sort by fill and stroke
+        //      ```C
+        //      add_stroke_vertex_xyz_rgba(position, color, tex_coord); // applies transformation
+        //      ... // add more triangle_vertices … maybe optimize by adding multiple triangle_vertices at once
+        //      RM_add_texture_id_to_render_batch(triangle_vertices,num_vertices,batch_texture_id);
+        //      ```
+    }
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        if (vertex_buffer_data.uninitialized()) {
+            OGL3_init_vertex_buffer(vertex_buffer_data);
+        }
+        OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, triangle_vertices);
+    }
 }
 
 // TODO could move this to a shared method in `PGraphics` and use beginShape(TRIANGLES)
@@ -92,7 +180,7 @@ void PGraphicsOpenGLv33::debug_text(const std::string& text, const float x, cons
     std::vector<Vertex> triangle_vertices = debug_font.generate(text, x, y, glm::vec4(color_fill));
     const int           tmp_bound_texture = texture_id_current;
     IMPL_bind_texture(debug_font.textureID);
-    OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, triangle_vertices);
+    OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, triangle_vertices);
     IMPL_bind_texture(tmp_bound_texture);
 }
 
@@ -131,9 +219,9 @@ void PGraphicsOpenGLv33::setup_fbo() {
 
 void PGraphicsOpenGLv33::endDraw() {
     if (render_mode == RENDER_MODE_BUFFERED) {
+        // TODO flush collected vertices
         // RM_flush_fill();
         // RM_flush_stroke();
-        // TODO flush collected vertices
         // void PGraphicsOpenGLv33::RM_flush_stroke() {
         //     if (stroke_vertices_xyz_rgba.empty()) {
         //         return;
@@ -217,7 +305,7 @@ void PGraphicsOpenGLv33::render_framebuffer_to_screen(const bool use_blit) {
                           GL_COLOR_BUFFER_BIT, GL_LINEAR); // TODO maybe GL_NEAREST is enough
         glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     } else {
-        error("`render_framebuffer_to_screen` need to implement this ... may re-use existing shader");
+        warning("`render_framebuffer_to_screen` need to implement this ... may re-use existing shader");
         // glBindFramebuffer(GL_FRAMEBUFFER, 0);
         // glDisable(GL_DEPTH_TEST);
         // glDisable(GL_BLEND);
@@ -376,6 +464,7 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
 /* additional */
 
 bool PGraphicsOpenGLv33::OGL_generate_and_upload_image_as_texture(PImage* image, const bool generate_texture_mipmapped) {
+    // TODO merge with method in PGraphicsOpenGLv20
     if (image == nullptr) {
         error("Failed to upload texture because image nullptr.");
         return false;
@@ -782,7 +871,7 @@ void main() {
 
 /* --- SHARED --- */
 
-void PGraphicsOpenGLv33::OGL3_init_vertex_buffer(PrimitiveVertexBuffer& primitive) {
+void PGraphicsOpenGLv33::OGL3_init_vertex_buffer(VertexBufferData& primitive) {
     // Generate and bind VAO & VBO
     glGenVertexArrays(1, &primitive.VAO);
     glBindVertexArray(primitive.VAO);
@@ -818,9 +907,9 @@ void PGraphicsOpenGLv33::OGL3_resize_vertex_buffer(const size_t buffer_size_byte
     }
 }
 
-void PGraphicsOpenGLv33::OGL_render_vertex_buffer(PrimitiveVertexBuffer&     vertex_buffer,
-                                                  const GLenum               primitive_mode,
-                                                  const std::vector<Vertex>& shape_vertices) {
+void PGraphicsOpenGLv33::OGL3_render_vertex_buffer(VertexBufferData&          vertex_buffer,
+                                                   const GLenum               primitive_mode,
+                                                   const std::vector<Vertex>& shape_vertices) {
     // Ensure there are vertices to render
     if (shape_vertices.empty()) {
         return;
@@ -852,82 +941,9 @@ void PGraphicsOpenGLv33::OGL_render_vertex_buffer(PrimitiveVertexBuffer&     ver
     glBindVertexArray(0);
 }
 
-/**
- * implement this method for respective renderer e.g
- *
- * - OpenGLv3.3 ( shader based, buffered mode, vertex array objects ),
- * - OpenGLv2.0 ( fixed function pipeline, immediate mode, vertex buffer arrays ),
- * - SDL2
- *
- * and maybe later vulkan, metal, etc.
- *
- * @param line_strip_vertices
- * @param line_strip_closed
- */
-void PGraphicsOpenGLv33::emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) {
-    // NOTE relevant information for this method
-    //     - closed
-    //     - stroke_weight
-    //     - stroke_join
-    //     - stroke_cap
-    //     - (shader_id)
-    //     - (texture_id)
-
-    // TODO maybe add stroke recorder here ( need to transform vertices to world space )
-
-    // NOTE this is a very central method! up until everything should have been done in generic PGraphics.
-    //      - vertices are in model space
-    //      - vertices are in line strip format ( i.e not triangulated or anything yet )
-    //      - decide on rendering mode ( triangulated, native, etcetera )
-    //      - this method is usually accessed from `endShape()`
-
-    if (IM_primitive_shape.uninitialized()) {
-        OGL3_init_vertex_buffer(IM_primitive_shape);
-    }
-    if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
-        std::vector<Vertex> line_vertices;
-        PGRAPHICS_triangulate_line_strip_vertex(line_strip_vertices, line_strip_closed, line_vertices);
-        OGL_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, line_vertices);
-    }
-    if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
-        OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, line_strip_vertices);
-    }
-}
-
-void PGraphicsOpenGLv33::emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) {
-    // NOTE relevant information for this method
-    //     - textured_id
-    //     - normal
-    //     - (shader_id)
-
-    // TODO maybe add triangle recorder here ( need to transform vertices to world space )
-    // NOTE this is a very central method! up until everything should have been done in generic PGraphics.
-    //      - vertices are in model space
-    if (IM_primitive_shape.uninitialized()) {
-        OGL3_init_vertex_buffer(IM_primitive_shape);
-    }
-    OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, triangle_vertices);
-
-    // TODO this is the magic place. here we can do everything we want with the triangle_vertices
-    //      e.g export to PDF or SVG, or even do some post processing.
-    //      ideally up until here everything could stau in PGraphics i.e all client side drawing
-    //      like point, line, rect, ellipse and begin-end-shape
-    // TODO collect triangles and current texture information for retained mode here.
-
-    // TODO for RM mode:
-    //      - maybe sort by transparency ( and by depth )
-    //      - maybe sort transparent triangles by depth
-    //      - maybe sort by fill and stroke
-    //      ```C
-    //      add_stroke_vertex_xyz_rgba(position, color, tex_coord); // applies transformation
-    //      ... // add more triangle_vertices … maybe optimize by adding multiple triangle_vertices at once
-    //      RM_add_texture_id_to_render_batch(triangle_vertices,num_vertices,batch_texture_id);
-    //      ```
-}
-
-void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(PrimitiveVertexBuffer& primitive,
-                                                                            const GLenum           mode,
-                                                                            std::vector<Vertex>&   shape_vertices) const {
+void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData&    primitive,
+                                                                            const GLenum         mode,
+                                                                            std::vector<Vertex>& shape_vertices) const {
     static bool _emit_warning_only_once = false;
     if (mode != GL_TRIANGLES && mode != GL_LINE_STRIP) {
         if (!_emit_warning_only_once) {
@@ -959,7 +975,7 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Prim
         modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model_matrix_client));
     }
-    OGL_render_vertex_buffer(primitive, mode, shape_vertices);
+    OGL3_render_vertex_buffer(primitive, mode, shape_vertices);
     if (mModelMatrixTransformOnGPU) {
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
     }
@@ -967,8 +983,8 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Prim
 
 // void PGraphicsOpenGLv33::IM_render_end_shape(const bool close_shape) {
 //     // TODO move this to e.g `OGL_tranform_model_matrix_and_render_vertex_buffer`
-//     if (IM_primitive_shape.uninitialized()) {
-//         OGL3_init_vertex_buffer(IM_primitive_shape);
+//     if (vertex_buffer_data.uninitialized()) {
+//         OGL3_init_vertex_buffer(vertex_buffer_data);
 //     }
 //
 
@@ -1028,7 +1044,7 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Prim
 //                 // TODO @OpenGLES3.1 replace with circle or textured quad
 //                 const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
 //                 glPointSize(tmp_point_size);
-//                 OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_POINTS, shape_stroke_vertex_buffer);
+//                 OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_POINTS, shape_stroke_vertex_buffer);
 //             }
 //             if (point_render_mode == POINT_RENDER_MODE_TRIANGULATE) {
 //                 std::vector<Vertex> line_vertices = convertPointsToTriangles(shape_stroke_vertex_buffer, point_size);
@@ -1080,8 +1096,8 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Prim
 //                 } break;
 //                 case LINE_STRIP: {
 //                     std::vector<Vertex> line_vertices;
-//                     PGRAPHICS_triangulate_line_strip_vertex(shape_stroke_vertex_buffer, false, line_vertices);
-//                     OGL_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLES, line_vertices);
+//                     triangulate_line_strip_vertex(shape_stroke_vertex_buffer, false, line_vertices);
+//                     OGL3_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, line_vertices);
 //                 } break;
 //                 case QUADS: {
 //                     const int buffer_size = shape_stroke_vertex_buffer.size() / 4 * 4;
@@ -1109,11 +1125,11 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Prim
 //             glLineWidth(tmp_line_width);
 //             switch (tmp_shape_mode_cache) {
 //                 case LINES:
-//                     OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_buffer);
+//                     OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_LINES, shape_stroke_vertex_buffer);
 //                     break;
 //                 case QUADS: {
 //                     std::vector<Vertex> vertices_stroke_quads = convertQuadsToTriangles(shape_stroke_vertex_buffer);
-//                     OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke_quads);
+//                     OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_LINE_STRIP, vertices_stroke_quads);
 //                 } break;
 //                 default:
 //                 case LINE_STRIP:
@@ -1122,7 +1138,7 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Prim
 //                 case QUAD_STRIP:
 //                 case TRIANGLE_STRIP:
 //                 case POLYGON:
-//                     OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_buffer);
+//                     OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_LINE_STRIP, shape_stroke_vertex_buffer);
 //                     break;
 //             }
 //             return; // NOTE rendered as native lines ( if supported ) exit early
@@ -1628,7 +1644,7 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Prim
 //                 shape_fill_vertex_buffer.emplace_back(p, fill_color, tex_coord);
 //             }
 //
-//             OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, shape_fill_vertex_buffer);
+//             OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLE_FAN, shape_fill_vertex_buffer);
 //         }
 //
 //         if (color_stroke.active) {
@@ -1641,11 +1657,11 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Prim
 //             if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
 //                 std::vector<Vertex> line_vertices;
 //                 shape_fill_vertex_buffer.pop_back();
-//                 PGRAPHICS_triangulate_line_strip_vertex(shape_fill_vertex_buffer, true, line_vertices);
+//                 triangulate_line_strip_vertex(shape_fill_vertex_buffer, true, line_vertices);
 //                 emit_shape_fill_triangles(line_vertices);
 //             }
 //             if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
-//                 OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_fill_vertex_buffer);
+//                 OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_LINE_STRIP, shape_fill_vertex_buffer);
 //             }
 //         }
 //     }

@@ -22,9 +22,9 @@
 #include "PGraphicsOpenGL.h"
 
 namespace umgebung {
-
     class PGraphicsOpenGLv20 final : public PGraphicsOpenGL {
-    public: // TODO clean this up
+        // TODO clean this up … move methods to implementation file
+    public:
         void reset_matrices() override {
             PGraphics::reset_matrices();
 
@@ -67,7 +67,6 @@ namespace umgebung {
             glPopAttrib();
         }
 
-        // Render framebuffer to screen (specific to OpenGL 2.0)
         void render_framebuffer_to_screen(bool use_blit = false) override {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glPushAttrib(GL_ALL_ATTRIB_BITS);

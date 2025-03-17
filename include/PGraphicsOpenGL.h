@@ -34,9 +34,7 @@
 
 namespace umgebung {
     class PGraphicsOpenGL : public PGraphics {
-    protected:
-        GLint previously_bound_FBO = 0;
-
+        // TODO clean this up … move methods to implementation file
     public:
         ~PGraphicsOpenGL() override = default;
 
@@ -95,6 +93,9 @@ namespace umgebung {
         void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override = 0;
         void        download_texture(PImage* img) override                                                                                              = 0;
         std::string name() override                                                                                                                     = 0;
+
+    protected:
+        GLint previously_bound_FBO = 0;
     };
 
     // TODO @maybe move the functions below into the class above

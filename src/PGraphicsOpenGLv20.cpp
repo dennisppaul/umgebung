@@ -413,7 +413,8 @@ PImage* PGraphicsOpenGLv20::loadImage(const std::string& filename) {
 }
 
 
-static bool SHARED_upload_image_as_texture(PImage* image, const bool generate_texture_mipmapped) {
+static bool OGL_generate_and_upload_image_as_texture(PImage* image, const bool generate_texture_mipmapped) {
+    // TODO merge with method in PGraphicsOpenGLv33
     if (image->pixels == nullptr) {
         error("Failed to upload texture because pixels are null");
         return false;
@@ -480,7 +481,7 @@ void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, float 
 
     // TODO move this to own method and share with `texture()`
     if (img->texture_id == TEXTURE_NOT_GENERATED) {
-        SHARED_upload_image_as_texture(img, true);
+        OGL_generate_and_upload_image_as_texture(img, true);
         if (img->texture_id == TEXTURE_NOT_GENERATED) {
             error("image cannot create texture.");
             return;
@@ -535,7 +536,7 @@ void PGraphicsOpenGLv20::texture(PImage* img) {
 
     // TODO move this to own method and share with `image()`
     if (img->texture_id == TEXTURE_NOT_GENERATED) {
-        SHARED_upload_image_as_texture(img, true);
+        OGL_generate_and_upload_image_as_texture(img, true);
         if (img->texture_id == TEXTURE_NOT_GENERATED) {
             error("image cannot create texture.");
             return;

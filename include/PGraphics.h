@@ -44,19 +44,20 @@ namespace umgebung {
             int          height{};
         };
 
-        float             depth_range = 10000.0f;
         FrameBufferObject framebuffer{};
 
         PGraphics();
         ~PGraphics() override = default;
 
-        virtual void render_framebuffer_to_screen(bool use_blit = false) {}
+        float             depth_range = 10000.0f;
 
         /* --- implementation specific methods --- */
 
         virtual void IMPL_background(float a, float b, float c, float d) {}
         virtual void IMPL_bind_texture(int bind_texture_id) {}
         virtual void IMPL_set_texture(PImage* img) {}
+
+        virtual void render_framebuffer_to_screen(bool use_blit = false) {}
 
         /* --- implemented in base class PGraphics --- */
 
@@ -149,7 +150,7 @@ namespace umgebung {
 
         virtual void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices)                              = 0;
         virtual void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) = 0;
-        void         PGRAPHICS_triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
+        void         triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
 
         virtual void beginDraw() = 0;
         virtual void endDraw()   = 0;
@@ -203,10 +204,10 @@ namespace umgebung {
         std::vector<glm::vec3>    box_vertices_LUT;
         std::vector<glm::vec3>    sphere_vertices_LUT;
         int                       shape_mode_cache{POLYGON};
-        static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE = 1024 * 1024;                              // 1MB
-//         std::vector<glm::vec3>    shape_stroke_vertex_cache_vec3_DEPRECATED{VBO_BUFFER_CHUNK_SIZE}; // TODO remove this
-        std::vector<Vertex>       shape_stroke_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
-        std::vector<Vertex>       shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
+        static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE = 1024 * 1024; // 1MB
+                                                                       //         std::vector<glm::vec3>    shape_stroke_vertex_cache_vec3_DEPRECATED{VBO_BUFFER_CHUNK_SIZE}; // TODO remove this
+        std::vector<Vertex> shape_stroke_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
+        std::vector<Vertex> shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
 
         // TODO clean this up:
 
