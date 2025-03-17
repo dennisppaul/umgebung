@@ -180,24 +180,27 @@ namespace umgebung {
         void endDraw() override {}
         // void bind() override {}
         void init(uint32_t* pixels, const int width, const int height, int format, bool generate_mipmap) override {
-            this->width        = width;
-            this->height       = height;
+            this->width  = width;
+            this->height = height;
             // framebuffer.width  = width;
             // framebuffer.height = height;
         }
+
+        void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override {}
+        void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override {}
 
     private:
         static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
 
         SDL_Renderer* renderer;
 
-        float  fPointSize             = 1;
-        float  fStrokeWeight          = 1;
-        bool   fEnabledTextureInShape = false;
-        bool   fShapeBegun            = false;
-        int    fEllipseDetail         = 32;
-        int    fBezierDetail          = 20;
-        int    fPixelDensity          = 1;
-        int    fPreviousFBO{};
+        float fPointSize             = 1;
+        float fStrokeWeight          = 1;
+        bool  fEnabledTextureInShape = false;
+        bool  fShapeBegun            = false;
+        int   fEllipseDetail         = 32;
+        int   fBezierDetail          = 20;
+        int   fPixelDensity          = 1;
+        int   fPreviousFBO{};
     };
 } // namespace umgebung

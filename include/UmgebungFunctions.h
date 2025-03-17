@@ -118,6 +118,6 @@ namespace umgebung {
 
     std::string trim(const std::string& str);
 
-    PGraphics* createGraphics();
+    PGraphics* createGraphics(); // TODO add parameters?
     PAudio*    createAudio(const AudioUnitInfo* device_info);
 } // namespace umgebung

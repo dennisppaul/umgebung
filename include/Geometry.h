@@ -21,7 +21,6 @@
 
 #include <algorithm>
 #include <vector>
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/geometric.hpp>
@@ -29,6 +28,14 @@
 #include "UmgebungConstants.h"
 
 // #define GEOMETRY_DRAW_DEBUG
+
+// TODO check if all vertex attributes are copied i.e color and tex_coords
+// std::vector<Vertex>        convertQuadStripToQuads(const std::vector<Vertex>& quadStrip) const;
+// std::vector<Vertex>        convertPointsToTriangles(const std::vector<Vertex>& points, float size) const;
+// static std::vector<Vertex> convertQuadsToTriangles(const std::vector<Vertex>& quads);
+// static std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon);
+// std::vector<Vertex>        convertTriangleFanToTriangles(const std::vector<Vertex>& fan) const;
+// std::vector<Vertex>        convertTriangleStripToTriangles(const std::vector<Vertex>& strip) const;
 
 namespace umgebung {
 
@@ -538,5 +545,154 @@ namespace umgebung {
                                               stroke_join_miter_max_angle,
                                               segments);
         }
+    }
+
+
+    inline std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon) {
+        if (polygon.size() < 3) {
+            return {};
+        }
+
+        std::vector<Vertex> fan;
+        fan.push_back(polygon[0]); // Center vertex
+
+        for (size_t i = 1; i < polygon.size() - 1; i++) {
+            fan.push_back(polygon[i]);
+            fan.push_back(polygon[i + 1]);
+        }
+        return fan;
+    }
+
+    inline std::vector<Vertex> convertTriangleStripToTriangles(const std::vector<Vertex>& strip) {
+        if (strip.size() < 3) {
+            return {}; // Not enough vertices for a triangle
+        }
+
+        const size_t        numTriangles = strip.size() - 2; // Number of triangles in the strip
+        std::vector<Vertex> triangles;
+        triangles.reserve(numTriangles * 3); // Pre-allocate memory
+
+        for (size_t i = 0; i < numTriangles; ++i) {
+            if (i % 2 == 0) {
+                // Regular order: v[i], v[i+1], v[i+2]
+                triangles.emplace_back(strip[i + 0]);
+                triangles.emplace_back(strip[i + 1]);
+                triangles.emplace_back(strip[i + 2]);
+            } else {
+                // Swapped order: v[i+1], v[i], v[i+2] (to maintain correct winding order)
+                triangles.emplace_back(strip[i + 1]);
+                triangles.emplace_back(strip[i + 0]);
+                triangles.emplace_back(strip[i + 2]);
+            }
+        }
+
+        return triangles;
+    }
+
+    inline std::vector<Vertex> convertTriangleFanToTriangles(const std::vector<Vertex>& fan) {
+        if (fan.size() < 3) {
+            return {}; // Not enough vertices for a triangle
+        }
+
+        const size_t        numTriangles = fan.size() - 2; // Number of triangles in the fan
+        std::vector<Vertex> triangles;
+        triangles.reserve(numTriangles * 3); // Pre-allocate memory
+
+        const Vertex& anchor = fan[0]; // The first vertex is the anchor
+
+        for (size_t i = 1; i < fan.size() - 1; ++i) {
+            // Form a triangle using:
+            // - anchor (fan[0])
+            // - fan[i]
+            // - fan[i + 1]
+            triangles.emplace_back(anchor);
+            triangles.emplace_back(fan[i]);
+            triangles.emplace_back(fan[i + 1]);
+        }
+
+        return triangles;
+    }
+
+    inline std::vector<Vertex> convertQuadStripToQuads(const std::vector<Vertex>& quadStrip) {
+        if (quadStrip.size() < 4) {
+            return {}; // Not enough vertices to form at least one quad
+        }
+
+        size_t              numQuads = (quadStrip.size() - 2) / 2; // Each quad requires 2 new vertices
+        std::vector<Vertex> quads;
+        quads.reserve(numQuads * 4); // Each quad has 4 vertices
+
+        for (size_t i = 0; i < quadStrip.size() - 2; i += 2) {
+            // Each quad consists of:
+            // v0 = quadStrip[i]
+            // v1 = quadStrip[i + 1]
+            // v2 = quadStrip[i + 3]
+            // v3 = quadStrip[i + 2]
+
+            quads.emplace_back(quadStrip[i]);     // Bottom-left
+            quads.emplace_back(quadStrip[i + 1]); // Bottom-right
+            quads.emplace_back(quadStrip[i + 3]); // Top-right
+            quads.emplace_back(quadStrip[i + 2]); // Top-left
+        }
+
+        return quads;
+    }
+
+    inline std::vector<Vertex> convertQuadsToTriangles(const std::vector<Vertex>& quads) {
+        if (quads.size() < 4) {
+            return {};
+        }
+
+        std::vector<Vertex> triangles;
+        const size_t        validQuadCount = quads.size() / 4; // only use full quads
+
+        for (size_t i = 0; i < validQuadCount * 4; i += 4) {
+            // First triangle (0-1-2)
+            triangles.push_back(quads[i + 0]);
+            triangles.push_back(quads[i + 1]);
+            triangles.push_back(quads[i + 2]);
+
+            // Second triangle (2-3-1)
+            triangles.push_back(quads[i + 2]);
+            triangles.push_back(quads[i + 3]);
+            triangles.push_back(quads[i + 0]);
+        }
+        return triangles;
+    }
+
+    inline std::vector<Vertex> convertPointsToTriangles(const std::vector<Vertex>& points, float size) {
+        if (points.empty()) {
+            return {};
+        }
+
+        std::vector<Vertex> triangles;
+        triangles.reserve(points.size() * 6); // Each point → 2 triangles → 6 vertices
+
+        float halfSize = size * 0.5f;
+
+        for (const Vertex& p: points) {
+            // Define the four corners of the quad centered at (p.x, p.y)
+            Vertex v0 = {p.position.x - halfSize, p.position.y - halfSize, p.position.z}; // Bottom-left
+            Vertex v1 = {p.position.x + halfSize, p.position.y - halfSize, p.position.z}; // Bottom-right
+            Vertex v2 = {p.position.x + halfSize, p.position.y + halfSize, p.position.z}; // Top-right
+            Vertex v3 = {p.position.x - halfSize, p.position.y + halfSize, p.position.z}; // Top-left
+
+            v0.color = p.color;
+            v1.color = p.color;
+            v2.color = p.color;
+            v3.color = p.color;
+
+            // Triangle 1: v0 → v1 → v2
+            triangles.emplace_back(v0);
+            triangles.emplace_back(v1);
+            triangles.emplace_back(v2);
+
+            // Triangle 2: v2 → v3 → v0
+            triangles.emplace_back(v2);
+            triangles.emplace_back(v3);
+            triangles.emplace_back(v0);
+        }
+
+        return triangles;
     }
 } // namespace umgebung

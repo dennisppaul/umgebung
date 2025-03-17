@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <SDL3/SDL.h>
+
 #include <cstdint>
 #include <chrono>
 #include <iostream>
@@ -58,6 +60,10 @@ namespace umgebung {
     void                     audio(const AudioUnitInfo& info);
     void                     audio_start(PAudio* device = nullptr);
     void                     audio_stop(PAudio* device = nullptr);
+    bool                     is_initialized();
+    std::string              get_window_title();
+    void                     set_frame_rate(float fps);
+    SDL_WindowFlags          get_SDL_WindowFlags(SDL_WindowFlags& flags);
 
     /* --- templated functions --- */
 

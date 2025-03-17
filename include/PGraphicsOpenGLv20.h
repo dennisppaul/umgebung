@@ -108,7 +108,6 @@ namespace umgebung {
             glPopAttrib();
         }
 
-    public:
         explicit PGraphicsOpenGLv20(bool render_to_offscreen);
 
         void    init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
@@ -157,6 +156,9 @@ namespace umgebung {
         // void    endDraw() override;
 
         /* --- additional methods --- */
+
+        void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override {}
+        void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override {}
 
         void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
         void        download_texture(PImage* img) override;

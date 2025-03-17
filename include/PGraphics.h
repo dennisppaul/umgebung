@@ -37,21 +37,20 @@ namespace umgebung {
 
     class PGraphics : public virtual PImage {
     public:
-        struct FBO {
+        struct FrameBufferObject {
             unsigned int id{};
             unsigned int texture_id{};
             int          width{};
             int          height{};
         };
 
-        float depth_range = 10000.0f;
-        FBO   framebuffer{};
+        float             depth_range = 10000.0f;
+        FrameBufferObject framebuffer{};
 
-        virtual void render_framebuffer_to_screen(bool use_blit = false) {}
-
-    public:
         PGraphics();
         ~PGraphics() override = default;
+
+        virtual void render_framebuffer_to_screen(bool use_blit = false) {}
 
         /* --- implementation specific methods --- */
 
@@ -121,10 +120,10 @@ namespace umgebung {
         virtual void    box(const float size) { box(size, size, size); }                                                    // NOTE: done
         virtual void    sphere(float width, float height, float depth);                                                     // NOTE: done
         virtual void    sphere(const float size) { sphere(size, size, size); }                                              // NOTE: done
-        virtual void    vertex(float x, float y, float z, float u, float v) = 0;                                            // TODO
-        virtual void    vertex(float x, float y, float z = 0.0f)            = 0;                                            // TODO
-        virtual void    beginShape(int shape = POLYGON)                     = 0;                                            // TODO
-        virtual void    endShape(bool close_shape = false)                  = 0;                                            // TODO
+        virtual void    vertex(float x, float y, float z, float u, float v);                                                // NOTE: done
+        virtual void    vertex(float x, float y, float z = 0.0f);                                                           // NOTE: done
+        virtual void    beginShape(int shape = POLYGON);                                                                    // NOTE: done
+        virtual void    endShape(bool close_shape = false);                                                                 // NOTE: done
         // virtual void    lights()                                                                                           = 0;
 
         /* --- additional --- */
@@ -134,27 +133,26 @@ namespace umgebung {
         virtual void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {}
         virtual void        download_texture(PImage* img) {}
         virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
-        void                to_screen_space(glm::vec3& world_position) const;                                               // convert from model space to screen space
-        void                to_world_space(glm::vec3& model_position) const;                                                // convert from model space to works space
-        void                linse(const float x1, const float y1, const float x2, const float y2) { line(x1, y1, x2, y2); } // NOTE: done
-        virtual void        text_str(const std::string& text, float x, float y, float z = 0.0f);                            // NOTE: done // TODO maybe make this private?
+        void                to_screen_space(glm::vec3& world_position) const; // NOTE: convert from model space to screen space
+        void                to_world_space(glm::vec3& model_position) const;  // NOTE: convert from model space to works space
+        void                linse(const float x1, const float y1, const float x2, const float y2) { line(x1, y1, x2, y2); }
+        virtual void        text_str(const std::string& text, float x, float y, float z = 0.0f); // TODO maybe make this private?
         virtual void        debug_text(const std::string& text, float x, float y) {}
         int                 getPixelDensity() const { return pixel_density; }
         void                stroke_mode(const int line_render_mode) { this->line_render_mode = line_render_mode; }
-        void                stroke_properties(const float stroke_join_round_resolution,
-                                              const float stroke_cap_round_resolution,
-                                              const float stroke_join_miter_max_angle) {
-            this->stroke_join_round_resolution = stroke_join_round_resolution;
-            this->stroke_cap_round_resolution  = stroke_cap_round_resolution;
-            this->stroke_join_miter_max_angle  = stroke_join_miter_max_angle;
-        }
+        void                stroke_properties(float stroke_join_round_resolution, float stroke_cap_round_resolution, float stroke_join_miter_max_angle);
+        void                process_collected_fill_and_stroke_vertices(bool close_shape);
+        virtual void        hint(uint16_t property);
+        virtual void        pixelDensity(int density);
 
         /* --- additional ( pure virtual ) --- */
 
-        virtual void pixelDensity(int density) = 0;
-        virtual void hint(uint16_t property)   = 0;
-        virtual void beginDraw()               = 0;
-        virtual void endDraw()                 = 0;
+        virtual void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices)                              = 0;
+        virtual void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) = 0;
+        void PGRAPHICS_triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
+
+        virtual void beginDraw() = 0;
+        virtual void endDraw()   = 0;
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) {
@@ -204,6 +202,11 @@ namespace umgebung {
         std::vector<ColorState>   color_fill_stack;
         std::vector<glm::vec3>    box_vertices_LUT;
         std::vector<glm::vec3>    sphere_vertices_LUT;
+        int                       shape_mode_cache{POLYGON};
+        static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE = 1024 * 1024;                              // 1MB
+        std::vector<glm::vec3>    shape_stroke_vertex_cache_vec3_DEPRECATED{VBO_BUFFER_CHUNK_SIZE}; // TODO remove this
+        std::vector<Vertex>       shape_stroke_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
+        std::vector<Vertex>       shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
 
         // TODO clean this up:
 

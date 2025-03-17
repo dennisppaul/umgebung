@@ -173,8 +173,8 @@ namespace umgebung {
         int current_framebuffer_width;
         int current_framebuffer_height;
         SDL_GetWindowSizeInPixels(window, &current_framebuffer_width, &current_framebuffer_height);
-        framebuffer_width         = static_cast<float>(current_framebuffer_width);
-        framebuffer_height        = static_cast<float>(current_framebuffer_height);
+        int framebuffer_width         = static_cast<float>(current_framebuffer_width);
+        int framebuffer_height        = static_cast<float>(current_framebuffer_height);
         const float pixel_density = SDL_GetWindowPixelDensity(window);
 
         console("main renderer      : ", g->name());

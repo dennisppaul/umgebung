@@ -88,18 +88,6 @@ namespace umgebung {
 
         /* --- interface --- */
 
-        // TODO implement 3D version
-        // virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)    = 0;
-
-        void   beginShape(int shape = POLYGON) override                                                                    = 0;
-        void   endShape(bool close_shape = false) override                                                                 = 0;
-        void   vertex(float x, float y, float z = 0.0f) override                                                           = 0;
-        void   vertex(float x, float y, float z, float u, float v) override                                                = 0;
-        void   pixelDensity(int density) override                                                                          = 0;
-        void   hint(uint16_t property) override                                                                            = 0;
-        // void    beginDraw() override                                                                                        = 0;
-        // void    endDraw() override                                                                                          = 0;
-
         void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override = 0;
 
         /* --- additional methods --- */

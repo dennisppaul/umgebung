@@ -76,9 +76,8 @@ namespace umgebung {
          * SDL_WINDOW_TRANSPARENT          SDL_UINT64_C(0x0000000040000000)    //  window with transparent buffer
          * SDL_WINDOW_NOT_FOCUSABLE        SDL_UINT64_C(0x0000000080000000)    //  window should not be focusable
          */
-        // SDL_WindowFlags flags = SDL_WINDOW_OPENGL; // TODO this needs to come from subsystem
-        flags |= SDL_WINDOW_HIDDEN; // always hide window
-        // flags |= SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS;
+        flags |= SDL_WINDOW_HIDDEN; // NOTE always hide window
+        flags |= SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS;
         flags |= fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
         flags |= borderless ? SDL_WINDOW_BORDERLESS : 0;
         flags |= resizable ? SDL_WINDOW_RESIZABLE : 0;
@@ -282,10 +281,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     //      NEED TO find a good place to do this … also for audio
     //      values should be updated before `setup()` is called:
     if (umgebung::g != nullptr && umgebung::enable_graphics) {
-        umgebung::width              = umgebung::g->width;
-        umgebung::height             = umgebung::g->height;
-        umgebung::framebuffer_width  = umgebung::g->framebuffer.width;
-        umgebung::framebuffer_height = umgebung::g->framebuffer.height;
+        umgebung::width  = umgebung::g->width;
+        umgebung::height = umgebung::g->height;
         // TODO pixelDensity
     }
     if (umgebung::a != nullptr && umgebung::enable_audio) {
@@ -332,16 +329,9 @@ static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMou
     sdl_event(event);
 
     switch (event.type) {
-        // case SDL_EVENT_WINDOW_EVENT:
-        //     if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
-        //         fAppIsRunning = false;
-        //     } else if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && event.window.windowID == 1) {
-        //         fWindowIsResized = true;
-        //     }
-        //     break;
         case SDL_EVENT_WINDOW_RESIZED:
             // TODO implement window resize … how will the subsystems be updated?
-            umgebung::warning("TODO window resized subsystem needs to be update …");
+            umgebung::warning("TODO window resized. subsystem needs to be update …");
             windowResized(-1, -1);
             fWindowIsResized = true;
             break;
@@ -361,7 +351,7 @@ static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMou
             break;
         case SDL_EVENT_KEY_UP:
             // if (imgui_is_keyboard_captured()) { break; }
-            umgebung::key            = static_cast<int>(event.key.key);
+            umgebung::key          = static_cast<int>(event.key.key);
             umgebung::isKeyPressed = false;
             keyReleased();
             break;
@@ -421,13 +411,6 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
             }
         }
     }
-
-    // if (sdl_event(event)) {
-    //     if (event->type == SDL_EVENT_QUIT) {
-    //         return SDL_APP_SUCCESS;
-    //     }
-    //     return SDL_APP_CONTINUE;
-    // }
 
     /*
      * 1. mouse events

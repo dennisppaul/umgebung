@@ -227,9 +227,9 @@ namespace umgebung {
         int current_framebuffer_width_in_pixel;
         int current_framebuffer_height_in_pixel;
         SDL_GetWindowSizeInPixels(window, &current_framebuffer_width_in_pixel, &current_framebuffer_height_in_pixel);
-        framebuffer_width         = static_cast<float>(current_framebuffer_width);
-        framebuffer_height        = static_cast<float>(current_framebuffer_height);
-        const float pixel_density = SDL_GetWindowPixelDensity(window);
+        int         framebuffer_width  = static_cast<float>(current_framebuffer_width);
+        int         framebuffer_height = static_cast<float>(current_framebuffer_height);
+        const float pixel_density      = SDL_GetWindowPixelDensity(window);
 
         console("main renderer        : ", g->name());
         console("render to offscreen  : ", g->render_to_offscreen ? "true" : "false");
@@ -239,7 +239,7 @@ namespace umgebung {
         console("pixel_density        : ", pixel_density);
         g->pixelDensity(pixel_density); // NOTE setting pixel density from configuration
 
-        g->init(nullptr, static_cast<int>(framebuffer_width), static_cast<int>(framebuffer_height), 0, false);
+        g->init(nullptr, framebuffer_width, framebuffer_height, 0, false);
         g->width  = static_cast<int>(width);
         g->height = static_cast<int>(height);
         g->lock_init_properties(true);

@@ -33,105 +33,23 @@ namespace umgebung {
         void IMPL_bind_texture(int bind_texture_id) override;
         void IMPL_set_texture(PImage* img) override;
 
-        // TODO move to implementation file i.e `.cpp`
-
         explicit PGraphicsOpenGLv33(bool render_to_offscreen);
 
-        // void setup_matrices() override {
-        //     reset_matrices();
-        // }
-
-        void restore_matrices() override {
-            // No explicit matrix stack in modern OpenGL
-        }
-
-        void reset_matrices() override {
-            PGraphics::reset_matrices();
-
-            glViewport(0, 0, framebuffer.width, framebuffer.height);
-        }
-
-        void prepare_frame() override {
-            set_default_graphics_state();
-
-            if (render_mode == RENDER_MODE_IMMEDIATE) {
-                glUseProgram(fill_shader_program);
-
-                // Upload matrices
-                const GLint projLoc = glGetUniformLocation(fill_shader_program, "uProjection");
-                glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D));
-
-                const GLint viewLoc = glGetUniformLocation(fill_shader_program, "uViewMatrix");
-                glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-
-                const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-
-                texture_id_current = 0;
-                IMPL_bind_texture(texture_id_solid_color);
-            }
-        }
-
-        void setup_fbo() override {
-            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-        }
-
-        void finish_fbo() override {
-        }
-
-        void endDraw() override {
-            if (render_mode == RENDER_MODE_BUFFERED) {
-                RM_flush_fill();
-                RM_flush_stroke();
-            }
-
-            PGraphicsOpenGL::endDraw();
-        }
-
-        // Modern OpenGL framebuffer rendering method
-        void render_framebuffer_to_screen(bool use_blit = false) override {
-            if (use_blit) {
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.id);
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-                glBlitFramebuffer(0, 0, framebuffer.width, framebuffer.height,
-                                  0, 0, framebuffer.width, framebuffer.height,
-                                  GL_COLOR_BUFFER_BIT, GL_LINEAR); // TODO maybe GL_NEAREST is enough
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-            } else {
-                error("`render_framebuffer_to_screen` need to implement this ... maybe reuse existing shader");
-                // glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                // glDisable(GL_DEPTH_TEST);
-                // glDisable(GL_BLEND);
-                //
-                // glUseProgram(shaderProgram);
-                // glBindVertexArray(screenVAO);
-                //
-                // bind_framebuffer_texture();
-                // glUniform1i(glGetUniformLocation(shaderProgram, "screenTexture"), 0);
-                //
-                // glDrawArrays(GL_TRIANGLES, 0, 6);
-                //
-                // glBindVertexArray(0);
-                // glUseProgram(0);
-            }
-        }
-
-        void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
-        void beginShape(int shape = POLYGON) override;                     // NOTE: done
-        void endShape(bool close_shape = false) override;                  // NOTE: done
-        void vertex(float x, float y, float z = 0.0f) override;            // NOTE: done
-        void vertex(float x, float y, float z, float u, float v) override; // NOTE: done
-        void pixelDensity(int density) override;
-        void hint(uint16_t property) override;
-
-        /* --- additional methods --- */
-
+        void        restore_matrices() override {}
+        void        reset_matrices() override;
+        void        prepare_frame() override;
+        void        setup_fbo() override;
+        void        finish_fbo() override {}
+        void        endDraw() override;
+        void        render_framebuffer_to_screen(bool use_blit = false) override;
+        void        init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
+        void        hint(uint16_t property) override;
         void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
         void        download_texture(PImage* img) override;
         std::string name() override { return "PGraphicsOpenGLv33"; }
         void        debug_text(const std::string& text, float x, float y) override;
-        UFont       debug_font;
+        void        emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override;
+        void        emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override;
 
     private:
         struct RenderBatch {
@@ -163,51 +81,26 @@ namespace umgebung {
         static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024; // 1MB
         static constexpr uint8_t  RENDER_MODE_IMMEDIATE                  = 0;
         static constexpr uint8_t  RENDER_MODE_BUFFERED                   = 1;
-        uint8_t                   render_mode                            = RENDER_MODE_IMMEDIATE;
         static const char*        vertex_shader_source_texture();
         static const char*        fragment_shader_source_texture();
         static const char*        vertex_shader_source_simple();
         static const char*        fragment_shader_source_simple();
-        // TODO @RENDER_MODE_RETAINED replace all `add_vertex...` methods with just
-        //     fill ( rendered as `GL_TRIANGLES` ):
-        //     - `RM_fill_add_vertex(Vertex v)`
-        //     - `RM_fill_add_triangle(Vertex v1, Vertex v2, Vertex v3)`
-        //     stroke ( rendered as `GL_LINES` ):
-        //     - `RM_fill_add_vertex(Vertex v)`
-        //     - `RM_fill_add_line(Vertex v1, Vertex v2)`
-        uint8_t render_line_mode = RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_MITER;
-        // TODO create *vertex buffer client* struct for this
-        // TODO remove these and replace them with `PrimitiveVertexArray`:
-        GLuint                   fill_shader_program{};
-        GLuint                   fill_VAO_xyz_rgba_uv{};
-        GLuint                   fill_VBO_xyz_rgba_uv{};
-        std::vector<float>       fill_vertices_xyz_rgba_uv;
-        uint32_t                 fill_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
-        GLuint                   stroke_shader_program{};
-        GLuint                   stroke_VAO_xyz_rgba{};
-        GLuint                   stroke_VBO_xyz_rgba{};
-        std::vector<float>       stroke_vertices_xyz_rgba;
-        uint32_t                 stroke_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
-        GLuint                   texture_id_solid_color{};
-        GLuint                   texture_id_current{};
-        std::vector<RenderBatch> renderBatches;
-        bool                     render_lines_as_quads{true};
-        std::vector<glm::vec3>   shape_stroke_vertex_cache_vec3_DEPRECATED{VBO_BUFFER_CHUNK_SIZE}; // TODO remove this
-        std::vector<Vertex>      shape_stroke_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
-        std::vector<Vertex>      shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
-        int                      shape_mode_cache{POLYGON};
-
-        // TODO check if all vertex attributes are copied i.e color and tex_coords
-        // TODO move to Geometry class
-        std::vector<Vertex>        convertQuadStripToQuads(const std::vector<Vertex>& quadStrip) const;
-        std::vector<Vertex>        convertPointsToTriangles(const std::vector<Vertex>& points, float size) const;
-        static std::vector<Vertex> convertQuadsToTriangles(const std::vector<Vertex>& quads);
-        static std::vector<Vertex> convertPolygonToTriangleFan(const std::vector<Vertex>& polygon);
-        std::vector<Vertex>        convertTriangleFanToTriangles(const std::vector<Vertex>& fan) const;
-        std::vector<Vertex>        convertTriangleStripToTriangles(const std::vector<Vertex>& strip) const;
-
-        void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed);
-        void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices);
+        uint8_t                   render_mode{RENDER_MODE_IMMEDIATE};
+        GLuint                    fill_shader_program{};
+        GLuint                    fill_VAO_xyz_rgba_uv{};
+        GLuint                    fill_VBO_xyz_rgba_uv{};
+        std::vector<float>        fill_vertices_xyz_rgba_uv;
+        uint32_t                  fill_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
+        GLuint                    stroke_shader_program{};
+        GLuint                    stroke_VAO_xyz_rgba{};
+        GLuint                    stroke_VBO_xyz_rgba{};
+        std::vector<float>        stroke_vertices_xyz_rgba;
+        uint32_t                  stroke_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
+        GLuint                    texture_id_solid_color{};
+        GLuint                    texture_id_current{};
+        std::vector<RenderBatch>  renderBatches;
+        bool                      render_lines_as_quads{true};
+        UFont                     debug_font;
 
         /* --- RENDER_MODE_IMMEDIATE (IM) --- */
 
@@ -262,12 +155,13 @@ namespace umgebung {
                                         float r, float g, float b, float a = 1.0f);
         /* --- SHARED --- */
 
-        void          PGRAPHICS_triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
+        static void   OGL_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);
+        static void   OGL3_resize_vertex_buffer(size_t buffer_size_bytes);
+        static void   OGL3_init_vertex_buffer(PrimitiveVertexBuffer& primitive);
+
+        // void          PGRAPHICS_triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
         void          create_solid_color_texture();
         bool          SHARED_generate_and_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`
-        static void   OGL3_resize_vertex_buffer(size_t buffer_size_bytes);
-        static void   OGL_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);
-        static void   OGL3_init_vertex_buffer(PrimitiveVertexBuffer& primitive);
         static GLuint SHARED_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
         static void   SHARED_checkShaderCompileStatus(GLuint shader);
         static void   SHARED_checkProgramLinkStatus(GLuint program);

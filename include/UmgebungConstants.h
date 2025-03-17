@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "UmgebungDefines.h"
+
 namespace umgebung {
     static constexpr int   DEFAULT                                       = -1;
     static constexpr int   DEFAULT_WINDOW_WIDTH                          = 1024;
@@ -78,12 +80,12 @@ namespace umgebung {
     static constexpr int   POLYGON_TRIANGULATION_FASTER                  = 0x10;
     static constexpr int   POLYGON_TRIANGULATION_BETTER                  = 0x11;
     static constexpr int   POLYGON_TRIANGULATION_MID                     = 0x12;
-    static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NONE   = 0x00; // TODO deprecated, remove these
-    static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_ROUND  = 0x01;
-    static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_MITER  = 0x02;
-    static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_BEVEL  = 0x03;
-    static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NATIVE = 0x04;
-    static constexpr float RENDER_LINE_STRIP_AS_QUADS_MAX_ANGLE          = 0.01;
+    // static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NONE   = 0x00; // TODO deprecated, remove these
+    // static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_ROUND  = 0x01;
+    // static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_MITER  = 0x02;
+    // static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_BEVEL  = 0x03;
+    // static constexpr int   RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NATIVE = 0x04;
+    // static constexpr float RENDER_LINE_STRIP_AS_QUADS_MAX_ANGLE          = 0.01;
     static constexpr int   HINT_ENABLE_SMOOTH_LINES                      = 0xA0; // hints
     static constexpr int   HINT_DISABLE_SMOOTH_LINES                     = 0xA1;
 } // namespace umgebung
