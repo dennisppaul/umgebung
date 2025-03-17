@@ -36,6 +36,7 @@ namespace umgebung {
         void (*draw_post)();
         void (*shutdown)();
         void (*event)(SDL_Event* event);
+        // TODO add human-readable name
     };
 
     struct SubsystemGraphics : Subsystem {

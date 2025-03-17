@@ -300,7 +300,6 @@ namespace umgebung {
     static PGraphics* create_graphics(const bool render_to_offscreen) {
         return new PGraphicsOpenGLv33(render_to_offscreen);
     }
-
 } // namespace umgebung
 
 umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv33() {

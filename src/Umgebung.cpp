@@ -152,9 +152,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         } else {
             umgebung::console("+++ client provided graphics subsystem.");
         }
-        // TODO move graphics subsystem to subsystems vector
-        // TODO check if this causes any problem … but it could nicely clean up things!!!
-        // umgebung::subsystems.push_back(umgebung::subsystem_graphics);
+        if (umgebung::subsystem_graphics != nullptr) {
+            umgebung::subsystems.push_back(umgebung::subsystem_graphics);
+        }
     } else {
         umgebung::console("+++ graphics disabled.");
     }
@@ -187,13 +187,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     uint32_t subsystem_flags = compile_subsystems_flag();
 
-    // TODO maybe move this to subsytems vector
-    if (umgebung::subsystem_graphics != nullptr) {
-        if (umgebung::subsystem_graphics->set_flags != nullptr) {
-            umgebung::subsystem_graphics->set_flags(subsystem_flags);
-        }
-    }
-
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->set_flags != nullptr) {
@@ -209,16 +202,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     // TODO make this configurable
     SDL_SetAppMetadata("Umgebung Application", "1.0", "de.dennisppaul.umgebung.application");
-
-    /* 3. initialize graphics */
-    /* - init */
-    if (umgebung::subsystem_graphics != nullptr) {
-        if (umgebung::subsystem_graphics->init != nullptr) {
-            if (!umgebung::subsystem_graphics->init()) {
-                SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
-            }
-        }
-    }
 
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
@@ -263,12 +246,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     /* - setup_pre */
 
-    if (umgebung::subsystem_graphics != nullptr) {
-        if (umgebung::subsystem_graphics->setup_pre != nullptr) {
-            umgebung::subsystem_graphics->setup_pre();
-        }
-    }
-
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->setup_pre != nullptr) {
@@ -302,12 +279,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     setup();
 
     /* - setup_post */
-
-    if (umgebung::subsystem_graphics != nullptr) {
-        if (umgebung::subsystem_graphics->setup_post != nullptr) {
-            umgebung::subsystem_graphics->setup_post();
-        }
-    }
 
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
@@ -425,12 +396,6 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 }
 
 static void handle_draw() {
-    if (umgebung::subsystem_graphics != nullptr) {
-        if (umgebung::subsystem_graphics->draw_pre != nullptr) {
-            umgebung::subsystem_graphics->draw_pre();
-        }
-    }
-
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->draw_pre != nullptr) {
@@ -440,12 +405,6 @@ static void handle_draw() {
     }
 
     draw();
-
-    if (umgebung::subsystem_graphics != nullptr) {
-        if (umgebung::subsystem_graphics->draw_post != nullptr) {
-            umgebung::subsystem_graphics->draw_post();
-        }
-    }
 
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
@@ -462,12 +421,6 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
     const high_resolution_clock::time_point currentFrameTime = high_resolution_clock::now();
     const auto                              frameDuration    = duration_cast<duration<double>>(currentFrameTime - umgebung::lastFrameTime);
     const double                            frame_duration   = frameDuration.count();
-
-    if (umgebung::subsystem_graphics != nullptr) {
-        if (umgebung::subsystem_graphics->loop != nullptr) {
-            umgebung::subsystem_graphics->loop();
-        }
-    }
 
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
@@ -496,29 +449,23 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
     // NOTE 1. call `void umgebung::shutdown()`(?)
     //      2. clean up subsytems e.g audio, graphics, ...
-    if (umgebung::subsystem_graphics != nullptr) {
-        if (umgebung::subsystem_graphics->shutdown != nullptr) {
-            if (umgebung::subsystem_graphics != nullptr) {
-                umgebung::subsystem_graphics->shutdown();
-            }
-        }
-        if (umgebung::handle_subsystem_graphics_cleanup) {
-            delete umgebung::subsystem_graphics;
-        }
-        umgebung::subsystem_graphics = nullptr;
-    }
 
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->shutdown != nullptr) {
                 subsystem->shutdown();
             }
-            // NOTE custom subsystems must be cleaned by client
-            // delete subsystem;
+            // NOTE custom subsystems must be cleaned by client: `delete subsystem;`
         }
     }
 
-    // NOTE clean up audio subsystem if created internally
+    // NOTE clean up graphics + audio subsystem if created internally
+    if (umgebung::subsystem_graphics != nullptr) {
+        if (umgebung::handle_subsystem_graphics_cleanup) {
+            delete umgebung::subsystem_graphics;
+        }
+        umgebung::subsystem_graphics = nullptr;
+    }
     if (umgebung::subsystem_audio != nullptr) {
         if (umgebung::handle_subsystem_audio_cleanup) {
             delete umgebung::subsystem_audio;

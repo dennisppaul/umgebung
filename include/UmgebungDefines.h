@@ -36,7 +36,7 @@
 
 /* --- UMGEBUNG_WINDOW_TITLE --- */
 
-#ifndef UMGEBUNG_WINDOW_TITLE // can be set in `CMakeLists.txt` // TODO consider setting this in settings?
+#ifndef UMGEBUNG_WINDOW_TITLE // can be set in `CMakeLists.txt` // TODO consider moving this to settings?
 #define UMGEBUNG_WINDOW_TITLE DEFAULT_WINDOW_TITLE
 #endif
 

@@ -31,9 +31,9 @@ namespace umgebung {
     /* public variables *for initialization only*  */
 
     /* --- audio  --- */
-    inline bool enable_audio = false;
+    inline bool enable_audio           = false;
+    inline int  audio_unique_device_id = 0x0010;
     // inline int        audio_format       = 0; // TODO currently only supporting F32
-    inline int audio_unique_device_id = 0x0010;
 
     /* --- graphics --- */
     inline bool enable_graphics  = false;
@@ -86,7 +86,7 @@ namespace umgebung {
 
     /* public variables *mainly for internal use* */
 
+    inline std::vector<Subsystem*> subsystems;
     inline SubsystemGraphics*      subsystem_graphics = nullptr;
     inline SubsystemAudio*         subsystem_audio    = nullptr;
-    inline std::vector<Subsystem*> subsystems;
 } // namespace umgebung
