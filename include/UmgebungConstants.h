@@ -38,6 +38,7 @@ namespace umgebung {
     static constexpr int   TEXTURE_NOT_GENERATED                         = -1;
     static constexpr int   TEXTURE_NOT_UPDATED                           = -2;
     static constexpr int   TEXTURE_VALID_ID                              = 1;
+    static constexpr int   TEXTURE_NONE                                  = 0;
     static constexpr float PI                                            = 3.14159265358979323846f;
     static constexpr float HALF_PI                                       = PI / 2;
     static constexpr float QUARTER_PI                                    = PI / 4;

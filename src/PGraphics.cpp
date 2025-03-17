@@ -30,6 +30,7 @@
 #include "polypartition.h"
 #include "clipper2/clipper.h"
 
+#include "Umgebung.h"
 #include "UmgebungFunctionsGraphics.h"
 #include "UmgebungFunctionsAdditional.h"
 #include "PGraphics.h"
@@ -227,7 +228,141 @@ void PGraphics::ellipseDetail(const int detail) {
 
 void PGraphics::pointSize(const float size) { point_size = size < 1 ? 1 : size; }
 
-void PGraphics::quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) {
+/* --- shapes --- */
+
+
+// NOTE: done
+void PGraphics::bezier(const float x1, const float y1,
+                       const float x2, const float y2,
+                       const float x3, const float y3,
+                       const float x4, const float y4) {
+    if (!color_stroke.active) {
+        return;
+    }
+
+    if (bezier_detail < 2) {
+        return;
+    }
+
+    const int   segments = bezier_detail;
+    const float step     = 1.0f / static_cast<float>(segments);
+
+    beginShape(LINE_STRIP);
+    for (int i = 0; i < segments + 1; ++i) {
+        const float t = static_cast<float>(i) * step;
+        const float u = 1.0f - t;
+
+        const float b0 = u * u * u;
+        const float b1 = 3 * u * u * t;
+        const float b2 = 3 * u * t * t;
+        const float b3 = t * t * t;
+
+        const float x = b0 * x1 + b1 * x2 + b2 * x3 + b3 * x4;
+        const float y = b0 * y1 + b1 * y2 + b2 * y3 + b3 * y4;
+
+        vertex(x, y);
+    }
+    endShape();
+}
+
+// NOTE: done
+void PGraphics::bezier(const float x1, const float y1, const float z1,
+                       const float x2, const float y2, const float z2,
+                       const float x3, const float y3, const float z3,
+                       const float x4, const float y4, const float z4) {
+    if (!color_stroke.active) {
+        return;
+    }
+    if (bezier_detail < 2) {
+        return;
+    }
+
+    const int   segments = bezier_detail;
+    const float step     = 1.0f / static_cast<float>(segments);
+
+    beginShape(LINE_STRIP);
+    for (int i = 0; i < segments + 1; ++i) {
+        const float t = static_cast<float>(i) * step;
+        const float u = 1.0f - t;
+
+        const float b0 = u * u * u;
+        const float b1 = 3 * u * u * t;
+        const float b2 = 3 * u * t * t;
+        const float b3 = t * t * t;
+
+        const float x = b0 * x1 + b1 * x2 + b2 * x3 + b3 * x4;
+        const float y = b0 * y1 + b1 * y2 + b2 * y3 + b3 * y4;
+        const float z = b0 * z1 + b1 * z2 + b2 * z3 + b3 * z4;
+
+        vertex(x, y, z);
+    }
+    endShape();
+}
+
+// NOTE: done
+void PGraphics::bezierDetail(const int detail) {
+    bezier_detail = detail;
+}
+
+// NOTE: done
+void PGraphics::ellipse(const float x, const float y, const float width, const float height) {
+    if (!color_fill.active && !color_stroke.active) {
+        return;
+    }
+
+    // TODO: Implement `ellipseMode()`
+    constexpr glm::vec2 tex_coord = {0.0f, 0.0f};
+    const float         radiusX   = width * 0.5f;
+    const float         radiusY   = height * 0.5f;
+
+    std::vector<glm::vec3> points;
+    points.reserve(ellipse_detail + 1);
+
+    // TODO create and recompute LUT for when `ellipse_detail` changes
+    float i_f = 0.0f;
+    for (int i = 0; i <= ellipse_detail; ++i, i_f += 1.0f) {
+        points.emplace_back(x + radiusX * ellipse_points_LUT[i].x,
+                            y + radiusY * ellipse_points_LUT[i].y,
+                            0.0f);
+    }
+
+    beginShape(POLYGON);
+    points.pop_back();
+    for (const auto& p: points) {
+        vertex(p.x, p.y);
+    }
+    endShape(CLOSE);
+}
+
+// NOTE: done
+void PGraphics::circle(const float x, const float y, const float diameter) {
+    ellipse(x, y, diameter, diameter);
+}
+
+// NOTE: done
+void PGraphics::line(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2) {
+    if (!color_stroke.active) {
+        return;
+    }
+    beginShape(LINES);
+    vertex(x1, y1, z1);
+    vertex(x2, y2, z2);
+    endShape();
+}
+
+// NOTE: done
+void PGraphics::line(const float x1, const float y1, const float x2, const float y2) {
+    line(x1, y1, 0, x2, y2, 0);
+}
+
+// NOTE: done
+PImage* PGraphics::loadImage(const std::string& filename) {
+    auto* img = new PImage(filename);
+    return img;
+}
+
+// NOTE: done
+void PGraphics::quad(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2, const float x3, const float y3, const float z3, const float x4, const float y4, const float z4) {
     beginShape(QUADS);
     vertex(x1, y1, z1, 1, 1);
     vertex(x2, y2, z2, 0, 1);
@@ -447,31 +582,27 @@ std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vert
     return triangleList;
 }
 
-// void PGraphicsOpenGLv33::reset_matrices() {
-//     model_matrix_shader = glm::mat4(1.0f);
-//     model_matrix_client = glm::mat4(1.0f);
-//     model_matrix_dirty  = false;
-//
-//     const float viewport_width  = framebuffer_width;
-//     const float viewport_height = framebuffer_height;
-//
-//     glViewport(0, 0, static_cast<GLint>(viewport_width), static_cast<GLint>(viewport_height));
-//
-//     // Orthographic projection
-//     projection_matrix_2D = glm::ortho(0.0f, viewport_width, viewport_height, 0.0f);
-//
-//     const float fov            = DEFAULT_FOV;                       // distance from the camera = screen height
-//     const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f); // 1 unit = 1 pixel
-//
-//     // Perspective projection
-//     projection_matrix_3D = glm::perspective(fov, width / height, 0.1f, static_cast<float>(depth_range));
-//
-//     view_matrix = glm::lookAt(
-//         glm::vec3(width / 2.0f, height / 2.0f, -cameraDistance), // Flip Z to fix X-axis
-//         glm::vec3(width / 2.0f, height / 2.0f, 0.0f),            // Look at the center
-//         glm::vec3(0.0f, -1.0f, 0.0f)                             // Keep Y-up as normal
-//     );
-// }
+void PGraphics::reset_matrices() {
+    // TODO clean up framebuffer_width and height handling … also see Umgebung for this
+    framebuffer_width  = framebuffer.width;
+    framebuffer_height = framebuffer.height;
+
+    model_matrix_client = glm::mat4(1.0f);
+    model_matrix_dirty  = false;
+
+    // orthographic projection
+    projection_matrix_2D = glm::ortho(0.0f, static_cast<float>(framebuffer.width), static_cast<float>(framebuffer.height), 0.0f);
+
+    const float fov            = DEFAULT_FOV;
+    const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f);
+
+    // perspective projection
+    projection_matrix_3D = glm::perspective(fov, width / height, 0.1f, static_cast<float>(depth_range));
+
+    view_matrix = glm::lookAt(glm::vec3(width / 2.0f, height / 2.0f, -cameraDistance),
+                              glm::vec3(width / 2.0f, height / 2.0f, 0.0f),
+                              glm::vec3(0.0f, -1.0f, 0.0f));
+}
 
 void PGraphics::to_screen_space(glm::vec3& world_position) const {
     // Transform world position to camera (view) space

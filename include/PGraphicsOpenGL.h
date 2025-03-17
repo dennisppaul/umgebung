@@ -36,7 +36,6 @@ namespace umgebung {
     class PGraphicsOpenGL : public PGraphics {
     protected:
         GLint previously_bound_FBO = 0;
-        float depth_range          = 10000.0f;
 
     public:
         ~PGraphicsOpenGL() override = default;
@@ -96,16 +95,7 @@ namespace umgebung {
         void    background(float a, float b, float c, float d = 1.0f) override                                              = 0;
         void    background(float a) override                                                                                = 0;
         void    rect(float x, float y, float width, float height) override                                                  = 0;
-        void    ellipse(float x, float y, float width, float height) override                                               = 0;
-        void    circle(float x, float y, float radius) override                                                             = 0;
-        void    line(float x1, float y1, float x2, float y2) override                                                       = 0;
-        void    line(float x1, float y1, float z1, float x2, float y2, float z2) override                                   = 0;
         void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override = 0;
-        void    bezier(float x1, float y1, float x2, float y2,
-                       float x3, float y3, float x4, float y4) override                                                     = 0;
-        void    bezier(float x1, float y1, float z1, float x2, float y2, float z2,
-                       float x3, float y3, float z3, float x4, float y4, float z4) override                                 = 0;
-        void    bezierDetail(int detail) override                                                                           = 0;
         void    pointSize(float size) override                                                                              = 0;
         void    point(float x, float y, float z = 0.0f) override                                                            = 0;
         void    beginShape(int shape = POLYGON) override                                                                    = 0;
@@ -117,7 +107,6 @@ namespace umgebung {
         void    textSize(float size) override                                                                               = 0;
         void    text(const char* value, float x, float y, float z = 0.0f) override                                          = 0;
         float   textWidth(const std::string& text) override                                                                 = 0;
-        PImage* loadImage(const std::string& filename) override                                                             = 0;
         void    image(PImage* img, float x, float y, float w, float h) override                                             = 0;
         void    image(PImage* img, float x, float y) override                                                               = 0;
         void    texture(PImage* img) override                                                                               = 0;

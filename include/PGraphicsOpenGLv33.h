@@ -28,20 +28,11 @@
 namespace umgebung {
 
     class PGraphicsOpenGLv33 final : public PGraphicsOpenGL {
-    private: // TODO clean this up
-             // glm::mat4 model_matrix_shader;
-             // glm::mat4 model_matrix_client;
-             // glm::mat4 view_matrix;
-             // glm::mat4 projection_matrix_2D;
-             // glm::mat4 projection_matrix_3D;
-             // bool model_matrix_dirty = false;
-             //
-             // // Screen rendering resources
-             // GLuint screenVAO = 0;
-             // GLuint shaderProgram = 0;
-             // int framebuffer_width = 0;
-             // int framebuffer_height = 0;
     public:
+        void rect(float x, float y, float width, float height) override;
+
+        // TODO move to implementation file i.e `.cpp`
+
         void setup_matrices() override {
             reset_matrices();
         }
@@ -51,30 +42,11 @@ namespace umgebung {
         }
 
         void reset_matrices() override {
-            model_matrix_shader = glm::mat4(1.0f);
-            model_matrix_client = glm::mat4(1.0f);
-            model_matrix_dirty  = false;
+            PGraphics::reset_matrices();
 
-            framebuffer_width           = framebuffer.width;
-            framebuffer_height          = framebuffer.height;
             const float viewport_width  = framebuffer_width;
             const float viewport_height = framebuffer_height;
-
             glViewport(0, 0, static_cast<GLint>(viewport_width), static_cast<GLint>(viewport_height));
-
-            // Orthographic projection
-            projection_matrix_2D = glm::ortho(0.0f, viewport_width, viewport_height, 0.0f);
-
-            const float fov            = DEFAULT_FOV;
-            const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f);
-
-            // Perspective projection
-            projection_matrix_3D = glm::perspective(fov, width / height, 0.1f, static_cast<float>(depth_range));
-
-            view_matrix = glm::lookAt(
-                glm::vec3(width / 2.0f, height / 2.0f, -cameraDistance),
-                glm::vec3(width / 2.0f, height / 2.0f, 0.0f),
-                glm::vec3(0.0f, -1.0f, 0.0f));
         }
 
         void prepare_frame() {
@@ -91,10 +63,10 @@ namespace umgebung {
                 glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 
                 const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
-                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model_matrix_shader));
+                glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 
                 texture_id_current = 0;
-                SHARED_bind_texture(texture_id_solid_color);
+                IMPL_bind_texture(texture_id_solid_color);
             }
         }
 
@@ -108,7 +80,7 @@ namespace umgebung {
         }
 
         void endDraw() override {
-            if (render_mode == RENDER_MODE_RETAINED) {
+            if (render_mode == RENDER_MODE_BUFFERED) {
                 RM_flush_fill();
                 RM_flush_stroke();
             }
@@ -150,38 +122,28 @@ namespace umgebung {
     public:
         explicit PGraphicsOpenGLv33(bool render_to_offscreen);
 
-        void    init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
-        void    strokeWeight(float weight) override;
-        void    background(float a, float b, float c, float d = 1.0f) override;
-        void    background(float a) override;
-        void    rect(float x, float y, float width, float height) override;                                                                              // NOTE: done
-        void    ellipse(float x, float y, float width, float height) override;                                                                           // NOTE: done
-        void    circle(float x, float y, float diameter) override;                                                                                       // NOTE: done
-        void    line(float x1, float y1, float x2, float y2) override;                                                                                   // NOTE: done
-        void    line(float x1, float y1, float z1, float x2, float y2, float z2) override;                                                               // NOTE: done
-        void    linse(float x1, float y1, float x2, float y2);                                                                                           // NOTE: done
-        void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override;                             // NOTE: done
-        void    bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) override;                                         // NOTE: done
-        void    bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) override; // NOTE: done
-        void    bezierDetail(int detail) override;                                                                                                       // NOTE: done
-        void    point(float x, float y, float z = 0.0f) override;                                                                                        // NOTE: done
-        void    pointSize(float size) override;
-        void    beginShape(int shape = POLYGON) override;                     // NOTE: done
-        void    endShape(bool close_shape = false) override;                  // NOTE: done
-        void    vertex(float x, float y, float z = 0.0f) override;            // NOTE: done
-        void    vertex(float x, float y, float z, float u, float v) override; // NOTE: done
-        PFont*  loadFont(const std::string& file, float size) override;
-        void    textFont(PFont* font) override;
-        void    textSize(float size) override;
-        void    text(const char* value, float x, float y, float z = 0.0f) override;
-        float   textWidth(const std::string& text) override;
-        PImage* loadImage(const std::string& filename) override;                   // NOTE: done
-        void    image(PImage* image, float x, float y, float w, float h) override; // NOTE: done
-        void    image(PImage* img, float x, float y) override;                     // NOTE: done
-        void    texture(PImage* img) override;                                     // NOTE: done
-        void    pixelDensity(int density) override;
-        void    hint(uint16_t property) override;
-        void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
+        void   init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
+        void   strokeWeight(float weight) override;
+        void   background(float a, float b, float c, float d = 1.0f) override;
+        void   background(float a) override;
+        void   triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override; // NOTE: done
+        void   point(float x, float y, float z = 0.0f) override;                                                            // NOTE: done
+        void   pointSize(float size) override;
+        void   beginShape(int shape = POLYGON) override;                     // NOTE: done
+        void   endShape(bool close_shape = false) override;                  // NOTE: done
+        void   vertex(float x, float y, float z = 0.0f) override;            // NOTE: done
+        void   vertex(float x, float y, float z, float u, float v) override; // NOTE: done
+        PFont* loadFont(const std::string& file, float size) override;
+        void   textFont(PFont* font) override;
+        void   textSize(float size) override;
+        void   text(const char* value, float x, float y, float z = 0.0f) override;
+        float  textWidth(const std::string& text) override;
+        void   image(PImage* img, float x, float y, float w, float h) override; // NOTE: done
+        void   image(PImage* img, float x, float y) override;                   // NOTE: done
+        void   texture(PImage* img) override;                                   // NOTE: done
+        void   pixelDensity(int density) override;
+        void   hint(uint16_t property) override;
+        void   text_str(const std::string& text, float x, float y, float z = 0.0f) override;
 
         /* --- additional methods --- */
 
@@ -220,7 +182,7 @@ namespace umgebung {
         static constexpr uint8_t  NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA  = 7;
         static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024; // 1MB
         static constexpr uint8_t  RENDER_MODE_IMMEDIATE                  = 0;
-        static constexpr uint8_t  RENDER_MODE_RETAINED                   = 1;
+        static constexpr uint8_t  RENDER_MODE_BUFFERED                   = 1;
         uint8_t                   render_mode                            = RENDER_MODE_IMMEDIATE;
         static const char*        vertex_shader_source_texture();
         static const char*        fragment_shader_source_texture();
@@ -265,7 +227,7 @@ namespace umgebung {
         std::vector<Vertex>        convertTriangleStripToTriangles(const std::vector<Vertex>& strip) const;
 
         void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed);
-        void emit_shape_fill_triangles( std::vector<Vertex>& triangle_vertices);
+        void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices);
 
         /* --- RENDER_MODE_IMMEDIATE (IM) --- */
 
@@ -278,11 +240,10 @@ namespace umgebung {
         void IM_render_point(float x1, float y1, float z1);
         void IM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
         void IM_render_rect(float x, float y, float width, float height);
-        void IM_render_ellipse(float x, float y, float width, float height);
         void IM_render_end_shape(bool close_shape);
         void OGL_tranform_model_matrix_and_render_vertex_buffer(PrimitiveVertexBuffer& primitive,
-                                                    GLenum                 mode,
-                                                    std::vector<Vertex>&   shape_vertices) const;
+                                                                GLenum                 mode,
+                                                                std::vector<Vertex>&   shape_vertices) const;
 
         /* --- RENDER_MODE_RETAINED (RM) --- */
 
@@ -325,7 +286,7 @@ namespace umgebung {
 
         void          PGRAPHICS_triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
         void          create_solid_color_texture();
-        void          SHARED_bind_texture(GLuint bind_texture_id);
+        void          IMPL_bind_texture(int bind_texture_id) override;
         bool          SHARED_generate_and_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`
         static void   OGL3_resize_vertex_buffer(size_t buffer_size_bytes);
         static void   OGL_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);
