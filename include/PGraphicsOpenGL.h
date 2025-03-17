@@ -91,30 +91,14 @@ namespace umgebung {
         // TODO implement 3D version
         // virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2)    = 0;
 
-        void    strokeWeight(float weight) override                                                                         = 0;
-        void    background(float a, float b, float c, float d = 1.0f) override                                              = 0;
-        void    background(float a) override                                                                                = 0;
-        void    rect(float x, float y, float width, float height) override                                                  = 0;
-        void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override = 0;
-        void    pointSize(float size) override                                                                              = 0;
-        void    point(float x, float y, float z = 0.0f) override                                                            = 0;
-        void    beginShape(int shape = POLYGON) override                                                                    = 0;
-        void    endShape(bool close_shape = false) override                                                                 = 0;
-        void    vertex(float x, float y, float z = 0.0f) override                                                           = 0;
-        void    vertex(float x, float y, float z, float u, float v) override                                                = 0;
-        PFont*  loadFont(const std::string& file, float size) override                                                      = 0;
-        void    textFont(PFont* font) override                                                                              = 0;
-        void    textSize(float size) override                                                                               = 0;
-        void    text(const char* value, float x, float y, float z = 0.0f) override                                          = 0;
-        float   textWidth(const std::string& text) override                                                                 = 0;
-        void    image(PImage* img, float x, float y, float w, float h) override                                             = 0;
-        void    image(PImage* img, float x, float y) override                                                               = 0;
-        void    texture(PImage* img) override                                                                               = 0;
-        void    pixelDensity(int density) override                                                                          = 0;
-        void    hint(uint16_t property) override                                                                            = 0;
+        void   beginShape(int shape = POLYGON) override                                                                    = 0;
+        void   endShape(bool close_shape = false) override                                                                 = 0;
+        void   vertex(float x, float y, float z = 0.0f) override                                                           = 0;
+        void   vertex(float x, float y, float z, float u, float v) override                                                = 0;
+        void   pixelDensity(int density) override                                                                          = 0;
+        void   hint(uint16_t property) override                                                                            = 0;
         // void    beginDraw() override                                                                                        = 0;
         // void    endDraw() override                                                                                          = 0;
-        void text_str(const std::string& text, float x, float y, float z = 0.0f) override = 0; // TODO maybe make this private?
 
         void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override = 0;
 

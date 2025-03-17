@@ -29,7 +29,9 @@ namespace umgebung {
 
     class PGraphicsOpenGLv33 final : public PGraphicsOpenGL {
     public:
-        void rect(float x, float y, float width, float height) override;
+        void IMPL_background(float a, float b, float c, float d) override;
+        void IMPL_bind_texture(int bind_texture_id) override;
+        void IMPL_set_texture(PImage* img) override;
 
         // TODO move to implementation file i.e `.cpp`
 
@@ -122,28 +124,13 @@ namespace umgebung {
     public:
         explicit PGraphicsOpenGLv33(bool render_to_offscreen);
 
-        void   init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
-        void   strokeWeight(float weight) override;
-        void   background(float a, float b, float c, float d = 1.0f) override;
-        void   background(float a) override;
-        void   triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) override; // NOTE: done
-        void   point(float x, float y, float z = 0.0f) override;                                                            // NOTE: done
-        void   pointSize(float size) override;
-        void   beginShape(int shape = POLYGON) override;                     // NOTE: done
-        void   endShape(bool close_shape = false) override;                  // NOTE: done
-        void   vertex(float x, float y, float z = 0.0f) override;            // NOTE: done
-        void   vertex(float x, float y, float z, float u, float v) override; // NOTE: done
-        PFont* loadFont(const std::string& file, float size) override;
-        void   textFont(PFont* font) override;
-        void   textSize(float size) override;
-        void   text(const char* value, float x, float y, float z = 0.0f) override;
-        float  textWidth(const std::string& text) override;
-        void   image(PImage* img, float x, float y, float w, float h) override; // NOTE: done
-        void   image(PImage* img, float x, float y) override;                   // NOTE: done
-        void   texture(PImage* img) override;                                   // NOTE: done
-        void   pixelDensity(int density) override;
-        void   hint(uint16_t property) override;
-        void   text_str(const std::string& text, float x, float y, float z = 0.0f) override;
+        void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
+        void beginShape(int shape = POLYGON) override;                     // NOTE: done
+        void endShape(bool close_shape = false) override;                  // NOTE: done
+        void vertex(float x, float y, float z = 0.0f) override;            // NOTE: done
+        void vertex(float x, float y, float z, float u, float v) override; // NOTE: done
+        void pixelDensity(int density) override;
+        void hint(uint16_t property) override;
 
         /* --- additional methods --- */
 
@@ -239,7 +226,6 @@ namespace umgebung {
 
         void IM_render_point(float x1, float y1, float z1);
         void IM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
-        void IM_render_rect(float x, float y, float width, float height);
         void IM_render_end_shape(bool close_shape);
         void OGL_tranform_model_matrix_and_render_vertex_buffer(PrimitiveVertexBuffer& primitive,
                                                                 GLenum                 mode,
@@ -248,7 +234,6 @@ namespace umgebung {
         /* --- RENDER_MODE_RETAINED (RM) --- */
 
         void RM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
-        void RM_render_rect(float x, float y, float width, float height);
         void RM_render_ellipse(float x, float y, float width, float height);
 
         void RM_flush_stroke();
@@ -286,7 +271,6 @@ namespace umgebung {
 
         void          PGRAPHICS_triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
         void          create_solid_color_texture();
-        void          IMPL_bind_texture(int bind_texture_id) override;
         bool          SHARED_generate_and_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`
         static void   OGL3_resize_vertex_buffer(size_t buffer_size_bytes);
         static void   OGL_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);

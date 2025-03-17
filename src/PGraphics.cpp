@@ -46,10 +46,21 @@ PGraphics::PGraphics() : PImage(0, 0, 0) {
     generate_sphere(sphere_vertices_LUT);
 }
 
+// NOTE: done
 void PGraphics::background(PImage* img) {
     background(0, 0, 0, 0);
     fill(1);
     image(img, 0, 0, framebuffer.width, framebuffer.height);
+}
+
+// NOTE: done
+void PGraphics::background(const float a) {
+    background(a, a, a);
+}
+
+// NOTE: done
+void PGraphics::background(const float a, const float b, const float c, const float d) {
+    IMPL_background(a, b, c, d);
 }
 
 /* --- transform matrices --- */
@@ -191,6 +202,12 @@ void PGraphics::noStroke() {
     color_stroke.active = false;
 }
 
+// NOTE: done
+void PGraphics::strokeWeight(const float weight) {
+    stroke_weight = weight;
+}
+
+// NOTE: done
 /**
  *  can be MITER, BEVEL, ROUND, NONE, BEVEL_FAST or MITER_FAST
  * @param join
@@ -199,6 +216,7 @@ void PGraphics::strokeJoin(const int join) {
     stroke_join_mode = join;
 }
 
+// NOTE: done
 /**
  * can be PROJECT, ROUND, POINTED or SQUARE
  * @param cap
@@ -225,8 +243,6 @@ void PGraphics::ellipseDetail(const int detail) {
     ellipse_detail = detail;
     resize_ellipse_points_LUT();
 }
-
-void PGraphics::pointSize(const float size) { point_size = size < 1 ? 1 : size; }
 
 /* --- shapes --- */
 
@@ -311,9 +327,8 @@ void PGraphics::ellipse(const float x, const float y, const float width, const f
     }
 
     // TODO: Implement `ellipseMode()`
-    constexpr glm::vec2 tex_coord = {0.0f, 0.0f};
-    const float         radiusX   = width * 0.5f;
-    const float         radiusY   = height * 0.5f;
+    const float radiusX = width * 0.5f;
+    const float radiusY = height * 0.5f;
 
     std::vector<glm::vec3> points;
     points.reserve(ellipse_detail + 1);
@@ -329,14 +344,111 @@ void PGraphics::ellipse(const float x, const float y, const float width, const f
     beginShape(POLYGON);
     points.pop_back();
     for (const auto& p: points) {
-        vertex(p.x, p.y);
+        // TODO maybe add texcoords
+        vertex(p.x, p.y, 0.0f);
     }
     endShape(CLOSE);
 }
 
 // NOTE: done
+void PGraphics::image(PImage* img, const float x, const float y, float w, float h) {
+    if (!color_fill.active) {
+        return;
+    }
+
+    if (img == nullptr) {
+        error("img is null");
+        return;
+    }
+
+    if (w < 0) {
+        w = img->width;
+    }
+    if (h < 0) {
+        h = img->height;
+    }
+
+    const bool _stroke_active = color_stroke.active;
+    noStroke();
+    push_texture_id();
+    texture(img);
+    rect(x, y, w, h);
+    pop_texture_id();
+    color_stroke.active = _stroke_active;
+}
+
+// NOTE: done
+void PGraphics::image(PImage* img, const float x, const float y) {
+    image(img, x, y, img->width, img->height);
+}
+
+// NOTE: done
 void PGraphics::circle(const float x, const float y, const float diameter) {
     ellipse(x, y, diameter, diameter);
+}
+
+// NOTE: done
+PImage* PGraphics::loadImage(const std::string& filename) {
+    auto* img = new PImage(filename);
+    return img;
+}
+
+// NOTE: done
+PFont* PGraphics::loadFont(const std::string& file, const float size) {
+    auto* font = new PFont(file, size); // TODO what about pixel_density … see FTGL implementation
+    return font;
+}
+
+// NOTE: done
+void PGraphics::textFont(PFont* font) {
+    current_font = font;
+}
+
+void PGraphics::textSize(const float size) {
+    if (current_font == nullptr) {
+        return;
+    }
+    current_font->textSize(size);
+}
+
+void PGraphics::text(const char* value, const float x, const float y, const float z) {
+    text_str(value, x, y, z);
+}
+
+float PGraphics::textWidth(const std::string& text) {
+    if (current_font == nullptr) {
+        return 0;
+    }
+
+    return current_font->textWidth(text.c_str());
+}
+
+void PGraphics::text_str(const std::string& text, const float x, const float y, const float z) {
+    if (current_font == nullptr) {
+        return;
+    }
+    if (!color_fill.active) {
+        return;
+    }
+
+    current_font->draw(this, text, x, y, z);
+}
+
+// NOTE: done
+void PGraphics::texture(PImage* img) {
+    IMPL_set_texture(img);
+}
+
+// NOTE: done
+void PGraphics::point(const float x, const float y, const float z) {
+    beginShape(POINTS);
+    vertex(x, y, z);
+    endShape();
+}
+
+// NOTE: done
+void PGraphics::pointSize(const float size) {
+    point_size = size;
 }
 
 // NOTE: done
@@ -356,9 +468,14 @@ void PGraphics::line(const float x1, const float y1, const float x2, const float
 }
 
 // NOTE: done
-PImage* PGraphics::loadImage(const std::string& filename) {
-    auto* img = new PImage(filename);
-    return img;
+void PGraphics::triangle(const float x1, const float y1, const float z1,
+                         const float x2, const float y2, const float z2,
+                         const float x3, const float y3, const float z3) {
+    beginShape(TRIANGLES);
+    vertex(x1, y1, z1);
+    vertex(x2, y2, z2);
+    vertex(x3, y3, z3);
+    endShape();
 }
 
 // NOTE: done
@@ -368,6 +485,56 @@ void PGraphics::quad(const float x1, const float y1, const float z1, const float
     vertex(x2, y2, z2, 0, 1);
     vertex(x3, y3, z3, 0, 0);
     vertex(x4, y4, z4, 1, 0);
+    endShape();
+}
+void PGraphics::rect(const float x, const float y, const float width, const float height) {
+    if (!color_stroke.active && !color_fill.active) {
+        return;
+    }
+
+    // compute rectangle corners using glm::vec2
+    glm::vec2 p1, p2;
+    switch (rect_mode) {
+        case CORNERS:
+            p1 = {x, y};
+            p2 = {width, height};
+            break;
+        case CENTER:
+            p1 = {x - width * 0.5f, y - height * 0.5f};
+            p2 = {x + width * 0.5f, y + height * 0.5f};
+            break;
+        case RADIUS:
+            p1 = {x - width, y - height};
+            p2 = {x + width, y + height};
+            break;
+        case CORNER:
+        default:
+            p1 = {x, y};
+            p2 = {x + width, y + height};
+            break;
+    }
+
+    // define colors once (avoiding redundant glm::vec4 conversions)
+    const glm::vec4 fill_color   = as_vec4(color_fill);
+    const glm::vec4 stroke_color = as_vec4(color_stroke);
+
+    // define rectangle vertices (shared for fill and stroke)
+    static constexpr uint8_t                  NUM_VERTICES  = 4;
+    const std::array<glm::vec3, NUM_VERTICES> rect_vertices = {
+        glm::vec3{p1.x, p1.y, 0},
+        glm::vec3{p2.x, p1.y, 0},
+        glm::vec3{p2.x, p2.y, 0},
+        glm::vec3{p1.x, p2.y, 0}};
+    constexpr std::array<glm::vec2, NUM_VERTICES> rect_tex_coords = {
+        glm::vec2{0, 0},
+        glm::vec2{1, 0},
+        glm::vec2{1, 1},
+        glm::vec2{0, 1}};
+
+    beginShape(QUADS);
+    for (int i = 0; i < rect_vertices.size(); ++i) {
+        vertex_vec(rect_vertices[i], rect_tex_coords[i]);
+    }
     endShape();
 }
 
