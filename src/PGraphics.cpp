@@ -65,40 +65,36 @@ void PGraphics::stroke_properties(const float stroke_join_round_resolution,
     this->stroke_join_miter_max_angle  = stroke_join_miter_max_angle;
 }
 
-// NOTE: done
 void PGraphics::background(PImage* img) {
     background(0, 0, 0, 0);
     fill(1);
     image(img, 0, 0, framebuffer.width, framebuffer.height);
 }
 
-// NOTE: done
 void PGraphics::background(const float a) {
     background(a, a, a);
 }
 
-// NOTE: done
 void PGraphics::background(const float a, const float b, const float c, const float d) {
     IMPL_background(a, b, c, d);
 }
 
 /* --- transform matrices --- */
 
-// NOTE: done
 void PGraphics::popMatrix() {
     if (!model_matrix_stack.empty()) {
-        model_matrix_client = model_matrix_stack.back();
+        model_matrix = model_matrix_stack.back();
         model_matrix_stack.pop_back();
     }
 }
 
-// NOTE: done
+
 void PGraphics::pushMatrix() {
-    model_matrix_stack.push_back(model_matrix_client);
+    model_matrix_stack.push_back(model_matrix);
 }
 
 void PGraphics::resetMatrix() {
-    model_matrix_client = glm::mat4(1.0f);
+    model_matrix = glm::mat4(1.0f);
 }
 
 void PGraphics::printMatrix(const glm::mat4& matrix) {
@@ -112,61 +108,52 @@ void PGraphics::printMatrix(const glm::mat4& matrix) {
 }
 
 void PGraphics::printMatrix() {
-    printMatrix(model_matrix_client);
+    printMatrix(model_matrix);
 }
 
-// NOTE: done
 void PGraphics::translate(const float x, const float y, const float z) {
-    model_matrix_client = glm::translate(model_matrix_client, glm::vec3(x, y, z));
-    model_matrix_dirty  = true;
+    model_matrix       = glm::translate(model_matrix, glm::vec3(x, y, z));
+    model_matrix_dirty = true;
 }
 
-// NOTE: done
 void PGraphics::rotateX(const float angle) {
-    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(1.0f, 0.0f, 0.0f));
-    model_matrix_dirty  = true;
+    model_matrix       = glm::rotate(model_matrix, angle, glm::vec3(1.0f, 0.0f, 0.0f));
+    model_matrix_dirty = true;
 }
 
-// NOTE: done
 void PGraphics::rotateY(const float angle) {
-    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 1.0f, 0.0f));
-    model_matrix_dirty  = true;
+    model_matrix       = glm::rotate(model_matrix, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+    model_matrix_dirty = true;
 }
 
-// NOTE: done
 void PGraphics::rotateZ(const float angle) {
-    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-    model_matrix_dirty  = true;
+    model_matrix       = glm::rotate(model_matrix, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    model_matrix_dirty = true;
 }
 
-// NOTE: done
 void PGraphics::rotate(const float angle) {
-    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-    model_matrix_dirty  = true;
+    model_matrix       = glm::rotate(model_matrix, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    model_matrix_dirty = true;
 }
 
-// NOTE: done
 void PGraphics::rotate(const float angle, const float x, const float y, const float z) {
-    model_matrix_client = glm::rotate(model_matrix_client, angle, glm::vec3(x, y, z));
-    model_matrix_dirty  = true;
+    model_matrix       = glm::rotate(model_matrix, angle, glm::vec3(x, y, z));
+    model_matrix_dirty = true;
 }
 
-// NOTE: done
 void PGraphics::scale(const float x) {
-    model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, x, x));
-    model_matrix_dirty  = true;
+    model_matrix       = glm::scale(model_matrix, glm::vec3(x, x, x));
+    model_matrix_dirty = true;
 }
 
-// NOTE: done
 void PGraphics::scale(const float x, const float y) {
-    model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, y, 1));
-    model_matrix_dirty  = true;
+    model_matrix       = glm::scale(model_matrix, glm::vec3(x, y, 1));
+    model_matrix_dirty = true;
 }
 
-// NOTE: done
 void PGraphics::scale(const float x, const float y, const float z) {
-    model_matrix_client = glm::scale(model_matrix_client, glm::vec3(x, y, z));
-    model_matrix_dirty  = true;
+    model_matrix       = glm::scale(model_matrix, glm::vec3(x, y, z));
+    model_matrix_dirty = true;
 }
 
 /* --- color, stroke, and fill --- */
@@ -221,12 +208,10 @@ void PGraphics::noStroke() {
     color_stroke.active = false;
 }
 
-// NOTE: done
 void PGraphics::strokeWeight(const float weight) {
     stroke_weight = weight;
 }
 
-// NOTE: done
 /**
  *  can be MITER, BEVEL, ROUND, NONE, BEVEL_FAST or MITER_FAST
  * @param join
@@ -235,7 +220,6 @@ void PGraphics::strokeJoin(const int join) {
     stroke_join_mode = join;
 }
 
-// NOTE: done
 /**
  * can be PROJECT, ROUND, POINTED or SQUARE
  * @param cap
@@ -265,7 +249,6 @@ void PGraphics::ellipseDetail(const int detail) {
 
 /* --- shapes --- */
 
-// NOTE: done
 void PGraphics::beginShape(const int shape) {
     shape_fill_vertex_buffer.clear();
     shape_stroke_vertex_buffer.clear();
@@ -274,21 +257,8 @@ void PGraphics::beginShape(const int shape) {
     shape_has_begun  = true;
 }
 
-void PGraphics::process_collected_fill_and_stroke_vertices(const bool close_shape) {
-    /*
-     * OpenGL ES 3.1 is stricter:
-     *
-     * 1.	No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
-     * 2.	No glLineWidth support at all.
-     * 3.	Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
-     *
-     * i.e GL_LINES + GL_LINE_STRIP must be emulated
-     */
-
+void PGraphics::process_collected_fill_vertices() {
     const int tmp_shape_mode_cache = shape_mode_cache;
-
-    /* --- render fill --- */
-
     if (!shape_fill_vertex_buffer.empty()) {
         switch (tmp_shape_mode_cache) {
             case POINTS:
@@ -329,9 +299,10 @@ void PGraphics::process_collected_fill_and_stroke_vertices(const bool close_shap
             } break;
         }
     }
+}
 
-    /* --- render stroke --- */
-
+void PGraphics::process_collected_stroke_vertices(const bool close_shape) {
+    const int tmp_shape_mode_cache = shape_mode_cache;
     if (!shape_stroke_vertex_buffer.empty()) {
         if (tmp_shape_mode_cache == POINTS) {
             // TODO STROKE_RENDER_MODE_NATIVE is handled in renderer
@@ -408,46 +379,30 @@ void PGraphics::process_collected_fill_and_stroke_vertices(const bool close_shap
             }
             return; // NOTE rendered as triangles exit early
         }
-
-        // TODO STROKE_RENDER_MODE_NATIVE is handled in renderer
-        // NOTE handles GL_LINES and GL_LINE_STRIP not compatible with OpenGL ES 3.1 and OpenGL 3.3 core
-        // if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
-        //     if (close_shape && (tmp_shape_mode_cache == POLYGON || tmp_shape_mode_cache == LINE_STRIP)) {
-        //         // NOTE add first vertex as last …
-        //         shape_stroke_vertex_cache_vec3_DEPRECATED.push_back(shape_stroke_vertex_cache_vec3_DEPRECATED[0]);
-        //         shape_stroke_vertex_buffer.push_back(shape_stroke_vertex_buffer[0]);
-        //     }
-        //     const float tmp_line_width = std::max(std::min(stroke_weight, open_gl_capabilities.line_size_max), open_gl_capabilities.line_size_min);
-        //     glLineWidth(tmp_line_width);
-        //     switch (tmp_shape_mode_cache) {
-        //         case LINES:
-        //             OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_LINES, shape_stroke_vertex_buffer);
-        //             break;
-        //         case QUADS: {
-        //             std::vector<Vertex> vertices_stroke_quads = convertQuadsToTriangles(shape_stroke_vertex_buffer);
-        //             OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, vertices_stroke_quads);
-        //         } break;
-        //         default:
-        //         case LINE_STRIP:
-        //         case TRIANGLES:
-        //         case TRIANGLE_FAN:
-        //         case QUAD_STRIP:
-        //         case TRIANGLE_STRIP:
-        //         case POLYGON:
-        //             OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_stroke_vertex_buffer);
-        //             break;
-        //     }
-        //     return; // NOTE rendered as native lines ( if supported ) exit early
-        // }
     }
 }
 
-// NOTE: done
+void PGraphics::process_collected_fill_and_stroke_vertices(const bool close_shape) {
+    /*
+     * OpenGL ES 3.1 is stricter:
+     *
+     * 1.	No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
+     * 2.	No glLineWidth support at all.
+     * 3.	Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
+     *
+     * i.e GL_LINES + GL_LINE_STRIP must be emulated
+     */
+
+    process_collected_fill_vertices();
+    process_collected_stroke_vertices(close_shape);
+}
+
+
 void PGraphics::vertex(const float x, const float y, const float z) {
     vertex(x, y, z, 0, 0);
 }
 
-// NOTE: done
+
 void PGraphics::vertex(const float x, const float y, const float z, const float u, const float v) {
     if (!color_stroke.active && !color_fill.active) {
         return;
@@ -475,7 +430,7 @@ void PGraphics::endShape(const bool close_shape) {
     shape_has_begun = false;
 }
 
-// NOTE: done
+
 void PGraphics::bezier(const float x1, const float y1,
                        const float x2, const float y2,
                        const float x3, const float y3,
@@ -509,7 +464,7 @@ void PGraphics::bezier(const float x1, const float y1,
     endShape();
 }
 
-// NOTE: done
+
 void PGraphics::bezier(const float x1, const float y1, const float z1,
                        const float x2, const float y2, const float z2,
                        const float x3, const float y3, const float z3,
@@ -543,12 +498,12 @@ void PGraphics::bezier(const float x1, const float y1, const float z1,
     endShape();
 }
 
-// NOTE: done
+
 void PGraphics::bezierDetail(const int detail) {
     bezier_detail = detail;
 }
 
-// NOTE: done
+
 void PGraphics::ellipse(const float x, const float y, const float width, const float height) {
     if (!color_fill.active && !color_stroke.active) {
         return;
@@ -578,7 +533,6 @@ void PGraphics::ellipse(const float x, const float y, const float width, const f
     endShape(CLOSE);
 }
 
-// NOTE: done
 void PGraphics::image(PImage* img, const float x, const float y, float w, float h) {
     if (!color_fill.active) {
         return;
@@ -605,29 +559,24 @@ void PGraphics::image(PImage* img, const float x, const float y, float w, float 
     color_stroke.active = _stroke_active;
 }
 
-// NOTE: done
 void PGraphics::image(PImage* img, const float x, const float y) {
     image(img, x, y, img->width, img->height);
 }
 
-// NOTE: done
 void PGraphics::circle(const float x, const float y, const float diameter) {
     ellipse(x, y, diameter, diameter);
 }
 
-// NOTE: done
 PImage* PGraphics::loadImage(const std::string& filename) {
     auto* img = new PImage(filename);
     return img;
 }
 
-// NOTE: done
 PFont* PGraphics::loadFont(const std::string& file, const float size) {
     auto* font = new PFont(file, size); // TODO what about pixel_density … see FTGL implementation
     return font;
 }
 
-// NOTE: done
 void PGraphics::textFont(PFont* font) {
     current_font = font;
 }
@@ -662,24 +611,20 @@ void PGraphics::text_str(const std::string& text, const float x, const float y, 
     current_font->draw(this, text, x, y, z);
 }
 
-// NOTE: done
 void PGraphics::texture(PImage* img) {
     IMPL_set_texture(img);
 }
 
-// NOTE: done
 void PGraphics::point(const float x, const float y, const float z) {
     beginShape(POINTS);
     vertex(x, y, z);
     endShape();
 }
 
-// NOTE: done
 void PGraphics::pointSize(const float size) {
     point_size = size;
 }
 
-// NOTE: done
 void PGraphics::line(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2) {
     if (!color_stroke.active) {
         return;
@@ -690,12 +635,10 @@ void PGraphics::line(const float x1, const float y1, const float z1, const float
     endShape();
 }
 
-// NOTE: done
 void PGraphics::line(const float x1, const float y1, const float x2, const float y2) {
     line(x1, y1, 0, x2, y2, 0);
 }
 
-// NOTE: done
 void PGraphics::triangle(const float x1, const float y1, const float z1,
                          const float x2, const float y2, const float z2,
                          const float x3, const float y3, const float z3) {
@@ -706,7 +649,6 @@ void PGraphics::triangle(const float x1, const float y1, const float z1,
     endShape();
 }
 
-// NOTE: done
 void PGraphics::quad(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2, const float x3, const float y3, const float z3, const float x4, const float y4, const float z4) {
     beginShape(QUADS);
     vertex(x1, y1, z1, 1, 1);
@@ -715,6 +657,7 @@ void PGraphics::quad(const float x1, const float y1, const float z1, const float
     vertex(x4, y4, z4, 1, 0);
     endShape();
 }
+
 void PGraphics::rect(const float x, const float y, const float width, const float height) {
     if (!color_stroke.active && !color_fill.active) {
         return;
@@ -798,82 +741,6 @@ void PGraphics::resize_ellipse_points_LUT() {
     }
 }
 
-void PGraphics::generate_box(std::vector<glm::vec3>& vertices) {
-    // Define 8 corner points of a unit cube (centered at origin)
-    glm::vec3 p0(-0.5f, -0.5f, -0.5f); // Bottom-left-back
-    glm::vec3 p1(0.5f, -0.5f, -0.5f);  // Bottom-right-back
-    glm::vec3 p2(0.5f, 0.5f, -0.5f);   // Top-right-back
-    glm::vec3 p3(-0.5f, 0.5f, -0.5f);  // Top-left-back
-    glm::vec3 p4(-0.5f, -0.5f, 0.5f);  // Bottom-left-front
-    glm::vec3 p5(0.5f, -0.5f, 0.5f);   // Bottom-right-front
-    glm::vec3 p6(0.5f, 0.5f, 0.5f);    // Top-right-front
-    glm::vec3 p7(-0.5f, 0.5f, 0.5f);   // Top-left-front
-
-    // Define triangles for each of the 6 faces (2 triangles per face)
-    std::vector<glm::vec3> triangles = {
-        // Back Face (-Z)
-        p0, p1, p2, p2, p3, p0,
-        // Front Face (+Z)
-        p5, p4, p7, p7, p6, p5,
-        // Left Face (-X)
-        p4, p0, p3, p3, p7, p4,
-        // Right Face (+X)
-        p1, p5, p6, p6, p2, p1,
-        // Bottom Face (-Y)
-        p4, p5, p1, p1, p0, p4,
-        // Top Face (+Y)
-        p3, p2, p6, p6, p7, p3};
-
-    // Convert to Vertex format
-    for (const auto& pos: triangles) {
-        vertices.push_back({pos});
-    }
-}
-
-void PGraphics::generate_sphere(std::vector<glm::vec3>& vertices, const int stacks, const int slices, const float radius) {
-    // Loop through latitude (stacks)
-    for (int i = 0; i < stacks; ++i) {
-        const float theta1 = glm::pi<float>() * (static_cast<float>(i) / stacks); // From 0 to PI
-        const float theta2 = glm::pi<float>() * (static_cast<float>(i + 1) / stacks);
-
-        // Loop through longitude (slices)
-        for (int j = 0; j < slices; ++j) {
-            const float phi1 = 2.0f * glm::pi<float>() * (static_cast<float>(j) / slices); // From 0 to 2PI
-            const float phi2 = 2.0f * glm::pi<float>() * (static_cast<float>(j + 1) / slices);
-
-            // Convert spherical coordinates to Cartesian (x, y, z)
-            auto p0 = glm::vec3(
-                radius * sin(theta1) * cos(phi1),
-                radius * cos(theta1),
-                radius * sin(theta1) * sin(phi1));
-
-            auto p1 = glm::vec3(
-                radius * sin(theta2) * cos(phi1),
-                radius * cos(theta2),
-                radius * sin(theta2) * sin(phi1));
-
-            auto p2 = glm::vec3(
-                radius * sin(theta2) * cos(phi2),
-                radius * cos(theta2),
-                radius * sin(theta2) * sin(phi2));
-
-            auto p3 = glm::vec3(
-                radius * sin(theta1) * cos(phi2),
-                radius * cos(theta1),
-                radius * sin(theta1) * sin(phi2));
-
-            // Two triangles per quad
-            vertices.push_back({p0});
-            vertices.push_back({p1});
-            vertices.push_back({p2});
-
-            vertices.push_back({p2});
-            vertices.push_back({p3});
-            vertices.push_back({p0});
-        }
-    }
-}
-
 /* --- triangulation --- */
 
 // TODO move to Gemoetry or Triangulation
@@ -938,7 +805,7 @@ std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vert
 
     TPPLPartition partitioner;
 
-    // Step 1: Use Clipper2 to resolve self-intersections
+    // use Clipper2 to resolve self-intersections
     const Clipper2Lib::PathsD inputPaths = {convertToClipperPath(vertices)};
     const Clipper2Lib::PathsD fixedPaths = Clipper2Lib::Union(inputPaths, Clipper2Lib::FillRule::NonZero);
 
@@ -947,7 +814,7 @@ std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vert
         return {};
     }
 
-    // Step 2: Convert to PolyPartition format
+    // convert to PolyPartition format
     std::vector<TPPLPoly> convexPolygons;
     for (auto& poly: convertToPolyPartition(fixedPaths)) {
         std::list<TPPLPoly> convexParts;
@@ -958,7 +825,7 @@ std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vert
         convexPolygons.insert(convexPolygons.end(), convexParts.begin(), convexParts.end());
     }
 
-    // Step 3: Triangulate each convex part
+    // triangulate each convex part
     std::vector<Vertex> triangleList;
     for (auto& part: convexPolygons) {
         std::list<TPPLPoly> triangles;
@@ -967,7 +834,7 @@ std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vert
             continue;
         }
 
-        // Extract triangle vertices
+        // extract triangle vertices
         for (const auto& tri: triangles) {
             for (int i = 0; i < 3; ++i) {
                 triangleList.push_back({static_cast<float>(tri[i].x), static_cast<float>(tri[i].y), 0.0f,
@@ -980,8 +847,8 @@ std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vert
 }
 
 void PGraphics::reset_matrices() {
-    model_matrix_client = glm::mat4(1.0f);
-    model_matrix_dirty  = false;
+    model_matrix       = glm::mat4(1.0f);
+    model_matrix_dirty = false;
 
     // orthographic projection
     projection_matrix_2D = glm::ortho(0.0f, static_cast<float>(framebuffer.width), static_cast<float>(framebuffer.height), 0.0f);
@@ -999,7 +866,7 @@ void PGraphics::reset_matrices() {
 
 void PGraphics::to_screen_space(glm::vec3& world_position) const {
     // Transform world position to camera (view) space
-    const glm::vec4 viewPos = view_matrix * model_matrix_client * glm::vec4(world_position, 1.0f);
+    const glm::vec4 viewPos = view_matrix * model_matrix * glm::vec4(world_position, 1.0f);
 
     // Project onto clip space
     glm::vec4 clipPos = projection_matrix_3D * viewPos;
@@ -1010,11 +877,8 @@ void PGraphics::to_screen_space(glm::vec3& world_position) const {
         clipPos.y /= clipPos.w;
     }
 
-    // Now the coordinates are in NDC (-1 to 1 range)
-    // Convert NDC to screen space (assuming viewport width and height)
-    // TODO what is it? `width` or `framebuffer_width`
-    // float screenX = (clipPos.x * 0.5f + 0.5f) * static_cast<float>(framebuffer_width);
-    // float screenY = (1.0f - (clipPos.y * 0.5f + 0.5f)) * static_cast<float>(framebuffer_height);
+    // coordinates are in NDC (-1 to 1 range)
+    // convert NDC to screen space (assuming viewport width and height)
     const float screenX = (clipPos.x * 0.5f + 0.5f) * static_cast<float>(width);
     const float screenY = (1.0f - (clipPos.y * 0.5f + 0.5f)) * static_cast<float>(height);
 
@@ -1024,7 +888,7 @@ void PGraphics::to_screen_space(glm::vec3& world_position) const {
 }
 
 void PGraphics::to_world_space(glm::vec3& model_position) const {
-    model_position = model_matrix_client * glm::vec4(model_position, 1.0f);
+    model_position = model_matrix * glm::vec4(model_position, 1.0f);
 }
 
 void PGraphics::triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, const bool close_shape, std::vector<Vertex>& line_vertices) const {

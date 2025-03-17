@@ -83,21 +83,12 @@ namespace umgebung {
         static const char*        fragment_shader_source_simple();
         uint8_t                   render_mode{RENDER_MODE_IMMEDIATE};
         GLuint                    fill_shader_program{};
-        GLuint                    fill_VAO_xyz_rgba_uv{};
-        GLuint                    fill_VBO_xyz_rgba_uv{};
-        std::vector<float>        fill_vertices_xyz_rgba_uv;
-        uint32_t                  fill_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
         GLuint                    stroke_shader_program{};
-        // GLuint                    stroke_VAO_xyz_rgba{};
-        // GLuint                    stroke_VBO_xyz_rgba{};
-        // std::vector<float>        stroke_vertices_xyz_rgba;
-        uint32_t                 stroke_max_buffer_size = VBO_BUFFER_CHUNK_SIZE; // Initial size (1MB)
-        GLuint                   texture_id_solid_color{};
-        GLuint                   texture_id_current{};
-        std::vector<RenderBatch> renderBatches;
-        bool                     render_lines_as_quads{true};
-        UFont                    debug_font;
-        VertexBufferData         vertex_buffer_data{VBO_BUFFER_CHUNK_SIZE};
+        GLuint                    texture_id_solid_color{};
+        GLuint                    texture_id_current{};
+        UFont                     debug_font;
+        VertexBufferData          vertex_buffer_data{VBO_BUFFER_CHUNK_SIZE};
+        std::vector<RenderBatch>  renderBatches; // TODO revive for buffered mode
 
         /* --- OpenGL 3.3 specific implementation of shared methods --- */
 
@@ -118,53 +109,5 @@ namespace umgebung {
         static void OGL3_init_vertex_buffer(VertexBufferData& primitive);
         void        OGL3_create_solid_color_texture();
         static void OGL3_render_vertex_buffer(VertexBufferData& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);
-
-        /* --- RENDER_MODE_IMMEDIATE (IM) --- */
-
-        // TODO what about textures?!?
-        // PrimitiveVertexBuffer IM_primitive_line{2};
-        // PrimitiveVertexBuffer IM_primitive_rect_stroke{5};
-        // PrimitiveVertexBuffer IM_primitive_rect_fill{4};
-
-        // void IM_render_point(float x1, float y1, float z1);
-        // void IM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
-        // void IM_render_end_shape(bool close_shape);
-
-        /* --- RENDER_MODE_RETAINED (RM) --- */
-
-        // void RM_render_line(float x1, float y1, float z1, float x2, float y2, float z2);
-        // void RM_render_ellipse(float x, float y, float width, float height);
-
-        // void RM_flush_stroke();
-        // void RM_flush_fill();
-        // void fill_resize_buffer(uint32_t newSize);
-        // void init_stroke_vertice_buffers();
-        // void init_fill_vertice_buffers();
-
-        // void RM_add_quad_as_triangles(const glm::vec3 v0, const glm::vec3 v1, const glm::vec3 v2, const glm::vec3 v3, const glm::vec4 color) {
-        //     // triangle #1
-        //     add_transformed_fill_vertex_xyz_rgba_uv(v0, color);
-        //     add_transformed_fill_vertex_xyz_rgba_uv(v1, color);
-        //     add_transformed_fill_vertex_xyz_rgba_uv(v3, color);
-        //     // triangle #2
-        //     add_transformed_fill_vertex_xyz_rgba_uv(v3, color);
-        //     add_transformed_fill_vertex_xyz_rgba_uv(v1, color);
-        //     add_transformed_fill_vertex_xyz_rgba_uv(v2, color);
-        // }
-
-        // void add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position, const glm::vec4& color, float u = 0.0f, float v = 0.0f);
-        // void RM_add_texture_id_to_render_batch(const std::vector<float>& vertices, int num_vertices, GLuint batch_texture_id);
-        // void RM_render_line_strip_as_connected_quads(std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape);
-        // void RM_render_line_strip_as_quad_segments(const std::vector<glm::vec3>& points, const glm::vec4& color, bool close_shape, bool round_corners);
-        // void RM_render_ellipse_filled(float x, float y, float width, float height, int detail, const glm::vec4& color);
-
-        // // TODO remove these:
-        // void add_fill_vertex_xyz_rgba_uv(glm::vec3 position, glm::vec4 color, glm::vec2 tex_coords);
-        // void add_fill_vertex_xyz_rgba_uv_raw(glm::vec3 position, glm::vec4 color, glm::vec2 tex_coords);
-        // void add_fill_vertex_xyz_rgba_uv(float x, float y, float z,
-        //                                  float r, float g, float b, float a = 1.0f,
-        //                                  float u = 0.0f, float v = 0.0f);
-        // void add_stroke_vertex_xyz_rgba(float x, float y, float z,
-        //                                 float r, float g, float b, float a = 1.0f);
     };
 } // namespace umgebung

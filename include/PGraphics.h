@@ -45,11 +45,11 @@ namespace umgebung {
         };
 
         FrameBufferObject framebuffer{};
+        bool              render_to_offscreen{true};
+        float             depth_range = 10000.0f;
 
         PGraphics();
         ~PGraphics() override = default;
-
-        float             depth_range = 10000.0f;
 
         /* --- implementation specific methods --- */
 
@@ -92,39 +92,41 @@ namespace umgebung {
         virtual void strokeJoin(int join);
         virtual void strokeCap(int cap);
 
-        virtual void    bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);                                         // NOTE: done
-        virtual void    bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4); // NOTE: done
-        virtual void    bezierDetail(int detail);                                                                                                       // NOTE: done
-        virtual void    ellipse(float x, float y, float width, float height);                                                                           // NOTE: done
+        virtual void    bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
+        virtual void    bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
+        virtual void    bezierDetail(int detail);
+        virtual void    ellipse(float x, float y, float width, float height);
         virtual void    ellipseMode(int mode);
         virtual void    ellipseDetail(int detail);
-        virtual void    circle(float x, float y, float diameter);                                                                                     // NOTE: done
-        virtual void    image(PImage* img, float x, float y, float w, float h);                                                                       // NOTE: done
-        virtual void    image(PImage* img, float x, float y);                                                                                         // NOTE: done
-        virtual void    texture(PImage* img = nullptr);                                                                                               // NOTE: done
-        virtual PImage* loadImage(const std::string& filename);                                                                                       // NOTE: done
-        virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2);                                                             // NOTE: done
-        virtual void    line(float x1, float y1, float x2, float y2);                                                                                 // NOTE: done
-        virtual void    point(float x, float y, float z = 0.0f);                                                                                      // NOTE: done
-        virtual void    pointSize(float size);                                                                                                        // NOTE: done
-        virtual void    quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4); // NOTE: done
-        virtual void    rect(float x, float y, float width, float height);                                                                            // NOTE: done
+        virtual void    circle(float x, float y, float diameter);
+        virtual void    image(PImage* img, float x, float y, float w, float h);
+        virtual void    image(PImage* img, float x, float y);
+        virtual void    texture(PImage* img = nullptr);
+        virtual PImage* loadImage(const std::string& filename);
+        virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2);
+        virtual void    line(float x1, float y1, float x2, float y2);
+        virtual void    point(float x, float y, float z = 0.0f);
+        virtual void    pointSize(float size);
+        virtual void    quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
+        virtual void    rect(float x, float y, float width, float height);
         virtual void    rectMode(int mode);
-        virtual void    square(const float x, const float y, const float extent) { rect(x, y, extent, extent); }            // NOTE: done
-        virtual void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3); // NOTE: done
-        virtual void    textFont(PFont* font);                                                                              // NOTE: done
-        virtual void    textSize(float size);                                                                               // NOTE: done
-        virtual void    text(const char* value, float x, float y, float z = 0.0f);                                          // NOTE: done
-        virtual float   textWidth(const std::string& text);                                                                 // NOTE: done
-        virtual PFont*  loadFont(const std::string& file, float size);                                                      // NOTE: done
-        virtual void    box(float width, float height, float depth);                                                        // NOTE: done
-        virtual void    box(const float size) { box(size, size, size); }                                                    // NOTE: done
-        virtual void    sphere(float width, float height, float depth);                                                     // NOTE: done
-        virtual void    sphere(const float size) { sphere(size, size, size); }                                              // NOTE: done
-        virtual void    vertex(float x, float y, float z, float u, float v);                                                // NOTE: done
-        virtual void    vertex(float x, float y, float z = 0.0f);                                                           // NOTE: done
-        virtual void    beginShape(int shape = POLYGON);                                                                    // NOTE: done
-        virtual void    endShape(bool close_shape = false);                                                                 // NOTE: done
+        virtual void    square(const float x, const float y, const float extent) { rect(x, y, extent, extent); }
+        virtual void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
+        virtual void    textFont(PFont* font);
+        virtual void    textSize(float size);
+        virtual void    text(const char* value, float x, float y, float z = 0.0f);
+        virtual float   textWidth(const std::string& text);
+        virtual PFont*  loadFont(const std::string& file, float size);
+        virtual void    box(float width, float height, float depth);
+        virtual void    box(const float size) { box(size, size, size); }
+        virtual void    sphere(float width, float height, float depth);
+        virtual void    sphere(const float size) { sphere(size, size, size); }
+        virtual void    vertex(float x, float y, float z, float u, float v);
+        virtual void    vertex(float x, float y, float z = 0.0f);
+        virtual void    beginShape(int shape = POLYGON);
+        void            process_collected_fill_vertices();
+        void            process_collected_stroke_vertices(bool close_shape);
+        virtual void    endShape(bool close_shape = false);
         // virtual void    lights()                                                                                           = 0;
 
         /* --- additional --- */
@@ -134,26 +136,25 @@ namespace umgebung {
         virtual void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {}
         virtual void        download_texture(PImage* img) {}
         virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
-        void                to_screen_space(glm::vec3& world_position) const; // NOTE: convert from model space to screen space
-        void                to_world_space(glm::vec3& model_position) const;  // NOTE: convert from model space to works space
-        void                linse(const float x1, const float y1, const float x2, const float y2) { line(x1, y1, x2, y2); }
+        virtual void        hint(uint16_t property);
+        virtual void        pixelDensity(int density);
         virtual void        text_str(const std::string& text, float x, float y, float z = 0.0f); // TODO maybe make this private?
-        virtual void        debug_text(const std::string& text, float x, float y) {}
+        virtual void        debug_text(const std::string& text, float x, float y) {}             // TODO implement this in PGraphics
+        void                to_screen_space(glm::vec3& world_position) const;                    // NOTE: convert from model space to screen space
+        void                to_world_space(glm::vec3& model_position) const;                     // NOTE: convert from model space to works space
+        void                linse(const float x1, const float y1, const float x2, const float y2) { line(x1, y1, x2, y2); }
         int                 getPixelDensity() const { return pixel_density; }
         void                stroke_mode(const int line_render_mode) { this->line_render_mode = line_render_mode; }
         void                stroke_properties(float stroke_join_round_resolution, float stroke_cap_round_resolution, float stroke_join_miter_max_angle);
         void                process_collected_fill_and_stroke_vertices(bool close_shape);
-        virtual void        hint(uint16_t property);
-        virtual void        pixelDensity(int density);
+        void                triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
 
         /* --- additional ( pure virtual ) --- */
 
         virtual void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices)                              = 0;
         virtual void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) = 0;
-        void         triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
-
-        virtual void beginDraw() = 0;
-        virtual void endDraw()   = 0;
+        virtual void beginDraw()                                                                                    = 0;
+        virtual void endDraw()                                                                                      = 0;
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) {
@@ -161,8 +162,6 @@ namespace umgebung {
             ss << value;
             text_str(ss.str(), x, y, z);
         }
-
-        bool render_to_offscreen{true};
 
         static std::vector<Vertex> triangulate_faster(const std::vector<Vertex>& vertices);
         static std::vector<Vertex> triangulate_better_quality(const std::vector<Vertex>& vertices);
@@ -183,57 +182,48 @@ namespace umgebung {
         uint8_t                   rect_mode{CORNER};
         uint8_t                   ellipse_mode{CENTER};
         int                       ellipse_detail{0};
-        std::vector<glm::vec2>    ellipse_points_LUT;
+        std::vector<glm::vec2>    ellipse_points_LUT{};
         float                     point_size{1};
         float                     stroke_weight{1};
         int                       bezier_detail{20};
         uint8_t                   pixel_density{1};
         int                       texture_id_current{};
         bool                      shape_has_begun{false};
-        int                       polygon_triangulation_strategy = POLYGON_TRIANGULATION_BETTER;
-        int                       line_render_mode               = STROKE_RENDER_MODE_TRIANGULATE;
-        int                       point_render_mode              = POINT_RENDER_MODE_TRIANGULATE;
-        int                       stroke_join_mode               = BEVEL_FAST;
-        int                       stroke_cap_mode                = PROJECT;
-        float                     stroke_join_round_resolution   = glm::radians(20.0f); // TODO maybe make these configurable
-        float                     stroke_cap_round_resolution    = glm::radians(20.0f); // 20° resolution i.e 18 segment for whole circle
-        float                     stroke_join_miter_max_angle    = 165.0f;
+        int                       polygon_triangulation_strategy{POLYGON_TRIANGULATION_BETTER};
+        int                       line_render_mode{STROKE_RENDER_MODE_TRIANGULATE};
+        int                       point_render_mode{POINT_RENDER_MODE_TRIANGULATE};
+        int                       stroke_join_mode{BEVEL_FAST};
+        int                       stroke_cap_mode{PROJECT};
+        float                     stroke_join_round_resolution{glm::radians(20.0f)}; // TODO maybe make these configurable
+        float                     stroke_cap_round_resolution{glm::radians(20.0f)};  // 20° resolution i.e 18 segment for whole circle
+        float                     stroke_join_miter_max_angle{165.0f};
         static const Triangulator triangulator;
-        std::vector<ColorState>   color_stroke_stack;
-        std::vector<ColorState>   color_fill_stack;
-        std::vector<glm::vec3>    box_vertices_LUT;
-        std::vector<glm::vec3>    sphere_vertices_LUT;
+        std::vector<ColorState>   color_stroke_stack{};
+        std::vector<ColorState>   color_fill_stack{};
+        std::vector<glm::vec3>    box_vertices_LUT{};
+        std::vector<glm::vec3>    sphere_vertices_LUT{};
         int                       shape_mode_cache{POLYGON};
-        static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE = 1024 * 1024; // 1MB
-                                                                       //         std::vector<glm::vec3>    shape_stroke_vertex_cache_vec3_DEPRECATED{VBO_BUFFER_CHUNK_SIZE}; // TODO remove this
-        std::vector<Vertex> shape_stroke_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
-        std::vector<Vertex> shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
+        static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE{1024 * 1024}; // 1MB
+        std::vector<Vertex>       shape_stroke_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
+        std::vector<Vertex>       shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
+        int                       last_bound_texture_id_cache{TEXTURE_NONE};
+        glm::mat4                 model_matrix{};
+        glm::mat4                 view_matrix{};
+        glm::mat4                 projection_matrix_2D{};
+        glm::mat4                 projection_matrix_3D{};
+        std::vector<glm::mat4>    model_matrix_stack{};
+        bool                      model_matrix_dirty{false};
 
         // TODO clean this up:
 
-        int _last_bound_texture_id_cache = TEXTURE_NONE;
-
-
         void push_texture_id() {
-            _last_bound_texture_id_cache = texture_id_current;
+            last_bound_texture_id_cache = texture_id_current;
         }
 
         void pop_texture_id() {
-            IMPL_bind_texture(_last_bound_texture_id_cache);
-            _last_bound_texture_id_cache = TEXTURE_NONE;
+            IMPL_bind_texture(last_bound_texture_id_cache);
+            last_bound_texture_id_cache = TEXTURE_NONE;
         }
-
-        /* --- transform matrices --- */
-
-    public:
-        glm::mat4 model_matrix_client{};
-        glm::mat4 view_matrix{};
-        glm::mat4 projection_matrix_2D{};
-        glm::mat4 projection_matrix_3D{};
-
-    protected:
-        std::vector<glm::mat4> model_matrix_stack{};
-        bool                   model_matrix_dirty{false};
 
         void vertex_vec(const glm::vec3& position, const glm::vec2& tex_coords) {
             vertex(position.x, position.y, position.z, tex_coords.x, tex_coords.y);
@@ -254,8 +244,6 @@ namespace umgebung {
             }
         }
 
-        void        resize_ellipse_points_LUT();
-        static void generate_box(std::vector<glm::vec3>& vertices);
-        static void generate_sphere(std::vector<glm::vec3>& vertices, int stacks = 10, int slices = 10, float radius = 0.5f);
+        void resize_ellipse_points_LUT();
     };
 } // namespace umgebung

@@ -211,6 +211,7 @@ namespace umgebung {
             return;
         }
 
+        // TODO this is a bit redundant … maybe just use beginDraw() and endDraw() for everything
         if (g->render_to_offscreen) {
             g->beginDraw();
         } else {
