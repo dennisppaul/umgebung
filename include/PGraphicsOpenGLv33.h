@@ -264,7 +264,8 @@ namespace umgebung {
         std::vector<Vertex>        convertTriangleFanToTriangles(const std::vector<Vertex>& fan) const;
         std::vector<Vertex>        convertTriangleStripToTriangles(const std::vector<Vertex>& strip) const;
 
-        void SHARED_triangle_collector(std::vector<Vertex>& triangle_vertices);
+        void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed);
+        void emit_shape_fill_triangles( std::vector<Vertex>& triangle_vertices);
 
         /* --- RENDER_MODE_IMMEDIATE (IM) --- */
 
@@ -279,7 +280,9 @@ namespace umgebung {
         void IM_render_rect(float x, float y, float width, float height);
         void IM_render_ellipse(float x, float y, float width, float height);
         void IM_render_end_shape(bool close_shape);
-        void IM_render_vertex_buffer(PrimitiveVertexBuffer& primitive, GLenum mode, std::vector<Vertex>& shape_vertices) const;
+        void OGL_tranform_model_matrix_and_render_vertex_buffer(PrimitiveVertexBuffer& primitive,
+                                                    GLenum                 mode,
+                                                    std::vector<Vertex>&   shape_vertices) const;
 
         /* --- RENDER_MODE_RETAINED (RM) --- */
 
@@ -320,13 +323,13 @@ namespace umgebung {
                                         float r, float g, float b, float a = 1.0f);
         /* --- SHARED --- */
 
-        void          SHARED_triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
+        void          PGRAPHICS_triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
         void          create_solid_color_texture();
         void          SHARED_bind_texture(GLuint bind_texture_id);
         bool          SHARED_generate_and_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`
-        static void   SHARED_resize_vertex_buffer(size_t buffer_size_bytes);
-        static void   SHARED_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);
-        static void   SHARED_init_vertex_buffer(PrimitiveVertexBuffer& primitive);
+        static void   OGL3_resize_vertex_buffer(size_t buffer_size_bytes);
+        static void   OGL_render_vertex_buffer(PrimitiveVertexBuffer& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);
+        static void   OGL3_init_vertex_buffer(PrimitiveVertexBuffer& primitive);
         static GLuint SHARED_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
         static void   SHARED_checkShaderCompileStatus(GLuint shader);
         static void   SHARED_checkProgramLinkStatus(GLuint program);
