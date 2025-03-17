@@ -35,9 +35,11 @@ namespace umgebung {
 
         // TODO move to implementation file i.e `.cpp`
 
-        void setup_matrices() override {
-            reset_matrices();
-        }
+        explicit PGraphicsOpenGLv33(bool render_to_offscreen);
+
+        // void setup_matrices() override {
+        //     reset_matrices();
+        // }
 
         void restore_matrices() override {
             // No explicit matrix stack in modern OpenGL
@@ -46,12 +48,10 @@ namespace umgebung {
         void reset_matrices() override {
             PGraphics::reset_matrices();
 
-            const float viewport_width  = framebuffer_width;
-            const float viewport_height = framebuffer_height;
-            glViewport(0, 0, static_cast<GLint>(viewport_width), static_cast<GLint>(viewport_height));
+            glViewport(0, 0, framebuffer.width, framebuffer.height);
         }
 
-        void prepare_frame() {
+        void prepare_frame() override {
             set_default_graphics_state();
 
             if (render_mode == RENDER_MODE_IMMEDIATE) {
@@ -72,13 +72,11 @@ namespace umgebung {
             }
         }
 
-        void beginDraw() override {
-            if (render_to_offscreen) {
-                store_current_fbo();
-                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-            }
-            prepare_frame();
-            reset_matrices();
+        void setup_fbo() override {
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+        }
+
+        void finish_fbo() override {
         }
 
         void endDraw() override {
@@ -87,9 +85,7 @@ namespace umgebung {
                 RM_flush_stroke();
             }
 
-            if (render_to_offscreen) {
-                restore_previous_fbo();
-            }
+            PGraphicsOpenGL::endDraw();
         }
 
         // Modern OpenGL framebuffer rendering method
@@ -120,9 +116,6 @@ namespace umgebung {
                 // glUseProgram(0);
             }
         }
-
-    public:
-        explicit PGraphicsOpenGLv33(bool render_to_offscreen);
 
         void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
         void beginShape(int shape = POLYGON) override;                     // NOTE: done

@@ -25,7 +25,9 @@ namespace umgebung {
 
     class PGraphicsOpenGLv20 final : public PGraphicsOpenGL {
     public: // TODO clean this up
-        void setup_matrices() override {
+        void reset_matrices() override {
+            PGraphics::reset_matrices();
+
             glMatrixMode(GL_PROJECTION);
             glPushMatrix();
             glLoadIdentity();
@@ -38,6 +40,8 @@ namespace umgebung {
             /** flip y axis */
             glScalef(1, -1, 1);
             glTranslatef(0, -height, 0);
+
+            glViewport(0, 0, framebuffer.width, framebuffer.height);
         }
 
         void restore_matrices() override {
@@ -48,28 +52,19 @@ namespace umgebung {
             glPopMatrix();
         }
 
-        void beginDraw() override {
-            if (render_to_offscreen) {
-                store_current_fbo();
-                glPushAttrib(GL_ALL_ATTRIB_BITS);
-                glPushMatrix();
-
-                // bind the FBO for offscreen rendering
-                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-                glViewport(0, 0, framebuffer.width, framebuffer.height);
-
-                setup_matrices();
-            }
+        void prepare_frame() override {
+            set_default_graphics_state();
         }
 
-        void endDraw() override {
-            if (render_to_offscreen) {
-                restore_matrices();
+        void setup_fbo() override {
+            glPushAttrib(GL_ALL_ATTRIB_BITS);
+            glPushMatrix();
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+        }
 
-                glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO);
-                glPopMatrix();
-                glPopAttrib();
-            }
+        void finish_fbo() override {
+            glPopMatrix();
+            glPopAttrib();
         }
 
         // Render framebuffer to screen (specific to OpenGL 2.0)

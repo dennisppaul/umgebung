@@ -58,25 +58,25 @@ namespace umgebung {
         }
 
         // matrix management is implementation-specific, so these are pure virtual
-        virtual void setup_matrices()   = 0;
+        virtual void setup_fbo() = 0;
+        virtual void finish_fbo() = 0;
+        virtual void prepare_frame() = 0;
         virtual void restore_matrices() = 0;
 
         void beginDraw() override {
             if (render_to_offscreen) {
                 store_current_fbo();
-
-                // bind the FBO for offscreen rendering
-                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-                glViewport(0, 0, framebuffer.width, framebuffer.height);
-
-                setup_matrices();
+                setup_fbo();
             }
+            prepare_frame();
+            reset_matrices();
         }
 
         void endDraw() override {
             if (render_to_offscreen) {
                 restore_matrices();
                 restore_previous_fbo();
+                finish_fbo();
             }
         }
 
