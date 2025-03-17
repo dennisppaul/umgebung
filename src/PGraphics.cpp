@@ -269,7 +269,7 @@ void PGraphics::ellipseDetail(const int detail) {
 void PGraphics::beginShape(const int shape) {
     shape_fill_vertex_buffer.clear();
     shape_stroke_vertex_buffer.clear();
-    shape_stroke_vertex_cache_vec3_DEPRECATED.clear();
+    // shape_stroke_vertex_cache_vec3_DEPRECATED.clear();
     shape_mode_cache = shape;
     shape_has_begun  = true;
 }
@@ -456,7 +456,7 @@ void PGraphics::vertex(const float x, const float y, const float z, const float 
     const glm::vec3 position{x, y, z};
 
     if (color_stroke.active) {
-        shape_stroke_vertex_cache_vec3_DEPRECATED.emplace_back(position);
+        // shape_stroke_vertex_cache_vec3_DEPRECATED.emplace_back(position);
         const glm::vec4 strokeColor = as_vec4(color_stroke);
         shape_stroke_vertex_buffer.emplace_back(position, strokeColor, glm::vec2{u, v});
     }
@@ -471,7 +471,7 @@ void PGraphics::endShape(const bool close_shape) {
     process_collected_fill_and_stroke_vertices(close_shape);
     shape_fill_vertex_buffer.clear();
     shape_stroke_vertex_buffer.clear();
-    shape_stroke_vertex_cache_vec3_DEPRECATED.clear();
+    // shape_stroke_vertex_cache_vec3_DEPRECATED.clear();
     shape_has_begun = false;
 }
 
@@ -742,9 +742,9 @@ void PGraphics::rect(const float x, const float y, const float width, const floa
             break;
     }
 
-    // define colors once (avoiding redundant glm::vec4 conversions)
-    const glm::vec4 fill_color   = as_vec4(color_fill);
-    const glm::vec4 stroke_color = as_vec4(color_stroke);
+    // // define colors once (avoiding redundant glm::vec4 conversions)
+    // const glm::vec4 fill_color   = as_vec4(color_fill);
+    // const glm::vec4 stroke_color = as_vec4(color_stroke);
 
     // define rectangle vertices (shared for fill and stroke)
     static constexpr uint8_t                  NUM_VERTICES  = 4;

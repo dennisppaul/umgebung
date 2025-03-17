@@ -58,9 +58,9 @@ namespace umgebung {
         }
 
         // matrix management is implementation-specific, so these are pure virtual
-        virtual void setup_fbo() = 0;
-        virtual void finish_fbo() = 0;
-        virtual void prepare_frame() = 0;
+        virtual void setup_fbo()        = 0;
+        virtual void finish_fbo()       = 0;
+        virtual void prepare_frame()    = 0;
         virtual void restore_matrices() = 0;
 
         void beginDraw() override {

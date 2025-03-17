@@ -32,6 +32,16 @@
 
 using namespace umgebung;
 
+/*
+ * OpenGL ES 3.1 is stricter:
+ *
+ * 1.	No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
+ * 2.	No glLineWidth support at all.
+ * 3.	Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
+ *
+ * i.e GL_LINES + GL_LINE_STRIP must be emulated
+ */
+
 void PGraphicsOpenGLv33::IMPL_background(float a, float b, float c, float d) {
     glClearColor(a, b, c, d);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -59,7 +69,7 @@ void PGraphicsOpenGLv33::IMPL_set_texture(PImage* img) {
 
     // TODO move this to own method and share with `texture()`
     if (img->texture_id == TEXTURE_NOT_GENERATED) {
-        SHARED_generate_and_upload_image_as_texture(img, true);
+        OGL_generate_and_upload_image_as_texture(img, true);
         if (img->texture_id == TEXTURE_NOT_GENERATED) {
             error("image cannot create texture.");
             return;
@@ -87,94 +97,6 @@ void PGraphicsOpenGLv33::debug_text(const std::string& text, const float x, cons
 }
 
 /* --- UTILITIES --- */
-
-void PGraphicsOpenGLv33::RM_add_texture_id_to_render_batch(const std::vector<float>& vertices,
-                                                           const int                 num_vertices,
-                                                           const GLuint              batch_texture_id) {
-    const unsigned long fill_vertices_count_xyz_rgba_uv = vertices.size() / NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV;
-    if (renderBatches.empty() || renderBatches.back().texture_id != batch_texture_id) {
-        renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - num_vertices, num_vertices, batch_texture_id);
-    } else {
-        renderBatches.back().num_vertices += num_vertices;
-    }
-}
-
-// // NOTE: done
-// void PGraphicsOpenGLv33::endShape(const bool close_shape) {
-//     if (render_mode == RENDER_MODE_IMMEDIATE) {
-//         IM_render_end_shape(close_shape);
-//     }
-//
-//     if (render_mode == RENDER_MODE_BUFFERED) {
-//         // const glm::vec4 color = as_vec4(color_stroke);
-//         // switch (render_line_mode) {
-//         //     case RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_ROUND:
-//         //         RM_render_line_strip_as_quad_segments(shape_stroke_vertex_cache_vec3_DEPRECATED, color, close_shape, true);
-//         //         break;
-//         //     case RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_MITER:
-//         //         RM_render_line_strip_as_connected_quads(shape_stroke_vertex_cache_vec3_DEPRECATED, color, close_shape);
-//         //         break;
-//         //     case RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NONE:
-//         //     default:
-//         //         RM_render_line_strip_as_quad_segments(shape_stroke_vertex_cache_vec3_DEPRECATED, color, close_shape, false);
-//         //         break;
-//         // }
-//     }
-// }
-
-// void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y, float w, float h) {
-//     if (!color_fill.active) {
-//         return;
-//     }
-//
-//     if (img == nullptr) {
-//         error("img is null");
-//         return;
-//     }
-//
-//     if (w < 0) {
-//         w = img->width;
-//     }
-//     if (h < 0) {
-//         h = img->height;
-//     }
-//
-//     // TODO move this to own method and share with `texture()`
-//     if (img->texture_id == TEXTURE_NOT_GENERATED) {
-//         SHARED_generate_and_upload_image_as_texture(img, true);
-//         if (img->texture_id == TEXTURE_NOT_GENERATED) {
-//             error("image cannot create texture.");
-//             return;
-//         }
-//         // console("PGraphicsOpenGLv33::image // uploaded texture image to GPU");
-//     }
-//
-//     if (render_mode == RENDER_MODE_IMMEDIATE) {
-//         const int _last_bound_texture_id_cache = texture_id_current;
-//         IMPL_bind_texture(img->texture_id);
-//         rect(x, y, w, h);
-//         IMPL_bind_texture(_last_bound_texture_id_cache);
-//         return;
-//     }
-//
-//     if (render_mode == RENDER_MODE_BUFFERED) {
-//         add_fill_vertex_xyz_rgba_uv(x, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 0.0f, 0.0f);
-//         add_fill_vertex_xyz_rgba_uv(x + w, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 1.0f, 0.0f);
-//         add_fill_vertex_xyz_rgba_uv(x + w, y + h, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 1.0f, 1.0f);
-//
-//         add_fill_vertex_xyz_rgba_uv(x + w, y + h, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 1.0f, 1.0f);
-//         add_fill_vertex_xyz_rgba_uv(x, y + h, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 0.0f, 1.0f);
-//         add_fill_vertex_xyz_rgba_uv(x, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 0.0f, 0.0f);
-//
-//         constexpr int       RECT_NUM_VERTICES               = 6;
-//         const unsigned long fill_vertices_count_xyz_rgba_uv = fill_vertices_xyz_rgba_uv.size() / NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV;
-//         if (renderBatches.empty() || renderBatches.back().texture_id != img->texture_id) {
-//             renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - RECT_NUM_VERTICES, RECT_NUM_VERTICES, img->texture_id);
-//         } else {
-//             renderBatches.back().num_vertices += RECT_NUM_VERTICES;
-//         }
-//     }
-// }
 
 void PGraphicsOpenGLv33::reset_matrices() {
     PGraphics::reset_matrices();
@@ -209,8 +131,76 @@ void PGraphicsOpenGLv33::setup_fbo() {
 
 void PGraphicsOpenGLv33::endDraw() {
     if (render_mode == RENDER_MODE_BUFFERED) {
-        RM_flush_fill();
-        RM_flush_stroke();
+        // RM_flush_fill();
+        // RM_flush_stroke();
+        // TODO flush collected vertices
+        // void PGraphicsOpenGLv33::RM_flush_stroke() {
+        //     if (stroke_vertices_xyz_rgba.empty()) {
+        //         return;
+        //     }
+        //
+        //     // glEnable(GL_BLEND);
+        //     // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        //
+        //     glBindBuffer(GL_ARRAY_BUFFER, stroke_VBO_xyz_rgba);
+        //     const unsigned long size = stroke_vertices_xyz_rgba.size() * sizeof(float);
+        //     glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(size), stroke_vertices_xyz_rgba.data());
+        //
+        //     glUseProgram(stroke_shader_program);
+        //
+        //     // Upload matrices
+        //     const GLint projLoc = glGetUniformLocation(stroke_shader_program, "uProjection");
+        //     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D)); // or projection2D
+        //
+        //     const GLint viewLoc = glGetUniformLocation(stroke_shader_program, "uViewMatrix");
+        //     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+        //
+        //     const GLint matrixLoc = glGetUniformLocation(stroke_shader_program, "uModelMatrix");
+        //     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+        //
+        //     glBindVertexArray(stroke_VAO_xyz_rgba);
+        //     glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(stroke_vertices_xyz_rgba.size()) / NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA);
+        //     glBindVertexArray(0);
+        //
+        //     stroke_vertices_xyz_rgba.clear();
+        // }
+        //
+        // void PGraphicsOpenGLv33::RM_flush_fill() {
+        //     if (fill_vertices_xyz_rgba_uv.empty()) {
+        //         return;
+        //     }
+        //
+        //     // glEnable(GL_BLEND);
+        //     // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        //
+        //     glBindBuffer(GL_ARRAY_BUFFER, fill_VBO_xyz_rgba_uv);
+        //     const unsigned long size = fill_vertices_xyz_rgba_uv.size() * sizeof(float);
+        //     glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(size), fill_vertices_xyz_rgba_uv.data());
+        //
+        //     glUseProgram(fill_shader_program);
+        //
+        //     // Upload matrices
+        //     const GLint projLoc = glGetUniformLocation(fill_shader_program, "uProjection");
+        //     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D));
+        //
+        //     const GLint viewLoc = glGetUniformLocation(fill_shader_program, "uViewMatrix");
+        //     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+        //
+        //     const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
+        //     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+        //
+        //     // Bind textures per batch
+        //     glBindVertexArray(fill_VAO_xyz_rgba_uv);
+        //     for (const auto& batch: renderBatches) {
+        //         glBindTexture(GL_TEXTURE_2D, batch.texture_id); // NOTE no need to use `IMPL_bind_texture()`
+        //         glDrawArrays(GL_TRIANGLES, batch.start_index, batch.num_vertices);
+        //     }
+        //     glBindTexture(GL_TEXTURE_2D, 0); // NOTE no need to use `IMPL_bind_texture()`
+        //     glBindVertexArray(0);
+        //
+        //     fill_vertices_xyz_rgba_uv.clear();
+        //     renderBatches.clear();
+        // }
     }
 
     PGraphicsOpenGL::endDraw();
@@ -227,7 +217,7 @@ void PGraphicsOpenGLv33::render_framebuffer_to_screen(const bool use_blit) {
                           GL_COLOR_BUFFER_BIT, GL_LINEAR); // TODO maybe GL_NEAREST is enough
         glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     } else {
-        error("`render_framebuffer_to_screen` need to implement this ... maybe reuse existing shader");
+        error("`render_framebuffer_to_screen` need to implement this ... may re-use existing shader");
         // glBindFramebuffer(GL_FRAMEBUFFER, 0);
         // glDisable(GL_DEPTH_TEST);
         // glDisable(GL_BLEND);
@@ -277,7 +267,7 @@ void PGraphicsOpenGLv33::upload_texture(PImage*         img,
     }
 
     if (img->texture_id < TEXTURE_VALID_ID) {
-        SHARED_generate_and_upload_image_as_texture(img, mipmapped);
+        OGL_generate_and_upload_image_as_texture(img, mipmapped);
         console("PGraphics / `upload_texture` texture has not been initialized yet … trying to initialize");
         if (img->texture_id < TEXTURE_VALID_ID) {
             error("PGraphics / `upload_texture` failed to create texture");
@@ -340,10 +330,10 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
     framebuffer.width  = width;
     framebuffer.height = height;
 
-    stroke_shader_program = SHARED_build_shader(vertex_shader_source_simple(), fragment_shader_source_simple());
-    init_stroke_vertice_buffers();
-    fill_shader_program = SHARED_build_shader(vertex_shader_source_texture(), fragment_shader_source_texture());
-    init_fill_vertice_buffers();
+    stroke_shader_program = OGL_build_shader(vertex_shader_source_simple(), fragment_shader_source_simple());
+    // init_stroke_vertice_buffers();
+    fill_shader_program = OGL_build_shader(vertex_shader_source_texture(), fragment_shader_source_texture());
+    // init_fill_vertice_buffers();
 
     if (render_to_offscreen) {
         console("setting up rendering to offscreen buffer:");
@@ -377,7 +367,7 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
         glBindTexture(GL_TEXTURE_2D, 0); // NOTE no need to use `IMPL_bind_texture()`
     }
 
-    create_solid_color_texture();
+    OGL3_create_solid_color_texture();
     IMPL_bind_texture(texture_id_solid_color);
 
     reset_matrices();
@@ -385,7 +375,7 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
 
 /* additional */
 
-bool PGraphicsOpenGLv33::SHARED_generate_and_upload_image_as_texture(PImage* image, const bool generate_texture_mipmapped) {
+bool PGraphicsOpenGLv33::OGL_generate_and_upload_image_as_texture(PImage* image, const bool generate_texture_mipmapped) {
     if (image == nullptr) {
         error("Failed to upload texture because image nullptr.");
         return false;
@@ -440,128 +430,60 @@ bool PGraphicsOpenGLv33::SHARED_generate_and_upload_image_as_texture(PImage* ima
     return true;
 }
 
-void PGraphicsOpenGLv33::RM_flush_stroke() {
-    if (stroke_vertices_xyz_rgba.empty()) {
-        return;
-    }
+// void PGraphicsOpenGLv33::fill_resize_buffer(const uint32_t newSize) {
+//     // Create a new buffer
+//     GLuint newVBO;
+//     glGenBuffers(1, &newVBO);
+//     glBindBuffer(GL_ARRAY_BUFFER, newVBO);
+//     glBufferData(GL_ARRAY_BUFFER, newSize, nullptr, GL_DYNAMIC_DRAW); // Allocate new size
+//
+//     // Copy old data to new buffer
+//     glBindBuffer(GL_COPY_READ_BUFFER, fill_VBO_xyz_rgba_uv);
+//     glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, 0, fill_max_buffer_size);
+//
+//     // Delete old buffer and update references
+//     glDeleteBuffers(1, &fill_VBO_xyz_rgba_uv);
+//     fill_VBO_xyz_rgba_uv = newVBO;
+//     fill_max_buffer_size = newSize;
+//
+//     glBindBuffer(GL_ARRAY_BUFFER, fill_VBO_xyz_rgba_uv);
+// }
 
-    // glEnable(GL_BLEND);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+// void PGraphicsOpenGLv33::add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position,
+//                                                                  const glm::vec4& color,
+//                                                                  const float u, const float v) {
+//     fill_vertices_xyz_rgba_uv.push_back(position.x); // Position
+//     fill_vertices_xyz_rgba_uv.push_back(position.y); // Position
+//     fill_vertices_xyz_rgba_uv.push_back(position.z); // Position
+//     fill_vertices_xyz_rgba_uv.push_back(color.r);    // ColorState
+//     fill_vertices_xyz_rgba_uv.push_back(color.g);    // ColorState
+//     fill_vertices_xyz_rgba_uv.push_back(color.b);    // ColorState
+//     fill_vertices_xyz_rgba_uv.push_back(color.a);    // ColorState
+//     fill_vertices_xyz_rgba_uv.push_back(u);          // Texture
+//     fill_vertices_xyz_rgba_uv.push_back(v);          // Texture
+// }
 
-    glBindBuffer(GL_ARRAY_BUFFER, stroke_VBO_xyz_rgba);
-    const unsigned long size = stroke_vertices_xyz_rgba.size() * sizeof(float);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(size), stroke_vertices_xyz_rgba.data());
+// void PGraphicsOpenGLv33::add_fill_vertex_xyz_rgba_uv(const glm::vec3 position,
+//                                                      const glm::vec4 color,
+//                                                      const glm::vec2 tex_coords) {
+//     add_fill_vertex_xyz_rgba_uv(position.x, position.y, position.z,
+//                                 color.r, color.g, color.b, color.a,
+//                                 tex_coords.x, tex_coords.y);
+// }
 
-    glUseProgram(stroke_shader_program);
-
-    // Upload matrices
-    const GLint projLoc = glGetUniformLocation(stroke_shader_program, "uProjection");
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D)); // or projection2D
-
-    const GLint viewLoc = glGetUniformLocation(stroke_shader_program, "uViewMatrix");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-
-    const GLint matrixLoc = glGetUniformLocation(stroke_shader_program, "uModelMatrix");
-    glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-
-    glBindVertexArray(stroke_VAO_xyz_rgba);
-    glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(stroke_vertices_xyz_rgba.size()) / NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA);
-    glBindVertexArray(0);
-
-    stroke_vertices_xyz_rgba.clear();
-}
-
-void PGraphicsOpenGLv33::RM_flush_fill() {
-    if (fill_vertices_xyz_rgba_uv.empty()) {
-        return;
-    }
-
-    // glEnable(GL_BLEND);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glBindBuffer(GL_ARRAY_BUFFER, fill_VBO_xyz_rgba_uv);
-    const unsigned long size = fill_vertices_xyz_rgba_uv.size() * sizeof(float);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(size), fill_vertices_xyz_rgba_uv.data());
-
-    glUseProgram(fill_shader_program);
-
-    // Upload matrices
-    const GLint projLoc = glGetUniformLocation(fill_shader_program, "uProjection");
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D));
-
-    const GLint viewLoc = glGetUniformLocation(fill_shader_program, "uViewMatrix");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-
-    const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-
-    // Bind textures per batch
-    glBindVertexArray(fill_VAO_xyz_rgba_uv);
-    for (const auto& batch: renderBatches) {
-        glBindTexture(GL_TEXTURE_2D, batch.texture_id); // NOTE no need to use `IMPL_bind_texture()`
-        glDrawArrays(GL_TRIANGLES, batch.start_index, batch.num_vertices);
-    }
-    glBindTexture(GL_TEXTURE_2D, 0); // NOTE no need to use `IMPL_bind_texture()`
-    glBindVertexArray(0);
-
-    fill_vertices_xyz_rgba_uv.clear();
-    renderBatches.clear();
-}
-
-void PGraphicsOpenGLv33::fill_resize_buffer(const uint32_t newSize) {
-    // Create a new buffer
-    GLuint newVBO;
-    glGenBuffers(1, &newVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, newVBO);
-    glBufferData(GL_ARRAY_BUFFER, newSize, nullptr, GL_DYNAMIC_DRAW); // Allocate new size
-
-    // Copy old data to new buffer
-    glBindBuffer(GL_COPY_READ_BUFFER, fill_VBO_xyz_rgba_uv);
-    glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, 0, fill_max_buffer_size);
-
-    // Delete old buffer and update references
-    glDeleteBuffers(1, &fill_VBO_xyz_rgba_uv);
-    fill_VBO_xyz_rgba_uv = newVBO;
-    fill_max_buffer_size = newSize;
-
-    glBindBuffer(GL_ARRAY_BUFFER, fill_VBO_xyz_rgba_uv);
-}
-
-void PGraphicsOpenGLv33::add_transformed_fill_vertex_xyz_rgba_uv(const glm::vec3& position,
-                                                                 const glm::vec4& color,
-                                                                 const float u, const float v) {
-    fill_vertices_xyz_rgba_uv.push_back(position.x); // Position
-    fill_vertices_xyz_rgba_uv.push_back(position.y); // Position
-    fill_vertices_xyz_rgba_uv.push_back(position.z); // Position
-    fill_vertices_xyz_rgba_uv.push_back(color.r);    // ColorState
-    fill_vertices_xyz_rgba_uv.push_back(color.g);    // ColorState
-    fill_vertices_xyz_rgba_uv.push_back(color.b);    // ColorState
-    fill_vertices_xyz_rgba_uv.push_back(color.a);    // ColorState
-    fill_vertices_xyz_rgba_uv.push_back(u);          // Texture
-    fill_vertices_xyz_rgba_uv.push_back(v);          // Texture
-}
-
-void PGraphicsOpenGLv33::add_fill_vertex_xyz_rgba_uv(const glm::vec3 position,
-                                                     const glm::vec4 color,
-                                                     const glm::vec2 tex_coords) {
-    add_fill_vertex_xyz_rgba_uv(position.x, position.y, position.z,
-                                color.r, color.g, color.b, color.a,
-                                tex_coords.x, tex_coords.y);
-}
-
-void PGraphicsOpenGLv33::add_fill_vertex_xyz_rgba_uv_raw(const glm::vec3 position,
-                                                         const glm::vec4 color,
-                                                         const glm::vec2 tex_coords) {
-    fill_vertices_xyz_rgba_uv.push_back(position.x);   // Position
-    fill_vertices_xyz_rgba_uv.push_back(position.y);   // Position
-    fill_vertices_xyz_rgba_uv.push_back(position.z);   // Position
-    fill_vertices_xyz_rgba_uv.push_back(color.r);      // ColorState
-    fill_vertices_xyz_rgba_uv.push_back(color.g);      // ColorState
-    fill_vertices_xyz_rgba_uv.push_back(color.b);      // ColorState
-    fill_vertices_xyz_rgba_uv.push_back(color.a);      // ColorState
-    fill_vertices_xyz_rgba_uv.push_back(tex_coords.x); // Texture
-    fill_vertices_xyz_rgba_uv.push_back(tex_coords.y); // Texture
-}
+// void PGraphicsOpenGLv33::add_fill_vertex_xyz_rgba_uv_raw(const glm::vec3 position,
+//                                                          const glm::vec4 color,
+//                                                          const glm::vec2 tex_coords) {
+//     fill_vertices_xyz_rgba_uv.push_back(position.x);   // Position
+//     fill_vertices_xyz_rgba_uv.push_back(position.y);   // Position
+//     fill_vertices_xyz_rgba_uv.push_back(position.z);   // Position
+//     fill_vertices_xyz_rgba_uv.push_back(color.r);      // ColorState
+//     fill_vertices_xyz_rgba_uv.push_back(color.g);      // ColorState
+//     fill_vertices_xyz_rgba_uv.push_back(color.b);      // ColorState
+//     fill_vertices_xyz_rgba_uv.push_back(color.a);      // ColorState
+//     fill_vertices_xyz_rgba_uv.push_back(tex_coords.x); // Texture
+//     fill_vertices_xyz_rgba_uv.push_back(tex_coords.y); // Texture
+// }
 
 // // TODO optimize … this is inefficient AF
 // void PGraphicsOpenGLv33::add_quad_line(const glm::vec3& p1,
@@ -612,105 +534,105 @@ void PGraphicsOpenGLv33::add_fill_vertex_xyz_rgba_uv_raw(const glm::vec3 positio
 //     add_fill_vertex_xyz_rgba_uv_raw(glm::vec3(v3, clipP1.z), color, tex_coords);
 // }
 
-void PGraphicsOpenGLv33::add_fill_vertex_xyz_rgba_uv(const float x, const float y, const float z,
-                                                     const float r, const float g, const float b, const float a,
-                                                     const float u, const float v) {
-    // Each vertex consists of 9 floats (x, y, z, r, g, b, u, v)
-    // uint32_t vertexSize = NUM_VERTEX_ATTRIBUTES * sizeof(float);
-    console("add_fill_vertex_xyz_rgba_uv?");
-    if ((fill_vertices_xyz_rgba_uv.size() + NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV) * sizeof(float) > fill_max_buffer_size) {
-        fill_resize_buffer(fill_max_buffer_size + VBO_BUFFER_CHUNK_SIZE);
-    }
+// void PGraphicsOpenGLv33::add_fill_vertex_xyz_rgba_uv(const float x, const float y, const float z,
+//                                                      const float r, const float g, const float b, const float a,
+//                                                      const float u, const float v) {
+//     // Each vertex consists of 9 floats (x, y, z, r, g, b, u, v)
+//     // uint32_t vertexSize = NUM_VERTEX_ATTRIBUTES * sizeof(float);
+//     console("add_fill_vertex_xyz_rgba_uv?");
+//     if ((fill_vertices_xyz_rgba_uv.size() + NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV) * sizeof(float) > fill_max_buffer_size) {
+//         fill_resize_buffer(fill_max_buffer_size + VBO_BUFFER_CHUNK_SIZE);
+//     }
+//
+//     const glm::vec4 transformed = model_matrix_client * glm::vec4(x, y, z, 1.0f); // Apply transformation
+//     fill_vertices_xyz_rgba_uv.push_back(transformed.x);                           // Position
+//     fill_vertices_xyz_rgba_uv.push_back(transformed.y);                           // Position
+//     fill_vertices_xyz_rgba_uv.push_back(transformed.z);                           // Position
+//     fill_vertices_xyz_rgba_uv.push_back(r);                                       // Color
+//     fill_vertices_xyz_rgba_uv.push_back(g);                                       // Color
+//     fill_vertices_xyz_rgba_uv.push_back(b);                                       // Color
+//     fill_vertices_xyz_rgba_uv.push_back(a);                                       // Color
+//     fill_vertices_xyz_rgba_uv.push_back(u);                                       // Texture
+//     fill_vertices_xyz_rgba_uv.push_back(v);                                       // Texture
+// }
 
-    const glm::vec4 transformed = model_matrix_client * glm::vec4(x, y, z, 1.0f); // Apply transformation
-    fill_vertices_xyz_rgba_uv.push_back(transformed.x);                           // Position
-    fill_vertices_xyz_rgba_uv.push_back(transformed.y);                           // Position
-    fill_vertices_xyz_rgba_uv.push_back(transformed.z);                           // Position
-    fill_vertices_xyz_rgba_uv.push_back(r);                                       // Color
-    fill_vertices_xyz_rgba_uv.push_back(g);                                       // Color
-    fill_vertices_xyz_rgba_uv.push_back(b);                                       // Color
-    fill_vertices_xyz_rgba_uv.push_back(a);                                       // Color
-    fill_vertices_xyz_rgba_uv.push_back(u);                                       // Texture
-    fill_vertices_xyz_rgba_uv.push_back(v);                                       // Texture
-}
+// void PGraphicsOpenGLv33::add_stroke_vertex_xyz_rgba(const float x, const float y, const float z,
+//                                                     const float r, const float g, const float b, const float a) {
+//     // Each vertex consists of 7 floats (x, y, z, r, g, b, u, v)
+//     // uint32_t vertexSize = NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA * sizeof(float);
+//     if ((stroke_vertices_xyz_rgba.size() + NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA) * sizeof(float) > stroke_max_buffer_size) {
+//         error("Stroke buffer is full!");
+//         // TODO create version for stroke buffer
+//         // stroke_resize_buffer(stroke_max_buffer_size + VBO_BUFFER_CHUNK_SIZE);
+//     }
+//
+//     const glm::vec4 transformed = model_matrix_client * glm::vec4(x, y, z, 1.0f); // Apply transformation
+//     stroke_vertices_xyz_rgba.push_back(transformed.x);                            // Position
+//     stroke_vertices_xyz_rgba.push_back(transformed.y);                            // Position
+//     stroke_vertices_xyz_rgba.push_back(transformed.z);                            // Position
+//     stroke_vertices_xyz_rgba.push_back(r);                                        // Color
+//     stroke_vertices_xyz_rgba.push_back(g);                                        // Color
+//     stroke_vertices_xyz_rgba.push_back(b);                                        // Color
+//     stroke_vertices_xyz_rgba.push_back(a);                                        // Color
+// }
 
-void PGraphicsOpenGLv33::add_stroke_vertex_xyz_rgba(const float x, const float y, const float z,
-                                                    const float r, const float g, const float b, const float a) {
-    // Each vertex consists of 7 floats (x, y, z, r, g, b, u, v)
-    // uint32_t vertexSize = NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA * sizeof(float);
-    if ((stroke_vertices_xyz_rgba.size() + NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA) * sizeof(float) > stroke_max_buffer_size) {
-        error("Stroke buffer is full!");
-        // TODO create version for stroke buffer
-        // stroke_resize_buffer(stroke_max_buffer_size + VBO_BUFFER_CHUNK_SIZE);
-    }
+// void PGraphicsOpenGLv33::init_stroke_vertice_buffers() {
+//     glGenVertexArrays(1, &stroke_VAO_xyz_rgba);
+//     glGenBuffers(1, &stroke_VBO_xyz_rgba);
+//
+//     glBindVertexArray(stroke_VAO_xyz_rgba);
+//
+//     glBindBuffer(GL_ARRAY_BUFFER, stroke_VBO_xyz_rgba);
+//     glBufferData(GL_ARRAY_BUFFER, stroke_max_buffer_size, nullptr, GL_DYNAMIC_DRAW);
+//
+//     constexpr auto STRIDE = static_cast<GLsizei>(NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA * sizeof(float));
+//
+//     // Position Attribute (Location 0) -> 3 floats (x, y, z)
+//     constexpr int NUM_POSITION_ATTRIBUTES = 3;
+//     // ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
+//     glVertexAttribPointer(0, NUM_POSITION_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, static_cast<void*>(0)); // NOLINT(*-use-nullptr)
+//     glEnableVertexAttribArray(0);
+//
+//     // Color Attribute (Location 1) -> 4 floats (r, g, b, a)
+//     constexpr int NUM_COLOR_ATTRIBUTES = 4;
+//     glVertexAttribPointer(1, NUM_COLOR_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, reinterpret_cast<void*>(NUM_POSITION_ATTRIBUTES * sizeof(float)));
+//     glEnableVertexAttribArray(1);
+//
+//     glBindVertexArray(0);
+// }
 
-    const glm::vec4 transformed = model_matrix_client * glm::vec4(x, y, z, 1.0f); // Apply transformation
-    stroke_vertices_xyz_rgba.push_back(transformed.x);                            // Position
-    stroke_vertices_xyz_rgba.push_back(transformed.y);                            // Position
-    stroke_vertices_xyz_rgba.push_back(transformed.z);                            // Position
-    stroke_vertices_xyz_rgba.push_back(r);                                        // Color
-    stroke_vertices_xyz_rgba.push_back(g);                                        // Color
-    stroke_vertices_xyz_rgba.push_back(b);                                        // Color
-    stroke_vertices_xyz_rgba.push_back(a);                                        // Color
-}
+// void PGraphicsOpenGLv33::init_fill_vertice_buffers() {
+//     glGenVertexArrays(1, &fill_VAO_xyz_rgba_uv);
+//     glGenBuffers(1, &fill_VBO_xyz_rgba_uv);
+//
+//     glBindVertexArray(fill_VAO_xyz_rgba_uv);
+//     glBindBuffer(GL_ARRAY_BUFFER, fill_VBO_xyz_rgba_uv);
+//
+//     // Allocate buffer memory (maxBufferSize = 1024 KB) but don't fill it yet
+//     glBufferData(GL_ARRAY_BUFFER, fill_max_buffer_size, nullptr, GL_DYNAMIC_DRAW);
+//
+//     constexpr auto STRIDE = static_cast<GLsizei>(NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV * sizeof(float));
+//
+//     // Position Attribute (Location 0) -> 3 floats (x, y, z)
+//     constexpr int NUM_POSITION_ATTRIBUTES = 3;
+//     // ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
+//     glVertexAttribPointer(0, NUM_POSITION_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, static_cast<void*>(0)); // NOLINT(*-use-nullptr)
+//     glEnableVertexAttribArray(0);
+//
+//     // Color Attribute (Location 1) -> 4 floats (r, g, b, a)
+//     constexpr int NUM_COLOR_ATTRIBUTES = 4;
+//     glVertexAttribPointer(1, NUM_COLOR_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, reinterpret_cast<void*>(NUM_POSITION_ATTRIBUTES * sizeof(float)));
+//     glEnableVertexAttribArray(1);
+//
+//     // Texture Coordinate Attribute (Location 2) -> 2 floats (u, v)
+//     constexpr int NUM_TEXTURE_ATTRIBUTES = 2;
+//     glVertexAttribPointer(2, NUM_TEXTURE_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, reinterpret_cast<void*>((NUM_POSITION_ATTRIBUTES + NUM_COLOR_ATTRIBUTES) * sizeof(float)));
+//     glEnableVertexAttribArray(2);
+//
+//     glBindVertexArray(0);
+// }
 
-void PGraphicsOpenGLv33::init_stroke_vertice_buffers() {
-    glGenVertexArrays(1, &stroke_VAO_xyz_rgba);
-    glGenBuffers(1, &stroke_VBO_xyz_rgba);
-
-    glBindVertexArray(stroke_VAO_xyz_rgba);
-
-    glBindBuffer(GL_ARRAY_BUFFER, stroke_VBO_xyz_rgba);
-    glBufferData(GL_ARRAY_BUFFER, stroke_max_buffer_size, nullptr, GL_DYNAMIC_DRAW);
-
-    constexpr auto STRIDE = static_cast<GLsizei>(NUM_STROKE_VERTEX_ATTRIBUTES_XYZ_RGBA * sizeof(float));
-
-    // Position Attribute (Location 0) -> 3 floats (x, y, z)
-    constexpr int NUM_POSITION_ATTRIBUTES = 3;
-    // ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
-    glVertexAttribPointer(0, NUM_POSITION_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, static_cast<void*>(0)); // NOLINT(*-use-nullptr)
-    glEnableVertexAttribArray(0);
-
-    // Color Attribute (Location 1) -> 4 floats (r, g, b, a)
-    constexpr int NUM_COLOR_ATTRIBUTES = 4;
-    glVertexAttribPointer(1, NUM_COLOR_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, reinterpret_cast<void*>(NUM_POSITION_ATTRIBUTES * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
-}
-
-void PGraphicsOpenGLv33::init_fill_vertice_buffers() {
-    glGenVertexArrays(1, &fill_VAO_xyz_rgba_uv);
-    glGenBuffers(1, &fill_VBO_xyz_rgba_uv);
-
-    glBindVertexArray(fill_VAO_xyz_rgba_uv);
-    glBindBuffer(GL_ARRAY_BUFFER, fill_VBO_xyz_rgba_uv);
-
-    // Allocate buffer memory (maxBufferSize = 1024 KB) but don't fill it yet
-    glBufferData(GL_ARRAY_BUFFER, fill_max_buffer_size, nullptr, GL_DYNAMIC_DRAW);
-
-    constexpr auto STRIDE = static_cast<GLsizei>(NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV * sizeof(float));
-
-    // Position Attribute (Location 0) -> 3 floats (x, y, z)
-    constexpr int NUM_POSITION_ATTRIBUTES = 3;
-    // ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
-    glVertexAttribPointer(0, NUM_POSITION_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, static_cast<void*>(0)); // NOLINT(*-use-nullptr)
-    glEnableVertexAttribArray(0);
-
-    // Color Attribute (Location 1) -> 4 floats (r, g, b, a)
-    constexpr int NUM_COLOR_ATTRIBUTES = 4;
-    glVertexAttribPointer(1, NUM_COLOR_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, reinterpret_cast<void*>(NUM_POSITION_ATTRIBUTES * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    // Texture Coordinate Attribute (Location 2) -> 2 floats (u, v)
-    constexpr int NUM_TEXTURE_ATTRIBUTES = 2;
-    glVertexAttribPointer(2, NUM_TEXTURE_ATTRIBUTES, GL_FLOAT, GL_FALSE, STRIDE, reinterpret_cast<void*>((NUM_POSITION_ATTRIBUTES + NUM_COLOR_ATTRIBUTES) * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    glBindVertexArray(0);
-}
-
-void PGraphicsOpenGLv33::create_solid_color_texture() {
+void PGraphicsOpenGLv33::OGL3_create_solid_color_texture() {
     GLuint texture_id;
     glGenTextures(1, &texture_id);
     glBindTexture(GL_TEXTURE_2D, texture_id); // NOTE no need to use `IMPL_bind_texture()`
@@ -733,23 +655,24 @@ void PGraphicsOpenGLv33::create_solid_color_texture() {
     texture_id_solid_color = texture_id;
 }
 
-GLuint PGraphicsOpenGLv33::SHARED_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource) {
+// TODO add option to add geometry shader
+GLuint PGraphicsOpenGLv33::OGL_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource) {
     // Build shaders
     const GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
     glCompileShader(vertexShader);
-    SHARED_checkShaderCompileStatus(vertexShader);
+    OGL_checkShaderCompileStatus(vertexShader);
 
     const GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
     glCompileShader(fragmentShader);
-    SHARED_checkShaderCompileStatus(fragmentShader);
+    OGL_checkShaderCompileStatus(fragmentShader);
 
     const GLuint mShaderProgram = glCreateProgram();
     glAttachShader(mShaderProgram, vertexShader);
     glAttachShader(mShaderProgram, fragmentShader);
     glLinkProgram(mShaderProgram);
-    SHARED_checkProgramLinkStatus(mShaderProgram);
+    OGL_checkProgramLinkStatus(mShaderProgram);
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
@@ -757,7 +680,7 @@ GLuint PGraphicsOpenGLv33::SHARED_build_shader(const char* vertexShaderSource, c
     return mShaderProgram;
 }
 
-void PGraphicsOpenGLv33::SHARED_checkShaderCompileStatus(const GLuint shader) {
+void PGraphicsOpenGLv33::OGL_checkShaderCompileStatus(const GLuint shader) {
     GLint success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
@@ -767,7 +690,7 @@ void PGraphicsOpenGLv33::SHARED_checkShaderCompileStatus(const GLuint shader) {
     }
 }
 
-void PGraphicsOpenGLv33::SHARED_checkProgramLinkStatus(const GLuint program) {
+void PGraphicsOpenGLv33::OGL_checkProgramLinkStatus(const GLuint program) {
     GLint success;
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
@@ -929,425 +852,6 @@ void PGraphicsOpenGLv33::OGL_render_vertex_buffer(PrimitiveVertexBuffer&     ver
     glBindVertexArray(0);
 }
 
-/* --- RENDER_MODE_BUFFERED (RM) --- */
-
-void PGraphicsOpenGLv33::RM_render_line(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2) {
-    if (render_lines_as_quads) {
-        auto p1 = glm::vec3(x1, y1, z1);
-        auto p2 = glm::vec3(x2, y2, z2);
-
-        to_screen_space(p1);
-        to_screen_space(p2);
-
-        glm::vec3 perp = p2 - p1;
-        perp           = glm::normalize(perp);
-        perp           = {-perp.y, perp.x, 0};
-        perp *= stroke_weight * 0.5f;
-
-        const glm::vec4 color{color_stroke.r,
-                              color_stroke.g,
-                              color_stroke.b,
-                              color_stroke.a};
-
-        add_transformed_fill_vertex_xyz_rgba_uv(p1 + perp, color);
-        add_transformed_fill_vertex_xyz_rgba_uv(p2 + perp, color);
-        add_transformed_fill_vertex_xyz_rgba_uv(p1 - perp, color);
-        add_transformed_fill_vertex_xyz_rgba_uv(p1 - perp, color);
-        add_transformed_fill_vertex_xyz_rgba_uv(p2 + perp, color);
-        add_transformed_fill_vertex_xyz_rgba_uv(p2 - perp, color);
-        RM_add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, 6, texture_id_solid_color);
-    } else {
-        add_stroke_vertex_xyz_rgba(x1, y1, z1, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-        add_stroke_vertex_xyz_rgba(x2, y2, z2, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-    }
-}
-
-/**
- * render line strip as individual quads per line segment, with optional round corners
- * @param points
- * @param color
- * @param close_shape
- * @param round_corners
- */
-void PGraphicsOpenGLv33::RM_render_line_strip_as_quad_segments(const std::vector<glm::vec3>& points,
-                                                               const glm::vec4&              color,
-                                                               const bool                    close_shape,
-                                                               const bool                    round_corners) {
-    if (points.size() < 2) {
-        return;
-    }
-
-    if (points.size() == 2) {
-        // TODO replace with raw version
-        line(points[0].x, points[0].y, points[0].z,
-             points[1].x, points[1].y, points[1].z);
-        return;
-    }
-
-    const uint32_t num_line_segments = points.size() - (close_shape ? 0 : 1);
-    for (size_t i = 0; i < num_line_segments; i++) {
-        const size_t ii = (i + 1) % points.size();
-        line(points[i].x, points[i].y, points[i].z,
-             points[ii].x, points[ii].y, points[ii].z);
-        if (round_corners) {
-            // TODO must be transformed to screenspace!
-            RM_render_ellipse_filled(points[i].x, points[i].y, stroke_weight, stroke_weight, 8, color);
-        }
-    }
-}
-
-/**
- * render line strip as quads with pointy corners
- * @param points
- * @param color
- * @param close_shape
- */
-void PGraphicsOpenGLv33::RM_render_line_strip_as_connected_quads(std::vector<glm::vec3>& points,
-                                                                 const glm::vec4&        color,
-                                                                 const bool              close_shape) {
-    if (points.size() < 2) {
-        return;
-    }
-
-    if (points.size() == 2) {
-        line(points[0].x, points[0].y, points[0].z,
-             points[1].x, points[1].y, points[1].z);
-        return;
-    }
-
-    // Transform all points to screen space first
-    std::vector<glm::vec3> screen_points = points;
-    std::vector<glm::vec3> normals(screen_points.size());
-    std::vector<glm::vec3> directions(screen_points.size());
-
-    for (auto& p: screen_points) {
-        to_screen_space(p);
-    }
-
-    for (size_t i = 0; i < normals.size(); i++) {
-        const size_t ii   = (i + 1) % screen_points.size();
-        glm::vec3&   p1   = screen_points[i];
-        glm::vec3&   p2   = screen_points[ii];
-        glm::vec3    dir  = p2 - p1;
-        glm::vec3    perp = glm::normalize(dir);
-        perp              = glm::vec3(-perp.y, perp.x, 0);
-        directions[i]     = dir;
-        normals[i]        = perp;
-    }
-
-    const float half_width = stroke_weight * 0.5f;
-    uint32_t    vertex_count{0};
-
-    glm::vec3 p1_left{};
-    glm::vec3 p1_right{};
-
-    const uint32_t num_line_segments = screen_points.size() + (close_shape ? 1 : 0);
-
-    for (size_t i = 0; i < num_line_segments; i++) {
-        const glm::vec3 point     = screen_points[i % screen_points.size()];
-        const glm::vec3 direction = directions[i % directions.size()];
-        const glm::vec3 normal    = normals[i % normals.size()];
-
-        const glm::vec3 next_point     = screen_points[(i + 1) % screen_points.size()];
-        const glm::vec3 next_direction = directions[(i + 1) % directions.size()];
-        const glm::vec3 next_normal    = normals[(i + 1) % normals.size()];
-
-        const glm::vec3 p2_left  = point + normal * half_width;
-        const glm::vec3 p2_right = point - normal * half_width;
-        const glm::vec3 p3_left  = next_point + next_normal * half_width;
-        const glm::vec3 p3_right = next_point - next_normal * half_width;
-
-        glm::vec2  intersection_left;
-        const bool result_left = intersect_lines(p2_left, direction,
-                                                 p3_left, next_direction,
-                                                 intersection_left);
-        glm::vec2  intersection_right;
-        const bool result_right = intersect_lines(p2_right, direction,
-                                                  p3_right, next_direction,
-                                                  intersection_right);
-
-        // TODO this is just for surgecially removing things:
-        int  RENDER_LINE_STRIP_AS_QUADS_MAX_ANGLE = 0;
-        bool line_segments_are_too_pointy         = are_almost_parallel(normal, next_normal, RENDER_LINE_STRIP_AS_QUADS_MAX_ANGLE);
-
-        if (!result_left) {
-            intersection_left = p3_left;
-        }
-
-        if (!result_right) {
-            intersection_right = p3_right;
-        }
-
-        /*
-         * 1--2
-         * |\ |
-         * | \|
-         * 0--3
-         */
-        if (close_shape) {
-            /* closed */
-            if (i != 0) {
-                if (line_segments_are_too_pointy) {
-                    RM_add_quad_as_triangles(p1_left,
-                                             next_point + normal * half_width,
-                                             next_point - normal * half_width,
-                                             p1_right,
-                                             color);
-                    p1_left  = next_point - normal * half_width;
-                    p1_right = next_point + normal * half_width;
-                    vertex_count += 6;
-                } else {
-                    RM_add_quad_as_triangles(p1_left,
-                                             glm::vec3(intersection_left, 0),
-                                             glm::vec3(intersection_right, 0),
-                                             p1_right,
-                                             color);
-                    p1_left  = glm::vec3(intersection_left, 0);
-                    p1_right = glm::vec3(intersection_right, 0);
-                    vertex_count += 6;
-                }
-            } else {
-                if (line_segments_are_too_pointy) {
-                    p1_left  = next_point - normal * half_width;
-                    p1_right = next_point + normal * half_width;
-                } else {
-                    p1_left  = glm::vec3(intersection_left, 0);
-                    p1_right = glm::vec3(intersection_right, 0);
-                }
-            }
-        } else {
-            /* open */
-            if (i == 0) {
-                // first segment
-                if (line_segments_are_too_pointy) {
-                    console("x");
-                    RM_add_quad_as_triangles(p2_left,
-                                             p3_right,
-                                             p3_left,
-                                             p2_right,
-                                             color);
-                    p1_left  = p3_left;
-                    p1_right = p3_right;
-                    // RM_add_quad_as_triangles(p2_left,
-                    //                          next_point + normal * half_width,
-                    //                          next_point - normal * half_width,
-                    //                          p2_right,
-                    //                          color);
-                    // p1_left  = next_point - normal * half_width;
-                    // p1_right = next_point + normal * half_width;
-                    vertex_count += 6;
-                } else {
-                    RM_add_quad_as_triangles(p2_left,
-                                             glm::vec3(intersection_left, 0),
-                                             glm::vec3(intersection_right, 0),
-                                             p2_right,
-                                             color);
-                    p1_left  = glm::vec3(intersection_left, 0);
-                    p1_right = glm::vec3(intersection_right, 0);
-                    vertex_count += 6;
-                }
-            } else if (i == num_line_segments - 2) {
-                // last segment
-                RM_add_quad_as_triangles(p1_left,
-                                         next_point + normal * half_width,
-                                         next_point - normal * half_width,
-                                         p1_right,
-                                         color);
-                p1_left  = next_point + normal * half_width;
-                p1_right = next_point - normal * half_width;
-                vertex_count += 6;
-            } else if (i < num_line_segments - 2) {
-                // other segments
-                if (line_segments_are_too_pointy) {
-                    RM_add_quad_as_triangles(p1_left,
-                                             next_point + normal * half_width,
-                                             next_point - normal * half_width,
-                                             p1_right,
-                                             color);
-                    p1_left  = next_point - normal * half_width;
-                    p1_right = next_point + normal * half_width;
-                    vertex_count += 6;
-                } else {
-                    RM_add_quad_as_triangles(p1_left,
-                                             glm::vec3(intersection_left, 0),
-                                             glm::vec3(intersection_right, 0),
-                                             p1_right,
-                                             color);
-                    p1_left  = glm::vec3(intersection_left, 0);
-                    p1_right = glm::vec3(intersection_right, 0);
-                    vertex_count += 6;
-                }
-            }
-            // TODO this could be used for round caps
-        }
-    }
-
-    RM_add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, static_cast<int>(vertex_count), texture_id_solid_color);
-}
-
-// void PGraphicsOpenGLv33::RM_render_rect(const float x, const float y, const float width, const float height) {
-//     if (color_stroke.active) {
-//         add_stroke_vertex_xyz_rgba(x, y, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-//         add_stroke_vertex_xyz_rgba(x + width, y, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-//
-//         add_stroke_vertex_xyz_rgba(x + width, y, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-//         add_stroke_vertex_xyz_rgba(x + width, y + height, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-//
-//         add_stroke_vertex_xyz_rgba(x + width, y + height, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-//         add_stroke_vertex_xyz_rgba(x, y + height, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-//
-//         add_stroke_vertex_xyz_rgba(x, y + height, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-//         add_stroke_vertex_xyz_rgba(x, y, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-//     }
-//     if (color_fill.active) {
-//         add_fill_vertex_xyz_rgba_uv(x, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-//         add_fill_vertex_xyz_rgba_uv(x + width, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-//         add_fill_vertex_xyz_rgba_uv(x + width, y + height, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-//
-//         add_fill_vertex_xyz_rgba_uv(x + width, y + height, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-//         add_fill_vertex_xyz_rgba_uv(x, y + height, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-//         add_fill_vertex_xyz_rgba_uv(x, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-//
-//         constexpr int       RECT_NUM_VERTICES               = 6;
-//         const unsigned long fill_vertices_count_xyz_rgba_uv = fill_vertices_xyz_rgba_uv.size() / NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV;
-//         if (renderBatches.empty() || renderBatches.back().texture_id != texture_id_solid_color) {
-//             renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - RECT_NUM_VERTICES, RECT_NUM_VERTICES, texture_id_solid_color);
-//         } else {
-//             renderBatches.back().num_vertices += RECT_NUM_VERTICES;
-//         }
-//     }
-// }
-
-void PGraphicsOpenGLv33::RM_render_ellipse_filled(const float x, const float y,
-                                                  const float      width,
-                                                  const float      height,
-                                                  const int        detail,
-                                                  const glm::vec4& color) {
-    const float            radiusX = width / 2.0f;
-    const float            radiusY = height / 2.0f;
-    std::vector<glm::vec3> points;
-    for (int i = 0; i <= detail; ++i) {
-        const float     theta = 2.0f * 3.1415926f * static_cast<float>(i) / static_cast<float>(detail);
-        const glm::vec3 p{x + radiusX * cosf(theta),
-                          y + radiusY * sinf(theta), 0};
-        points.push_back(p);
-    }
-    const glm::vec3     center{x, y, 0};
-    constexpr glm::vec2 tex_coords{0, 0};
-    for (int i = 0; i < points.size(); ++i) {
-        const glm::vec3 p1 = points[i];
-        const glm::vec3 p2 = points[(i + 1) % points.size()];
-        add_fill_vertex_xyz_rgba_uv(center, color, tex_coords);
-        add_fill_vertex_xyz_rgba_uv(p1, color, tex_coords);
-        add_fill_vertex_xyz_rgba_uv(p2, color, tex_coords);
-    }
-    RM_add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, static_cast<int>(points.size() * 3), texture_id_solid_color);
-}
-
-void PGraphicsOpenGLv33::RM_render_ellipse(const float x, const float y, const float width, const float height) {
-    if (color_stroke.active) {
-        const float            radiusX = width / 2.0f;
-        const float            radiusY = height / 2.0f;
-        std::vector<glm::vec3> points;
-        for (int i = 0; i <= ellipse_detail; ++i) {
-            const float     theta = 2.0f * 3.1415926f * static_cast<float>(i) / static_cast<float>(ellipse_detail);
-            const glm::vec3 p{x + radiusX * cosf(theta),
-                              y + radiusY * sinf(theta), 0};
-            points.push_back(p);
-        }
-        const glm::vec4 color{color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a};
-        RM_render_line_strip_as_quad_segments(points, color, true, false);
-    }
-    if (color_fill.active) {
-        const glm::vec4 color{color_fill.r, color_fill.g, color_fill.b, color_fill.a};
-        RM_render_ellipse_filled(x, y, width, height, ellipse_detail, color);
-    }
-}
-
-/* --- RENDER_MODE_IMMEDIATE (IM) --- */
-
-void PGraphicsOpenGLv33::IM_render_line(const float x1, const float y1, const float z1,
-                                        const float x2, const float y2, const float z2) {
-    // ensure primitive is initialized
-    if (IM_primitive_line.uninitialized()) {
-        OGL3_init_vertex_buffer(IM_primitive_line);
-    }
-
-    IM_primitive_line.vertices[0].position  = glm::vec3(x1, y1, z1);
-    IM_primitive_line.vertices[0].color     = glm::vec4(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-    IM_primitive_line.vertices[0].tex_coord = glm::vec2(0.0f, 0.0f);
-    IM_primitive_line.vertices[1].position  = glm::vec3(x2, y2, z2);
-    IM_primitive_line.vertices[1].color     = glm::vec4(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-    IM_primitive_line.vertices[1].tex_coord = glm::vec2(1.0f, 0.0f);
-    OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_line, GL_LINES, IM_primitive_line.vertices);
-}
-
-// void PGraphicsOpenGLv33::IM_render_ellipse(const float x, const float y, const float width, const float height) {
-//     if (!color_fill.active && !color_stroke.active) {
-//         return;
-//     }
-//
-//     // TODO: Implement `ellipseMode()`
-//     constexpr glm::vec2 tex_coord = {0.0f, 0.0f};
-//     const float         radiusX   = width * 0.5f;
-//     const float         radiusY   = height * 0.5f;
-//
-//     std::vector<glm::vec3> points;
-//     points.reserve(ellipse_detail + 1);
-//
-//     // TODO create and recompute LUT for when `ellipse_detail` changes
-//     float i_f = 0.0f;
-//     for (int i = 0; i <= ellipse_detail; ++i, i_f += 1.0f) {
-//         points.emplace_back(x + radiusX * ellipse_points_LUT[i].x,
-//                             y + radiusY * ellipse_points_LUT[i].y,
-//                             0.0f);
-//     }
-//
-//     if (RENDER_PRIMITVES_AS_SHAPES) {
-//         // maybe separate into TRIANGLE_FAN and LINE_STRIP
-//         beginShape(POLYGON);
-//         points.pop_back();
-//         for (const auto& p: points) {
-//             vertex(p.x, p.y);
-//         }
-//         endShape(CLOSE);
-//     } else {
-//         shape_fill_vertex_buffer.clear();
-//         shape_fill_vertex_buffer.reserve(ellipse_detail + 2);
-//
-//         const glm::vec3 center{x, y, 0};
-//
-//         if (color_fill.active) {
-//             const glm::vec4 fill_color = as_vec4(color_fill);
-//
-//             shape_fill_vertex_buffer.emplace_back(center, fill_color, tex_coord);
-//             for (const auto& p: points) {
-//                 shape_fill_vertex_buffer.emplace_back(p, fill_color, tex_coord);
-//             }
-//
-//             OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, shape_fill_vertex_buffer);
-//         }
-//
-//         if (color_stroke.active) {
-//             const glm::vec4 stroke_color = as_vec4(color_stroke);
-//
-//             shape_fill_vertex_buffer.clear();
-//             for (const auto& p: points) {
-//                 shape_fill_vertex_buffer.emplace_back(p, stroke_color, tex_coord);
-//             }
-//             if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
-//                 std::vector<Vertex> line_vertices;
-//                 shape_fill_vertex_buffer.pop_back();
-//                 PGRAPHICS_triangulate_line_strip_vertex(shape_fill_vertex_buffer, true, line_vertices);
-//                 emit_shape_fill_triangles(line_vertices);
-//             }
-//             if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
-//                 OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_fill_vertex_buffer);
-//             }
-//         }
-//     }
-// }
-
 /**
  * implement this method for respective renderer e.g
  *
@@ -1424,8 +928,14 @@ void PGraphicsOpenGLv33::emit_shape_fill_triangles(std::vector<Vertex>& triangle
 void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(PrimitiveVertexBuffer& primitive,
                                                                             const GLenum           mode,
                                                                             std::vector<Vertex>&   shape_vertices) const {
-    // TODO check against primitive mode. every mode except GL_TRIANGLES should be converted to triangles,
-    //      or at least be warned about under certain conditions.
+    static bool _emit_warning_only_once = false;
+    if (mode != GL_TRIANGLES && mode != GL_LINE_STRIP) {
+        if (!_emit_warning_only_once) {
+            warning("this test is just for development purposes: only GL_TRIANGLES and GL_LINE_STRIP are supposed to be used atm.");
+            warning("( warning only once )");
+            _emit_warning_only_once = true;
+        }
+    }
 
     if (shape_vertices.empty()) {
         return;
@@ -1461,15 +971,7 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Prim
 //         OGL3_init_vertex_buffer(IM_primitive_shape);
 //     }
 //
-//     /*
-//      * OpenGL ES 3.1 is stricter:
-//      *
-//      * 1.	No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
-//      * 2.	No glLineWidth support at all.
-//      * 3.	Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
-//      *
-//      * i.e GL_LINES + GL_LINE_STRIP must be emulated
-//      */
+
 //
 //     const int tmp_shape_mode_cache = shape_mode_cache;
 //
@@ -1624,6 +1126,527 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Prim
 //                     break;
 //             }
 //             return; // NOTE rendered as native lines ( if supported ) exit early
+//         }
+//     }
+// }
+
+
+/*
+ *
+ * how to put vertives into a VBO with texture batches
+
+// add_transformed_fill_vertex_xyz_rgba_uv(p1 + perp, color);
+// add_transformed_fill_vertex_xyz_rgba_uv(p2 + perp, color);
+// add_transformed_fill_vertex_xyz_rgba_uv(p1 - perp, color);
+// add_transformed_fill_vertex_xyz_rgba_uv(p1 - perp, color);
+// add_transformed_fill_vertex_xyz_rgba_uv(p2 + perp, color);
+// add_transformed_fill_vertex_xyz_rgba_uv(p2 - perp, color);
+// RM_add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, 6, texture_id_solid_color);
+
+// void PGraphicsOpenGLv33::RM_add_texture_id_to_render_batch(const std::vector<float>& vertices,
+//                                                            const int                 num_vertices,
+//                                                            const GLuint              batch_texture_id) {
+//     const unsigned long fill_vertices_count_xyz_rgba_uv = vertices.size() / NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV;
+//     if (renderBatches.empty() || renderBatches.back().texture_id != batch_texture_id) {
+//         renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - num_vertices, num_vertices, batch_texture_id);
+//     } else {
+//         renderBatches.back().num_vertices += num_vertices;
+//     }
+// }
+*/
+
+// // NOTE: done
+// void PGraphicsOpenGLv33::endShape(const bool close_shape) {
+//     if (render_mode == RENDER_MODE_IMMEDIATE) {
+//         IM_render_end_shape(close_shape);
+//     }
+//
+//     if (render_mode == RENDER_MODE_BUFFERED) {
+//         // const glm::vec4 color = as_vec4(color_stroke);
+//         // switch (render_line_mode) {
+//         //     case RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_ROUND:
+//         //         RM_render_line_strip_as_quad_segments(shape_stroke_vertex_cache_vec3_DEPRECATED, color, close_shape, true);
+//         //         break;
+//         //     case RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_MITER:
+//         //         RM_render_line_strip_as_connected_quads(shape_stroke_vertex_cache_vec3_DEPRECATED, color, close_shape);
+//         //         break;
+//         //     case RENDER_LINE_STRIP_AS_QUADS_STROKE_JOIN_NONE:
+//         //     default:
+//         //         RM_render_line_strip_as_quad_segments(shape_stroke_vertex_cache_vec3_DEPRECATED, color, close_shape, false);
+//         //         break;
+//         // }
+//     }
+// }
+
+// void PGraphicsOpenGLv33::image(PImage* img, const float x, const float y, float w, float h) {
+//     if (!color_fill.active) {
+//         return;
+//     }
+//
+//     if (img == nullptr) {
+//         error("img is null");
+//         return;
+//     }
+//
+//     if (w < 0) {
+//         w = img->width;
+//     }
+//     if (h < 0) {
+//         h = img->height;
+//     }
+//
+//     // TODO move this to own method and share with `texture()`
+//     if (img->texture_id == TEXTURE_NOT_GENERATED) {
+//         OGL_generate_and_upload_image_as_texture(img, true);
+//         if (img->texture_id == TEXTURE_NOT_GENERATED) {
+//             error("image cannot create texture.");
+//             return;
+//         }
+//         // console("PGraphicsOpenGLv33::image // uploaded texture image to GPU");
+//     }
+//
+//     if (render_mode == RENDER_MODE_IMMEDIATE) {
+//         const int _last_bound_texture_id_cache = texture_id_current;
+//         IMPL_bind_texture(img->texture_id);
+//         rect(x, y, w, h);
+//         IMPL_bind_texture(_last_bound_texture_id_cache);
+//         return;
+//     }
+//
+//     if (render_mode == RENDER_MODE_BUFFERED) {
+//         add_fill_vertex_xyz_rgba_uv(x, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 0.0f, 0.0f);
+//         add_fill_vertex_xyz_rgba_uv(x + w, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 1.0f, 0.0f);
+//         add_fill_vertex_xyz_rgba_uv(x + w, y + h, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 1.0f, 1.0f);
+//
+//         add_fill_vertex_xyz_rgba_uv(x + w, y + h, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 1.0f, 1.0f);
+//         add_fill_vertex_xyz_rgba_uv(x, y + h, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 0.0f, 1.0f);
+//         add_fill_vertex_xyz_rgba_uv(x, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a, 0.0f, 0.0f);
+//
+//         constexpr int       RECT_NUM_VERTICES               = 6;
+//         const unsigned long fill_vertices_count_xyz_rgba_uv = fill_vertices_xyz_rgba_uv.size() / NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV;
+//         if (renderBatches.empty() || renderBatches.back().texture_id != img->texture_id) {
+//             renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - RECT_NUM_VERTICES, RECT_NUM_VERTICES, img->texture_id);
+//         } else {
+//             renderBatches.back().num_vertices += RECT_NUM_VERTICES;
+//         }
+//     }
+// }
+
+/* --- RENDER_MODE_BUFFERED (RM) --- */
+
+// void PGraphicsOpenGLv33::RM_render_line(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2) {
+//     if (render_lines_as_quads) {
+//         auto p1 = glm::vec3(x1, y1, z1);
+//         auto p2 = glm::vec3(x2, y2, z2);
+//
+//         to_screen_space(p1);
+//         to_screen_space(p2);
+//
+//         glm::vec3 perp = p2 - p1;
+//         perp           = glm::normalize(perp);
+//         perp           = {-perp.y, perp.x, 0};
+//         perp *= stroke_weight * 0.5f;
+//
+//         const glm::vec4 color{color_stroke.r,
+//                               color_stroke.g,
+//                               color_stroke.b,
+//                               color_stroke.a};
+//
+//         add_transformed_fill_vertex_xyz_rgba_uv(p1 + perp, color);
+//         add_transformed_fill_vertex_xyz_rgba_uv(p2 + perp, color);
+//         add_transformed_fill_vertex_xyz_rgba_uv(p1 - perp, color);
+//         add_transformed_fill_vertex_xyz_rgba_uv(p1 - perp, color);
+//         add_transformed_fill_vertex_xyz_rgba_uv(p2 + perp, color);
+//         add_transformed_fill_vertex_xyz_rgba_uv(p2 - perp, color);
+//         RM_add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, 6, texture_id_solid_color);
+//     } else {
+//         add_stroke_vertex_xyz_rgba(x1, y1, z1, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//         add_stroke_vertex_xyz_rgba(x2, y2, z2, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//     }
+// }
+
+// /**
+//  * render line strip as individual quads per line segment, with optional round corners
+//  * @param points
+//  * @param color
+//  * @param close_shape
+//  * @param round_corners
+//  */
+// void PGraphicsOpenGLv33::RM_render_line_strip_as_quad_segments(const std::vector<glm::vec3>& points,
+//                                                                const glm::vec4&              color,
+//                                                                const bool                    close_shape,
+//                                                                const bool                    round_corners) {
+//     if (points.size() < 2) {
+//         return;
+//     }
+//
+//     if (points.size() == 2) {
+//         // TODO replace with raw version
+//         line(points[0].x, points[0].y, points[0].z,
+//              points[1].x, points[1].y, points[1].z);
+//         return;
+//     }
+//
+//     const uint32_t num_line_segments = points.size() - (close_shape ? 0 : 1);
+//     for (size_t i = 0; i < num_line_segments; i++) {
+//         const size_t ii = (i + 1) % points.size();
+//         line(points[i].x, points[i].y, points[i].z,
+//              points[ii].x, points[ii].y, points[ii].z);
+//         if (round_corners) {
+//             // TODO must be transformed to screenspace!
+//             RM_render_ellipse_filled(points[i].x, points[i].y, stroke_weight, stroke_weight, 8, color);
+//         }
+//     }
+// }
+
+// /**
+//  * render line strip as quads with pointy corners
+//  * @param points
+//  * @param color
+//  * @param close_shape
+//  */
+// void PGraphicsOpenGLv33::RM_render_line_strip_as_connected_quads(std::vector<glm::vec3>& points,
+//                                                                  const glm::vec4&        color,
+//                                                                  const bool              close_shape) {
+//     if (points.size() < 2) {
+//         return;
+//     }
+//
+//     if (points.size() == 2) {
+//         line(points[0].x, points[0].y, points[0].z,
+//              points[1].x, points[1].y, points[1].z);
+//         return;
+//     }
+//
+//     // Transform all points to screen space first
+//     std::vector<glm::vec3> screen_points = points;
+//     std::vector<glm::vec3> normals(screen_points.size());
+//     std::vector<glm::vec3> directions(screen_points.size());
+//
+//     for (auto& p: screen_points) {
+//         to_screen_space(p);
+//     }
+//
+//     for (size_t i = 0; i < normals.size(); i++) {
+//         const size_t ii   = (i + 1) % screen_points.size();
+//         glm::vec3&   p1   = screen_points[i];
+//         glm::vec3&   p2   = screen_points[ii];
+//         glm::vec3    dir  = p2 - p1;
+//         glm::vec3    perp = glm::normalize(dir);
+//         perp              = glm::vec3(-perp.y, perp.x, 0);
+//         directions[i]     = dir;
+//         normals[i]        = perp;
+//     }
+//
+//     const float half_width = stroke_weight * 0.5f;
+//     uint32_t    vertex_count{0};
+//
+//     glm::vec3 p1_left{};
+//     glm::vec3 p1_right{};
+//
+//     const uint32_t num_line_segments = screen_points.size() + (close_shape ? 1 : 0);
+//
+//     for (size_t i = 0; i < num_line_segments; i++) {
+//         const glm::vec3 point     = screen_points[i % screen_points.size()];
+//         const glm::vec3 direction = directions[i % directions.size()];
+//         const glm::vec3 normal    = normals[i % normals.size()];
+//
+//         const glm::vec3 next_point     = screen_points[(i + 1) % screen_points.size()];
+//         const glm::vec3 next_direction = directions[(i + 1) % directions.size()];
+//         const glm::vec3 next_normal    = normals[(i + 1) % normals.size()];
+//
+//         const glm::vec3 p2_left  = point + normal * half_width;
+//         const glm::vec3 p2_right = point - normal * half_width;
+//         const glm::vec3 p3_left  = next_point + next_normal * half_width;
+//         const glm::vec3 p3_right = next_point - next_normal * half_width;
+//
+//         glm::vec2  intersection_left;
+//         const bool result_left = intersect_lines(p2_left, direction,
+//                                                  p3_left, next_direction,
+//                                                  intersection_left);
+//         glm::vec2  intersection_right;
+//         const bool result_right = intersect_lines(p2_right, direction,
+//                                                   p3_right, next_direction,
+//                                                   intersection_right);
+//
+//         // TODO this is just for surgecially removing things:
+//         int  RENDER_LINE_STRIP_AS_QUADS_MAX_ANGLE = 0;
+//         bool line_segments_are_too_pointy         = are_almost_parallel(normal, next_normal, RENDER_LINE_STRIP_AS_QUADS_MAX_ANGLE);
+//
+//         if (!result_left) {
+//             intersection_left = p3_left;
+//         }
+//
+//         if (!result_right) {
+//             intersection_right = p3_right;
+//         }
+//
+//         /*
+//          * 1--2
+//          * |\ |
+//          * | \|
+//          * 0--3
+//          */
+//         if (close_shape) {
+//             /* closed */
+//             if (i != 0) {
+//                 if (line_segments_are_too_pointy) {
+//                     RM_add_quad_as_triangles(p1_left,
+//                                              next_point + normal * half_width,
+//                                              next_point - normal * half_width,
+//                                              p1_right,
+//                                              color);
+//                     p1_left  = next_point - normal * half_width;
+//                     p1_right = next_point + normal * half_width;
+//                     vertex_count += 6;
+//                 } else {
+//                     RM_add_quad_as_triangles(p1_left,
+//                                              glm::vec3(intersection_left, 0),
+//                                              glm::vec3(intersection_right, 0),
+//                                              p1_right,
+//                                              color);
+//                     p1_left  = glm::vec3(intersection_left, 0);
+//                     p1_right = glm::vec3(intersection_right, 0);
+//                     vertex_count += 6;
+//                 }
+//             } else {
+//                 if (line_segments_are_too_pointy) {
+//                     p1_left  = next_point - normal * half_width;
+//                     p1_right = next_point + normal * half_width;
+//                 } else {
+//                     p1_left  = glm::vec3(intersection_left, 0);
+//                     p1_right = glm::vec3(intersection_right, 0);
+//                 }
+//             }
+//         } else {
+//             /* open */
+//             if (i == 0) {
+//                 // first segment
+//                 if (line_segments_are_too_pointy) {
+//                     console("x");
+//                     RM_add_quad_as_triangles(p2_left,
+//                                              p3_right,
+//                                              p3_left,
+//                                              p2_right,
+//                                              color);
+//                     p1_left  = p3_left;
+//                     p1_right = p3_right;
+//                     // RM_add_quad_as_triangles(p2_left,
+//                     //                          next_point + normal * half_width,
+//                     //                          next_point - normal * half_width,
+//                     //                          p2_right,
+//                     //                          color);
+//                     // p1_left  = next_point - normal * half_width;
+//                     // p1_right = next_point + normal * half_width;
+//                     vertex_count += 6;
+//                 } else {
+//                     RM_add_quad_as_triangles(p2_left,
+//                                              glm::vec3(intersection_left, 0),
+//                                              glm::vec3(intersection_right, 0),
+//                                              p2_right,
+//                                              color);
+//                     p1_left  = glm::vec3(intersection_left, 0);
+//                     p1_right = glm::vec3(intersection_right, 0);
+//                     vertex_count += 6;
+//                 }
+//             } else if (i == num_line_segments - 2) {
+//                 // last segment
+//                 RM_add_quad_as_triangles(p1_left,
+//                                          next_point + normal * half_width,
+//                                          next_point - normal * half_width,
+//                                          p1_right,
+//                                          color);
+//                 p1_left  = next_point + normal * half_width;
+//                 p1_right = next_point - normal * half_width;
+//                 vertex_count += 6;
+//             } else if (i < num_line_segments - 2) {
+//                 // other segments
+//                 if (line_segments_are_too_pointy) {
+//                     RM_add_quad_as_triangles(p1_left,
+//                                              next_point + normal * half_width,
+//                                              next_point - normal * half_width,
+//                                              p1_right,
+//                                              color);
+//                     p1_left  = next_point - normal * half_width;
+//                     p1_right = next_point + normal * half_width;
+//                     vertex_count += 6;
+//                 } else {
+//                     RM_add_quad_as_triangles(p1_left,
+//                                              glm::vec3(intersection_left, 0),
+//                                              glm::vec3(intersection_right, 0),
+//                                              p1_right,
+//                                              color);
+//                     p1_left  = glm::vec3(intersection_left, 0);
+//                     p1_right = glm::vec3(intersection_right, 0);
+//                     vertex_count += 6;
+//                 }
+//             }
+//             // TODO this could be used for round caps
+//         }
+//     }
+//
+//     RM_add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, static_cast<int>(vertex_count), texture_id_solid_color);
+// }
+
+// void PGraphicsOpenGLv33::RM_render_rect(const float x, const float y, const float width, const float height) {
+//     if (color_stroke.active) {
+//         add_stroke_vertex_xyz_rgba(x, y, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//         add_stroke_vertex_xyz_rgba(x + width, y, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//
+//         add_stroke_vertex_xyz_rgba(x + width, y, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//         add_stroke_vertex_xyz_rgba(x + width, y + height, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//
+//         add_stroke_vertex_xyz_rgba(x + width, y + height, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//         add_stroke_vertex_xyz_rgba(x, y + height, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//
+//         add_stroke_vertex_xyz_rgba(x, y + height, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//         add_stroke_vertex_xyz_rgba(x, y, 0, color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//     }
+//     if (color_fill.active) {
+//         add_fill_vertex_xyz_rgba_uv(x, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+//         add_fill_vertex_xyz_rgba_uv(x + width, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+//         add_fill_vertex_xyz_rgba_uv(x + width, y + height, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+//
+//         add_fill_vertex_xyz_rgba_uv(x + width, y + height, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+//         add_fill_vertex_xyz_rgba_uv(x, y + height, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+//         add_fill_vertex_xyz_rgba_uv(x, y, 0, color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+//
+//         constexpr int       RECT_NUM_VERTICES               = 6;
+//         const unsigned long fill_vertices_count_xyz_rgba_uv = fill_vertices_xyz_rgba_uv.size() / NUM_FILL_VERTEX_ATTRIBUTES_XYZ_RGBA_UV;
+//         if (renderBatches.empty() || renderBatches.back().texture_id != texture_id_solid_color) {
+//             renderBatches.emplace_back(fill_vertices_count_xyz_rgba_uv - RECT_NUM_VERTICES, RECT_NUM_VERTICES, texture_id_solid_color);
+//         } else {
+//             renderBatches.back().num_vertices += RECT_NUM_VERTICES;
+//         }
+//     }
+// }
+
+// void PGraphicsOpenGLv33::RM_render_ellipse_filled(const float x, const float y,
+//                                                   const float      width,
+//                                                   const float      height,
+//                                                   const int        detail,
+//                                                   const glm::vec4& color) {
+//     const float            radiusX = width / 2.0f;
+//     const float            radiusY = height / 2.0f;
+//     std::vector<glm::vec3> points;
+//     for (int i = 0; i <= detail; ++i) {
+//         const float     theta = 2.0f * 3.1415926f * static_cast<float>(i) / static_cast<float>(detail);
+//         const glm::vec3 p{x + radiusX * cosf(theta),
+//                           y + radiusY * sinf(theta), 0};
+//         points.push_back(p);
+//     }
+//     const glm::vec3     center{x, y, 0};
+//     constexpr glm::vec2 tex_coords{0, 0};
+//     for (int i = 0; i < points.size(); ++i) {
+//         const glm::vec3 p1 = points[i];
+//         const glm::vec3 p2 = points[(i + 1) % points.size()];
+//         add_fill_vertex_xyz_rgba_uv(center, color, tex_coords);
+//         add_fill_vertex_xyz_rgba_uv(p1, color, tex_coords);
+//         add_fill_vertex_xyz_rgba_uv(p2, color, tex_coords);
+//     }
+//     RM_add_texture_id_to_render_batch(fill_vertices_xyz_rgba_uv, static_cast<int>(points.size() * 3), texture_id_solid_color);
+// }
+//
+// void PGraphicsOpenGLv33::RM_render_ellipse(const float x, const float y, const float width, const float height) {
+//     if (color_stroke.active) {
+//         const float            radiusX = width / 2.0f;
+//         const float            radiusY = height / 2.0f;
+//         std::vector<glm::vec3> points;
+//         for (int i = 0; i <= ellipse_detail; ++i) {
+//             const float     theta = 2.0f * 3.1415926f * static_cast<float>(i) / static_cast<float>(ellipse_detail);
+//             const glm::vec3 p{x + radiusX * cosf(theta),
+//                               y + radiusY * sinf(theta), 0};
+//             points.push_back(p);
+//         }
+//         const glm::vec4 color{color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a};
+//         RM_render_line_strip_as_quad_segments(points, color, true, false);
+//     }
+//     if (color_fill.active) {
+//         const glm::vec4 color{color_fill.r, color_fill.g, color_fill.b, color_fill.a};
+//         RM_render_ellipse_filled(x, y, width, height, ellipse_detail, color);
+//     }
+// }
+
+/* --- RENDER_MODE_IMMEDIATE (IM) --- */
+
+// void PGraphicsOpenGLv33::IM_render_line(const float x1, const float y1, const float z1,
+//                                         const float x2, const float y2, const float z2) {
+//     // ensure primitive is initialized
+//     if (IM_primitive_line.uninitialized()) {
+//         OGL3_init_vertex_buffer(IM_primitive_line);
+//     }
+//
+//     IM_primitive_line.vertices[0].position  = glm::vec3(x1, y1, z1);
+//     IM_primitive_line.vertices[0].color     = glm::vec4(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//     IM_primitive_line.vertices[0].tex_coord = glm::vec2(0.0f, 0.0f);
+//     IM_primitive_line.vertices[1].position  = glm::vec3(x2, y2, z2);
+//     IM_primitive_line.vertices[1].color     = glm::vec4(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+//     IM_primitive_line.vertices[1].tex_coord = glm::vec2(1.0f, 0.0f);
+//     OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_line, GL_LINES, IM_primitive_line.vertices);
+// }
+
+// void PGraphicsOpenGLv33::IM_render_ellipse(const float x, const float y, const float width, const float height) {
+//     if (!color_fill.active && !color_stroke.active) {
+//         return;
+//     }
+//
+//     // TODO: Implement `ellipseMode()`
+//     constexpr glm::vec2 tex_coord = {0.0f, 0.0f};
+//     const float         radiusX   = width * 0.5f;
+//     const float         radiusY   = height * 0.5f;
+//
+//     std::vector<glm::vec3> points;
+//     points.reserve(ellipse_detail + 1);
+//
+//     // TODO create and recompute LUT for when `ellipse_detail` changes
+//     float i_f = 0.0f;
+//     for (int i = 0; i <= ellipse_detail; ++i, i_f += 1.0f) {
+//         points.emplace_back(x + radiusX * ellipse_points_LUT[i].x,
+//                             y + radiusY * ellipse_points_LUT[i].y,
+//                             0.0f);
+//     }
+//
+//     if (RENDER_PRIMITVES_AS_SHAPES) {
+//         // maybe separate into TRIANGLE_FAN and LINE_STRIP
+//         beginShape(POLYGON);
+//         points.pop_back();
+//         for (const auto& p: points) {
+//             vertex(p.x, p.y);
+//         }
+//         endShape(CLOSE);
+//     } else {
+//         shape_fill_vertex_buffer.clear();
+//         shape_fill_vertex_buffer.reserve(ellipse_detail + 2);
+//
+//         const glm::vec3 center{x, y, 0};
+//
+//         if (color_fill.active) {
+//             const glm::vec4 fill_color = as_vec4(color_fill);
+//
+//             shape_fill_vertex_buffer.emplace_back(center, fill_color, tex_coord);
+//             for (const auto& p: points) {
+//                 shape_fill_vertex_buffer.emplace_back(p, fill_color, tex_coord);
+//             }
+//
+//             OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_TRIANGLE_FAN, shape_fill_vertex_buffer);
+//         }
+//
+//         if (color_stroke.active) {
+//             const glm::vec4 stroke_color = as_vec4(color_stroke);
+//
+//             shape_fill_vertex_buffer.clear();
+//             for (const auto& p: points) {
+//                 shape_fill_vertex_buffer.emplace_back(p, stroke_color, tex_coord);
+//             }
+//             if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
+//                 std::vector<Vertex> line_vertices;
+//                 shape_fill_vertex_buffer.pop_back();
+//                 PGRAPHICS_triangulate_line_strip_vertex(shape_fill_vertex_buffer, true, line_vertices);
+//                 emit_shape_fill_triangles(line_vertices);
+//             }
+//             if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
+//                 OGL_tranform_model_matrix_and_render_vertex_buffer(IM_primitive_shape, GL_LINE_STRIP, shape_fill_vertex_buffer);
+//             }
 //         }
 //     }
 // }
