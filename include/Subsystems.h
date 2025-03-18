@@ -42,6 +42,7 @@ namespace umgebung {
 
     struct SubsystemGraphics : Subsystem {
         PGraphics* (*create_graphics)(bool render_to_offscreen);
+        void (*post)();
     };
 
     struct SubsystemAudio : Subsystem {
@@ -72,9 +73,22 @@ namespace umgebung {
     */
     inline SubsystemAudio* (*create_subsystem_audio)()       = nullptr;
     inline SubsystemGraphics* (*create_subsystem_graphics)() = nullptr;
+
+    class LibraryListener {
+    public:
+        virtual ~LibraryListener() = default;
+        // TODO what are they listening to?
+        virtual void setup_pre()                  = 0;
+        virtual void setup_post()                 = 0;
+        virtual void draw_pre()                   = 0;
+        virtual void draw_post()                  = 0;
+        virtual void event(SDL_Event* event)      = 0;
+        virtual void event_loop(SDL_Event* event) = 0;
+        virtual void shutdown()                   = 0;
+    };
 } // namespace umgebung
 
-/* implemented devices */
+/* implemented subsystems */
 
 umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_sdl2d();
 umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv20();

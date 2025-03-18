@@ -33,6 +33,7 @@ WEAK void arguments(const std::vector<std::string>& args) { LOG_MSG("default arg
 WEAK void settings() { LOG_MSG("default settings"); }
 WEAK void setup() { LOG_MSG("default setup"); }
 WEAK void draw() { LOG_MSG("default draw"); }
+WEAK void post() { LOG_MSG("default post"); }
 WEAK void shutdown() { LOG_MSG("default shutdown"); }
 
 WEAK void keyPressed() { LOG_MSG("default keyPressed"); }

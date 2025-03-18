@@ -25,22 +25,6 @@
 
 namespace umgebung {
 
-    class LibraryListener;
-    void register_library(LibraryListener* listener);
-    void unregister_library(const LibraryListener* listener);
-
-    class LibraryListener {
-    public:
-        virtual ~LibraryListener() = default;
-        // TODO what are they listening to?
-        virtual void setup_pre()                  = 0;
-        virtual void setup_post()                 = 0;
-        virtual void draw_pre()                   = 0;
-        virtual void draw_post()                  = 0;
-        virtual void event(SDL_Event* event)      = 0;
-        virtual void event_loop(SDL_Event* event) = 0;
-    };
-
     static std::vector<LibraryListener*> _listeners;
 
     void register_library(LibraryListener* listener) {
@@ -56,24 +40,63 @@ namespace umgebung {
     }
 
     static void shutdown() {
-        // TODO clean up
+        for (const auto l: _listeners) {
+            if (l != nullptr) {
+                l->shutdown();
+            }
+        }
     }
 
     static void set_flags(uint32_t& subsystem_flags) {
         subsystem_flags |= SDL_INIT_EVENTS;
     }
 
-    static void setup_pre() {}
-    static void setup_post() {}
-    static void draw_pre() {}
-    static void draw_post() {}
+    static void setup_pre() {
+        for (const auto l: _listeners) {
+            if (l != nullptr) {
+                l->setup_pre();
+            }
+        }
+    }
+
+    static void setup_post() {
+        for (const auto l: _listeners) {
+            if (l != nullptr) {
+                l->setup_post();
+            }
+        }
+    }
+
+    static void draw_pre() {
+        for (const auto l: _listeners) {
+            if (l != nullptr) {
+                l->draw_pre();
+            }
+        }
+    }
+
+    static void draw_post() {
+        for (const auto l: _listeners) {
+            if (l != nullptr) {
+                l->draw_post();
+            }
+        }
+    }
 
     static void event(SDL_Event* event) {
-        // TODO console("library@event");
+        for (const auto l: _listeners) {
+            if (l != nullptr) {
+                l->event(event);
+            }
+        }
     }
 
     static void event_loop(SDL_Event* event) {
-        // TODO console("library@event_loop");
+        for (const auto l: _listeners) {
+            if (l != nullptr) {
+                l->event_loop(event);
+            }
+        }
     }
 
     static const char* name() {

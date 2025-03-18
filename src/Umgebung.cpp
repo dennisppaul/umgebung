@@ -26,22 +26,18 @@
 #include "Umgebung.h"
 #include "PAudio.h"
 
+using namespace std::chrono;
+
 namespace umgebung {
-    static std::chrono::high_resolution_clock::time_point lastFrameTime                       = {};
-    static bool                                           initialized                         = false;
-    static double                                         target_frame_duration               = 1.0 / frameRate;
-    static bool                                           handle_subsystem_graphics_cleanup   = false;
-    static bool                                           handle_subsystem_audio_cleanup      = false;
-    static bool                                           handle_subsystem_libraries_cleanup  = false;
-    static bool                                           handle_subsystem_hid_events_cleanup = false;
-
-    static bool _app_is_running = true;
-    // static bool                   _mouse_is_pressed  = false;
-    // static bool                   _window_is_resized = false;
-    static std::vector<SDL_Event> event_cache;
-
-    // TODO move the functions to the respective subsystems
-    void umgebung_subsystem_events_init();
+    static high_resolution_clock::time_point lastFrameTime                       = {};
+    static bool                              initialized                         = false;
+    static double                            target_frame_duration               = 1.0 / frameRate;
+    static bool                              handle_subsystem_graphics_cleanup   = false;
+    static bool                              handle_subsystem_audio_cleanup      = false;
+    static bool                              handle_subsystem_libraries_cleanup  = false;
+    static bool                              handle_subsystem_hid_events_cleanup = false;
+    static bool                              _app_is_running                     = true;
+    static std::vector<SDL_Event>            event_cache;
 
     bool is_initialized() {
         return initialized;
@@ -139,7 +135,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     handle_arguments(argc, argv);
     settings();
 
-    /* check graphics subsystem */
+    /* create/check graphics subsystem */
     if (umgebung::enable_graphics) {
         if (umgebung::subsystem_graphics == nullptr) {
             if (umgebung::create_subsystem_graphics != nullptr) {
@@ -171,7 +167,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         umgebung::console("+++ graphics disabled.");
     }
 
-    /* check audio subsystem */
+    /* create/check audio subsystem */
     if (umgebung::enable_audio) {
         if (umgebung::subsystem_audio == nullptr) {
             if (umgebung::create_subsystem_audio != nullptr) {
@@ -200,7 +196,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         umgebung::console("+++ audio disabled.");
     }
 
-    /* check libraries subsystem */
+    /* create/check libraries subsystem */
     if (umgebung::enable_libraries) {
         if (umgebung::subsystem_libraries == nullptr) {
             umgebung::subsystem_libraries                = umgebung_create_subsystem_libraries();
@@ -214,7 +210,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         umgebung::console("+++ libraries disabled.");
     }
 
-    /* check events subsystem */
+    /* create/check events subsystem */
     if (umgebung::enable_events) {
         if (umgebung::subsystem_hid_events == nullptr) {
             umgebung::subsystem_hid_events                = umgebung_create_subsystem_hid_events();
@@ -241,7 +237,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     }
 
     if (!SDL_Init(subsystem_flags)) {
-        SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
+        SDL_Log("couldn't initialize SDL: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
@@ -340,10 +336,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
 static void handle_event(const SDL_Event& event, bool& fAppIsRunning) {
     //     // imgui_processevent(event);
-
-    //     // generic sdl event handler
-    //     sdl_event(event);
-
     switch (event.type) {
         case SDL_EVENT_WINDOW_RESIZED:
             // TODO implement window resize … how will the subsystems be updated?
@@ -354,9 +346,11 @@ static void handle_event(const SDL_Event& event, bool& fAppIsRunning) {
             fAppIsRunning = false;
             break;
         case SDL_EVENT_KEY_DOWN:
-            umgebung::key = static_cast<int>(event.key.key);
-            if (event.key.scancode == SDL_SCANCODE_ESCAPE) {
-                fAppIsRunning = false;
+            if (umgebung::use_esc_key_to_quit) {
+                umgebung::key = static_cast<int>(event.key.key);
+                if (event.key.scancode == SDL_SCANCODE_ESCAPE) {
+                    fAppIsRunning = false;
+                }
             }
             break;
         default: break;
@@ -375,16 +369,10 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 
     umgebung::event_cache.push_back(*event);
 
-    /*
-     * 1. mouse events
-     * 2. key events
-     * 3. quit events
-     */
+    /* only quit events */
     handle_event(*event, umgebung::_app_is_running);
-    // umgebung::_mouse_is_pressed,
-    // umgebung::_window_is_resized
     if (!umgebung::_app_is_running) {
-        return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
+        return SDL_APP_SUCCESS;
     }
     return SDL_APP_CONTINUE;
 }
@@ -407,9 +395,15 @@ static void handle_draw() {
             }
         }
     }
-}
 
-using namespace std::chrono;
+    if (umgebung::subsystem_graphics != nullptr) {
+        if (umgebung::subsystem_graphics->post != nullptr) {
+            umgebung::subsystem_graphics->post();
+        }
+    }
+
+    post();
+}
 
 SDL_AppResult SDL_AppIterate(void* appstate) {
     const high_resolution_clock::time_point currentFrameTime = high_resolution_clock::now();
@@ -454,7 +448,6 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
     // NOTE 1. call `void umgebung::shutdown()`(?)
     //      2. clean up subsytems e.g audio, graphics, ...
-
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->shutdown != nullptr) {
@@ -476,6 +469,18 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result) {
             delete umgebung::subsystem_audio;
         }
         umgebung::subsystem_audio = nullptr;
+    }
+    if (umgebung::subsystem_libraries != nullptr) {
+        if (umgebung::handle_subsystem_libraries_cleanup) {
+            delete umgebung::subsystem_libraries;
+        }
+        umgebung::subsystem_libraries = nullptr;
+    }
+    if (umgebung::subsystem_hid_events != nullptr) {
+        if (umgebung::handle_subsystem_hid_events_cleanup) {
+            delete umgebung::subsystem_hid_events;
+        }
+        umgebung::subsystem_hid_events = nullptr;
     }
 
     umgebung::subsystems.clear();

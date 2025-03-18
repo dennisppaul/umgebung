@@ -34,6 +34,7 @@ namespace umgebung {
 
     class PAudio;
     struct AudioUnitInfo;
+    class LibraryListener;
 
     bool                     begins_with(const std::string& str, const std::string& prefix);
     void                     color_inv(uint32_t color, float& r, float& g, float& b, float& a);
@@ -64,6 +65,9 @@ namespace umgebung {
     std::string              get_window_title();
     void                     set_frame_rate(float fps);
     SDL_WindowFlags          get_SDL_WindowFlags(SDL_WindowFlags& flags);
+    void                     register_library(LibraryListener* listener);         /* implemented in subsystems */
+    void                     unregister_library(const LibraryListener* listener); /* implemented in subsystems */
+    void                     handle_events_in_loop(bool events_in_loop);          /* implemented in subsystems */
 
     /* --- templated functions --- */
 

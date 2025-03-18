@@ -24,12 +24,10 @@
 
 namespace umgebung {
 
-    void handle_events_in_loop(bool events_in_loop);
-
     static bool _handle_events_in_loop = true;
     static bool _mouse_is_pressed      = false;
 
-    void handle_events_in_loop(bool events_in_loop) {
+    void handle_events_in_loop(const bool events_in_loop) {
         _handle_events_in_loop = events_in_loop;
     }
 
@@ -112,6 +110,8 @@ namespace umgebung {
                event->type == SDL_EVENT_KEY_DOWN ||
                event->type == SDL_EVENT_DROP_FILE;
     }
+
+    // ReSharper disable once CppParameterMayBeConstPtrOrRef
     static void event(SDL_Event* event) {
         if (is_hid_event(event)) {
             if (!_handle_events_in_loop) {
@@ -120,6 +120,7 @@ namespace umgebung {
         }
     }
 
+    // ReSharper disable once CppParameterMayBeConstPtrOrRef
     static void event_loop(SDL_Event* event) {
         if (is_hid_event(event)) {
             if (_handle_events_in_loop) {
@@ -129,7 +130,7 @@ namespace umgebung {
     }
 
     static const char* name() {
-        return "HID Events ( mouse, keyboard, drag-n-drop, ... )";
+        return "HID Events ( mouse, keyboard, drag-n-drop, … )";
     }
 } // namespace umgebung
 

@@ -30,6 +30,7 @@ WEAK void arguments(const std::vector<std::string>& args);
 WEAK void settings();
 WEAK void setup();
 WEAK void draw();
+WEAK void post();
 WEAK void shutdown();
 
 WEAK void keyPressed();
