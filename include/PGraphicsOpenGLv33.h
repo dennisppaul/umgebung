@@ -32,8 +32,9 @@ namespace umgebung {
         void IMPL_bind_texture(int bind_texture_id) override;
         void IMPL_set_texture(PImage* img) override;
 
-        void        emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override;
-        void        emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override;
+        void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override;
+        void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override;
+
         void        restore_matrices() override {}
         void        reset_matrices() override;
         void        prepare_frame() override;
@@ -46,6 +47,7 @@ namespace umgebung {
         void        download_texture(PImage* img) override;
         void        debug_text(const std::string& text, float x, float y) override; // TODO move to PGraphics ( use glBeginShape() )
         std::string name() override { return "PGraphicsOpenGLv33"; }
+        void        mesh(PMesh* mesh_shape) override;
 
     private:
         struct RenderBatch {
@@ -101,12 +103,12 @@ namespace umgebung {
         static GLuint OGL_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
         static void   OGL_checkShaderCompileStatus(GLuint shader);
         static void   OGL_checkProgramLinkStatus(GLuint program);
-        void          OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData& primitive, GLenum mode, std::vector<Vertex>& shape_vertices) const;
+        void          OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData& vertex_buffer, GLenum mode, std::vector<Vertex>& shape_vertices) const;
 
         /* --- OpenGL 3.3 specific methods --- */
 
         static void OGL3_resize_vertex_buffer(size_t buffer_size_bytes);
-        static void OGL3_init_vertex_buffer(VertexBufferData& primitive);
+        static void OGL3_init_vertex_buffer(VertexBufferData& vertex_buffer);
         void        OGL3_create_solid_color_texture();
         static void OGL3_render_vertex_buffer(VertexBufferData& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);
     };

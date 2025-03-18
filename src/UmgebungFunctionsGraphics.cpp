@@ -458,10 +458,17 @@ namespace umgebung {
         g->sphere(size);
     }
 
-    void phere(const float width, const float height, const float depth) {
+    void sphere(const float width, const float height, const float depth) {
         if (g == nullptr) {
             return;
         }
         g->sphere(width, height, depth);
+    }
+
+    void mesh(PMesh* mesh_shape) {
+        if (g == nullptr) {
+            return;
+        }
+        g->mesh(mesh_shape);
     }
 } // namespace umgebung

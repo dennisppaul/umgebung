@@ -34,6 +34,7 @@
 
 namespace umgebung {
     class PFont;
+    class PMesh;
 
     class PGraphics : public virtual PImage {
     public:
@@ -149,7 +150,7 @@ namespace umgebung {
 
         /* --- additional --- */
 
-        virtual std::string name() { return "PGraphics"; }
+        virtual void        mesh(PMesh* mesh_shape) {}
         virtual void        reset_matrices();
         virtual void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {}
         virtual void        download_texture(PImage* img) {}
@@ -165,6 +166,7 @@ namespace umgebung {
         void                stroke_mode(const int line_render_mode) { this->line_render_mode = line_render_mode; }
         void                stroke_properties(float stroke_join_round_resolution, float stroke_cap_round_resolution, float stroke_join_miter_max_angle);
         void                triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
+        virtual std::string name() { return "PGraphics"; }
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) {

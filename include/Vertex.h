@@ -32,9 +32,9 @@ namespace umgebung {
                const float u = 0, const float v = 0)
             : position(x, y, z), color(r, g, b, a), tex_coord(u, v) {}
 
-        Vertex(const glm::vec3& position,
-               const glm::vec4& color     = glm::vec4(1, 1, 1, 1),
-               const glm::vec2& tex_coord = glm::vec2(0, 0))
+        explicit Vertex(const glm::vec3& position,
+                        const glm::vec4& color     = glm::vec4(1, 1, 1, 1),
+                        const glm::vec2& tex_coord = glm::vec2(0, 0))
             : position(position), color(color), tex_coord(tex_coord) {}
 
         explicit Vertex(const glm::vec2& position)
@@ -42,4 +42,14 @@ namespace umgebung {
 
         Vertex() : Vertex(glm::vec3(0, 0, 0)) {}
     };
+
+    // struct VertexNormal : Vertex {
+    //     glm::vec3 normal;
+    //
+    //     explicit VertexNormal(const glm::vec3& position,
+    //                           const glm::vec4& color     = glm::vec4(1, 1, 1, 1),
+    //                           const glm::vec2& tex_coord = glm::vec2(0, 0),
+    //                           const glm::vec3& normal    = glm::vec3(0, 0, 1))
+    //         : Vertex(position, color, tex_coord), normal(normal) {}
+    // };
 } // namespace umgebung

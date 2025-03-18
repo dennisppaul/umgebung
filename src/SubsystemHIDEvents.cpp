@@ -54,7 +54,7 @@ namespace umgebung {
                 break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 // if (imgui_is_mouse_captured()) { break; }
-                umgebung::mouseButton = event.button.button;
+                umgebung::mouseButton = event.button.button; // TODO not sure how consistent these are across platforms
                 _mouse_is_pressed     = true;
                 mousePressed();
                 umgebung::isMousePressed = true;

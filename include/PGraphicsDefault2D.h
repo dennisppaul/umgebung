@@ -36,6 +36,9 @@ namespace umgebung {
     public:
         explicit PGraphicsDefault2D(SDL_Renderer* renderer) : renderer(renderer) {}
 
+        void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override {}
+        void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override {}
+
         void strokeWeight(float weight) override {}
 
         void background(const float a, const float b, const float c, const float d = 1.0f) override {
@@ -178,16 +181,14 @@ namespace umgebung {
         void text_str(const std::string& text, float x, float y, float z = 0.0f) override {}
         void beginDraw() override {}
         void endDraw() override {}
-        // void bind() override {}
+        void mesh(PMesh* mesh_shape) override { /* TODO implement */ }
+
         void init(uint32_t* pixels, const int width, const int height, int format, bool generate_mipmap) override {
             this->width  = width;
             this->height = height;
             // framebuffer.width  = width;
             // framebuffer.height = height;
         }
-
-        void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override {}
-        void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override {}
 
     private:
         static constexpr int ELLIPSE_NUM_SEGMENTS = 32;

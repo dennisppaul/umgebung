@@ -55,9 +55,9 @@ namespace umgebung {
     static constexpr int   POINTS                                        = 0x06;
     static constexpr int   LINES                                         = 0x07;
     static constexpr int   LINE_STRIP                                    = 0x08;
-    static constexpr int   LEFT                                          = 0;
-    static constexpr int   RIGHT                                         = 1;
-    static constexpr int   MIDDLE                                        = 2;
+    static constexpr int   LEFT                                          = 1;
+    static constexpr int   RIGHT                                         = 2;
+    static constexpr int   MIDDLE                                        = 3;
     static constexpr bool  CLOSE                                         = true;
     static constexpr bool  NOT_CLOSED                                    = false;
     static constexpr int   CORNER                                        = 0x00; // rectMode

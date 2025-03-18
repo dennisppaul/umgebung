@@ -93,5 +93,6 @@ namespace umgebung {
     void    box(float width, float height, float depth);
     void    sphere(float size);
     void    sphere(float width, float height, float depth);
+    void    mesh(PMesh* mesh_shape);
 
 } // namespace umgebung

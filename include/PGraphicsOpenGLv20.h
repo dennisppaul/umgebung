@@ -151,8 +151,7 @@ namespace umgebung {
         void    pixelDensity(int density) override;
         void    hint(uint16_t property) override;
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
-        // void    beginDraw() override;
-        // void    endDraw() override;
+        void    mesh(PMesh* mesh_shape) override { /* TODO implement */ }
 
         /* --- additional methods --- */
 

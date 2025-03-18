@@ -30,6 +30,8 @@
 #include "Vertex.h"
 #include "Geometry.h"
 
+#include <PMesh.h>
+
 using namespace umgebung;
 
 PGraphicsOpenGLv33::PGraphicsOpenGLv33(const bool render_to_offscreen) : PImage(0, 0, 0) {
@@ -195,22 +197,20 @@ void PGraphicsOpenGLv33::reset_matrices() {
 void PGraphicsOpenGLv33::prepare_frame() {
     set_default_graphics_state();
 
-    if (render_mode == RENDER_MODE_IMMEDIATE) {
-        glUseProgram(fill_shader_program);
+    glUseProgram(fill_shader_program);
 
-        // Upload matrices
-        const GLint projLoc = glGetUniformLocation(fill_shader_program, "uProjection");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D));
+    // Upload matrices
+    const GLint projLoc = glGetUniformLocation(fill_shader_program, "uProjection");
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D));
 
-        const GLint viewLoc = glGetUniformLocation(fill_shader_program, "uViewMatrix");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
+    const GLint viewLoc = glGetUniformLocation(fill_shader_program, "uViewMatrix");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
 
-        const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+    const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 
-        texture_id_current = 0;
-        IMPL_bind_texture(texture_id_solid_color);
-    }
+    texture_id_current = 0;
+    IMPL_bind_texture(texture_id_solid_color);
 }
 
 void PGraphicsOpenGLv33::setup_fbo() {
@@ -419,7 +419,7 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
     framebuffer.height = height;
 
     stroke_shader_program = OGL_build_shader(vertex_shader_source_simple(), fragment_shader_source_simple());
-    fill_shader_program = OGL_build_shader(vertex_shader_source_texture(), fragment_shader_source_texture());
+    fill_shader_program   = OGL_build_shader(vertex_shader_source_texture(), fragment_shader_source_texture());
 
     if (render_to_offscreen) {
         console("setting up rendering to offscreen buffer:");
@@ -665,24 +665,22 @@ void main() {
     return fragmentShaderSource;
 }
 
-void PGraphicsOpenGLv33::OGL3_init_vertex_buffer(VertexBufferData& primitive) {
+void PGraphicsOpenGLv33::OGL3_init_vertex_buffer(VertexBufferData& vertex_buffer) {
     // Generate and bind VAO & VBO
-    glGenVertexArrays(1, &primitive.VAO);
-    glBindVertexArray(primitive.VAO);
+    glGenVertexArrays(1, &vertex_buffer.VAO);
+    glBindVertexArray(vertex_buffer.VAO);
 
-    glGenBuffers(1, &primitive.VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, primitive.VBO);
+    glGenBuffers(1, &vertex_buffer.VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer.VBO);
 
     // Allocate GPU memory (without initializing data, as it will be updated before use)
-    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(primitive.num_vertices * sizeof(Vertex)), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertex_buffer.num_vertices * sizeof(Vertex)), nullptr, GL_DYNAMIC_DRAW);
 
     // Set up attribute pointers
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
     glEnableVertexAttribArray(0);
-
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
     glEnableVertexAttribArray(1);
-
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, tex_coord)));
     glEnableVertexAttribArray(2);
 
@@ -734,7 +732,7 @@ void PGraphicsOpenGLv33::OGL3_render_vertex_buffer(VertexBufferData&          ve
     glBindVertexArray(0);
 }
 
-void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData&    primitive,
+void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData&    vertex_buffer,
                                                                             const GLenum         mode,
                                                                             std::vector<Vertex>& shape_vertices) const {
     static bool _emit_warning_only_once = false;
@@ -768,8 +766,20 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Vert
         modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
     }
-    OGL3_render_vertex_buffer(primitive, mode, shape_vertices);
+    OGL3_render_vertex_buffer(vertex_buffer, mode, shape_vertices);
     if (mModelMatrixTransformOnGPU) {
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
     }
+}
+
+void PGraphicsOpenGLv33::mesh(PMesh* mesh_shape) {
+    if (mesh_shape == nullptr) {
+        return;
+    }
+
+    const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
+    // mesh_shape->draw(GL_TRIANGLES);
+    mesh_shape->draw(GL_LINES);
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 }
