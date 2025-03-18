@@ -297,6 +297,10 @@ namespace umgebung {
 
     static void event(SDL_Event* event) {}
 
+    static const char* name() {
+        return "OpenGL 3.3 core";
+    }
+
     static PGraphics* create_graphics(const bool render_to_offscreen) {
         return new PGraphicsOpenGLv33(render_to_offscreen);
     }
@@ -312,6 +316,7 @@ umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv33() {
     graphics->draw_post       = umgebung::draw_post;
     graphics->shutdown        = umgebung::shutdown;
     graphics->event           = umgebung::event;
+    graphics->name            = umgebung::name;
     graphics->create_graphics = umgebung::create_graphics;
     return graphics;
 }

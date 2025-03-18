@@ -36,7 +36,8 @@ namespace umgebung {
         void (*draw_post)();
         void (*shutdown)();
         void (*event)(SDL_Event* event);
-        // TODO add human-readable name
+        void (*event_loop)(SDL_Event* event);
+        const char* (*name)();
     };
 
     struct SubsystemGraphics : Subsystem {
@@ -80,3 +81,5 @@ umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv20();
 umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv33();
 umgebung::SubsystemAudio*    umgebung_create_subsystem_audio_sdl();
 umgebung::SubsystemAudio*    umgebung_create_subsystem_audio_portaudio();
+umgebung::Subsystem*         umgebung_create_subsystem_hid_events();
+umgebung::Subsystem*         umgebung_create_subsystem_libraries();

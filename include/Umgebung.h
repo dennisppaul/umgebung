@@ -47,6 +47,10 @@ namespace umgebung {
     inline bool vsync            = false;
     inline bool render_to_buffer = false;
 
+    /* --- libraries + events --- */
+    inline bool enable_libraries = true;
+    inline bool enable_events    = true;
+
     /* public variables ( updated by system ) */
 
     /* --- audio  --- */
@@ -87,6 +91,8 @@ namespace umgebung {
     /* public variables *mainly for internal use* */
 
     inline std::vector<Subsystem*> subsystems;
-    inline SubsystemGraphics*      subsystem_graphics = nullptr;
-    inline SubsystemAudio*         subsystem_audio    = nullptr;
+    inline SubsystemGraphics*      subsystem_graphics   = nullptr;
+    inline SubsystemAudio*         subsystem_audio      = nullptr;
+    inline Subsystem*              subsystem_libraries  = nullptr;
+    inline Subsystem*              subsystem_hid_events = nullptr;
 } // namespace umgebung

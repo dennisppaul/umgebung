@@ -53,11 +53,29 @@ namespace umgebung {
 
         /* --- implementation specific methods --- */
 
-        virtual void IMPL_background(float a, float b, float c, float d) {}
-        virtual void IMPL_bind_texture(int bind_texture_id) {}
+        virtual void IMPL_background(float a, float b, float c, float d) {} // NOTE this needs to clear the color buffer and depth buffer
+        virtual void IMPL_bind_texture(int bind_texture_id) {}              // TODO on closer insepction this is only used in PGraphicsOpenGL
         virtual void IMPL_set_texture(PImage* img) {}
 
-        virtual void render_framebuffer_to_screen(bool use_blit = false) {}
+        virtual void render_framebuffer_to_screen(bool use_blit = false) {} // TODO this should probably go to PGraphicsOpenGL
+
+        /* --- implementation specific methods ( pure virtual ) --- */
+
+        /**
+         * @brief method should emit the fill vertices to the rendering backend. recording, collecting,
+         *        and transforming vertices needs to happen here. any drawing should use this method.
+         * @param triangle_vertices
+         */
+        virtual void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) = 0;
+        /**
+         * @brief method should emit the stroke vertices to the rendering backend. recording, collecting,
+         *        and transforming vertices needs to happen here. any drawing should use this method.
+         * @param line_strip_vertices
+         * @param line_strip_closed
+         */
+        virtual void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) = 0;
+        virtual void beginDraw()                                                                                    = 0;
+        virtual void endDraw()                                                                                      = 0;
 
         /* --- implemented in base class PGraphics --- */
 
@@ -146,15 +164,7 @@ namespace umgebung {
         int                 getPixelDensity() const { return pixel_density; }
         void                stroke_mode(const int line_render_mode) { this->line_render_mode = line_render_mode; }
         void                stroke_properties(float stroke_join_round_resolution, float stroke_cap_round_resolution, float stroke_join_miter_max_angle);
-        void                process_collected_fill_and_stroke_vertices(bool close_shape);
         void                triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
-
-        /* --- additional ( pure virtual ) --- */
-
-        virtual void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices)                              = 0;
-        virtual void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) = 0;
-        virtual void beginDraw()                                                                                    = 0;
-        virtual void endDraw()                                                                                      = 0;
 
         template<typename T>
         void text(const T& value, const float x, const float y, const float z = 0.0f) {
@@ -172,47 +182,47 @@ namespace umgebung {
             bool active = false;
         };
 
-        const float               DEFAULT_FOV            = 2.0f * atan(0.5f); // = 53.1301f;
-        static constexpr uint16_t ELLIPSE_DETAIL_MIN     = 3;
-        static constexpr uint16_t ELLIPSE_DETAIL_DEFAULT = 36;
-        bool                      init_properties_locked{false};
-        PFont*                    current_font{nullptr};
-        ColorState                color_stroke{};
-        ColorState                color_fill{};
-        uint8_t                   rect_mode{CORNER};
-        uint8_t                   ellipse_mode{CENTER};
-        int                       ellipse_detail{0};
-        std::vector<glm::vec2>    ellipse_points_LUT{};
-        float                     point_size{1};
-        float                     stroke_weight{1};
-        int                       bezier_detail{20};
-        uint8_t                   pixel_density{1};
-        int                       texture_id_current{};
-        bool                      shape_has_begun{false};
-        int                       polygon_triangulation_strategy{POLYGON_TRIANGULATION_BETTER};
-        int                       line_render_mode{STROKE_RENDER_MODE_TRIANGULATE};
-        int                       point_render_mode{POINT_RENDER_MODE_TRIANGULATE};
-        int                       stroke_join_mode{BEVEL_FAST};
-        int                       stroke_cap_mode{PROJECT};
-        float                     stroke_join_round_resolution{glm::radians(20.0f)}; // TODO maybe make these configurable
-        float                     stroke_cap_round_resolution{glm::radians(20.0f)};  // 20° resolution i.e 18 segment for whole circle
-        float                     stroke_join_miter_max_angle{165.0f};
-        static const Triangulator triangulator;
-        std::vector<ColorState>   color_stroke_stack{};
-        std::vector<ColorState>   color_fill_stack{};
-        std::vector<glm::vec3>    box_vertices_LUT{};
-        std::vector<glm::vec3>    sphere_vertices_LUT{};
-        int                       shape_mode_cache{POLYGON};
-        static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE{1024 * 1024}; // 1MB
-        std::vector<Vertex>       shape_stroke_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
-        std::vector<Vertex>       shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
-        int                       last_bound_texture_id_cache{TEXTURE_NONE};
-        glm::mat4                 model_matrix{};
-        glm::mat4                 view_matrix{};
-        glm::mat4                 projection_matrix_2D{};
-        glm::mat4                 projection_matrix_3D{};
-        std::vector<glm::mat4>    model_matrix_stack{};
-        bool                      model_matrix_dirty{false};
+        const float                      DEFAULT_FOV            = 2.0f * atan(0.5f); // = 53.1301f;
+        static constexpr uint16_t        ELLIPSE_DETAIL_MIN     = 3;
+        static constexpr uint16_t        ELLIPSE_DETAIL_DEFAULT = 36;
+        bool                             init_properties_locked{false};
+        PFont*                           current_font{nullptr};
+        ColorState                       color_stroke{};
+        ColorState                       color_fill{};
+        uint8_t                          rect_mode{CORNER};
+        uint8_t                          ellipse_mode{CENTER};
+        int                              ellipse_detail{0};
+        std::vector<glm::vec2>           ellipse_points_LUT{};
+        float                            point_size{1};
+        float                            stroke_weight{1};
+        int                              bezier_detail{20};
+        uint8_t                          pixel_density{1};
+        int                              texture_id_current{};
+        bool                             shape_has_begun{false};
+        int                              polygon_triangulation_strategy{POLYGON_TRIANGULATION_BETTER};
+        int                              line_render_mode{STROKE_RENDER_MODE_TRIANGULATE};
+        int                              point_render_mode{POINT_RENDER_MODE_TRIANGULATE};
+        int                              stroke_join_mode{BEVEL_FAST};
+        int                              stroke_cap_mode{PROJECT};
+        float                            stroke_join_round_resolution{glm::radians(20.0f)}; // TODO maybe make these configurable
+        float                            stroke_cap_round_resolution{glm::radians(20.0f)};  // 20° resolution i.e 18 segment for whole circle
+        float                            stroke_join_miter_max_angle{165.0f};
+        inline static const Triangulator triangulator{};
+        std::vector<ColorState>          color_stroke_stack{};
+        std::vector<ColorState>          color_fill_stack{};
+        std::vector<glm::vec3>           box_vertices_LUT{};
+        std::vector<glm::vec3>           sphere_vertices_LUT{};
+        int                              shape_mode_cache{POLYGON};
+        static constexpr uint32_t        VBO_BUFFER_CHUNK_SIZE{1024 * 1024}; // 1MB
+        std::vector<Vertex>              shape_stroke_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
+        std::vector<Vertex>              shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
+        int                              last_bound_texture_id_cache{TEXTURE_NONE};
+        glm::mat4                        model_matrix{};
+        glm::mat4                        view_matrix{};
+        glm::mat4                        projection_matrix_2D{};
+        glm::mat4                        projection_matrix_3D{};
+        std::vector<glm::mat4>           model_matrix_stack{};
+        bool                             model_matrix_dirty{false};
 
         // TODO clean this up:
 

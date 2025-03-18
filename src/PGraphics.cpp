@@ -382,22 +382,6 @@ void PGraphics::process_collected_stroke_vertices(const bool close_shape) {
     }
 }
 
-void PGraphics::process_collected_fill_and_stroke_vertices(const bool close_shape) {
-    /*
-     * OpenGL ES 3.1 is stricter:
-     *
-     * 1.	No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
-     * 2.	No glLineWidth support at all.
-     * 3.	Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
-     *
-     * i.e GL_LINES + GL_LINE_STRIP must be emulated
-     */
-
-    process_collected_fill_vertices();
-    process_collected_stroke_vertices(close_shape);
-}
-
-
 void PGraphics::vertex(const float x, const float y, const float z) {
     vertex(x, y, z, 0, 0);
 }
@@ -423,7 +407,17 @@ void PGraphics::vertex(const float x, const float y, const float z, const float 
 }
 
 void PGraphics::endShape(const bool close_shape) {
-    process_collected_fill_and_stroke_vertices(close_shape);
+    /*
+     * OpenGL ES 3.1 is stricter:
+     *
+     * 1.	No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
+     * 2.	No glLineWidth support at all.
+     * 3.	Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
+     *
+     * i.e GL_LINES + GL_LINE_STRIP must be emulated
+     */
+    process_collected_fill_vertices();
+    process_collected_stroke_vertices(close_shape);
     shape_fill_vertex_buffer.clear();
     shape_stroke_vertex_buffer.clear();
     // shape_stroke_vertex_cache_vec3_DEPRECATED.clear();
@@ -792,8 +786,6 @@ std::vector<TPPLPoly> convertToPolyPartition(const Clipper2Lib::PathsD& paths) {
     }
     return polys;
 }
-
-const Triangulator PGraphics::triangulator;
 
 std::vector<Vertex> PGraphics::triangulate_good(const std::vector<Vertex>& vertices) {
     const std::vector<Vertex> triangles = triangulator.triangulate(vertices, Triangulator::Winding::WINDING_ODD);

@@ -27,11 +27,18 @@
 #include "PAudio.h"
 
 namespace umgebung {
-    static std::chrono::high_resolution_clock::time_point lastFrameTime                     = {};
-    static bool                                           initialized                       = false;
-    static double                                         target_frame_duration             = 1.0 / frameRate;
-    static bool                                           handle_subsystem_graphics_cleanup = false;
-    static bool                                           handle_subsystem_audio_cleanup    = false;
+    static std::chrono::high_resolution_clock::time_point lastFrameTime                       = {};
+    static bool                                           initialized                         = false;
+    static double                                         target_frame_duration               = 1.0 / frameRate;
+    static bool                                           handle_subsystem_graphics_cleanup   = false;
+    static bool                                           handle_subsystem_audio_cleanup      = false;
+    static bool                                           handle_subsystem_libraries_cleanup  = false;
+    static bool                                           handle_subsystem_hid_events_cleanup = false;
+
+    static bool _app_is_running = true;
+    // static bool                   _mouse_is_pressed  = false;
+    // static bool                   _window_is_resized = false;
+    static std::vector<SDL_Event> event_cache;
 
     // TODO move the functions to the respective subsystems
     void umgebung_subsystem_events_init();
@@ -113,7 +120,7 @@ static uint32_t compile_subsystems_flag() {
      * - `SDL_INIT_NOPARACHUTE`: compatibility; this flag is ignored
      */
     uint32_t subsystem_flags = 0;
-    subsystem_flags |= SDL_INIT_EVENTS;
+    // subsystem_flags |= SDL_INIT_EVENTS;
     return subsystem_flags;
 }
 
@@ -154,6 +161,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         }
         if (umgebung::subsystem_graphics != nullptr) {
             umgebung::subsystems.push_back(umgebung::subsystem_graphics);
+            if (umgebung::subsystem_graphics->name != nullptr) {
+                umgebung::console("+++ created subsystem graphics  : ", umgebung::subsystem_graphics->name());
+            } else {
+                umgebung::console("+++ created subsystem graphics  : ( no name specified )");
+            }
         }
     } else {
         umgebung::console("+++ graphics disabled.");
@@ -179,8 +191,41 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         }
         umgebung::console("+++ adding audio subsystem.");
         umgebung::subsystems.push_back(umgebung::subsystem_audio);
+        if (umgebung::subsystem_audio->name != nullptr) {
+            umgebung::console("+++ created subsystem audio     : ", umgebung::subsystem_audio->name());
+        } else {
+            umgebung::console("+++ created subsystem audio     : ( no name specified )");
+        }
     } else {
         umgebung::console("+++ audio disabled.");
+    }
+
+    /* check libraries subsystem */
+    if (umgebung::enable_libraries) {
+        if (umgebung::subsystem_libraries == nullptr) {
+            umgebung::subsystem_libraries                = umgebung_create_subsystem_libraries();
+            umgebung::handle_subsystem_libraries_cleanup = true;
+        } else {
+            umgebung::console("+++ client provided library subsystem.");
+        }
+        umgebung::console("+++ created subsystem libraries : ", umgebung::subsystem_libraries->name());
+        umgebung::subsystems.push_back(umgebung::subsystem_libraries);
+    } else {
+        umgebung::console("+++ libraries disabled.");
+    }
+
+    /* check events subsystem */
+    if (umgebung::enable_events) {
+        if (umgebung::subsystem_hid_events == nullptr) {
+            umgebung::subsystem_hid_events                = umgebung_create_subsystem_hid_events();
+            umgebung::handle_subsystem_hid_events_cleanup = true;
+        } else {
+            umgebung::console("+++ client provided HID events subsystem.");
+        }
+        umgebung::console("+++ created subsystem HID events: ", umgebung::subsystem_hid_events->name());
+        umgebung::subsystems.push_back(umgebung::subsystem_hid_events);
+    } else {
+        umgebung::console("+++ HID events disabled.");
     }
 
     /* 2. initialize SDL */
@@ -293,18 +338,17 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     return SDL_APP_CONTINUE;
 }
 
-static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed, bool& fWindowIsResized) {
-    // imgui_processevent(event);
+static void handle_event(const SDL_Event& event, bool& fAppIsRunning) {
+    //     // imgui_processevent(event);
 
-    // generic sdl event handler
-    sdl_event(event);
+    //     // generic sdl event handler
+    //     sdl_event(event);
 
     switch (event.type) {
         case SDL_EVENT_WINDOW_RESIZED:
             // TODO implement window resize … how will the subsystems be updated?
             umgebung::warning("TODO window resized. subsystem needs to be update …");
             windowResized(-1, -1);
-            fWindowIsResized = true;
             break;
         case SDL_EVENT_QUIT:
             fAppIsRunning = false;
@@ -313,68 +357,14 @@ static void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMou
             umgebung::key = static_cast<int>(event.key.key);
             if (event.key.scancode == SDL_SCANCODE_ESCAPE) {
                 fAppIsRunning = false;
-            } else {
-                // if (!imgui_is_keyboard_captured()) {
-                keyPressed();
-                // }
-                umgebung::isKeyPressed = true;
             }
             break;
-        case SDL_EVENT_KEY_UP:
-            // if (imgui_is_keyboard_captured()) { break; }
-            umgebung::key          = static_cast<int>(event.key.key);
-            umgebung::isKeyPressed = false;
-            keyReleased();
-            break;
-        case SDL_EVENT_MOUSE_BUTTON_DOWN:
-            // if (imgui_is_mouse_captured()) { break; }
-            umgebung::mouseButton = event.button.button;
-            fMouseIsPressed       = true;
-            mousePressed();
-            umgebung::isMousePressed = true;
-            break;
-        case SDL_EVENT_MOUSE_BUTTON_UP:
-            // if (imgui_is_mouse_captured()) { break; }
-            fMouseIsPressed       = false;
-            umgebung::mouseButton = -1;
-            mouseReleased();
-            umgebung::isMousePressed = false;
-            break;
-        case SDL_EVENT_MOUSE_MOTION:
-            // if (imgui_is_mouse_captured()) { break; }
-            umgebung::pmouseX = umgebung::mouseX;
-            umgebung::pmouseY = umgebung::mouseY;
-            umgebung::mouseX  = static_cast<float>(event.motion.x);
-            umgebung::mouseY  = static_cast<float>(event.motion.y);
-
-            if (fMouseIsPressed) {
-                mouseDragged();
-            } else {
-                mouseMoved();
-            }
-            break;
-            // case SDL_MULTIGESTURE:
-        case SDL_EVENT_MOUSE_WHEEL:
-            // if (imgui_is_mouse_captured()) { break; }
-            mouseWheel(event.wheel.mouse_x, event.wheel.mouse_y);
-            break;
-        case SDL_EVENT_DROP_FILE: {
-            // only allow drag and drop on main window
-            // if (event.drop.windowID != 1) { break; }
-            const char* dropped_filedir = event.drop.data;
-            dropped(dropped_filedir);
-            break;
-        }
         default: break;
     }
 }
 
-// TODO ugly hack … this needs to be handled differently
-static bool _app_is_running    = true;
-static bool _mouse_is_pressed  = false;
-static bool _window_is_resized = false;
-
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
+    // TODO add option to cache events and handle them in loop
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->event != nullptr) {
@@ -383,13 +373,17 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
         }
     }
 
+    umgebung::event_cache.push_back(*event);
+
     /*
      * 1. mouse events
      * 2. key events
      * 3. quit events
      */
-    handle_event(*event, _app_is_running, _mouse_is_pressed, _window_is_resized);
-    if (!_app_is_running) {
+    handle_event(*event, umgebung::_app_is_running);
+    // umgebung::_mouse_is_pressed,
+    // umgebung::_window_is_resized
+    if (!umgebung::_app_is_running) {
         return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
     }
     return SDL_APP_CONTINUE;
@@ -421,6 +415,17 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
     const high_resolution_clock::time_point currentFrameTime = high_resolution_clock::now();
     const auto                              frameDuration    = duration_cast<duration<double>>(currentFrameTime - umgebung::lastFrameTime);
     const double                            frame_duration   = frameDuration.count();
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem != nullptr) {
+            if (subsystem->event_loop != nullptr) {
+                for (auto e: umgebung::event_cache) {
+                    subsystem->event_loop(&e);
+                }
+            }
+        }
+    }
+    umgebung::event_cache.clear();
 
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {

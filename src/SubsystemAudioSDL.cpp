@@ -46,6 +46,10 @@ namespace umgebung {
     static void draw_post() {}
     static void event(SDL_Event* event) {}
 
+    static const char* name() {
+        return "SDL Audio";
+    }
+
     static void set_flags(uint32_t& subsystem_flags) {
         subsystem_flags |= SDL_INIT_AUDIO;
     }
@@ -588,6 +592,7 @@ umgebung::SubsystemAudio* umgebung_create_subsystem_audio_sdl() {
     audio->draw_post    = umgebung::draw_post;
     audio->shutdown     = umgebung::shutdown;
     audio->event        = umgebung::event;
+    audio->name         = umgebung::name;
     audio->start        = umgebung::start;
     audio->stop         = umgebung::stop;
     audio->create_audio = umgebung::create_audio;

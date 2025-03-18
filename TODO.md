@@ -3,11 +3,10 @@
 ## Graphics
 
 - [ ] separate transparent + non-transparent primitives
-- [ ] add line caps to lines rendered as quads
-- [ ] rework option to draw lines as lines primitives 
-    - [ ] @maybe always draw *opaque* + `strokeWeight==1` as `GL_LINES`
-    - [ ] add option to draw smooth lines
-    - [ ] check *OpenGL ES* behavior
+- [x] rework option to draw lines as lines primitives 
+    - [x] @maybe always draw *opaque* + `strokeWeight==1` as `GL_LINES`
+    - [x] add option to draw smooth lines
+    - [x] check *OpenGL ES* behavior
 - [ ] in `PGraphicsDefault2D` implement 3D by manually transforming points onto 2D 
 - [ ] add [`libtess2`](https://github.com/memononen/libtess2) ( fast, 3D ) or [`earcut.hpp`](https://github.com/mapbox/earcut.hpp) ( faster, 2D only ) + `glm` to instructions and brew install file
 - [ ] use unordered lists to collect renderbatches:
@@ -152,6 +151,7 @@ void main() {
 
 ## Archived
 
+- [x] add line caps to lines rendered as quads @archived(2025-03-17) @from(Umgebung / TODO > Graphics) @done(2025-03-17)
 - [x] @maybe for large begin-end-shapes consider using the shader-based model transform i.e `uModelMatrix` @archived(2025-03-03) @from(Umgebung / TODO > Graphics) @done(2025-03-03)
 - [x] add begin-end-shape and replace as many of the drawing functions with this … for now @archived(2025-03-03) @from(Umgebung / TODO > Graphics) @done(2025-03-03)
 - [x] add *dirty* flag for *model matrix* ( checking against identy for now ) @archived(2025-03-03) @from(Umgebung / TODO > Graphics) @done(2025-03-03)

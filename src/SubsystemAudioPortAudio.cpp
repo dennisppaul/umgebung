@@ -456,6 +456,10 @@ namespace umgebung {
         // audio_device->output_buffer = new float[audio_device->output_channels * audio_device->buffer_size]{};
         return _device;
     }
+
+    static const char* name() {
+        return "PortAudio";
+    }
 } // namespace umgebung
 
 umgebung::SubsystemAudio* umgebung_create_subsystem_audio_portaudio() {
@@ -469,6 +473,7 @@ umgebung::SubsystemAudio* umgebung_create_subsystem_audio_portaudio() {
     audio->draw_post    = umgebung::draw_post;
     audio->shutdown     = umgebung::shutdown;
     audio->event        = umgebung::event;
+    audio->name         = umgebung::name;
     audio->start        = umgebung::start;
     audio->stop         = umgebung::stop;
     audio->create_audio = umgebung::create_audio;
