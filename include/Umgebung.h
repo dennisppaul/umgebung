@@ -81,13 +81,6 @@ namespace umgebung {
     inline float      pmouseX        = 0;
     inline float      pmouseY        = 0;
 
-    // NOTE just a quick reflection on the above: `PGraphics* g` as well as `PAudio* a` represent
-    //      the default or main device infrastructure. the properties ( e.g `width` or `sample_rate` )
-    //      represent values used for configuration at application start. they should be up to date
-    //      while the application is running but are not guaranteed to be. also the properties are
-    //      are redundant as the *actual* values are stored in the respective device objects. it is
-    //      not good design but reflects the processing.org idiom.
-
     /* public variables *mainly for internal use* */
 
     inline bool                    use_esc_key_to_quit = true;

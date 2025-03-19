@@ -21,6 +21,8 @@
 #include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv33.h"
 
+#include "ShaderSourceBasic.h"
+
 namespace umgebung {
     static void       setup_pre();
     static void       setup_post();
@@ -56,26 +58,26 @@ namespace umgebung {
 
     /* --- draw FBO --- */
 
-    static auto vertexShaderSrc = R"(
-    #version 330 core
-    layout (location = 0) in vec2 aPos;
-    layout (location = 1) in vec2 aTexCoord;
-    out vec2 TexCoord;
-    void main() {
-        gl_Position = vec4(aPos, 0.0, 1.0);
-        TexCoord = aTexCoord;
-    }
-)";
-
-    static auto fragmentShaderSrc = R"(
-    #version 330 core
-    in vec2 TexCoord;
-    out vec4 FragColor;
-    uniform sampler2D screenTexture;
-    void main() {
-        FragColor = texture(screenTexture, TexCoord);
-    }
-)";
+//     static auto vertexShaderSrc = R"(
+//     #version 330 core
+//     layout (location = 0) in vec2 aPos;
+//     layout (location = 1) in vec2 aTexCoord;
+//     out vec2 TexCoord;
+//     void main() {
+//         gl_Position = vec4(aPos, 0.0, 1.0);
+//         TexCoord = aTexCoord;
+//     }
+// )";
+//
+//     static auto fragmentShaderSrc = R"(
+//     #version 330 core
+//     in vec2 TexCoord;
+//     out vec4 FragColor;
+//     uniform sampler2D screenTexture;
+//     void main() {
+//         FragColor = texture(screenTexture, TexCoord);
+//     }
+// )";
 
     static GLuint screenVAO, screenVBO;
     static GLuint shaderProgram;
@@ -97,8 +99,8 @@ namespace umgebung {
 
     static void init_FBO_drawing() {
         // Compile shaders
-        const GLuint vertexShader   = compileShader(GL_VERTEX_SHADER, vertexShaderSrc);
-        const GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSrc);
+        const GLuint vertexShader   = compileShader(GL_VERTEX_SHADER, shader_source_basic.vertex);
+        const GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, shader_source_basic.fragment);
 
         // Link shader program
         shaderProgram = glCreateProgram();

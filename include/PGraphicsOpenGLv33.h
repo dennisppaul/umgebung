@@ -79,10 +79,10 @@ namespace umgebung {
         static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024; // 1MB
         static constexpr uint8_t  RENDER_MODE_IMMEDIATE                  = 0;
         static constexpr uint8_t  RENDER_MODE_BUFFERED                   = 1;
-        static const char*        vertex_shader_source_texture();
-        static const char*        fragment_shader_source_texture();
-        static const char*        vertex_shader_source_simple();
-        static const char*        fragment_shader_source_simple();
+        // static const char*        vertex_shader_source_texture();
+        // static const char*        fragment_shader_source_texture();
+        // static const char*        vertex_shader_source_simple();
+        // static const char*        fragment_shader_source_simple();
         uint8_t                   render_mode{RENDER_MODE_IMMEDIATE};
         GLuint                    fill_shader_program{};
         GLuint                    stroke_shader_program{};

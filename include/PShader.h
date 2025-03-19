@@ -24,30 +24,32 @@
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 
-class PShader {
-public:
-    PShader();
-    ~PShader();
+namespace umgebung {
+    class PShader {
+    public:
+        PShader();
+        ~PShader();
 
-    bool        load(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "");
-    void        use() const;
-    static void unuse();
-    GLuint      getProgramID() const { return programID; }
+        bool        load(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "");
+        void        use() const;
+        static void unuse();
+        GLuint      getProgramID() const { return programID; }
 
-    // Uniform setters
-    void set_uniform(const std::string& name, int value);
-    void set_uniform(const std::string& name, float value);
-    void set_uniform(const std::string& name, const glm::vec2& value);
-    void set_uniform(const std::string& name, const glm::vec3& value);
-    void set_uniform(const std::string& name, const glm::vec4& value);
-    void set_uniform(const std::string& name, const glm::mat4& value);
+        // Uniform setters
+        void set_uniform(const std::string& name, int value);
+        void set_uniform(const std::string& name, float value);
+        void set_uniform(const std::string& name, const glm::vec2& value);
+        void set_uniform(const std::string& name, const glm::vec3& value);
+        void set_uniform(const std::string& name, const glm::vec4& value);
+        void set_uniform(const std::string& name, const glm::mat4& value);
 
-private:
-    GLuint                                 programID;
-    std::unordered_map<std::string, GLint> uniformLocations;
+    private:
+        GLuint                                 programID;
+        std::unordered_map<std::string, GLint> uniformLocations;
 
-    static GLuint compileShader(const std::string& source, GLenum type);
-    static void   checkCompileErrors(GLuint shader, GLenum type);
-    static void   checkLinkErrors(GLuint program);
-    GLint         getUniformLocation(const std::string& name);
-};
+        static GLuint compileShader(const std::string& source, GLenum type);
+        static void   checkCompileErrors(GLuint shader, GLenum type);
+        static void   checkLinkErrors(GLuint program);
+        GLint         getUniformLocation(const std::string& name);
+    };
+} // namespace umgebung

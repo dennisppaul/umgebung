@@ -26,6 +26,9 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <chrono>
+
+#include <SDL3/SDL.h>
 
 #include "Umgebung.h"
 #include "SimplexNoise.h"
@@ -33,6 +36,8 @@
 #include "UmgebungFunctionsAdditional.h"
 
 namespace umgebung {
+
+    using namespace std::chrono;
 
     uint32_t color(const float gray) {
         return color(gray, gray, gray, 1);
@@ -95,11 +100,6 @@ namespace umgebung {
 
     float alpha(const uint32_t color) {
         return static_cast<float>((color & 0xFF000000) >> 24) / 255.0f;
-    }
-
-    void exit() {
-        // TODO handle exit
-        console("TODO handle exit");
     }
 
     float degrees(const float radians) {
@@ -247,12 +247,22 @@ namespace umgebung {
     static unsigned int fRandomSeed = static_cast<unsigned int>(std::time(nullptr));
     static std::mt19937 gen(fRandomSeed); // Create a Mersenne Twister pseudo-random number generator with the specified seed
 
-    float random(const float max) {
-        return random(0, max);
+    void randomSeed(unsigned int seed) {
+        fRandomSeed = seed; // Update seed
+        gen.seed(seed);     // Re-seed the generator
     }
 
-    float random(const float min, const float max) {
-        std::uniform_real_distribution<float> distribution(min, max);
+    float random(float max) {
+        return random(0.0f, max);
+    }
+
+    float random(float min, float max) {
+        std::uniform_real_distribution distribution(min, max);
+        return distribution(gen);
+    }
+
+    float randomGaussian() {
+        static std::normal_distribution distribution(0.0f, 1.0f);
         return distribution(gen);
     }
 
@@ -466,7 +476,7 @@ namespace umgebung {
             warning("Failed to read file: ", file_path);
             return {};
         }
-        return std::vector<uint8_t>(std::istreambuf_iterator<char>(file), {});
+        return std::vector<uint8_t>(std::istreambuf_iterator(file), {});
     }
 
     bool saveBytes(const std::string& file_path, const std::vector<uint8_t>& data, const bool append) {
@@ -478,4 +488,63 @@ namespace umgebung {
         file.write(reinterpret_cast<const char*>(data.data()), data.size());
         return true;
     }
+
+    // Function to get the current system time as a std::tm struct
+    static std::tm getCurrentTime() {
+        std::time_t t = std::time(nullptr);
+        return *std::localtime(&t);
+    }
+
+    // Returns the current day (1-31)
+    int day() {
+        return getCurrentTime().tm_mday;
+    }
+
+    // Returns the current hour (0-23)
+    int hour() {
+        return getCurrentTime().tm_hour;
+    }
+
+    // Returns the number of milliseconds since the program started
+    long long millis() {
+        static auto start_time = steady_clock::now();
+        return duration_cast<milliseconds>(steady_clock::now() - start_time).count();
+    }
+
+    // Returns the current minute (0-59)
+    int minute() {
+        return getCurrentTime().tm_min;
+    }
+
+    // Returns the current month (1-12)
+    int month() {
+        return getCurrentTime().tm_mon + 1; // tm_mon is 0-based
+    }
+
+    // Returns the current second (0-59)
+    int second() {
+        return getCurrentTime().tm_sec;
+    }
+
+    // Returns the current year (e.g., 2025)
+    int year() {
+        return getCurrentTime().tm_year + 1900; // tm_year is years since 1900
+    }
+
+    void cursor() { SDL_ShowCursor(); }
+
+    // void cursor(PImage* img, int x, int y) {
+    //     SDL_Cursor * SDLCALL SDL_CreateColorCursor(SDL_Surface *surface,
+    //                                                       int hot_x,
+    //                                                       int hot_y);
+    //     SDL_CreateCursor(const Uint8 *data,
+    //                                                  const Uint8 *mask,
+    //                                                  int w, int h, int hot_x,
+    //                                                  int hot_y);
+    //     SDL_SetCursor(SDL_Cursor *cursor);
+    //     SDL_DestroyCursor();
+    // }
+
+    void noCursor() { SDL_HideCursor(); }
+
 } // namespace umgebung

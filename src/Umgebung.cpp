@@ -39,6 +39,10 @@ namespace umgebung {
     static bool                              _app_is_running                     = true;
     static std::vector<SDL_Event>            event_cache;
 
+    void exit() {
+        _app_is_running = false; // NOTE layzily implemented it here and not in `UmgebungFunctionsGraphics.cpp`
+    }
+
     bool is_initialized() {
         return initialized;
     }
@@ -334,7 +338,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     return SDL_APP_CONTINUE;
 }
 
-static void handle_event(const SDL_Event& event, bool& fAppIsRunning) {
+static void handle_event(const SDL_Event& event, bool& app_is_running) {
     //     // imgui_processevent(event);
     switch (event.type) {
         case SDL_EVENT_WINDOW_RESIZED:
@@ -343,13 +347,13 @@ static void handle_event(const SDL_Event& event, bool& fAppIsRunning) {
             windowResized(-1, -1);
             break;
         case SDL_EVENT_QUIT:
-            fAppIsRunning = false;
+            app_is_running = false;
             break;
         case SDL_EVENT_KEY_DOWN:
             if (umgebung::use_esc_key_to_quit) {
                 umgebung::key = static_cast<int>(event.key.key);
                 if (event.key.scancode == SDL_SCANCODE_ESCAPE) {
-                    fAppIsRunning = false;
+                    app_is_running = false;
                 }
             }
             break;

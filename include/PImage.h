@@ -69,5 +69,49 @@ namespace umgebung {
 
     protected:
         void update_full_internal(PGraphics* graphics);
+
+    public:
+        static PImage convert_SDL_Surface_to_PImage(SDL_Surface* surface) {
+            if (!surface) {
+                return PImage(); // Return empty image if surface is null
+            }
+
+            const int     width  = surface->w;
+            const int     height = surface->h;
+            constexpr int format = SDL_PIXELFORMAT_RGBA8888; // Assuming default RGBA format
+
+            PImage image(width, height, format);
+
+            // Convert surface to the correct format if necessary
+            SDL_Surface* convertedSurface = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA8888);
+            if (!convertedSurface) {
+                return PImage(); // Conversion failed, return empty image
+            }
+
+            // Copy pixels
+            image.pixels = new uint32_t[width * height];
+            std::memcpy(image.pixels, convertedSurface->pixels, width * height * sizeof(uint32_t));
+
+            SDL_DestroySurface(convertedSurface); // Clean up converted surface
+
+            return image;
+        }
+
+        static SDL_Surface* convert_PImage_to_SDL_Surface(const PImage& image) {
+            if (!image.pixels || image.width <= 0 || image.height <= 0) {
+                return nullptr;
+            }
+
+            // Create SDL surface with the correct format
+            SDL_Surface* surface = SDL_CreateSurface(image.width, image.height, SDL_PIXELFORMAT_RGBA8888);
+            if (!surface) {
+                return nullptr;
+            }
+
+            // Copy pixel data into the surface
+            std::memcpy(surface->pixels, image.pixels, image.width * image.height * sizeof(uint32_t));
+
+            return surface;
+        }
     };
 } // namespace umgebung

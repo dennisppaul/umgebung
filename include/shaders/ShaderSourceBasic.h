@@ -19,34 +19,33 @@
 
 #pragma once
 
-#include <SDL3/SDL.h>
-#include <vector>
+#include "ShaderSource.h"
 
-#include "UmgebungDefines.h"
-#include "Subsystems.h"
-#include "PAudio.h"
+namespace umgebung {
+    inline ShaderSource shader_source_basic{
+        R"(
+            #version 330 core
 
-WEAK void arguments(const std::vector<std::string>& args);
-WEAK void settings();
-WEAK void setup();
-WEAK void draw();
+            layout(location = 0) in vec3 aPos;
+            layout(location = 1) in vec3 aColor;
 
-WEAK void keyPressed();
-WEAK void keyReleased();
-WEAK void mousePressed();
-WEAK void mouseReleased();
-WEAK void mouseDragged();
-WEAK void mouseMoved();
-WEAK void mouseWheel(float x, float y);
+            out vec3 ourColor;
 
-WEAK void windowResized(int width, int height);
+            void main() {
+                gl_Position = vec4(aPos, 1.0);
+                ourColor = aColor;
+            }
+        )",
+        R"(
+            #version 330 core
 
-/* --- additional callbacks --- */
+            out vec4 FragColor;
 
-WEAK void audioEvent();
-WEAK void audioEvent(const umgebung::PAudio& device);
+            in vec3 ourColor;
 
-WEAK void post();
-WEAK void shutdown();
-WEAK void dropped(const char* dropped_filedir);
-WEAK bool sdl_event(const SDL_Event& event);
+            void main() {
+                FragColor = vec4(ourColor, 1.0);
+            }
+        )",
+        ""};
+}

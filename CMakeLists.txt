@@ -129,13 +129,12 @@ add_library(umgebung-lib ${UMGEBUNG_SOURCE_FILES})
 # Specify include directories for the library
 target_include_directories(umgebung-lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/ip
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/osc
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/midi
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/dr_libs
-        #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/ip>
-        #        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/osc>
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/shaders
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libraries
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libraries/dr_libs
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libraries/ip
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libraries/libtess2
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/libraries/osc
 )
 
 ##########################################################################################################

@@ -5,6 +5,8 @@
 #include "UmgebungFunctionsAdditional.h"
 #include "PShader.h"
 
+using namespace umgebung;
+
 PShader::PShader() : programID(0) {}
 
 PShader::~PShader() {

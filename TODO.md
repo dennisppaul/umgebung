@@ -9,7 +9,6 @@
 
 ### Lines
 
-
 - [ ] since `glLineWidth` does not work reliably maybe use geometry shader:
     ```C
     #version 330 core

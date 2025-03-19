@@ -19,34 +19,10 @@
 
 #pragma once
 
-#include <SDL3/SDL.h>
-#include <vector>
-
-#include "UmgebungDefines.h"
-#include "Subsystems.h"
-#include "PAudio.h"
-
-WEAK void arguments(const std::vector<std::string>& args);
-WEAK void settings();
-WEAK void setup();
-WEAK void draw();
-
-WEAK void keyPressed();
-WEAK void keyReleased();
-WEAK void mousePressed();
-WEAK void mouseReleased();
-WEAK void mouseDragged();
-WEAK void mouseMoved();
-WEAK void mouseWheel(float x, float y);
-
-WEAK void windowResized(int width, int height);
-
-/* --- additional callbacks --- */
-
-WEAK void audioEvent();
-WEAK void audioEvent(const umgebung::PAudio& device);
-
-WEAK void post();
-WEAK void shutdown();
-WEAK void dropped(const char* dropped_filedir);
-WEAK bool sdl_event(const SDL_Event& event);
+namespace umgebung {
+    struct ShaderSource {
+        const char* vertex;
+        const char* fragment;
+        const char* geometry;
+    };
+}

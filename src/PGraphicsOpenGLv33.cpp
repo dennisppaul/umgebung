@@ -30,6 +30,8 @@
 #include "Vertex.h"
 #include "Geometry.h"
 #include "PMesh.h"
+#include "ShaderSourceSimple.h"
+#include "ShaderSourceDefault.h"
 
 using namespace umgebung;
 
@@ -417,8 +419,8 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
     framebuffer.width  = width;
     framebuffer.height = height;
 
-    stroke_shader_program = OGL_build_shader(vertex_shader_source_simple(), fragment_shader_source_simple());
-    fill_shader_program   = OGL_build_shader(vertex_shader_source_texture(), fragment_shader_source_texture());
+    stroke_shader_program = OGL_build_shader(shader_source_simple.vertex, shader_source_simple.fragment);
+    fill_shader_program   = OGL_build_shader(shader_source_default.vertex, shader_source_default.fragment);
 
     if (render_to_offscreen) {
         console("setting up rendering to offscreen buffer:");
@@ -584,85 +586,85 @@ void PGraphicsOpenGLv33::OGL_checkProgramLinkStatus(const GLuint program) {
     }
 }
 
-const char* PGraphicsOpenGLv33::vertex_shader_source_texture() {
-    const auto vertexShaderSource = R"(
-#version 330 core
-
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec4 aColor;
-layout(location = 2) in vec2 aTexCoord;
-
-out vec4 vColor;
-out vec2 vTexCoord;
-
-uniform mat4 uProjection;
-uniform mat4 uViewMatrix;
-uniform mat4 uModelMatrix;
-
-void main() {
-    gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
-    vColor = aColor;
-    vTexCoord = aTexCoord;
-}
-)";
-    return vertexShaderSource;
-}
-
-const char* PGraphicsOpenGLv33::fragment_shader_source_texture() {
-    const auto fragmentShaderSource = R"(
-#version 330 core
-
-in vec4 vColor;
-in vec2 vTexCoord;
-
-out vec4 FragColor;
-
-uniform sampler2D uTexture;
-
-void main() {
-    FragColor = texture(uTexture, vTexCoord) * vColor;
-}
-)";
-    return fragmentShaderSource;
-}
-
-const char* PGraphicsOpenGLv33::vertex_shader_source_simple() {
-    // Vertex Shader source ( without texture )
-    const auto vertexShaderSource = R"(
-#version 330 core
-
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec4 aColor;
-
-out vec4 vColor;
-
-uniform mat4 uProjection;
-uniform mat4 uViewMatrix;
-uniform mat4 uModelMatrix;
-
-void main() {
-    gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
-    vColor = aColor;
-}
-)";
-    return vertexShaderSource;
-}
-
-const char* PGraphicsOpenGLv33::fragment_shader_source_simple() {
-    // Fragment Shader source ( without texture )
-    const auto fragmentShaderSource = R"(
-#version 330 core
-
-in vec4 vColor;
-
-out vec4 FragColor;
-
-void main() {
-    FragColor = vec4(vColor);
-}
-)";
-    return fragmentShaderSource;
-}
+// const char* PGraphicsOpenGLv33::vertex_shader_source_texture() {
+//     const auto vertexShaderSource = R"(
+// #version 330 core
+//
+// layout(location = 0) in vec3 aPosition;
+// layout(location = 1) in vec4 aColor;
+// layout(location = 2) in vec2 aTexCoord;
+//
+// out vec4 vColor;
+// out vec2 vTexCoord;
+//
+// uniform mat4 uProjection;
+// uniform mat4 uViewMatrix;
+// uniform mat4 uModelMatrix;
+//
+// void main() {
+//     gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
+//     vColor = aColor;
+//     vTexCoord = aTexCoord;
+// }
+// )";
+//     return vertexShaderSource;
+// }
+//
+// const char* PGraphicsOpenGLv33::fragment_shader_source_texture() {
+//     const auto fragmentShaderSource = R"(
+// #version 330 core
+//
+// in vec4 vColor;
+// in vec2 vTexCoord;
+//
+// out vec4 FragColor;
+//
+// uniform sampler2D uTexture;
+//
+// void main() {
+//     FragColor = texture(uTexture, vTexCoord) * vColor;
+// }
+// )";
+//     return fragmentShaderSource;
+// }
+//
+// const char* PGraphicsOpenGLv33::vertex_shader_source_simple() {
+//     // Vertex Shader source ( without texture )
+//     const auto vertexShaderSource = R"(
+// #version 330 core
+//
+// layout(location = 0) in vec3 aPosition;
+// layout(location = 1) in vec4 aColor;
+//
+// out vec4 vColor;
+//
+// uniform mat4 uProjection;
+// uniform mat4 uViewMatrix;
+// uniform mat4 uModelMatrix;
+//
+// void main() {
+//     gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
+//     vColor = aColor;
+// }
+// )";
+//     return vertexShaderSource;
+// }
+//
+// const char* PGraphicsOpenGLv33::fragment_shader_source_simple() {
+//     // Fragment Shader source ( without texture )
+//     const auto fragmentShaderSource = R"(
+// #version 330 core
+//
+// in vec4 vColor;
+//
+// out vec4 FragColor;
+//
+// void main() {
+//     FragColor = vec4(vColor);
+// }
+// )";
+//     return fragmentShaderSource;
+// }
 
 void PGraphicsOpenGLv33::OGL3_init_vertex_buffer(VertexBufferData& vertex_buffer) {
     // Generate and bind VAO & VBO
