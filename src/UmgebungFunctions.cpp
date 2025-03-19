@@ -24,6 +24,8 @@
 #include <filesystem>
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 #include "Umgebung.h"
 #include "SimplexNoise.h"
@@ -219,31 +221,25 @@ namespace umgebung {
 
     std::string nfs(const float num, const int left, const int right) {
         std::ostringstream out;
-        out << std::fixed << std::setprecision(right); // Ensure right decimal places
-
-        if (num >= 0) {
-            out << " "; // Space for positive numbers
-        }
-
+        out << std::fixed << std::setprecision(right);                  // Ensure right decimal places
         out << std::setw(left + right + 1) << std::setfill('0') << num; // Ensure left digits
-
         return out.str();
     }
 
     std::string nfs(const float num, const int digits) {
         std::ostringstream out;
-        if (num >= 0) {
-            out << " ";
-        }
         out << std::fixed << std::setprecision(digits) << num;
         return out.str();
     }
 
     std::string nfs(const int num, const int digits) {
         std::ostringstream out;
-        if (num >= 0) {
-            out << " ";
-        }
+        out << std::setw(digits) << std::setfill('0') << num;
+        return out.str();
+    }
+
+    std::string formatNumber(const int num, const int digits) {
+        std::ostringstream out;
         out << std::setw(digits) << std::setfill('0') << num;
         return out.str();
     }
@@ -266,8 +262,8 @@ namespace umgebung {
             return;
         }
         umgebung::enable_graphics = true;
-        umgebung::width  = width;
-        umgebung::height = height;
+        umgebung::width           = width;
+        umgebung::height          = height;
     }
 
     void add_audio_device(int id, int sample_rate) {
@@ -418,4 +414,68 @@ namespace umgebung {
         return subsystem_audio->create_audio(device_info);
     }
 
+    std::string loadString(std::string& file_path) {
+        std::ifstream     file(file_path);
+        std::stringstream buffer;
+        if (file) {
+            buffer << file.rdbuf();
+        } else {
+            warning("Failed to read shader file: ", file_path);
+        }
+        return buffer.str();
+    }
+
+    void saveString(const std::string& file_path, const std::string& content, const bool append) {
+        std::ofstream file(file_path, append ? std::ios::app : std::ios::trunc);
+        if (file) {
+            file << content;
+        } else {
+            warning("Failed to write to file: ", file_path);
+        }
+    }
+
+    std::vector<std::string> loadString(const std::string& file_path) {
+        std::ifstream file(file_path);
+        if (!file) {
+            warning("Failed to read file: ", file_path);
+            return {};
+        }
+        std::vector<std::string> lines;
+        std::string              line;
+        while (std::getline(file, line)) {
+            lines.push_back(line);
+        }
+        return lines;
+    }
+
+    bool saveStrings(const std::string& file_path, const std::vector<std::string>& lines, const bool append) {
+        std::ofstream file(file_path, append ? std::ios::app : std::ios::trunc);
+        if (!file) {
+            warning("Failed to write to file: ", file_path);
+            return false;
+        }
+        for (const auto& line: lines) {
+            file << line << '\n';
+        }
+        return true;
+    }
+
+    std::vector<uint8_t> loadBytes(const std::string& file_path) {
+        std::ifstream file(file_path, std::ios::binary);
+        if (!file) {
+            warning("Failed to read file: ", file_path);
+            return {};
+        }
+        return std::vector<uint8_t>(std::istreambuf_iterator<char>(file), {});
+    }
+
+    bool saveBytes(const std::string& file_path, const std::vector<uint8_t>& data, const bool append) {
+        std::ofstream file(file_path, std::ios::binary | (append ? std::ios::app : std::ios::trunc));
+        if (!file) {
+            warning("Failed to write to file: ", file_path);
+            return false;
+        }
+        file.write(reinterpret_cast<const char*>(data.data()), data.size());
+        return true;
+    }
 } // namespace umgebung

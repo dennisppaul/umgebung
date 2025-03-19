@@ -29,8 +29,7 @@
 #include "PGraphicsOpenGLv33.h"
 #include "Vertex.h"
 #include "Geometry.h"
-
-#include <PMesh.h>
+#include "PMesh.h"
 
 using namespace umgebung;
 

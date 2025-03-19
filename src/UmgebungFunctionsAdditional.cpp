@@ -36,6 +36,13 @@ namespace umgebung {
         return str.substr(0, prefix.size()) == prefix;
     }
 
+    bool ends_with(const std::string& str, const std::string& suffix) {
+        if (suffix.size() > str.size()) {
+            return false;
+        }
+        return str.substr(str.size() - suffix.size()) == suffix;
+    }
+
     void color_inv(const uint32_t color, float& r, float& g, float& b, float& a) {
         a = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
         b = static_cast<float>((color >> 16) & 0xFF) / 255.0f;

@@ -23,6 +23,51 @@
 
 #include "PMesh.h"
 
+// TODO separate between client-side data storage ( vertices, shape etcetera ) and OpenGL implementation ( maybe create a vertex_buffer class )
+// TODO add shapes drawing
+// int mShape;
+// switch (fShape) {
+//     case TRIANGLES:
+//         mShape = GL_TRIANGLES;
+//     break;
+//     case TRIANGLE_STRIP:
+//         mShape = GL_TRIANGLE_STRIP;
+//     break;
+//     case TRIANGLE_FAN:
+//         mShape = GL_TRIANGLE_FAN;
+//     break;
+//     case QUADS:
+//         mShape = GL_QUADS;
+//     break;
+//     case QUAD_STRIP:
+//         mShape = GL_QUAD_STRIP;
+//     break;
+//     case POLYGON:
+//         mShape = GL_POLYGON;
+//     break;
+//     case POINTS:
+//         mShape = GL_POINTS;
+//     break;
+//     case LINES:
+//         mShape = GL_LINES;
+//     break;
+//     case LINE_STRIP:
+//         mShape = GL_LINE_STRIP;
+//     break;
+//     default:
+//         mShape = GL_TRIANGLES;
+// }
+// glBegin(mShape);
+// for (int i = 0; i < vertices.size(); i += 6) {
+//     glColor3f(vertices[i + 3],
+//               vertices[i + 4],
+//               vertices[i + 5]);
+//     glVertex3f(vertices[i + 0],
+//                vertices[i + 1],
+//                vertices[i + 2]);
+// }
+// glEnd();
+
 using namespace umgebung;
 
 void PMesh::init() {

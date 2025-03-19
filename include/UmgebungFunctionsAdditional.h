@@ -37,6 +37,7 @@ namespace umgebung {
     class LibraryListener;
 
     bool                     begins_with(const std::string& str, const std::string& prefix);
+    bool                     ends_with(const std::string& str, const std::string& suffix);
     void                     color_inv(uint32_t color, float& r, float& g, float& b, float& a);
     bool                     exists(const std::string& file_path);
     std::string              find_file_in_paths(const std::vector<std::string>& paths, const std::string& filename);

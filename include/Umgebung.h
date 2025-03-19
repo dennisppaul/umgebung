@@ -70,7 +70,7 @@ namespace umgebung {
     inline PGraphics* g              = nullptr;
     inline float      width          = DEFAULT_WINDOW_WIDTH;
     inline float      height         = DEFAULT_WINDOW_HEIGHT;
-    inline float      frameCount     = 0;
+    inline int        frameCount     = 0;
     inline float      frameRate      = DEFAULT_FRAME_RATE;
     inline int        key            = 0; // events
     inline bool       isKeyPressed   = false;

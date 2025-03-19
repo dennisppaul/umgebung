@@ -120,4 +120,11 @@ namespace umgebung {
 
     PGraphics* createGraphics(); // TODO add parameters?
     PAudio*    createAudio(const AudioUnitInfo* device_info);
+
+    std::string              loadString(std::string& file_path);
+    void                     saveString(const std::string& file_path, const std::string& content, bool append = false);
+    std::vector<std::string> loadString(const std::string& file_path);
+    bool                     saveStrings(const std::string& file_path, const std::vector<std::string>& lines, bool append = false);
+    std::vector<uint8_t>     loadBytes(const std::string& file_path);
+    bool                     saveBytes(const std::string& file_path, const std::vector<uint8_t>& data, bool append = false);
 } // namespace umgebung

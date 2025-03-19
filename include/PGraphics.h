@@ -219,13 +219,16 @@ namespace umgebung {
         std::vector<Vertex>              shape_stroke_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
         std::vector<Vertex>              shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
         int                              last_bound_texture_id_cache{TEXTURE_NONE};
-        glm::mat4                        model_matrix{};
-        glm::mat4                        view_matrix{};
-        glm::mat4                        projection_matrix_2D{};
-        glm::mat4                        projection_matrix_3D{};
-        std::vector<glm::mat4>           model_matrix_stack{};
         bool                             model_matrix_dirty{false};
 
+    public:
+        glm::mat4              model_matrix{};
+        glm::mat4              view_matrix{};
+        glm::mat4              projection_matrix_2D{};
+        glm::mat4              projection_matrix_3D{};
+        std::vector<glm::mat4> model_matrix_stack{};
+
+    protected:
         // TODO clean this up:
 
         void push_texture_id() {
