@@ -83,7 +83,9 @@ namespace umgebung {
     static constexpr int   POLYGON_TRIANGULATION_BETTER   = 0x11;
     static constexpr int   POLYGON_TRIANGULATION_MID      = 0x12;
     const std::string      SHADER_UNIFORM_MODEL_MATRIX    = "uModelMatrix";
-
-    static constexpr int HINT_ENABLE_SMOOTH_LINES  = 0xA0; // hints
-    static constexpr int HINT_DISABLE_SMOOTH_LINES = 0xA1;
+    /* hints */
+    static constexpr int ENABLE_SMOOTH_LINES  = 0xA0;
+    static constexpr int DISABLE_SMOOTH_LINES = 0xA1;
+    static constexpr int ENABLE_DEPTH_TEST    = 0xA2;
+    static constexpr int DISABLE_DEPTH_TEST   = 0xA3;
 } // namespace umgebung

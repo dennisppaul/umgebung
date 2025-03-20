@@ -320,13 +320,20 @@ void PGraphicsOpenGLv33::render_framebuffer_to_screen(const bool use_blit) {
 void PGraphicsOpenGLv33::hint(const uint16_t property) {
     // TODO @MERGE
     switch (property) {
-        case HINT_ENABLE_SMOOTH_LINES:
+        case ENABLE_SMOOTH_LINES:
             glEnable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
             break;
-        case HINT_DISABLE_SMOOTH_LINES:
+        case DISABLE_SMOOTH_LINES:
             glDisable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
+            break;
+        case ENABLE_DEPTH_TEST:
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_LESS);
+            break;
+        case DISABLE_DEPTH_TEST:
+            glDisable(GL_DEPTH_TEST);
             break;
         default:
             break;
@@ -672,4 +679,9 @@ void PGraphicsOpenGLv33::shader(PShader* shader) {
     }
     shader->use();
     current_shader = shader;
+}
+
+void PGraphicsOpenGLv33::resetShader() {
+    default_shader->use();
+    current_shader = default_shader;
 }

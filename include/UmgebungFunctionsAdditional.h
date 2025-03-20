@@ -35,6 +35,7 @@ namespace umgebung {
     class PAudio;
     struct AudioUnitInfo;
     class LibraryListener;
+    struct Vertex;
 
     bool                     begins_with(const std::string& str, const std::string& prefix);
     bool                     ends_with(const std::string& str, const std::string& suffix);
@@ -69,6 +70,7 @@ namespace umgebung {
     void                     register_library(LibraryListener* listener);         /* implemented in subsystems */
     void                     unregister_library(const LibraryListener* listener); /* implemented in subsystems */
     void                     handle_events_in_loop(bool events_in_loop);          /* implemented in subsystems */
+    std::vector<Vertex>      loadOBJ(const std::string& filename);
 
     /* --- templated functions --- */
 

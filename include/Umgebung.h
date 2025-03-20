@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include <vector>
+#include <string>
+
 #include "UmgebungDefines.h"
 #include "UmgebungConstants.h"
 #include "UmgebungCallbacks.h"

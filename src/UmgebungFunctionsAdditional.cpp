@@ -25,6 +25,8 @@
 #include <windows.h>
 #endif
 
+#include "tiny_obj_loader.h"
+
 #include "Umgebung.h"
 
 namespace umgebung {
@@ -224,5 +226,126 @@ namespace umgebung {
         } else {
             subsystem_audio->stop(device);
         }
+    }
+
+
+    std::vector<Vertex> loadOBJ(const std::string& filename) {
+        tinyobj::ObjReader       reader;
+        tinyobj::ObjReaderConfig config;
+        config.triangulate = true;
+
+        if (!reader.ParseFromFile(filename, config)) {
+            std::cerr << "Failed to load OBJ: " << reader.Error() << std::endl;
+            return {};
+        }
+
+        std::vector<Vertex> vertices;
+
+        const auto& attrib    = reader.GetAttrib();
+        const auto& shapes    = reader.GetShapes();
+        const auto& materials = reader.GetMaterials();
+
+        for (const auto& shape: shapes) {
+            size_t face_index = 0; // Face counter (reset per shape)
+
+            for (size_t i = 0; i < shape.mesh.indices.size(); i++) {
+                const auto& index = shape.mesh.indices[i];
+                Vertex      vertex;
+
+                // Vertex position
+                vertex.position = {
+                    attrib.vertices[3 * index.vertex_index + 0],
+                    attrib.vertices[3 * index.vertex_index + 1],
+                    attrib.vertices[3 * index.vertex_index + 2]};
+
+                // Texture coordinate (if available)
+                if (index.texcoord_index >= 0) {
+                    vertex.tex_coord = {
+                        attrib.texcoords[2 * index.texcoord_index + 0],
+                        1.0f - attrib.texcoords[2 * index.texcoord_index + 1] // Flip Y-axis
+                    };
+                } else {
+                    vertex.tex_coord = {0.0f, 0.0f}; // No texture coordinates
+                }
+
+                // // TODO add normals once Vertex is upgraded
+                // // Normals
+                // vertex.normal = {
+                //     attrib.normals[3 * index.normal_index + 0],
+                //     attrib.normals[3 * index.normal_index + 1],
+                //     attrib.normals[3 * index.normal_index + 2]};
+
+                // Get correct material index per face
+                if (i % 3 == 0) { // Every 3 vertices = new face
+                    face_index++;
+                }
+                int material_id = (face_index < shape.mesh.material_ids.size()) ? shape.mesh.material_ids[face_index - 1] : -1;
+
+                if (material_id >= 0 && material_id < materials.size()) {
+                    const auto& material = materials[material_id];
+
+                    // Assign diffuse color
+                    vertex.color = glm::vec4(
+                        material.diffuse[0], // R
+                        material.diffuse[1], // G
+                        material.diffuse[2], // B
+                        1.0f                 // A (full opacity)
+                    );
+                } else {
+                    // default color white
+                    vertex.color = glm::vec4(1.0f);
+                }
+
+                vertices.push_back(vertex);
+            }
+        }
+        return vertices;
+    }
+
+    std::vector<Vertex> loadOBJ_NoMaterial(const std::string& filename) {
+        tinyobj::ObjReader       reader;
+        tinyobj::ObjReaderConfig config;
+        config.triangulate = true; // Ensure we only get triangles
+
+        if (!reader.ParseFromFile(filename, config)) {
+            if (!reader.Error().empty()) {
+                std::cerr << "OBJ Loader Error: " << reader.Error() << std::endl;
+            }
+            return {};
+        }
+
+        std::vector<Vertex> vertices;
+
+        if (!reader.Warning().empty()) {
+            std::cout << "OBJ Loader Warning: " << reader.Warning() << std::endl;
+        }
+
+        const tinyobj::attrib_t&             attrib = reader.GetAttrib();
+        const std::vector<tinyobj::shape_t>& shapes = reader.GetShapes();
+        // const std::vector<tinyobj::material_t>& materials = reader.GetMaterials();
+
+        // Loop over shapes
+        for (const auto& shape: shapes) {
+            for (const auto& index: shape.mesh.indices) {
+                const tinyobj::real_t vx = attrib.vertices[3 * index.vertex_index + 0];
+                const tinyobj::real_t vy = attrib.vertices[3 * index.vertex_index + 1];
+                const tinyobj::real_t vz = attrib.vertices[3 * index.vertex_index + 2];
+                // TODO add normals once Vertex is upgraded
+                // const tinyobj::real_t nx = attrib.normals[3 * index.normal_index + 0];
+                // const tinyobj::real_t ny = attrib.normals[3 * index.normal_index + 1];
+                // const tinyobj::real_t nz = attrib.normals[3 * index.normal_index + 2];
+                const tinyobj::real_t tx = attrib.texcoords[2 * index.texcoord_index + 0];
+                const tinyobj::real_t ty = attrib.texcoords[2 * index.texcoord_index + 1];
+                // Optional: vertex colors
+                const tinyobj::real_t red   = attrib.colors[3 * index.vertex_index + 0];
+                const tinyobj::real_t green = attrib.colors[3 * index.vertex_index + 1];
+                const tinyobj::real_t blue  = attrib.colors[3 * index.vertex_index + 2];
+
+                vertices.emplace_back(Vertex(glm::vec3(vx, vy, vz),
+                                             glm::vec4(red, green, blue, 1.0f),
+                                             glm::vec2(tx, ty)));
+            }
+        }
+        return vertices;
     }
 } // namespace umgebung

@@ -26,6 +26,7 @@ namespace umgebung {
         glm::vec3 position;
         glm::vec4 color;
         glm::vec2 tex_coord;
+        // glm::vec3 normal;
 
         Vertex(const float x, const float y, const float z = 0,
                const float r = 1, const float g = 1, const float b = 1, const float a = 1,

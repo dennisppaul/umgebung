@@ -486,4 +486,11 @@ namespace umgebung {
         }
         return g->loadShader(vertex_code, fragment_code, geometry_code);
     }
+
+    void resetShader() {
+        if (g == nullptr) {
+            return;
+        }
+        g->resetShader();
+    }
 } // namespace umgebung

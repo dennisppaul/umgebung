@@ -149,6 +149,7 @@ namespace umgebung {
         virtual void     endShape(bool close_shape = false);
         virtual void     shader(PShader* shader) {}
         virtual PShader* loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "") { return nullptr; };
+        virtual void     resetShader() {}
         // virtual void    lights()                                                                                           = 0;
 
         /* --- additional --- */

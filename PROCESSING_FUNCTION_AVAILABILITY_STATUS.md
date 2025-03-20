@@ -166,9 +166,9 @@
 ### Shaders
 
 - [x] `PShader` :: This class encapsulates a GLSL shader program, including a vertex and a fragment shader
-- [ ] `loadShader()` :: Loads a shader into the *PShader* object
-- [ ] `resetShader()` :: Restores the default shaders
-- [ ] `shader()` :: Applies the shader specified by the parameters
+- [x] `loadShader()` :: Loads a shader into the *PShader* object
+- [x] `resetShader()` :: Restores the default shaders
+- [x] `shader()` :: Applies the shader specified by the parameters
 
 ## Image
 

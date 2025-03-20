@@ -642,11 +642,11 @@ void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int heigh
 void PGraphicsOpenGLv20::hint(const uint16_t property) {
     // TODO @MERGE
     switch (property) {
-        case HINT_ENABLE_SMOOTH_LINES:
+        case ENABLE_SMOOTH_LINES:
             glEnable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
             break;
-        case HINT_DISABLE_SMOOTH_LINES:
+        case DISABLE_SMOOTH_LINES:
             glDisable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
             break;
