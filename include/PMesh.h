@@ -32,11 +32,13 @@ namespace umgebung {
 
         void                 add_vertex(const Vertex& vertex);
         void                 add_vertices(const std::vector<Vertex>& new_vertices);
-        void                 draw(int mode);
+        void                 draw();
         void                 clear();
         void                 update();
         std::vector<Vertex>& vertices_data() { return _vertices; }
         void                 init();
+        void                 set_shape(const int shape) { this->shape = shape; }
+        int                  get_shape() const { return shape; }
 
     private:
         const int           VBO_BUFFER_CHUNK_SIZE_BYTES = 1024 * 16 * sizeof(Vertex);
@@ -46,6 +48,7 @@ namespace umgebung {
         bool                initial_upload     = false;
         bool                buffer_initialized = false;
         int                 server_buffer_size{0};
+        int                 shape = TRIANGLES;
 
         void resize_buffer();
         void upload();

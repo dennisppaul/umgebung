@@ -25,48 +25,12 @@ namespace umgebung {
     class PGraphicsOpenGLv20 final : public PGraphicsOpenGL {
         // TODO clean this up … move methods to implementation file
     public:
-        void reset_matrices() override {
-            PGraphics::reset_matrices();
+        explicit PGraphicsOpenGLv20(bool render_to_offscreen);
 
-            glMatrixMode(GL_PROJECTION);
-            glPushMatrix();
-            glLoadIdentity();
-            glOrtho(0, framebuffer.width, 0, framebuffer.height, -depth_range, depth_range);
+        /* --- OpenGL 2.0 specific implementation of shared methods --- */
 
-            glMatrixMode(GL_MODELVIEW);
-            glPushMatrix();
-            glLoadIdentity();
-
-            /** flip y axis */
-            glScalef(1, -1, 1);
-            glTranslatef(0, -height, 0);
-
-            glViewport(0, 0, framebuffer.width, framebuffer.height);
-        }
-
-        void restore_matrices() override {
-            glMatrixMode(GL_PROJECTION);
-            glPopMatrix();
-
-            glMatrixMode(GL_MODELVIEW);
-            glPopMatrix();
-        }
-
-        void prepare_frame() override {
-            set_default_graphics_state();
-        }
-
-        void setup_fbo() override {
-            glPushAttrib(GL_ALL_ATTRIB_BITS);
-            glPushMatrix();
-            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-        }
-
-        void finish_fbo() override {
-            glPopMatrix();
-            glPopAttrib();
-        }
-
+        void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override {}
+        void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override {}
         void render_framebuffer_to_screen(bool use_blit = false) override {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -107,7 +71,50 @@ namespace umgebung {
             glPopAttrib();
         }
 
-        explicit PGraphicsOpenGLv20(bool render_to_offscreen);
+        void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
+        void        download_texture(PImage* img) override;
+        std::string name() override { return "PGraphicsOpenGLv22"; }
+        void        reset_matrices() override {
+            PGraphics::reset_matrices();
+
+            glMatrixMode(GL_PROJECTION);
+            glPushMatrix();
+            glLoadIdentity();
+            glOrtho(0, framebuffer.width, 0, framebuffer.height, -depth_range, depth_range);
+
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix();
+            glLoadIdentity();
+
+            /** flip y axis */
+            glScalef(1, -1, 1);
+            glTranslatef(0, -height, 0);
+
+            glViewport(0, 0, framebuffer.width, framebuffer.height);
+        }
+
+        void restore_matrices() override {
+            glMatrixMode(GL_PROJECTION);
+            glPopMatrix();
+
+            glMatrixMode(GL_MODELVIEW);
+            glPopMatrix();
+        }
+
+        void prepare_frame() override {
+            set_default_graphics_state();
+        }
+
+        void setup_fbo() override {
+            glPushAttrib(GL_ALL_ATTRIB_BITS);
+            glPushMatrix();
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+        }
+
+        void finish_fbo() override {
+            glPopMatrix();
+            glPopAttrib();
+        }
 
         void    init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
         void    strokeWeight(float weight) override;
@@ -152,15 +159,6 @@ namespace umgebung {
         void    hint(uint16_t property) override;
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
         void    mesh(PMesh* mesh_shape) override { /* TODO implement */ }
-
-        /* --- additional methods --- */
-
-        void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override {}
-        void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override {}
-
-        void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
-        void        download_texture(PImage* img) override;
-        std::string name() override { return "PGraphicsOpenGLv22"; }
 
     private:
         bool                enabled_texture_in_shape = false;

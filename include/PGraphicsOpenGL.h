@@ -237,4 +237,43 @@ namespace umgebung {
 
         console(separator());
     }
+
+    inline GLint get_draw_mode(const int shape) {
+        // TODO separate between client-side data storage ( vertices, shape etcetera ) and OpenGL implementation ( maybe create a vertex_buffer class )
+        // TODO add shapes drawing
+        int _shape;
+        switch (shape) {
+            case TRIANGLES:
+                _shape = GL_TRIANGLES;
+            break;
+            case TRIANGLE_STRIP:
+                _shape = GL_TRIANGLE_STRIP;
+            break;
+            case TRIANGLE_FAN:
+                _shape = GL_TRIANGLE_FAN;
+            break;
+            case QUADS:
+                _shape = GL_QUADS;
+            break;
+            case QUAD_STRIP:
+                _shape = GL_QUAD_STRIP;
+            break;
+            case POLYGON:
+                _shape = GL_POLYGON;
+            break;
+            case POINTS:
+                _shape = GL_POINTS;
+            break;
+            case LINES:
+                _shape = GL_LINES;
+            break;
+            case LINE_STRIP:
+                _shape = GL_LINE_STRIP;
+            break;
+            default:
+                _shape = GL_TRIANGLES;
+        }
+        return _shape;
+    }
+
 } // namespace umgebung

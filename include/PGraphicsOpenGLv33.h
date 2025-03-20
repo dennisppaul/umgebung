@@ -32,6 +32,9 @@ namespace umgebung {
         void IMPL_bind_texture(int bind_texture_id) override;
         void IMPL_set_texture(PImage* img) override;
 
+        /* --- OpenGL 3.3 specific implementation of shared methods --- */
+
+        void render_framebuffer_to_screen(bool use_blit = false) override;
         void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override;
         void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override;
 
@@ -82,26 +85,18 @@ namespace umgebung {
         static constexpr uint8_t  RENDER_MODE_IMMEDIATE                  = 0;
         static constexpr uint8_t  RENDER_MODE_BUFFERED                   = 1;
         uint8_t                   render_mode{RENDER_MODE_IMMEDIATE};
-        // GLuint                   fill_shader_program{};
-        // GLuint                   stroke_shader_program{};
-        GLuint                   texture_id_solid_color{};
-        GLuint                   texture_id_current{};
-        UFont                    debug_font;
-        VertexBufferData         vertex_buffer_data{VBO_BUFFER_CHUNK_SIZE};
-        std::vector<RenderBatch> renderBatches; // TODO revive for buffered mode
-
-        /* --- OpenGL 3.3 specific implementation of shared methods --- */
-
-        void render_framebuffer_to_screen(bool use_blit = false) override;
+        GLuint                    texture_id_solid_color{};
+        GLuint                    texture_id_current{};
+        UFont                     debug_font;
+        VertexBufferData          vertex_buffer_data{VBO_BUFFER_CHUNK_SIZE};
+        // TODO revive for buffered mode
+        std::vector<RenderBatch> renderBatches;
 
         /* --- OpenGL ( 2.0 + 3.3 ) specific methods --- */
 
         // TODO move OGL methods to PGraphicsOpenGL
-        bool          OGL_generate_and_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`
-        static GLuint OGL_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource);
-        static void   OGL_checkShaderCompileStatus(GLuint shader);
-        static void   OGL_checkProgramLinkStatus(GLuint program);
-        void          OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData& vertex_buffer, GLenum mode, std::vector<Vertex>& shape_vertices) const;
+        bool OGL_generate_and_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`
+        void OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData& vertex_buffer, GLenum mode, std::vector<Vertex>& shape_vertices) const;
 
         /* --- OpenGL 3.3 specific methods --- */
 

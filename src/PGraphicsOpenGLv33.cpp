@@ -31,7 +31,6 @@
 #include "Geometry.h"
 #include "PMesh.h"
 #include "PShader.h"
-#include "ShaderSourceColor.h"
 #include "ShaderSourceColorTexture.h"
 
 using namespace umgebung;
@@ -202,19 +201,7 @@ void PGraphicsOpenGLv33::prepare_frame() {
     shader(default_shader);
     default_shader->set_uniform("uProjection", projection_matrix_3D);
     default_shader->set_uniform("uViewMatrix", view_matrix);
-    default_shader->set_uniform("uModelMatrix", glm::mat4(1.0f));
-
-    // glUseProgram(fill_shader_program);
-    //
-    // // Upload matrices
-    // const GLint projLoc = glGetUniformLocation(fill_shader_program, "uProjection");
-    // glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D));
-    //
-    // const GLint viewLoc = glGetUniformLocation(fill_shader_program, "uViewMatrix");
-    // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-    //
-    // const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
-    // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+    default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, glm::mat4(1.0f));
 
     texture_id_current = 0;
     IMPL_bind_texture(texture_id_solid_color);
@@ -250,7 +237,7 @@ void PGraphicsOpenGLv33::endDraw() {
         //     const GLint viewLoc = glGetUniformLocation(stroke_shader_program, "uViewMatrix");
         //     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
         //
-        //     const GLint matrixLoc = glGetUniformLocation(stroke_shader_program, "uModelMatrix");
+        //     const GLint matrixLoc = glGetUniformLocation(stroke_shader_program, SHADER_UNIFORM_MODEL_MATRIX);
         //     glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
         //
         //     glBindVertexArray(stroke_VAO_xyz_rgba);
@@ -281,7 +268,7 @@ void PGraphicsOpenGLv33::endDraw() {
         //     const GLint viewLoc = glGetUniformLocation(fill_shader_program, "uViewMatrix");
         //     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
         //
-        //     const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
+        //     const GLint modelLoc = glGetUniformLocation(fill_shader_program, SHADER_UNIFORM_MODEL_MATRIX);
         //     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
         //
         //     // Bind textures per batch
@@ -553,131 +540,6 @@ void PGraphicsOpenGLv33::OGL3_create_solid_color_texture() {
     texture_id_solid_color = texture_id;
 }
 
-// TODO add option to add geometry shader
-GLuint PGraphicsOpenGLv33::OGL_build_shader(const char* vertexShaderSource, const char* fragmentShaderSource) {
-    // Build shaders
-    const GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-    glCompileShader(vertexShader);
-    OGL_checkShaderCompileStatus(vertexShader);
-
-    const GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-    glCompileShader(fragmentShader);
-    OGL_checkShaderCompileStatus(fragmentShader);
-
-    const GLuint mShaderProgram = glCreateProgram();
-    glAttachShader(mShaderProgram, vertexShader);
-    glAttachShader(mShaderProgram, fragmentShader);
-    glLinkProgram(mShaderProgram);
-    OGL_checkProgramLinkStatus(mShaderProgram);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    return mShaderProgram;
-}
-
-void PGraphicsOpenGLv33::OGL_checkShaderCompileStatus(const GLuint shader) {
-    GLint success;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        error("ERROR::SHADER::COMPILATION_FAILED\n", infoLog);
-    }
-}
-
-void PGraphicsOpenGLv33::OGL_checkProgramLinkStatus(const GLuint program) {
-    GLint success;
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetProgramInfoLog(program, 512, nullptr, infoLog);
-        error("ERROR::SHADER::COMPILATION_FAILED\n", infoLog);
-    }
-}
-
-// const char* PGraphicsOpenGLv33::vertex_shader_source_texture() {
-//     const auto vertexShaderSource = R"(
-// #version 330 core
-//
-// layout(location = 0) in vec3 aPosition;
-// layout(location = 1) in vec4 aColor;
-// layout(location = 2) in vec2 aTexCoord;
-//
-// out vec4 vColor;
-// out vec2 vTexCoord;
-//
-// uniform mat4 uProjection;
-// uniform mat4 uViewMatrix;
-// uniform mat4 uModelMatrix;
-//
-// void main() {
-//     gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
-//     vColor = aColor;
-//     vTexCoord = aTexCoord;
-// }
-// )";
-//     return vertexShaderSource;
-// }
-//
-// const char* PGraphicsOpenGLv33::fragment_shader_source_texture() {
-//     const auto fragmentShaderSource = R"(
-// #version 330 core
-//
-// in vec4 vColor;
-// in vec2 vTexCoord;
-//
-// out vec4 FragColor;
-//
-// uniform sampler2D uTexture;
-//
-// void main() {
-//     FragColor = texture(uTexture, vTexCoord) * vColor;
-// }
-// )";
-//     return fragmentShaderSource;
-// }
-//
-// const char* PGraphicsOpenGLv33::vertex_shader_source_simple() {
-//     // Vertex Shader source ( without texture )
-//     const auto vertexShaderSource = R"(
-// #version 330 core
-//
-// layout(location = 0) in vec3 aPosition;
-// layout(location = 1) in vec4 aColor;
-//
-// out vec4 vColor;
-//
-// uniform mat4 uProjection;
-// uniform mat4 uViewMatrix;
-// uniform mat4 uModelMatrix;
-//
-// void main() {
-//     gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
-//     vColor = aColor;
-// }
-// )";
-//     return vertexShaderSource;
-// }
-//
-// const char* PGraphicsOpenGLv33::fragment_shader_source_simple() {
-//     // Fragment Shader source ( without texture )
-//     const auto fragmentShaderSource = R"(
-// #version 330 core
-//
-// in vec4 vColor;
-//
-// out vec4 FragColor;
-//
-// void main() {
-//     FragColor = vec4(vColor);
-// }
-// )";
-//     return fragmentShaderSource;
-// }
-
 void PGraphicsOpenGLv33::OGL3_init_vertex_buffer(VertexBufferData& vertex_buffer) {
     // Generate and bind VAO & VBO
     glGenVertexArrays(1, &vertex_buffer.VAO);
@@ -689,7 +551,7 @@ void PGraphicsOpenGLv33::OGL3_init_vertex_buffer(VertexBufferData& vertex_buffer
     // Allocate GPU memory (without initializing data, as it will be updated before use)
     glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertex_buffer.num_vertices * sizeof(Vertex)), nullptr, GL_DYNAMIC_DRAW);
 
-    // set up attribute pointers. make sure to align to locations in shader.
+    // set up attribute pointers. NOTE make sure to align to locations in shader.
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
@@ -715,6 +577,7 @@ void PGraphicsOpenGLv33::OGL3_resize_vertex_buffer(const size_t buffer_size_byte
 void PGraphicsOpenGLv33::OGL3_render_vertex_buffer(VertexBufferData&          vertex_buffer,
                                                    const GLenum               primitive_mode,
                                                    const std::vector<Vertex>& shape_vertices) {
+    // TODO maybe replace this with PMesh
     // Ensure there are vertices to render
     if (shape_vertices.empty()) {
         return;
@@ -773,20 +636,15 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Vert
             mModelMatrixTransformOnGPU = true;
         }
     }
-
-    GLint modelLoc{0};
     if (mModelMatrixTransformOnGPU) {
-        // modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
-        // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
         if (current_shader == default_shader) {
-            default_shader->set_uniform("uModelMatrix", model_matrix);
+            default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, model_matrix);
         }
     }
     OGL3_render_vertex_buffer(vertex_buffer, mode, shape_vertices);
     if (mModelMatrixTransformOnGPU) {
-        // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
         if (current_shader == default_shader) {
-            default_shader->set_uniform("uModelMatrix", glm::mat4(1.0f));
+            default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, glm::mat4(1.0f));
         }
     }
 }
@@ -795,18 +653,9 @@ void PGraphicsOpenGLv33::mesh(PMesh* mesh_shape) {
     if (mesh_shape == nullptr) {
         return;
     }
-
-    // const GLint modelLoc = glGetUniformLocation(fill_shader_program, "uModelMatrix");
-    // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
-    // mesh_shape->draw(GL_TRIANGLES);
-    if (current_shader == default_shader) {
-        default_shader->set_uniform("uModelMatrix", model_matrix);
-    }
-    mesh_shape->draw(GL_LINES);
-    if (current_shader == default_shader) {
-        default_shader->set_uniform("uModelMatrix", glm::mat4(1.0f));
-    }
-    // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+    if (current_shader == default_shader) { default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, model_matrix); }
+    mesh_shape->draw();
+    if (current_shader == default_shader) { default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, glm::mat4(1.0f)); }
 }
 
 PShader* PGraphicsOpenGLv33::loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code) {
