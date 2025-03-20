@@ -48,6 +48,8 @@ namespace umgebung {
         void        debug_text(const std::string& text, float x, float y) override; // TODO move to PGraphics ( use glBeginShape() )
         std::string name() override { return "PGraphicsOpenGLv33"; }
         void        mesh(PMesh* mesh_shape) override;
+        void        shader(PShader* shader) override;
+        PShader*    loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "") override;
 
     private:
         struct RenderBatch {
@@ -79,18 +81,14 @@ namespace umgebung {
         static constexpr uint32_t VBO_BUFFER_CHUNK_SIZE                  = 1024 * 1024; // 1MB
         static constexpr uint8_t  RENDER_MODE_IMMEDIATE                  = 0;
         static constexpr uint8_t  RENDER_MODE_BUFFERED                   = 1;
-        // static const char*        vertex_shader_source_texture();
-        // static const char*        fragment_shader_source_texture();
-        // static const char*        vertex_shader_source_simple();
-        // static const char*        fragment_shader_source_simple();
         uint8_t                   render_mode{RENDER_MODE_IMMEDIATE};
-        GLuint                    fill_shader_program{};
-        GLuint                    stroke_shader_program{};
-        GLuint                    texture_id_solid_color{};
-        GLuint                    texture_id_current{};
-        UFont                     debug_font;
-        VertexBufferData          vertex_buffer_data{VBO_BUFFER_CHUNK_SIZE};
-        std::vector<RenderBatch>  renderBatches; // TODO revive for buffered mode
+        // GLuint                   fill_shader_program{};
+        // GLuint                   stroke_shader_program{};
+        GLuint                   texture_id_solid_color{};
+        GLuint                   texture_id_current{};
+        UFont                    debug_font;
+        VertexBufferData         vertex_buffer_data{VBO_BUFFER_CHUNK_SIZE};
+        std::vector<RenderBatch> renderBatches; // TODO revive for buffered mode
 
         /* --- OpenGL 3.3 specific implementation of shared methods --- */
 

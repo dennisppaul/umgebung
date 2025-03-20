@@ -35,6 +35,7 @@
 namespace umgebung {
     class PFont;
     class PMesh;
+    class PShader;
 
     class PGraphics : public virtual PImage {
     public:
@@ -111,41 +112,43 @@ namespace umgebung {
         virtual void strokeJoin(int join);
         virtual void strokeCap(int cap);
 
-        virtual void    bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
-        virtual void    bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
-        virtual void    bezierDetail(int detail);
-        virtual void    ellipse(float x, float y, float width, float height);
-        virtual void    ellipseMode(int mode);
-        virtual void    ellipseDetail(int detail);
-        virtual void    circle(float x, float y, float diameter);
-        virtual void    image(PImage* img, float x, float y, float w, float h);
-        virtual void    image(PImage* img, float x, float y);
-        virtual void    texture(PImage* img = nullptr);
-        virtual PImage* loadImage(const std::string& filename);
-        virtual void    line(float x1, float y1, float z1, float x2, float y2, float z2);
-        virtual void    line(float x1, float y1, float x2, float y2);
-        virtual void    point(float x, float y, float z = 0.0f);
-        virtual void    pointSize(float size);
-        virtual void    quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
-        virtual void    rect(float x, float y, float width, float height);
-        virtual void    rectMode(int mode);
-        virtual void    square(const float x, const float y, const float extent) { rect(x, y, extent, extent); }
-        virtual void    triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
-        virtual void    textFont(PFont* font);
-        virtual void    textSize(float size);
-        virtual void    text(const char* value, float x, float y, float z = 0.0f);
-        virtual float   textWidth(const std::string& text);
-        virtual PFont*  loadFont(const std::string& file, float size);
-        virtual void    box(float width, float height, float depth);
-        virtual void    box(const float size) { box(size, size, size); }
-        virtual void    sphere(float width, float height, float depth);
-        virtual void    sphere(const float size) { sphere(size, size, size); }
-        virtual void    vertex(float x, float y, float z, float u, float v);
-        virtual void    vertex(float x, float y, float z = 0.0f);
-        virtual void    beginShape(int shape = POLYGON);
-        void            process_collected_fill_vertices();
-        void            process_collected_stroke_vertices(bool close_shape);
-        virtual void    endShape(bool close_shape = false);
+        virtual void     bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
+        virtual void     bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
+        virtual void     bezierDetail(int detail);
+        virtual void     ellipse(float x, float y, float width, float height);
+        virtual void     ellipseMode(int mode);
+        virtual void     ellipseDetail(int detail);
+        virtual void     circle(float x, float y, float diameter);
+        virtual void     image(PImage* img, float x, float y, float w, float h);
+        virtual void     image(PImage* img, float x, float y);
+        virtual void     texture(PImage* img = nullptr);
+        virtual PImage*  loadImage(const std::string& filename);
+        virtual void     line(float x1, float y1, float z1, float x2, float y2, float z2);
+        virtual void     line(float x1, float y1, float x2, float y2);
+        virtual void     point(float x, float y, float z = 0.0f);
+        virtual void     pointSize(float size);
+        virtual void     quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
+        virtual void     rect(float x, float y, float width, float height);
+        virtual void     rectMode(int mode);
+        virtual void     square(const float x, const float y, const float extent) { rect(x, y, extent, extent); }
+        virtual void     triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
+        virtual void     textFont(PFont* font);
+        virtual void     textSize(float size);
+        virtual void     text(const char* value, float x, float y, float z = 0.0f);
+        virtual float    textWidth(const std::string& text);
+        virtual PFont*   loadFont(const std::string& file, float size);
+        virtual void     box(float width, float height, float depth);
+        virtual void     box(const float size) { box(size, size, size); }
+        virtual void     sphere(float width, float height, float depth);
+        virtual void     sphere(const float size) { sphere(size, size, size); }
+        virtual void     vertex(float x, float y, float z, float u, float v);
+        virtual void     vertex(float x, float y, float z = 0.0f);
+        virtual void     beginShape(int shape = POLYGON);
+        void             process_collected_fill_vertices();
+        void             process_collected_stroke_vertices(bool close_shape);
+        virtual void     endShape(bool close_shape = false);
+        virtual void     shader(PShader* shader) {}
+        virtual PShader* loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "") { return nullptr; };
         // virtual void    lights()                                                                                           = 0;
 
         /* --- additional --- */
@@ -220,6 +223,8 @@ namespace umgebung {
         std::vector<Vertex>              shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
         int                              last_bound_texture_id_cache{TEXTURE_NONE};
         bool                             model_matrix_dirty{false};
+        PShader*                         default_shader{nullptr};
+        PShader*                         current_shader{nullptr};
 
     public:
         glm::mat4              model_matrix{};
@@ -248,11 +253,11 @@ namespace umgebung {
             return {color.r, color.g, color.b, color.a};
         }
 
-        void push_color_state(const ColorState& current, std::vector<ColorState>& stack) const {
+        static void push_color_state(const ColorState& current, std::vector<ColorState>& stack) {
             stack.push_back(current);
         }
 
-        void pop_color_state(ColorState& current, std::vector<ColorState>& stack) const {
+        static void pop_color_state(ColorState& current, std::vector<ColorState>& stack) {
             if (!stack.empty()) {
                 current = stack.back();
                 stack.pop_back();

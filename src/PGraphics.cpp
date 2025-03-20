@@ -424,7 +424,6 @@ void PGraphics::endShape(const bool close_shape) {
     shape_has_begun = false;
 }
 
-
 void PGraphics::bezier(const float x1, const float y1,
                        const float x2, const float y2,
                        const float x3, const float y3,
@@ -457,7 +456,6 @@ void PGraphics::bezier(const float x1, const float y1,
     }
     endShape();
 }
-
 
 void PGraphics::bezier(const float x1, const float y1, const float z1,
                        const float x2, const float y2, const float z2,
@@ -492,11 +490,9 @@ void PGraphics::bezier(const float x1, const float y1, const float z1,
     endShape();
 }
 
-
 void PGraphics::bezierDetail(const int detail) {
     bezier_detail = detail;
 }
-
 
 void PGraphics::ellipse(const float x, const float y, const float width, const float height) {
     if (!color_fill.active && !color_stroke.active) {

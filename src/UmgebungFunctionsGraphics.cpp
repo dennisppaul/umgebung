@@ -471,4 +471,19 @@ namespace umgebung {
         }
         g->mesh(mesh_shape);
     }
+
+    void shader(PShader* shader) {
+        if (g == nullptr) {
+            return;
+        }
+        g->shader(shader);
+    }
+
+    PShader* loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code) {
+        if (g == nullptr) {
+            error("`loadShader` is only available after `settings()` has finished");
+            return nullptr;
+        }
+        return g->loadShader(vertex_code, fragment_code, geometry_code);
+    }
 } // namespace umgebung

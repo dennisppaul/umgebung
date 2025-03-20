@@ -22,16 +22,14 @@
 #include "ShaderSource.h"
 
 namespace umgebung {
-    inline ShaderSource shader_source_default{
-        .vertex = R"(
+    inline ShaderSource shader_source_color{
+        .vertex   = R"(
             #version 330 core
 
             layout(location = 0) in vec3 aPosition;
             layout(location = 1) in vec4 aColor;
-            layout(location = 2) in vec2 aTexCoord;
 
             out vec4 vColor;
-            out vec2 vTexCoord;
 
             uniform mat4 uProjection;
             uniform mat4 uViewMatrix;
@@ -40,23 +38,18 @@ namespace umgebung {
             void main() {
                 gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
                 vColor = aColor;
-                vTexCoord = aTexCoord;
             }
         )",
         .fragment = R"(
             #version 330 core
 
             in vec4 vColor;
-            in vec2 vTexCoord;
 
             out vec4 FragColor;
 
-            uniform sampler2D uTexture;
-
             void main() {
-                FragColor = texture(uTexture, vTexCoord) * vColor;
+                FragColor = vec4(vColor);
             }
         )",
-        .geometry = ""
-    };
+        .geometry = ""};
 }

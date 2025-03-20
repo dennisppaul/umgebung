@@ -21,8 +21,6 @@
 #include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv33.h"
 
-#include "ShaderSourceBasic.h"
-
 namespace umgebung {
     static void       setup_pre();
     static void       setup_post();
@@ -56,97 +54,97 @@ namespace umgebung {
         SDL_SetWindowPosition(window, mDisplayLocation, mDisplayLocation);
     }
 
-    /* --- draw FBO --- */
-
-//     static auto vertexShaderSrc = R"(
-//     #version 330 core
-//     layout (location = 0) in vec2 aPos;
-//     layout (location = 1) in vec2 aTexCoord;
-//     out vec2 TexCoord;
-//     void main() {
-//         gl_Position = vec4(aPos, 0.0, 1.0);
-//         TexCoord = aTexCoord;
-//     }
-// )";
-//
-//     static auto fragmentShaderSrc = R"(
-//     #version 330 core
-//     in vec2 TexCoord;
-//     out vec4 FragColor;
-//     uniform sampler2D screenTexture;
-//     void main() {
-//         FragColor = texture(screenTexture, TexCoord);
-//     }
-// )";
-
-    static GLuint screenVAO, screenVBO;
-    static GLuint shaderProgram;
-
-    GLuint compileShader(const GLenum type, const char* source) {
-        const GLuint shader = glCreateShader(type);
-        glShaderSource(shader, 1, &source, nullptr);
-        glCompileShader(shader);
-
-        GLint success;
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-        if (!success) {
-            char infoLog[512];
-            glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-            error("Shader Compilation Error: ", infoLog);
-        }
-        return shader;
-    }
-
-    static void init_FBO_drawing() {
-        // Compile shaders
-        const GLuint vertexShader   = compileShader(GL_VERTEX_SHADER, shader_source_basic.vertex);
-        const GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, shader_source_basic.fragment);
-
-        // Link shader program
-        shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, vertexShader);
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);
-
-        GLint success;
-        glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-        if (!success) {
-            char infoLog[512];
-            glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
-            std::cerr << "Shader Linking Error: " << infoLog << std::endl;
-        }
-
-        // Clean up shaders
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
-
-        // Define fullscreen quad vertices with texture coordinates
-        constexpr float quadVertices[] = {
-            // Pos      // Tex Coords
-            -1.0f, -1.0f, 0.0f, 0.0f,
-            1.0f, -1.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 1.0f, 1.0f,
-
-            -1.0f, -1.0f, 0.0f, 0.0f,
-            1.0f, 1.0f, 1.0f, 1.0f,
-            -1.0f, 1.0f, 0.0f, 1.0f};
-
-        // Generate VAO and VBO
-        glGenVertexArrays(1, &screenVAO);
-        glGenBuffers(1, &screenVBO);
-
-        glBindVertexArray(screenVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), static_cast<void*>(0));
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) (2 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
+    // /* --- draw FBO --- */
+    //
+    //     static auto vertexShaderSrc = R"(
+    //     #version 330 core
+    //     layout (location = 0) in vec2 aPos;
+    //     layout (location = 1) in vec2 aTexCoord;
+    //     out vec2 TexCoord;
+    //     void main() {
+    //         gl_Position = vec4(aPos, 0.0, 1.0);
+    //         TexCoord = aTexCoord;
+    //     }
+    // )";
+    //
+    //     static auto fragmentShaderSrc = R"(
+    //     #version 330 core
+    //     in vec2 TexCoord;
+    //     out vec4 FragColor;
+    //     uniform sampler2D screenTexture;
+    //     void main() {
+    //         FragColor = texture(screenTexture, TexCoord);
+    //     }
+    // )";
+    //
+    // static GLuint screenVAO, screenVBO;
+    // static GLuint shaderProgram;
+    //
+    // GLuint compileShader(const GLenum type, const char* source) {
+    //     const GLuint shader = glCreateShader(type);
+    //     glShaderSource(shader, 1, &source, nullptr);
+    //     glCompileShader(shader);
+    //
+    //     GLint success;
+    //     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    //     if (!success) {
+    //         char infoLog[512];
+    //         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+    //         error("Shader Compilation Error: ", infoLog);
+    //     }
+    //     return shader;
+    // }
+    //
+    // static void init_FBO_drawing() {
+    //     // Compile shaders
+    //     const GLuint vertexShader   = compileShader(GL_VERTEX_SHADER, shader_source_basic.vertex);
+    //     const GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, shader_source_basic.fragment);
+    //
+    //     // Link shader program
+    //     shaderProgram = glCreateProgram();
+    //     glAttachShader(shaderProgram, vertexShader);
+    //     glAttachShader(shaderProgram, fragmentShader);
+    //     glLinkProgram(shaderProgram);
+    //
+    //     GLint success;
+    //     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    //     if (!success) {
+    //         char infoLog[512];
+    //         glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
+    //         std::cerr << "Shader Linking Error: " << infoLog << std::endl;
+    //     }
+    //
+    //     // Clean up shaders
+    //     glDeleteShader(vertexShader);
+    //     glDeleteShader(fragmentShader);
+    //
+    //     // Define fullscreen quad vertices with texture coordinates
+    //     constexpr float quadVertices[] = {
+    //         // Pos      // Tex Coords
+    //         -1.0f, -1.0f, 0.0f, 0.0f,
+    //         1.0f, -1.0f, 1.0f, 0.0f,
+    //         1.0f, 1.0f, 1.0f, 1.0f,
+    //
+    //         -1.0f, -1.0f, 0.0f, 0.0f,
+    //         1.0f, 1.0f, 1.0f, 1.0f,
+    //         -1.0f, 1.0f, 0.0f, 1.0f};
+    //
+    //     // Generate VAO and VBO
+    //     glGenVertexArrays(1, &screenVAO);
+    //     glGenBuffers(1, &screenVBO);
+    //
+    //     glBindVertexArray(screenVAO);
+    //     glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
+    //     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    //
+    //     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), static_cast<void*>(0));
+    //     glEnableVertexAttribArray(0);
+    //     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) (2 * sizeof(float)));
+    //     glEnableVertexAttribArray(1);
+    //
+    //     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //     glBindVertexArray(0);
+    // }
 
     static bool init() { // TODO maybe merge v2.0 & v3.3 they are identical except for SDL_GL_CONTEXT_PROFILE_MASK + SDL_GL_CONTEXT_MAJOR_VERSION + SDL_GL_CONTEXT_MINOR_VERSION
         // NOTE this is identical with the other OpenGL renderer >>>
@@ -248,13 +246,13 @@ namespace umgebung {
 
         PGraphicsOpenGL::set_default_graphics_state();
         draw_pre();
-        // <<< NOTE this is identical with the other OpenGL renderer
-
-        if (g->render_to_offscreen && !blit_framebuffer_object_to_screenbuffer) {
-            init_FBO_drawing(); // NOTE this is only necessary if FBO is not blitted
-        }
 
         checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_pre(end)");
+        // <<< NOTE this is identical with the other OpenGL renderer
+
+        // if (g->render_to_offscreen && !blit_framebuffer_object_to_screenbuffer) {
+        //     init_FBO_drawing(); // NOTE this is only necessary if FBO is not blitted
+        // }
     }
 
     static void setup_post() {
