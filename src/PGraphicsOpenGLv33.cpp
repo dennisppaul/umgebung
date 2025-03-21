@@ -135,9 +135,9 @@ void PGraphicsOpenGLv33::emit_shape_stroke_line_strip(std::vector<Vertex>& line_
     /*
      * OpenGL ES 3.1 is stricter:
      *
-     * 1.	No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
-     * 2.	No glLineWidth support at all.
-     * 3.	Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
+     * 1. No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
+     * 2. No glLineWidth support at all.
+     * 3. Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
      *
      * i.e GL_LINES + GL_LINE_STRIP must be emulated
      */
@@ -559,12 +559,22 @@ void PGraphicsOpenGLv33::OGL3_init_vertex_buffer(VertexBufferData& vertex_buffer
     glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertex_buffer.num_vertices * sizeof(Vertex)), nullptr, GL_DYNAMIC_DRAW);
 
     // set up attribute pointers. NOTE make sure to align to locations in shader.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, tex_coord)));
-    glEnableVertexAttribArray(2);
+    constexpr int ATTRIBUTE_LOCATION_POSITION = 0;
+    constexpr int ATTRIBUTE_LOCATION_NORMAL   = 1;
+    constexpr int ATTRIBUTE_LOCATION_COLOR    = 2;
+    constexpr int ATTRIBUTE_LOCATION_TEXCOORD = 3;
+    constexpr int ATTRIBUTE_SIZE_POSITION     = 4;
+    constexpr int ATTRIBUTE_SIZE_NORMAL       = 4;
+    constexpr int ATTRIBUTE_SIZE_COLOR        = 4;
+    constexpr int ATTRIBUTE_SIZE_TEXCOORD     = 2;
+    glVertexAttribPointer(ATTRIBUTE_LOCATION_POSITION, ATTRIBUTE_SIZE_POSITION, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
+    glEnableVertexAttribArray(ATTRIBUTE_LOCATION_POSITION);
+    glVertexAttribPointer(ATTRIBUTE_LOCATION_NORMAL, ATTRIBUTE_SIZE_NORMAL, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+    glEnableVertexAttribArray(ATTRIBUTE_LOCATION_NORMAL);
+    glVertexAttribPointer(ATTRIBUTE_LOCATION_COLOR, ATTRIBUTE_SIZE_COLOR, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
+    glEnableVertexAttribArray(ATTRIBUTE_LOCATION_COLOR);
+    glVertexAttribPointer(ATTRIBUTE_LOCATION_TEXCOORD, ATTRIBUTE_SIZE_TEXCOORD, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, tex_coord)));
+    glEnableVertexAttribArray(ATTRIBUTE_LOCATION_TEXCOORD);
 
     glBindVertexArray(0);
 }
@@ -637,7 +647,7 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Vert
         // NOTE depending on the number of vertices transformation are handle on the GPU
         if (shape_vertices.size() <= MAX_NUM_VERTICES_CLIENT_SIDE_TRANSFORM) {
             for (auto& p: shape_vertices) {
-                p.position = glm::vec3(model_matrix * glm::vec4(p.position, 1.0f));
+                p.position = glm::vec4(model_matrix * p.position);
             }
         } else {
             mModelMatrixTransformOnGPU = true;

@@ -26,7 +26,7 @@ namespace umgebung {
         .vertex   = R"(
             #version 330 core
 
-            layout(location = 0) in vec3 aPosition;
+            layout(location = 0) in vec4 aPosition;
             layout(location = 1) in vec4 aColor;
 
             out vec4 vColor;
@@ -36,7 +36,7 @@ namespace umgebung {
             uniform mat4 uModelMatrix;
 
             void main() {
-                gl_Position = uProjection * uViewMatrix * uModelMatrix * vec4(aPosition, 1.0);
+                gl_Position = uProjection * uViewMatrix * uModelMatrix * aPosition;
                 vColor = aColor;
             }
         )",

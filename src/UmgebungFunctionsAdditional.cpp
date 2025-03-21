@@ -256,7 +256,8 @@ namespace umgebung {
                 vertex.position = {
                     attrib.vertices[3 * index.vertex_index + 0],
                     attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2]};
+                    attrib.vertices[3 * index.vertex_index + 2],
+                    1.0f};
 
                 // Texture coordinate (if available)
                 if (index.texcoord_index >= 0) {
@@ -268,12 +269,12 @@ namespace umgebung {
                     vertex.tex_coord = {0.0f, 0.0f}; // No texture coordinates
                 }
 
-                // // TODO add normals once Vertex is upgraded
-                // // Normals
-                // vertex.normal = {
-                //     attrib.normals[3 * index.normal_index + 0],
-                //     attrib.normals[3 * index.normal_index + 1],
-                //     attrib.normals[3 * index.normal_index + 2]};
+                // Normals
+                vertex.normal = {
+                    attrib.normals[3 * index.normal_index + 0],
+                    attrib.normals[3 * index.normal_index + 1],
+                    attrib.normals[3 * index.normal_index + 2],
+                    0.0};
 
                 // Get correct material index per face
                 if (i % 3 == 0) { // Every 3 vertices = new face

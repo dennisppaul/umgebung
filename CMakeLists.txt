@@ -145,7 +145,9 @@ target_include_directories(umgebung-lib PUBLIC
 ### EN/DISABLE LIBRARIES                                                                               ###
 ##########################################################################################################
 
-add_library(umgebung-lib-interface INTERFACE)
+add_library(umgebung-lib-interface INTERFACE) # this enables `glm::aligned_vec*` types
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC GLM_ENABLE_EXPERIMENTAL)
 
 if (NOT DISABLE_MAIN)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)
