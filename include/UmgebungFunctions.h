@@ -121,6 +121,8 @@ namespace umgebung {
     std::string              loadString(std::string& file_path);
     std::vector<std::string> loadString(const std::string& file_path);
     std::vector<uint8_t>     loadBytes(const std::string& file_path);
+    std::string              selectFolder(const std::string& prompt);
+    std::string              selectInput(const std::string& prompt);
 
     // ### Time & Date
 

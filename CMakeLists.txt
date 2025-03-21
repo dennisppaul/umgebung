@@ -89,6 +89,7 @@ if (APPLE)
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.mm
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.c
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/libtess2/*.c
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/clipper/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/ip/*.cpp
@@ -99,6 +100,7 @@ elseif (UNIX)
     file(GLOB UMGEBUNG_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.c
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/libtess2/*.c
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/clipper/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/ip/*.cpp
@@ -109,6 +111,7 @@ elseif (WIN32)
     file(GLOB UMGEBUNG_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.c
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/libtess2/*.c
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/clipper/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/ip/*.cpp
@@ -119,6 +122,7 @@ else ()
     file(GLOB UMGEBUNG_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.c
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/libtess2/*.c
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/clipper/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/ip/*.cpp

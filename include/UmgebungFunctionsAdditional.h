@@ -65,7 +65,7 @@ namespace umgebung {
     void                     audio_start(PAudio* device = nullptr);
     void                     audio_stop(PAudio* device = nullptr);
     bool                     is_initialized();
-    std::string              get_window_title();
+    std::string              get_window_title(); // TODO maybe add setter
     void                     set_frame_rate(float fps);
     SDL_WindowFlags          get_SDL_WindowFlags(SDL_WindowFlags& flags);
     void                     register_library(LibraryListener* listener);         /* implemented in subsystems */

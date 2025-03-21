@@ -29,9 +29,9 @@
 #include <chrono>
 
 #include <SDL3/SDL.h>
-
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "tinyfiledialogs.h"
 
 #include "Umgebung.h"
 #include "SimplexNoise.h"
@@ -594,5 +594,33 @@ namespace umgebung {
 
     void saveFrame() {
         saveFrame(sketchPath() + "screenshot-" + nfs(frameCount, 4) + ".png");
+    }
+
+    std::string selectFolder(const std::string& prompt) {
+        const char* folder_path = tinyfd_selectFolderDialog(
+            prompt.c_str(),      // title
+            sketchPath().c_str() // default path
+        );
+
+        if (folder_path) {
+            return folder_path;
+        }
+        return "";
+    }
+
+    std::string selectInput(const std::string& prompt) {
+        const char* save_path = tinyfd_openFileDialog(
+            prompt.c_str(),       // title
+            sketchPath().c_str(), // default path and file
+            0,                    // number of filter patterns
+            nullptr,              // filter patterns
+            nullptr,              // single filter description
+            1);
+
+        if (save_path) {
+            return save_path;
+        }
+
+        return "";
     }
 } // namespace umgebung

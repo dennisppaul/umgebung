@@ -85,8 +85,8 @@
 - [ ] `parseJSONArray()` :: Takes a *String*, parses its contents, and returns a *JSONArray*
 - [ ] `parseJSONObject()` :: Takes a *String*, parses its contents, and returns a*JSONObject*
 - [ ] `parseXML()` :: Converts String content to an *XML* object
-- [ ] `selectFolder()` :: Opens a platform-specific file chooser dialog to select a folder
-- [ ] `selectInput()` :: Open a platform-specific file chooser dialog to select a file for input
+- [x] `selectFolder()` :: Opens a platform-specific file chooser dialog to select a folder
+- [x] `selectInput()` :: Open a platform-specific file chooser dialog to select a file for input
 
 ### Time & Date
 

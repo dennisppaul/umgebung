@@ -51,6 +51,10 @@ namespace umgebung {
         return UMGEBUNG_WINDOW_TITLE;
     }
 
+    void set_window_title(std::string title) {
+        // TODO
+    }
+
     void set_frame_rate(const float fps) {
         target_frame_duration = 1.0 / fps;
     }
