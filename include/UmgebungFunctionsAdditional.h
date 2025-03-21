@@ -26,6 +26,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <functional>
 
 #include "UmgebungDefines.h"
 #include "UmgebungConstants.h"
@@ -141,5 +142,19 @@ namespace umgebung {
 
     inline std::string separator(const bool equal_sign = true, const std::size_t length = 80) {
         return std::string(length, equal_sign ? '=' : '-');
+    }
+
+    using namespace std::chrono;
+
+    template<typename Func, typename... Args>
+    double time_function_ms(Func&& func, Args&&... args) {
+        const auto start = high_resolution_clock::now();
+
+        // Call the function with forwarded arguments
+        std::invoke(std::forward<Func>(func), std::forward<Args>(args)...);
+
+        const auto                         end     = high_resolution_clock::now();
+        const duration<double, std::milli> elapsed = end - start;
+        return elapsed.count(); // in milliseconds
     }
 } // namespace umgebung
