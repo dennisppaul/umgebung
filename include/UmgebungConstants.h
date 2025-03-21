@@ -35,6 +35,7 @@ namespace umgebung {
     static constexpr int   DEFAULT_AUDIO_BUFFER_SIZE      = 1024;
     static constexpr int   DEFAULT_INPUT_CHANNELS         = 1;
     static constexpr int   DEFAULT_OUTPUT_CHANNELS        = 2;
+    static constexpr int   DEFAULT_BYTES_PER_PIXELS       = 4;
     static constexpr int   AUDIO_DEVICE_FIND_BY_NAME      = -2;
     static constexpr int   AUDIO_DEVICE_NOT_FOUND         = -3;
     static constexpr int   AUDIO_UNIT_NOT_INITIALIZED     = -4;
@@ -76,7 +77,7 @@ namespace umgebung {
     static constexpr int   PROJECT                        = 0x27;
     static constexpr int   POINTED                        = 0x28;
     static constexpr int   STROKE_RENDER_MODE_NATIVE      = 0x30; // line render mode
-    static constexpr int   STROKE_RENDER_MODE_TRIANGULATE = 0x31;
+    static constexpr int   STROKE_RENDER_MODE_TRIANGULATE_2D = 0x31;
     static constexpr int   POINT_RENDER_MODE_NATIVE       = 0x32;
     static constexpr int   POINT_RENDER_MODE_TRIANGULATE  = 0x33;
     static constexpr int   POLYGON_TRIANGULATION_FASTER   = 0x10;

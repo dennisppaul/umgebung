@@ -46,14 +46,8 @@ namespace umgebung {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
 
-        // Common FBO management (can be partially overridden)
-        virtual void store_current_fbo() {
-            glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previously_bound_FBO);
-        }
-
-        virtual void restore_previous_fbo() {
-            glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO);
-        }
+        virtual void store_fbo_state()   = 0;
+        virtual void restore_fbo_state() = 0;
 
         // matrix management is implementation-specific, so these are pure virtual
         virtual void setup_fbo()        = 0;
@@ -63,7 +57,7 @@ namespace umgebung {
 
         void beginDraw() override {
             if (render_to_offscreen) {
-                store_current_fbo();
+                store_fbo_state();
                 setup_fbo();
             }
             prepare_frame();
@@ -73,7 +67,7 @@ namespace umgebung {
         void endDraw() override {
             if (render_to_offscreen) {
                 restore_matrices();
-                restore_previous_fbo();
+                restore_fbo_state();
                 finish_fbo();
             }
         }
@@ -93,9 +87,6 @@ namespace umgebung {
         void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override = 0;
         void        download_texture(PImage* img) override                                                                                              = 0;
         std::string name() override                                                                                                                     = 0;
-
-    protected:
-        GLint previously_bound_FBO = 0;
     };
 
     // TODO @maybe move the functions below into the class above
@@ -245,31 +236,31 @@ namespace umgebung {
         switch (shape) {
             case TRIANGLES:
                 _shape = GL_TRIANGLES;
-            break;
+                break;
             case TRIANGLE_STRIP:
                 _shape = GL_TRIANGLE_STRIP;
-            break;
+                break;
             case TRIANGLE_FAN:
                 _shape = GL_TRIANGLE_FAN;
-            break;
+                break;
             case QUADS:
                 _shape = GL_QUADS;
-            break;
+                break;
             case QUAD_STRIP:
                 _shape = GL_QUAD_STRIP;
-            break;
+                break;
             case POLYGON:
                 _shape = GL_POLYGON;
-            break;
+                break;
             case POINTS:
                 _shape = GL_POINTS;
-            break;
+                break;
             case LINES:
                 _shape = GL_LINES;
-            break;
+                break;
             case LINE_STRIP:
                 _shape = GL_LINE_STRIP;
-            break;
+                break;
             default:
                 _shape = GL_TRIANGLES;
         }

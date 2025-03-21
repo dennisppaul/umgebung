@@ -38,6 +38,10 @@ namespace umgebung {
         void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override;
         void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override;
 
+        void read_framebuffer(std::vector<unsigned char>& pixels) override;
+        void store_fbo_state() override;
+        void restore_fbo_state() override;
+
         void        restore_matrices() override {}
         void        reset_matrices() override;
         void        prepare_frame() override;
@@ -90,8 +94,9 @@ namespace umgebung {
         GLuint                    texture_id_current{};
         UFont                     debug_font;
         VertexBufferData          vertex_buffer_data{VBO_BUFFER_CHUNK_SIZE};
-        // TODO revive for buffered mode
-        std::vector<RenderBatch> renderBatches;
+        std::vector<RenderBatch>  renderBatches; // TODO revive for buffered mode
+        GLint                     previously_bound_read_FBO = 0;
+        GLint                     previously_bound_draw_FBO = 0;
 
         /* --- OpenGL ( 2.0 + 3.3 ) specific methods --- */
 

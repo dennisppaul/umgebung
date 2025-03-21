@@ -252,7 +252,6 @@ void PGraphics::ellipseDetail(const int detail) {
 void PGraphics::beginShape(const int shape) {
     shape_fill_vertex_buffer.clear();
     shape_stroke_vertex_buffer.clear();
-    // shape_stroke_vertex_cache_vec3_DEPRECATED.clear();
     shape_mode_cache = shape;
     shape_has_begun  = true;
 }
@@ -322,7 +321,7 @@ void PGraphics::process_collected_stroke_vertices(const bool close_shape) {
         }
 
         // TODO this decision has been moved to `emit_shape_stroke_line_strip()`
-        if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
+        if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE_2D) {
             switch (tmp_shape_mode_cache) {
                 case LINES: {
                     const int buffer_size = shape_stroke_vertex_buffer.size() / 2 * 2;
@@ -419,7 +418,6 @@ void PGraphics::endShape(const bool close_shape) {
     process_collected_stroke_vertices(close_shape);
     shape_fill_vertex_buffer.clear();
     shape_stroke_vertex_buffer.clear();
-    // shape_stroke_vertex_cache_vec3_DEPRECATED.clear();
     shape_has_begun = false;
 }
 

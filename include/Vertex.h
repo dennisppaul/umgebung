@@ -23,8 +23,6 @@
 #include <glm/gtx/type_aligned.hpp>
 
 namespace umgebung {
-
-
     struct Vertex {
         static constexpr auto DEFAULT_POSITION  = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
         static constexpr auto DEFAULT_NORMAL    = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);

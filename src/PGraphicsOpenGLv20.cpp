@@ -663,6 +663,60 @@ void PGraphicsOpenGLv20::download_texture(PImage* img) {
     error("`download_texture` not implemented ( might be called from `PImage`, `Capture` ,or `Movie` )");
 }
 
+void PGraphicsOpenGLv20::render_framebuffer_to_screen(bool use_blit) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    glDisable(GL_ALPHA_TEST);
+
+    const float viewport_width  = framebuffer.width;
+    const float viewport_height = framebuffer.height;
+    const float ortho_width     = width;
+    const float ortho_height    = height;
+
+    glViewport(0, 0, viewport_width, viewport_height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, ortho_width, 0, ortho_height, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    bind_framebuffer_texture();
+    glEnable(GL_TEXTURE_2D);
+    glColor4f(1, 1, 1, 1);
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0, 0.0);
+    glVertex2f(0, 0);
+    glTexCoord2f(1.0, 0.0);
+    glVertex2f(static_cast<float>(framebuffer.width), 0);
+    glTexCoord2f(1.0, 1.0);
+    glVertex2f(static_cast<float>(framebuffer.width),
+               static_cast<float>(framebuffer.height));
+    glTexCoord2f(0.0, 1.0);
+    glVertex2f(0, static_cast<float>(framebuffer.height));
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D);
+    glPopAttrib();
+}
+
+void PGraphicsOpenGLv20::read_framebuffer(std::vector<unsigned char>& pixels) {
+    const int _width  = framebuffer.width;
+    const int _height = framebuffer.height;
+    pixels.resize(_width * _height * DEFAULT_BYTES_PER_PIXELS);
+
+    store_fbo_state();
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id); // Bind the correct framebuffer
+    glReadPixels(0, 0, _width, _height,
+                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                 UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                 pixels.data());
+    restore_fbo_state();
+}
+
 #ifndef DISABLE_GRAPHICS
 #else // DISABLE_GRAPHICS
 void PGraphicsOpenGLv20::popMatrix() {

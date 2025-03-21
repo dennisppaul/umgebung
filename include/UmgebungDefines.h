@@ -78,3 +78,5 @@
      (uint32_t) ((uint8_t) (_r * 255.0f)));         \
 })
 #endif // HSBA
+
+#define TIME_FUNCTION_MS(fn) time_function_ms([&]() { fn; })

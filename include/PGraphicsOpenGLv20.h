@@ -31,44 +31,16 @@ namespace umgebung {
 
         void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override {}
         void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override {}
-        void render_framebuffer_to_screen(bool use_blit = false) override {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glPushAttrib(GL_ALL_ATTRIB_BITS);
+        void render_framebuffer_to_screen(bool use_blit = false) override;
 
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_BLEND);
-            glDisable(GL_ALPHA_TEST);
+        void read_framebuffer(std::vector<unsigned char>& pixels) override ;
 
-            const float viewport_width  = framebuffer.width;
-            const float viewport_height = framebuffer.height;
-            const float ortho_width     = width;
-            const float ortho_height    = height;
+        void store_fbo_state() override {
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previously_bound_FBO);
+        }
 
-            glViewport(0, 0, viewport_width, viewport_height);
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glOrtho(0, ortho_width, 0, ortho_height, -1, 1);
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-
-            bind_framebuffer_texture();
-            glEnable(GL_TEXTURE_2D);
-            glColor4f(1, 1, 1, 1);
-
-            glBegin(GL_QUADS);
-            glTexCoord2f(0.0, 0.0);
-            glVertex2f(0, 0);
-            glTexCoord2f(1.0, 0.0);
-            glVertex2f(static_cast<float>(framebuffer.width), 0);
-            glTexCoord2f(1.0, 1.0);
-            glVertex2f(static_cast<float>(framebuffer.width),
-                       static_cast<float>(framebuffer.height));
-            glTexCoord2f(0.0, 1.0);
-            glVertex2f(0, static_cast<float>(framebuffer.height));
-            glEnd();
-
-            glDisable(GL_TEXTURE_2D);
-            glPopAttrib();
+        void restore_fbo_state() override {
+            glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO);
         }
 
         void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
@@ -163,5 +135,6 @@ namespace umgebung {
     private:
         bool                enabled_texture_in_shape = false;
         std::vector<Vertex> outline_vertices;
+        GLint               previously_bound_FBO = 0;
     };
 } // namespace umgebung

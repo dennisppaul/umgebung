@@ -108,7 +108,7 @@ void PGraphicsOpenGLv33::emit_shape_stroke_line_strip(std::vector<Vertex>& line_
     // TODO maybe add stroke recorder here ( need to transform vertices to world space )
 
     if (render_mode == RENDER_MODE_BUFFERED) {
-        if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
+        if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE_2D) {
             std::vector<Vertex> line_vertices;
             triangulate_line_strip_vertex(line_strip_vertices, line_strip_closed, line_vertices);
             // TODO collect `line_vertices` and render as `GL_TRIANGLES` at end of frame
@@ -122,7 +122,7 @@ void PGraphicsOpenGLv33::emit_shape_stroke_line_strip(std::vector<Vertex>& line_
         if (vertex_buffer_data.uninitialized()) {
             OGL3_init_vertex_buffer(vertex_buffer_data);
         }
-        if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE) {
+        if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE_2D) {
             std::vector<Vertex> line_vertices;
             triangulate_line_strip_vertex(line_strip_vertices, line_strip_closed, line_vertices);
             OGL3_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, line_vertices);
@@ -694,4 +694,24 @@ void PGraphicsOpenGLv33::shader(PShader* shader) {
 void PGraphicsOpenGLv33::resetShader() {
     default_shader->use();
     current_shader = default_shader;
+}
+
+void PGraphicsOpenGLv33::read_framebuffer(std::vector<unsigned char>& pixels) {
+    const int _width  = framebuffer.width;
+    const int _height = framebuffer.height;
+    pixels.resize(_width * _height * DEFAULT_BYTES_PER_PIXELS);
+    store_fbo_state();
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.id); // Bind the correct framebuffer
+    glReadPixels(0, 0, _width, _height, UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT, UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE, pixels.data());
+    restore_fbo_state();
+}
+
+void PGraphicsOpenGLv33::store_fbo_state() {
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &previously_bound_read_FBO);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previously_bound_draw_FBO);
+}
+
+void PGraphicsOpenGLv33::restore_fbo_state() {
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, previously_bound_read_FBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previously_bound_draw_FBO);
 }

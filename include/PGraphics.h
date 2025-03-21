@@ -60,6 +60,7 @@ namespace umgebung {
         virtual void IMPL_set_texture(PImage* img) {}
 
         virtual void render_framebuffer_to_screen(bool use_blit = false) {} // TODO this should probably go to PGraphicsOpenGL
+        virtual void read_framebuffer(std::vector<unsigned char>& pixels) {}
 
         /* --- implementation specific methods ( pure virtual ) --- */
 
@@ -207,13 +208,13 @@ namespace umgebung {
         int                              texture_id_current{};
         bool                             shape_has_begun{false};
         int                              polygon_triangulation_strategy{POLYGON_TRIANGULATION_BETTER};
-        int                              line_render_mode{STROKE_RENDER_MODE_TRIANGULATE};
+        int                              line_render_mode{STROKE_RENDER_MODE_TRIANGULATE_2D};
         int                              point_render_mode{POINT_RENDER_MODE_TRIANGULATE};
         int                              stroke_join_mode{BEVEL_FAST};
         int                              stroke_cap_mode{PROJECT};
         float                            stroke_join_round_resolution{glm::radians(20.0f)}; // TODO maybe make these configurable
         float                            stroke_cap_round_resolution{glm::radians(20.0f)};  // 20° resolution i.e 18 segment for whole circle
-        float                            stroke_join_miter_max_angle{165.0f};
+        float                            stroke_join_miter_max_angle{163.0f};
         inline static const Triangulator triangulator{};
         std::vector<ColorState>          color_stroke_stack{};
         std::vector<ColorState>          color_fill_stack{};

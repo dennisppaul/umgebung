@@ -188,6 +188,11 @@ namespace umgebung {
 #endif
     }
 
+    // ### Image
+
+    void saveFrame(const std::string& filename);
+    void saveFrame();
+
     // ## Color
 
     // ### Creating & Reading

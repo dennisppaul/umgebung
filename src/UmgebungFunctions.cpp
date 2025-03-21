@@ -30,6 +30,9 @@
 
 #include <SDL3/SDL.h>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 #include "Umgebung.h"
 #include "SimplexNoise.h"
 #include "UmgebungFunctions.h"
@@ -369,8 +372,15 @@ namespace umgebung {
 
 #endif
 
+#ifndef UMGEBUNG_USE_NATIVE_SKETCH_PATH
+#define USE_SDL_SKETCH_PATH
+#endif
     std::string sketchPath() {
+#ifdef USE_SDL_SKETCH_PATH
+        return SDL_GetBasePath();
+#else
         return sketchPath_impl();
+#endif
     }
 
     std::vector<std::string> split(const std::string& str, const std::string& delimiter) {
@@ -491,7 +501,7 @@ namespace umgebung {
 
     // Function to get the current system time as a std::tm struct
     static std::tm getCurrentTime() {
-        std::time_t t = std::time(nullptr);
+        const std::time_t t = std::time(nullptr);
         return *std::localtime(&t);
     }
 
@@ -547,4 +557,42 @@ namespace umgebung {
 
     void noCursor() { SDL_HideCursor(); }
 
+    void saveFrame(const std::string& filename) {
+        if (g == nullptr) {
+            return;
+        }
+
+        const int _height = g->framebuffer.height;
+        const int _width  = g->framebuffer.width;
+
+        // Allocate memory for pixel data (RGBA)
+        std::vector<unsigned char> pixels;
+        // glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+        g->read_framebuffer(pixels);
+
+        // Flip the image vertically because OpenGL's origin is bottom-left
+        std::vector<unsigned char> flippedPixels(_width * _height * DEFAULT_BYTES_PER_PIXELS);
+        for (int y = 0; y < _height; ++y) {
+            memcpy(&flippedPixels[(_height - 1 - y) * _width * DEFAULT_BYTES_PER_PIXELS], &pixels[y * _width * DEFAULT_BYTES_PER_PIXELS], _width * DEFAULT_BYTES_PER_PIXELS);
+        }
+
+        // save image
+        if (ends_with(filename, ".png")) {
+            stbi_write_png((filename).c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data(), _width * 4);
+        } else if (ends_with(filename, ".jpg")) {
+            stbi_write_jpg((filename).c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data(), 100);
+        } else if (ends_with(filename, ".bmp")) {
+            stbi_write_bmp((filename).c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data());
+        } else if (ends_with(filename, ".tga")) {
+            stbi_write_tga((filename).c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data());
+            // } else if (ends_with(filename, ".hdr")) {
+            //     stbi_write_hdr((filename).c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, reinterpret_cast<float*>(flippedPixels.data()));
+        } else {
+            warning("Unsupported file format: ", filename, ". Supported formats are: .png, .jpg, .bmp, .tga");
+        }
+    }
+
+    void saveFrame() {
+        saveFrame(sketchPath() + "screenshot-" + nfs(frameCount, 4) + ".png");
+    }
 } // namespace umgebung
