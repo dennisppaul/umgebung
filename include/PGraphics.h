@@ -150,6 +150,7 @@ namespace umgebung {
         virtual void     shader(PShader* shader) {}
         virtual PShader* loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "") { return nullptr; };
         virtual void     resetShader() {}
+        virtual void     normal(float x, float y, float z, float w = 0);
         // virtual void    lights()                                                                                           = 0;
 
         /* --- additional --- */
@@ -226,6 +227,7 @@ namespace umgebung {
         bool                             model_matrix_dirty{false};
         PShader*                         default_shader{nullptr};
         PShader*                         current_shader{nullptr};
+        glm::vec4                        current_normal{Vertex::DEFAULT_NORMAL};
 
     public:
         glm::mat4              model_matrix{};

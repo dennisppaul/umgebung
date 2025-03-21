@@ -393,7 +393,7 @@
 - [ ] `lightSpecular()` :: Sets the specular color for lights
 - [ ] `lights()` :: Sets the default ambient light, directional light, falloff, and specular values
 - [ ] `noLights()` :: Disable all lighting
-- [ ] `normal()` :: Sets the current normal vector
+- [x] `normal()` :: Sets the current normal vector
 - [ ] `pointLight()` :: Adds a point light
 - [ ] `spotLight()` :: Adds a spotlight
 

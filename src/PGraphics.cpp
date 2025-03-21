@@ -395,14 +395,13 @@ void PGraphics::vertex(const float x, const float y, const float z, const float 
     const glm::vec3 position{x, y, z};
 
     if (color_stroke.active) {
-        // shape_stroke_vertex_cache_vec3_DEPRECATED.emplace_back(position);
         const glm::vec4 strokeColor = as_vec4(color_stroke);
-        shape_stroke_vertex_buffer.emplace_back(position, strokeColor, glm::vec2{u, v});
+        shape_stroke_vertex_buffer.emplace_back(position, strokeColor, glm::vec2{u, v}, current_normal);
     }
 
     if (color_fill.active) {
         const glm::vec4 fillColor = as_vec4(color_fill);
-        shape_fill_vertex_buffer.emplace_back(position, fillColor, glm::vec2{u, v});
+        shape_fill_vertex_buffer.emplace_back(position, fillColor, glm::vec2{u, v}, current_normal);
     }
 }
 
@@ -410,9 +409,9 @@ void PGraphics::endShape(const bool close_shape) {
     /*
      * OpenGL ES 3.1 is stricter:
      *
-     * 1.	No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
-     * 2.	No glLineWidth support at all.
-     * 3.	Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
+     * 1. No GL_LINES, GL_LINE_STRIP, or GL_LINE_LOOP support in core spec!
+     * 2. No glLineWidth support at all.
+     * 3. Only GL_TRIANGLES, GL_TRIANGLE_STRIP, and GL_TRIANGLE_FAN are guaranteed.
      *
      * i.e GL_LINES + GL_LINE_STRIP must be emulated
      */
@@ -789,7 +788,8 @@ std::vector<Vertex> PGraphics::triangulate_good(const std::vector<Vertex>& verti
 }
 
 std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vertex>& vertices) {
-    glm::vec4 first_color = vertices[0].color;
+    const glm::vec4 first_color  = vertices[0].color;
+    const glm::vec4 first_normal = vertices[0].normal;
 
     TPPLPartition partitioner;
 
@@ -825,9 +825,10 @@ std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vert
         // extract triangle vertices
         for (const auto& tri: triangles) {
             for (int i = 0; i < 3; ++i) {
-                triangleList.push_back({static_cast<float>(tri[i].x), static_cast<float>(tri[i].y), 0.0f,
-                                        first_color.r, first_color.g, first_color.b, first_color.a,
-                                        0, 0});
+                triangleList.emplace_back(glm::vec3(tri[i].x, tri[i].y, 0.0f),
+                                          first_color,
+                                          glm::vec2(0.0f, 0.0f),
+                                          first_normal);
             }
         }
     }
@@ -880,7 +881,8 @@ void PGraphics::to_world_space(glm::vec3& model_position) const {
 }
 
 void PGraphics::triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, const bool close_shape, std::vector<Vertex>& line_vertices) const {
-    const glm::vec4        color = line_strip[0].color;
+    const glm::vec4        color  = line_strip[0].color;
+    const glm::vec4        normal = line_strip[0].normal;
     std::vector<glm::vec2> points(line_strip.size());
     std::vector<glm::vec2> triangles;
 
@@ -901,6 +903,13 @@ void PGraphics::triangulate_line_strip_vertex(const std::vector<Vertex>& line_st
                            triangles);
     line_vertices.reserve(triangles.size());
     for (const auto& triangle: triangles) {
-        line_vertices.emplace_back(glm::vec3(triangle, 0.0f), color, glm::vec2(0.0f, 0.0f));
+        line_vertices.emplace_back(glm::vec3(triangle, 0.0f), color, glm::vec2(0.0f, 0.0f), normal);
     }
+}
+
+void PGraphics::normal(const float x, const float y, const float z, const float w) {
+    current_normal.x = x;
+    current_normal.y = y;
+    current_normal.z = z;
+    current_normal.w = w;
 }

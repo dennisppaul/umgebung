@@ -609,7 +609,6 @@ namespace umgebung {
             triangles.emplace_back(fan[i]);
             triangles.emplace_back(fan[i + 1]);
         }
-
         return triangles;
     }
 

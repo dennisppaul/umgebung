@@ -189,7 +189,7 @@ namespace umgebung {
         g->triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
     }
 
-    void quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4) {
+    void quad(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2, const float x3, const float y3, const float z3, const float x4, const float y4, const float z4) {
         if (g == nullptr) {
             return;
         }
@@ -492,5 +492,12 @@ namespace umgebung {
             return;
         }
         g->resetShader();
+    }
+
+    void normal(const float x, const float y, const float z, const float w) {
+        if (g == nullptr) {
+            return;
+        }
+        g->normal(x, y, z, w);
     }
 } // namespace umgebung
