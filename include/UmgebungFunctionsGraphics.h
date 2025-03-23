@@ -96,5 +96,7 @@ namespace umgebung {
     void     mesh(PMesh* mesh_shape = nullptr);
     void     shader(PShader* shader = nullptr);
     PShader* loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "");
+    struct ShaderSource;
+    PShader* loadShader(const ShaderSource& shader_source);
     void     normal(float x, float y, float z, float w = 0);
 } // namespace umgebung

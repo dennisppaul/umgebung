@@ -17,62 +17,10 @@
 
 ### OpenGL 3.3
 
-- [ ] implement atlas-based font rendering ( with FreeType )
-- [ ] add *immediate* mode
+- [x] implement atlas-based font rendering ( with FreeType )
+- [x] add *immediate* mode
 - [ ] add dedicated bins for transparent and non-transparent primitives in *retained* mode
-- [ ] MSAA FBOs
-    - [ ] implement line width
-
-#### MSAA FBOs
-
-Modify FBO Setup for MSAA:
-
-```C
-GLuint fbo, msaaColorBuffer, msaaDepthBuffer;
-const int samples = 4; // Number of MSAA samples
-
-// Create FBO
-glGenFramebuffers(1, &fbo);
-glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-// Create Multisampled Color Buffer
-glGenTextures(1, &msaaColorBuffer);
-glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaColorBuffer);
-glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGBA8, width, height, GL_TRUE);
-glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, msaaColorBuffer, 0);
-
-// Create Multisampled Depth Buffer
-glGenRenderbuffers(1, &msaaDepthBuffer);
-glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBuffer);
-glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH24_STENCIL8, width, height);
-glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msaaDepthBuffer);
-
-if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    std::cerr << "MSAA FBO is incomplete!" << std::endl;
-}
-
-glBindFramebuffer(GL_FRAMEBUFFER, 0);
-```
-
-Render VBOs Into the MSAA FBO:
-
-```C
-glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-// Render VBOs here...
-
-glBindFramebuffer(GL_FRAMEBUFFER, 0);
-```
-
-Resolve the Multisampled FBO into a Regular Texture:
-
-```C
-glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
-glBindFramebuffer(GL_DRAW_FRAMEBUFFER, screenFBO); // Regular FBO to store resolved image
-glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-glBindFramebuffer(GL_FRAMEBUFFER, 0);
-```
+- [x] MSAA FBOs
 
 ### SDL_Renderer
 

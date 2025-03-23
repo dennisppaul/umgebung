@@ -83,8 +83,8 @@ namespace umgebung {
         virtual void setup_post()                 = 0;
         virtual void draw_pre()                   = 0;
         virtual void draw_post()                  = 0;
-        virtual void event(SDL_Event* event)      = 0;
-        virtual void event_loop(SDL_Event* event) = 0;
+        virtual void event(SDL_Event* event)      = 0; // NOTE events maybe handled in own thread
+        virtual void event_loop(SDL_Event* event) = 0; // NOTE events are handled in the main loop
         virtual void shutdown()                   = 0;
     };
 } // namespace umgebung

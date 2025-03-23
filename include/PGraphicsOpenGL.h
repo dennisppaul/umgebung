@@ -38,12 +38,11 @@ namespace umgebung {
     public:
         ~PGraphicsOpenGL() override = default;
 
-        static void set_default_graphics_state() {
+        void set_default_graphics_state() override {
             glClearColor(0, 0, 0, 1);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            blendMode(BLEND);
         }
 
         virtual void store_fbo_state()   = 0;
@@ -76,6 +75,73 @@ namespace umgebung {
         void bind_framebuffer_texture() const {
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id);
+        }
+
+        void blendMode(const int mode) override {
+            glEnable(GL_BLEND);
+            switch (mode) {
+                case REPLACE:
+                    glBlendEquation(GL_FUNC_ADD);
+                    glBlendFunc(GL_ONE, GL_ZERO);
+                    break;
+                case BLEND:
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case ADD:
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case SUBTRACT:
+                    glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case LIGHTEST:
+                    glBlendEquationSeparate(GL_MAX, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_ONE, GL_ONE,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case DARKEST:
+                    glBlendEquationSeparate(GL_MIN, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_ONE, GL_ONE,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case MULTIPLY:
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_ZERO, GL_SRC_COLOR,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case SCREEN:
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_ONE_MINUS_DST_COLOR, GL_ONE,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case EXCLUSION:
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR,
+                                        GL_ONE, GL_ONE);
+                    break;
+                // not possible in fixed-function blending
+                case DIFFERENCE:
+                case OVERLAY:
+                case HARD_LIGHT:
+                case SOFT_LIGHT:
+                case DODGE:
+                case BURN:
+                    // optionally: issue a warning here
+                    glBlendEquation(GL_FUNC_ADD);
+                    glBlendFunc(GL_ONE, GL_ZERO); // fallback: REPLACE
+                    break;
+                default:
+                    // fallback: BLEND
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                                        GL_ONE, GL_ONE);
+                    break;
+            }
         }
 
         /* --- interface --- */
@@ -262,7 +328,7 @@ namespace umgebung {
                 _shape = GL_LINE_STRIP;
                 break;
             default:
-                _shape = GL_TRIANGLES;
+                _shape = shape;
         }
         return _shape;
     }

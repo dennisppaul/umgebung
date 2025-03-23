@@ -103,7 +103,7 @@ namespace umgebung {
 
         SDL_ShowWindow(window);
 
-        PGraphicsOpenGL::set_default_graphics_state();
+        // PGraphicsOpenGL::set_default_graphics_state();
 
         /* initialize GLEW */
 
@@ -153,7 +153,7 @@ namespace umgebung {
         g->height = static_cast<int>(height);
         g->lock_init_properties(true);
 
-        PGraphicsOpenGL::set_default_graphics_state();
+        g->set_default_graphics_state();
         draw_pre();
 
         checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_pre(end)");

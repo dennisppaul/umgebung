@@ -710,6 +710,7 @@ void PGraphicsOpenGLv20::read_framebuffer(std::vector<unsigned char>& pixels) {
 
     store_fbo_state();
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id); // Bind the correct framebuffer
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glReadPixels(0, 0, _width, _height,
                  UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
                  UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,

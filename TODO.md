@@ -4,44 +4,6 @@
 
 - [ ] separate transparent + non-transparent primitives
 - [ ] in `PGraphicsDefault2D` implement 3D by manually transforming points onto 2D 
-- [ ] add `PShape` with VAO/VBOs
-- [ ] `GL_POINTS` might need some shader love ( i.e `gl_PointSize` + `gl_PointCoord` for point sprites )
-
-### Lines
-
-- [ ] since `glLineWidth` does not work reliably maybe use geometry shader:
-    ```C
-    #version 330 core
-    layout(lines) in; // Input: a single line segment (two vertices)
-    layout(triangle_strip, max_vertices = 4) out; // Output: a quad (four vertices)
-    
-    uniform float uLineWidth; // Line width in screen space
-    uniform mat4 uProjection;
-    
-    void main() {
-        vec2 direction = normalize(gl_in[1].gl_Position.xy - gl_in[0].gl_Position.xy);
-        vec2 normal = vec2(-direction.y, direction.x); // Perpendicular vector
-        normal *= uLineWidth * 0.5; // Scale by half the width
-    
-        vec4 p0 = gl_in[0].gl_Position;
-        vec4 p1 = gl_in[1].gl_Position;
-    
-        gl_Position = uProjection * vec4(p0.xy + normal, p0.z, p0.w);
-        EmitVertex();
-    
-        gl_Position = uProjection * vec4(p0.xy - normal, p0.z, p0.w);
-        EmitVertex();
-    
-        gl_Position = uProjection * vec4(p1.xy + normal, p1.z, p1.w);
-        EmitVertex();
-    
-        gl_Position = uProjection * vec4(p1.xy - normal, p1.z, p1.w);
-        EmitVertex();
-    
-        EndPrimitive();
-    }
-    ```
-- [ ] check out processing s line shader … it turns out it *encodes* additional line information ( e.g direction ) to be expanded in the shader … hmmmm, research further
 
 ## Build
 
@@ -81,23 +43,26 @@
 
 ## Unsorted
 
-- [ ] @umgebung move imgui to submodule
-- [ ] @umgebung start a series of *educated* examples
-- [ ] @umgebung design logo ( or check existing one )
-- [ ] @umgebung make a step-by-step guide of how to create a library ( send to leo )
-- [ ] @umgebung on discord https://d3-is.de/umgebung ( https://discord.gg/hrckzRaW7g )
-- [ ] @umgebung check if `GLEW_ARB_buffer_storage` may be an option for fast data transfer ( i.e dynamic vertex data )
-    ```C
-    if (!GLEW_ARB_buffer_storage) {
-        std::cerr << "Persistent mapped buffers not supported on this hardware!" << std::endl;
-    }
-    ```
+- [ ] start a series of *educated* examples
+- [ ] design logo ( or check existing one )
+- [ ] make a step-by-step guide of how to create a library ( send to leo )
 
 ## Research
 
-- [ ] @umgebung test with plugdata … again https://electro-smith.us18.list-manage.com/track/click?u=b473fcb56373b822c9fef8190&id=ff45d69a66&e=734f91f8ec
+- [ ] test with plugdata … again https://electro-smith.us18.list-manage.com/track/click?u=b473fcb56373b822c9fef8190&id=ff45d69a66&e=734f91f8ec
 
 ## Weekend Projects
 
 - [ ] Density Particle dingdong ( as shader and as normal )
 - [ ] Radiance Cascades lighting shader 
+
+## Archived
+
+- [x] check if `GLEW_ARB_buffer_storage` may be an option for fast data transfer ( i.e dynamic vertex data ) @note("it s not available in all OpenGL ( i.e `ARB` ), also it apparently can introduce sync issues … maybe leave it for special cases then") @archived(2025-03-23) @from(Umgebung / TODO > Unsorted) @done(2025-03-23)
+    ```C
+    if (!GLEW_ARB_buffer_storage) {
+        std::cerr << "Persistent mapped buffers not supported on this hardware!" << std::endl;
+    }
+    ```
+- [x] check out processing s line shader … it turns out it *encodes* additional line information ( e.g direction ) to be expanded in the shader … hmmmm, research further @archived(2025-03-23) @from(Umgebung / TODO > Graphics > Lines) @done(2025-03-23)
+- [x] add `PShape` with VAO/VBOs @archived(2025-03-23) @from(Umgebung / TODO > Graphics) @done(2025-03-23) @note("not adding PShape for now it is too much work")

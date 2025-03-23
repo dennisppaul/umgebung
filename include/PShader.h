@@ -31,7 +31,9 @@ namespace umgebung {
         ~PShader();
 
         void set_uniform(const std::string& name, int value);
+        void set_uniform(const std::string& name, int value_a, int value_b);
         void set_uniform(const std::string& name, float value);
+        void set_uniform(const std::string& name, float value_a, float value_b);
         void set_uniform(const std::string& name, const glm::vec2& value);
         void set_uniform(const std::string& name, const glm::vec3& value);
         void set_uniform(const std::string& name, const glm::vec4& value);

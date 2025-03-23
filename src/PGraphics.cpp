@@ -844,7 +844,7 @@ void PGraphics::reset_matrices() {
     const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f);
 
     // perspective projection
-    projection_matrix_3D = glm::perspective(fov, width / height, 0.1f, static_cast<float>(depth_range));
+    projection_matrix = glm::perspective(fov, width / height, 0.1f, static_cast<float>(depth_range));
 
     view_matrix = glm::lookAt(glm::vec3(width / 2.0f, height / 2.0f, -cameraDistance),
                               glm::vec3(width / 2.0f, height / 2.0f, 0.0f),
@@ -856,7 +856,7 @@ void PGraphics::to_screen_space(glm::vec3& world_position) const {
     const glm::vec4 viewPos = view_matrix * model_matrix * glm::vec4(world_position, 1.0f);
 
     // Project onto clip space
-    glm::vec4 clipPos = projection_matrix_3D * viewPos;
+    glm::vec4 clipPos = projection_matrix * viewPos;
 
     // Perspective divide (convert to normalized device coordinates)
     if (clipPos.w != 0.0f) {

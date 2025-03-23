@@ -21,7 +21,6 @@ bool PShader::load(const std::string& vertex_code, const std::string& fragment_c
     GLuint       geometryShader = 0;
 
     if (!geometry_code.empty()) {
-        umgebung::warning("geometry shader not empty");
         geometryShader = compileShader(geometry_code, GL_GEOMETRY_SHADER);
     }
 
@@ -98,9 +97,19 @@ void PShader::set_uniform(const std::string& name, const int value) {
     glUniform1i(getUniformLocation(name), value);
 }
 
+void PShader::set_uniform(const std::string& name, const int value_a, const int value_b) {
+    if (!programID) { return; }
+    glUniform2i(getUniformLocation(name), value_a, value_b);
+}
+
 void PShader::set_uniform(const std::string& name, const float value) {
     if (!programID) { return; }
     glUniform1f(getUniformLocation(name), value);
+}
+
+void PShader::set_uniform(const std::string& name, const float value_a, const float value_b) {
+    if (!programID) { return; }
+    glUniform2f(getUniformLocation(name), value_a, value_b);
 }
 
 void PShader::set_uniform(const std::string& name, const glm::vec2& value) {

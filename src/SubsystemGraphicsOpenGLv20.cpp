@@ -141,7 +141,7 @@ namespace umgebung {
         SDL_ShowWindow(window);
         // SDL_RaiseWindow(window); // TODO see if this causes any issues
 
-        PGraphicsOpenGL::set_default_graphics_state();
+        // PGraphicsOpenGL::set_default_graphics_state();
 
         /* initialize GLEW */
 
@@ -173,9 +173,9 @@ namespace umgebung {
         int current_framebuffer_width;
         int current_framebuffer_height;
         SDL_GetWindowSizeInPixels(window, &current_framebuffer_width, &current_framebuffer_height);
-        int framebuffer_width         = static_cast<float>(current_framebuffer_width);
-        int framebuffer_height        = static_cast<float>(current_framebuffer_height);
-        const float pixel_density = SDL_GetWindowPixelDensity(window);
+        int         framebuffer_width  = static_cast<float>(current_framebuffer_width);
+        int         framebuffer_height = static_cast<float>(current_framebuffer_height);
+        const float pixel_density      = SDL_GetWindowPixelDensity(window);
 
         console("main renderer      : ", g->name());
         console("render to offscreen: ", g->render_to_offscreen ? "true" : "false");
@@ -193,7 +193,7 @@ namespace umgebung {
         g->height = static_cast<int>(height);
         g->lock_init_properties(true);
 
-        PGraphicsOpenGL::set_default_graphics_state();
+        g->set_default_graphics_state();
         draw_pre();
         // <<< NOTE this is identical with the other OpenGL renderer
         checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_pre(end)");
@@ -215,7 +215,7 @@ namespace umgebung {
         if (g->render_to_offscreen) {
             g->beginDraw();
         } else {
-            PGraphicsOpenGL::set_default_graphics_state();
+            g->set_default_graphics_state();
 
             glViewport(0, 0, g->framebuffer.width, g->framebuffer.height);
 

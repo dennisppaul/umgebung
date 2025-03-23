@@ -19,6 +19,7 @@
 
 #include "Umgebung.h"
 #include "UmgebungFunctionsGraphics.h"
+#include "ShaderSource.h"
 
 namespace umgebung {
     void background(const float a) {
@@ -485,6 +486,10 @@ namespace umgebung {
             return nullptr;
         }
         return g->loadShader(vertex_code, fragment_code, geometry_code);
+    }
+
+    PShader* loadShader(const ShaderSource& shader_source) {
+        return loadShader(shader_source.vertex, shader_source.fragment, shader_source.geometry);
     }
 
     void resetShader() {

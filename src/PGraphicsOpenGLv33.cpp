@@ -199,8 +199,8 @@ void PGraphicsOpenGLv33::prepare_frame() {
     set_default_graphics_state();
 
     shader(default_shader);
-    default_shader->set_uniform("uProjection", projection_matrix_3D);
-    default_shader->set_uniform("uViewMatrix", view_matrix);
+    default_shader->set_uniform(SHADER_UNIFORM_PROJECTION_MATRIX, projection_matrix);
+    default_shader->set_uniform(SHADER_UNIFORM_VIEW_MATRIX, view_matrix);
     default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, glm::mat4(1.0f));
 
     texture_id_current = 0;
@@ -232,7 +232,7 @@ void PGraphicsOpenGLv33::endDraw() {
         //
         //     // Upload matrices
         //     const GLint projLoc = glGetUniformLocation(stroke_shader_program, "uProjection");
-        //     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D)); // or projection2D
+        //     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix)); // or projection2D
         //
         //     const GLint viewLoc = glGetUniformLocation(stroke_shader_program, "uViewMatrix");
         //     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
@@ -263,7 +263,7 @@ void PGraphicsOpenGLv33::endDraw() {
         //
         //     // Upload matrices
         //     const GLint projLoc = glGetUniformLocation(fill_shader_program, "uProjection");
-        //     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix_3D));
+        //     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection_matrix));
         //
         //     const GLint viewLoc = glGetUniformLocation(fill_shader_program, "uViewMatrix");
         //     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
@@ -362,6 +362,11 @@ void PGraphicsOpenGLv33::upload_texture(PImage*         img,
             error("PGraphics / `upload_texture` failed to create texture");
             return;
         }
+        console("texture is now initialized.");
+        if (offset_x > 0 || offset_y > 0) {
+            console("PGraphics / `upload_texture` offset was ignored");
+        }
+        return; // NOTE this should be fine, as the texture is now initialized
     }
 
     // Check if the provided width, height, and offsets are within the valid range
@@ -378,11 +383,11 @@ void PGraphicsOpenGLv33::upload_texture(PImage*         img,
     const int tmp_bound_texture = texture_id_current;
     IMPL_bind_texture(img->texture_id);
 
-    constexpr GLint mFormat = UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT; // internal format is always RGBA
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glTexSubImage2D(GL_TEXTURE_2D,
                     0, offset_x, offset_y,
                     width, height,
-                    mFormat,
+                    UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
                     UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
                     pixel_data);
 
@@ -409,6 +414,43 @@ void PGraphicsOpenGLv33::download_texture(PImage* img) {
     IMPL_bind_texture(tmp_bound_texture);
 }
 
+// static void initMSAAFBO() {
+//     GLuint framebuffer.id;
+//     GLuint framebuffer.texture_id;
+//
+//     // Create FBO
+//     glGenFramebuffers(1, &framebuffer.id);
+//     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+//     // Create Multisampled Color Buffer
+//     glGenTextures(1, &framebuffer.texture_id);
+//
+//     GLuint    msaaDepthBuffer;
+//     const int samples = 4; // Number of MSAA samples
+//     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer.texture_id);
+//     glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE,
+//                             samples,
+//                             GL_RGBA8,
+//                             framebuffer.width,
+//                             framebuffer.height,
+//                             GL_TRUE);
+//     glFramebufferTexture2D(GL_FRAMEBUFFER,
+//                            GL_COLOR_ATTACHMENT0,
+//                            GL_TEXTURE_2D_MULTISAMPLE,
+//                            framebuffer.texture_id, 0);
+//     // Create Multisampled Depth Buffer
+//     glGenRenderbuffers(1, &msaaDepthBuffer);
+//     glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBuffer);
+//     glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH24_STENCIL8, framebuffer.width, framebuffer.height);
+//     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msaaDepthBuffer);
+//
+//     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+//         std::cerr << "MSAA FBO is incomplete!" << std::endl;
+//     }
+//
+//     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0); // NOTE no need to use `IMPL_bind_texture()`
+// }
+
 void PGraphicsOpenGLv33::init(uint32_t* pixels,
                               const int width,
                               const int height,
@@ -418,6 +460,8 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
     this->height       = static_cast<float>(height);
     framebuffer.width  = width;
     framebuffer.height = height;
+
+    const int msaa_samples = antialiasing;
 
     default_shader = loadShader(shader_source_color_texture.vertex, shader_source_color_texture.fragment);
 
@@ -435,29 +479,85 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
         glGenFramebuffers(1, &framebuffer.id);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
         glGenTextures(1, &framebuffer.texture_id);
-        glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id); // NOTE no need to use `IMPL_bind_texture()`
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                     framebuffer.width,
-                     framebuffer.height,
-                     0,
-                     UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                     UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-                     nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.texture_id, 0);
+
+        const bool use_msaa = msaa_samples > 0;
+        if (use_msaa) {
+            console("using multisample anti-aliasing (MSAA)");
+
+            GLint maxSamples;
+            glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
+            console("Max supported MSAA samples : ", maxSamples);
+
+            GLuint    msaaDepthBuffer;
+            const int samples = std::min(msaa_samples, maxSamples); // Number of MSAA samples
+            console("Number of used MSAA samples: ", samples);
+            glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer.texture_id);
+            checkOpenGLError("glBindTexture");
+            glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE,
+                                    samples,
+                                    UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                                    framebuffer.width,
+                                    framebuffer.height,
+                                    GL_TRUE);
+            checkOpenGLError("glTexImage2DMultisample");
+            glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                   GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_2D_MULTISAMPLE,
+                                   framebuffer.texture_id, 0);
+            checkOpenGLError("glFramebufferTexture2D");
+            // Create Multisampled Depth Buffer
+            glGenRenderbuffers(1, &msaaDepthBuffer);
+            glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBuffer);
+            glRenderbufferStorageMultisample(GL_RENDERBUFFER,
+                                             samples,
+                                             GL_DEPTH24_STENCIL8,
+                                             framebuffer.width,
+                                             framebuffer.height);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER,
+                                      GL_DEPTH_ATTACHMENT,
+                                      GL_RENDERBUFFER,
+                                      msaaDepthBuffer);
+        } else {
+            console("using standard framebuffer object");
+            glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id); // NOTE no need to use `IMPL_bind_texture()`
+            glTexImage2D(GL_TEXTURE_2D,
+                         0,
+                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         framebuffer.width,
+                         framebuffer.height,
+                         0,
+                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                         nullptr);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                   GL_COLOR_ATTACHMENT0,
+                                   GL_TEXTURE_2D,
+                                   framebuffer.texture_id,
+                                   0);
+            GLuint depthBuffer;
+            glGenRenderbuffers(1, &depthBuffer);
+            glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, framebuffer.width, framebuffer.height);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+        }
+
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             // Handle framebuffer incomplete error
             error("ERROR Framebuffer is not complete!");
         }
+
         glViewport(0, 0, framebuffer.width, framebuffer.height);
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindTexture(GL_TEXTURE_2D, 0); // NOTE no need to use `IMPL_bind_texture()`
+        if (use_msaa) {
+            glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0); // NOTE no need to use `IMPL_bind_texture()`
+        } else {
+            glBindTexture(GL_TEXTURE_2D, 0); // NOTE no need to use `IMPL_bind_texture()`
+        }
     }
 
     OGL3_create_solid_color_texture();
@@ -506,7 +606,7 @@ bool PGraphicsOpenGLv33::OGL_generate_and_upload_image_as_texture(PImage* image,
     }
 
     // Load image data
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glTexImage2D(GL_TEXTURE_2D,
                  0,
                  UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
@@ -702,6 +802,7 @@ void PGraphicsOpenGLv33::read_framebuffer(std::vector<unsigned char>& pixels) {
     pixels.resize(_width * _height * DEFAULT_BYTES_PER_PIXELS);
     store_fbo_state();
     glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.id); // Bind the correct framebuffer
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     glReadPixels(0, 0, _width, _height, UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT, UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE, pixels.data());
     restore_fbo_state();
 }

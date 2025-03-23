@@ -51,7 +51,7 @@ void PMesh::checkVAOSupport() {
         vao_supported = true; // OpenGL 3.3+ supports VAOs
     } else {
         // For OpenGL 2.0, check if GL_ARB_vertex_array_object is available
-        const char* extensions = (const char*) glGetString(GL_EXTENSIONS);
+        const auto extensions = (const char*) glGetString(GL_EXTENSIONS);
         if (extensions && strstr(extensions, "GL_ARB_vertex_array_object")) {
             vao_supported = true;
         }
@@ -59,14 +59,17 @@ void PMesh::checkVAOSupport() {
 }
 
 void PMesh::add_vertex(const Vertex& vertex) {
+    dirty = true;
     _vertices.push_back(vertex);
 }
 
 void PMesh::add_vertices(const std::vector<Vertex>& new_vertices) {
+    dirty = true;
     _vertices.insert(_vertices.end(), new_vertices.begin(), new_vertices.end());
 }
 
 void PMesh::clear() {
+    dirty = true;
     _vertices.clear();
 }
 
@@ -104,15 +107,25 @@ void PMesh::upload() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(Vertex), _vertices.data(), GL_DYNAMIC_DRAW);
 
-    // Define vertex attributes
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) offsetof(Vertex, position));
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) offsetof(Vertex, color));
-
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) offsetof(Vertex, tex_coord));
+    // TODO align this with render pipeline default shader >>>
+    // set up attribute pointers. NOTE make sure to align to locations in shader.
+    constexpr int ATTRIBUTE_LOCATION_POSITION = 0;
+    constexpr int ATTRIBUTE_LOCATION_NORMAL   = 1;
+    constexpr int ATTRIBUTE_LOCATION_COLOR    = 2;
+    constexpr int ATTRIBUTE_LOCATION_TEXCOORD = 3;
+    constexpr int ATTRIBUTE_SIZE_POSITION     = 4;
+    constexpr int ATTRIBUTE_SIZE_NORMAL       = 4;
+    constexpr int ATTRIBUTE_SIZE_COLOR        = 4;
+    constexpr int ATTRIBUTE_SIZE_TEXCOORD     = 2;
+    glVertexAttribPointer(ATTRIBUTE_LOCATION_POSITION, ATTRIBUTE_SIZE_POSITION, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
+    glEnableVertexAttribArray(ATTRIBUTE_LOCATION_POSITION);
+    glVertexAttribPointer(ATTRIBUTE_LOCATION_NORMAL, ATTRIBUTE_SIZE_NORMAL, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+    glEnableVertexAttribArray(ATTRIBUTE_LOCATION_NORMAL);
+    glVertexAttribPointer(ATTRIBUTE_LOCATION_COLOR, ATTRIBUTE_SIZE_COLOR, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, color)));
+    glEnableVertexAttribArray(ATTRIBUTE_LOCATION_COLOR);
+    glVertexAttribPointer(ATTRIBUTE_LOCATION_TEXCOORD, ATTRIBUTE_SIZE_TEXCOORD, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, tex_coord)));
+    glEnableVertexAttribArray(ATTRIBUTE_LOCATION_TEXCOORD);
+    // <<< TODO align this with render pipeline default shader
 
     if (vao_supported) {
         glBindVertexArray(0);
@@ -129,6 +142,10 @@ void PMesh::draw() {
         return;
     }
 
+    if (dirty) {
+        dirty = false;
+        update();
+    }
     const int mode = get_draw_mode(shape);
 
     if (vao_supported) {
