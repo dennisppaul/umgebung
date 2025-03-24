@@ -33,7 +33,7 @@ namespace umgebung {
         void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override {}
         void render_framebuffer_to_screen(bool use_blit = false) override;
 
-        void read_framebuffer(std::vector<unsigned char>& pixels) override ;
+        void read_framebuffer(std::vector<unsigned char>& pixels) override;
 
         void store_fbo_state() override {
             glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previously_bound_FBO);
@@ -46,36 +46,8 @@ namespace umgebung {
         void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
         void        download_texture(PImage* img) override;
         std::string name() override { return "PGraphicsOpenGLv22"; }
-        void        reset_matrices() override {
-            PGraphics::reset_matrices();
-
-            glMatrixMode(GL_PROJECTION);
-            glPushMatrix();
-            glLoadIdentity();
-            glOrtho(0, framebuffer.width, 0, framebuffer.height, -depth_range, depth_range);
-
-            glMatrixMode(GL_MODELVIEW);
-            glPushMatrix();
-            glLoadIdentity();
-
-            /** flip y axis */
-            glScalef(1, -1, 1);
-            glTranslatef(0, -height, 0);
-
-            glViewport(0, 0, framebuffer.width, framebuffer.height);
-        }
-
-        void restore_matrices() override {
-            glMatrixMode(GL_PROJECTION);
-            glPopMatrix();
-
-            glMatrixMode(GL_MODELVIEW);
-            glPopMatrix();
-        }
-
-        void prepare_frame() override {
-            set_default_graphics_state();
-        }
+        void        reset_mvp_matrices() override;
+        void        restore_mvp_matrices() override;
 
         void setup_fbo() override {
             glPushAttrib(GL_ALL_ATTRIB_BITS);

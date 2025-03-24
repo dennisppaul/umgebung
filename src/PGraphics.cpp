@@ -46,6 +46,15 @@ PGraphics::PGraphics() : PImage(0, 0, 0) {
     generate_sphere(sphere_vertices_LUT);
 }
 
+void PGraphics::beginDraw() {
+    reset_mvp_matrices();
+    blendMode(BLEND);
+}
+
+void PGraphics::endDraw() {
+    restore_mvp_matrices();
+}
+
 void PGraphics::hint(const uint16_t property) {}
 
 void PGraphics::pixelDensity(const int density) {
@@ -93,7 +102,7 @@ void PGraphics::pushMatrix() {
     model_matrix_stack.push_back(model_matrix);
 }
 
-void PGraphics::resetMatrix() {
+void PGraphics::resetMatrix() { // NOTE this just resets the model view matrix
     model_matrix = glm::mat4(1.0f);
 }
 
@@ -320,63 +329,59 @@ void PGraphics::process_collected_stroke_vertices(const bool close_shape) {
             return; // NOTE rendered as points exit early
         }
 
-        // TODO this decision has been moved to `emit_shape_stroke_line_strip()`
-        if (line_render_mode == STROKE_RENDER_MODE_TRIANGULATE_2D) {
-            switch (tmp_shape_mode_cache) {
-                case LINES: {
-                    const int buffer_size = shape_stroke_vertex_buffer.size() / 2 * 2;
-                    for (int i = 0; i < buffer_size; i += 2) {
-                        std::vector line = {shape_stroke_vertex_buffer[i], shape_stroke_vertex_buffer[i + 1]};
-                        emit_shape_stroke_line_strip(line, false);
-                    }
-                } break;
-                case TRIANGLE_FAN: {
-                    const std::vector<Vertex> _triangle_vertices = convertTriangleFanToTriangles(shape_stroke_vertex_buffer);
-                    const int                 buffer_size        = _triangle_vertices.size() / 3 * 3;
-                    for (int i = 0; i < buffer_size; i += 3) {
-                        std::vector line = {_triangle_vertices[i], _triangle_vertices[i + 1], _triangle_vertices[i + 2]};
-                        emit_shape_stroke_line_strip(line, true);
-                    }
-                } break;
-                case TRIANGLES: {
-                    const int buffer_size = shape_stroke_vertex_buffer.size() / 3 * 3;
-                    for (int i = 0; i < buffer_size; i += 3) {
-                        std::vector line = {shape_stroke_vertex_buffer[i], shape_stroke_vertex_buffer[i + 1], shape_stroke_vertex_buffer[i + 2]};
-                        emit_shape_stroke_line_strip(line, true);
-                    }
-                } break;
-                case TRIANGLE_STRIP: {
-                    const std::vector<Vertex> _triangle_vertices = convertTriangleStripToTriangles(shape_stroke_vertex_buffer);
-                    const int                 buffer_size        = _triangle_vertices.size() / 3 * 3;
-                    for (int i = 0; i < buffer_size; i += 3) {
-                        std::vector line = {_triangle_vertices[i], _triangle_vertices[i + 1], _triangle_vertices[i + 2]};
-                        emit_shape_stroke_line_strip(line, true);
-                    }
-                } break;
-                case QUAD_STRIP: {
-                    const std::vector<Vertex> _quad_vertices = convertQuadStripToQuads(shape_stroke_vertex_buffer);
-                    const int                 buffer_size    = _quad_vertices.size() / 4 * 4;
-                    for (int i = 0; i < buffer_size; i += 4) {
-                        std::vector line = {_quad_vertices[i], _quad_vertices[i + 1], _quad_vertices[i + 2], _quad_vertices[i + 3]};
-                        emit_shape_stroke_line_strip(line, true);
-                    }
-                } break;
-                case LINE_STRIP: {
-                    emit_shape_stroke_line_strip(shape_stroke_vertex_buffer, false);
-                } break;
-                case QUADS: {
-                    const int buffer_size = shape_stroke_vertex_buffer.size() / 4 * 4;
-                    for (int i = 0; i < buffer_size; i += 4) {
-                        std::vector line = {shape_stroke_vertex_buffer[i], shape_stroke_vertex_buffer[i + 1], shape_stroke_vertex_buffer[i + 2], shape_stroke_vertex_buffer[i + 3]};
-                        emit_shape_stroke_line_strip(line, true);
-                    }
+        switch (tmp_shape_mode_cache) {
+            case LINES: {
+                const int buffer_size = shape_stroke_vertex_buffer.size() / 2 * 2;
+                for (int i = 0; i < buffer_size; i += 2) {
+                    std::vector line = {shape_stroke_vertex_buffer[i], shape_stroke_vertex_buffer[i + 1]};
+                    emit_shape_stroke_line_strip(line, false);
                 }
-                default:
-                case POLYGON: {
-                    emit_shape_stroke_line_strip(shape_stroke_vertex_buffer, close_shape);
-                } break;
+            } break;
+            case TRIANGLE_FAN: {
+                const std::vector<Vertex> _triangle_vertices = convertTriangleFanToTriangles(shape_stroke_vertex_buffer);
+                const int                 buffer_size        = _triangle_vertices.size() / 3 * 3;
+                for (int i = 0; i < buffer_size; i += 3) {
+                    std::vector line = {_triangle_vertices[i], _triangle_vertices[i + 1], _triangle_vertices[i + 2]};
+                    emit_shape_stroke_line_strip(line, true);
+                }
+            } break;
+            case TRIANGLES: {
+                const int buffer_size = shape_stroke_vertex_buffer.size() / 3 * 3;
+                for (int i = 0; i < buffer_size; i += 3) {
+                    std::vector line = {shape_stroke_vertex_buffer[i], shape_stroke_vertex_buffer[i + 1], shape_stroke_vertex_buffer[i + 2]};
+                    emit_shape_stroke_line_strip(line, true);
+                }
+            } break;
+            case TRIANGLE_STRIP: {
+                const std::vector<Vertex> _triangle_vertices = convertTriangleStripToTriangles(shape_stroke_vertex_buffer);
+                const int                 buffer_size        = _triangle_vertices.size() / 3 * 3;
+                for (int i = 0; i < buffer_size; i += 3) {
+                    std::vector line = {_triangle_vertices[i], _triangle_vertices[i + 1], _triangle_vertices[i + 2]};
+                    emit_shape_stroke_line_strip(line, true);
+                }
+            } break;
+            case QUAD_STRIP: {
+                const std::vector<Vertex> _quad_vertices = convertQuadStripToQuads(shape_stroke_vertex_buffer);
+                const int                 buffer_size    = _quad_vertices.size() / 4 * 4;
+                for (int i = 0; i < buffer_size; i += 4) {
+                    std::vector line = {_quad_vertices[i], _quad_vertices[i + 1], _quad_vertices[i + 2], _quad_vertices[i + 3]};
+                    emit_shape_stroke_line_strip(line, true);
+                }
+            } break;
+            case LINE_STRIP: {
+                emit_shape_stroke_line_strip(shape_stroke_vertex_buffer, false);
+            } break;
+            case QUADS: {
+                const int buffer_size = shape_stroke_vertex_buffer.size() / 4 * 4;
+                for (int i = 0; i < buffer_size; i += 4) {
+                    std::vector line = {shape_stroke_vertex_buffer[i], shape_stroke_vertex_buffer[i + 1], shape_stroke_vertex_buffer[i + 2], shape_stroke_vertex_buffer[i + 3]};
+                    emit_shape_stroke_line_strip(line, true);
+                }
             }
-            return; // NOTE rendered as triangles exit early
+            default:
+            case POLYGON: {
+                emit_shape_stroke_line_strip(shape_stroke_vertex_buffer, close_shape);
+            } break;
         }
     }
 }
@@ -833,49 +838,69 @@ std::vector<Vertex> PGraphics::triangulate_better_quality(const std::vector<Vert
     return triangleList;
 }
 
-void PGraphics::reset_matrices() {
-    model_matrix       = glm::mat4(1.0f);
+void PGraphics::reset_mvp_matrices() {
+    /* model_matrix */
+    resetMatrix();
+    /* projection_matrix */
+    in_camera_block = false;
+    perspective(DEFAULT_CAMERA_FOV_RADIANS, width / height, 0.1f, depth_range);
+    projection_matrix[1][1] *= -1.0f;
+    /* view_matrix */
+    camera();
+
+    // orthographic projection NOTE use framebuffer.width and framebuffer.height
+    // projection_matrix_2D = glm::ortho(0.0f, static_cast<float>(framebuffer.width), static_cast<float>(framebuffer.height), 0.0f);
+
     model_matrix_dirty = false;
-
-    // orthographic projection
-    projection_matrix_2D = glm::ortho(0.0f, static_cast<float>(framebuffer.width), static_cast<float>(framebuffer.height), 0.0f);
-
-    const float fov            = DEFAULT_FOV;
-    const float cameraDistance = (height / 2.0f) / tan(fov / 2.0f);
-
-    // perspective projection
-    projection_matrix = glm::perspective(fov, width / height, 0.1f, static_cast<float>(depth_range));
-
-    view_matrix = glm::lookAt(glm::vec3(width / 2.0f, height / 2.0f, -cameraDistance),
-                              glm::vec3(width / 2.0f, height / 2.0f, 0.0f),
-                              glm::vec3(0.0f, -1.0f, 0.0f));
 }
 
-void PGraphics::to_screen_space(glm::vec3& world_position) const {
-    // Transform world position to camera (view) space
-    const glm::vec4 viewPos = view_matrix * model_matrix * glm::vec4(world_position, 1.0f);
+void PGraphics::restore_mvp_matrices() {
+    // NOTE nothing to restore here
+}
 
-    // Project onto clip space
-    glm::vec4 clipPos = projection_matrix * viewPos;
+void PGraphics::to_screen_space(glm::vec3& model_position) const {
+    glm::vec4 clipPos = projection_matrix * view_matrix * model_matrix * glm::vec4(model_position, 1.0f);
 
-    // Perspective divide (convert to normalized device coordinates)
+    // perspective divide
     if (clipPos.w != 0.0f) {
         clipPos.x /= clipPos.w;
         clipPos.y /= clipPos.w;
+        clipPos.z /= clipPos.w;
     }
 
-    // coordinates are in NDC (-1 to 1 range)
-    // convert NDC to screen space (assuming viewport width and height)
-    const float screenX = (clipPos.x * 0.5f + 0.5f) * static_cast<float>(width);
-    const float screenY = (1.0f - (clipPos.y * 0.5f + 0.5f)) * static_cast<float>(height);
+    // NDC → screen
+    const float screenX = (clipPos.x * 0.5f + 0.5f) * width;
+    const float screenY = (1.0f - (clipPos.y * 0.5f + 0.5f)) * height; // flip Y
+    const float screenZ = clipPos.z;                                   // depth, optional
 
-    world_position.x = screenX;
-    world_position.y = screenY;
-    world_position.z = 0.0f;
+    model_position = glm::vec3(screenX, screenY, screenZ);
 }
 
 void PGraphics::to_world_space(glm::vec3& model_position) const {
     model_position = model_matrix * glm::vec4(model_position, 1.0f);
+}
+
+static glm::vec3 world_to_screen(
+    const glm::vec3& P, // world-space point
+    const glm::mat4& mvp,
+    const int        screen_width,
+    const int        screen_height) {
+    const glm::vec4 clip_space = mvp * glm::vec4(P, 1.0f);
+
+    if (clip_space.w == 0.0f) {
+        return glm::vec3(-1.0f); // error
+    }
+
+    // Perspective divide to get NDC
+    const glm::vec3 ndc = glm::vec3(clip_space) / clip_space.w;
+
+    // NDC to screen
+    glm::vec3 screen;
+    screen.x = (ndc.x * 0.5f + 0.5f) * screen_width;
+    screen.y = (1.0f - (ndc.y * 0.5f + 0.5f)) * screen_height; // flip Y
+    screen.z = ndc.z;                                          // optional, -1 (near) to 1 (far)
+
+    return screen;
 }
 
 void PGraphics::triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, const bool close_shape, std::vector<Vertex>& line_vertices) const {
@@ -884,10 +909,11 @@ void PGraphics::triangulate_line_strip_vertex(const std::vector<Vertex>& line_st
     std::vector<glm::vec2> points(line_strip.size());
     std::vector<glm::vec2> triangles;
 
+    glm::mat4 mvp = projection_matrix * view_matrix * model_matrix;
     for (int i = 0; i < line_strip.size(); ++i) {
-        glm::vec3 _position = line_strip[i].position;
-        to_screen_space(_position);
-        points[i] = _position;
+        // glm::vec3 _position = line_strip[i].position;
+        // to_screen_space(_position);
+        points[i] = world_to_screen(line_strip[i].position, mvp, width, height);
     }
 
     triangulate_line_strip(points,
@@ -910,4 +936,81 @@ void PGraphics::normal(const float x, const float y, const float z, const float 
     current_normal.y = y;
     current_normal.z = z;
     current_normal.w = w;
+}
+
+// void PGraphics::beginCamera() {
+//     in_camera_block        = true;
+//     temp_view_matrix       = view_matrix;
+//     temp_projection_matrix = projection_matrix;
+// }
+//
+// void PGraphics::endCamera() {
+//     if (in_camera_block) {
+//         view_matrix       = temp_view_matrix;
+//         projection_matrix = temp_projection_matrix;
+//         in_camera_block   = false;
+//     }
+// }
+
+void PGraphics::camera(const float eyeX, const float eyeY, const float eyeZ,
+                       const float centerX, const float centerY, const float centerZ,
+                       const float upX, const float upY, const float upZ) {
+    const glm::vec3 eye(eyeX, eyeY, eyeZ);
+    const glm::vec3 center(centerX, centerY, centerZ);
+    const glm::vec3 up(upX, upY, upZ);
+
+    if (in_camera_block) {
+        temp_view_matrix = glm::lookAt(eye, center, up);
+    } else {
+        view_matrix = glm::lookAt(eye, center, up);
+    }
+}
+
+void PGraphics::camera() {
+    // from https://processing.org/reference/camera_.html with FOV 60°
+    // camera(width / 2.0, height / 2.0, (height / 2.0) / tan(PI * 30.0 / 180.0),
+    //        width / 2.0, height / 2.0, 0,
+    //        0, 1, 0);
+    constexpr float fov            = DEFAULT_CAMERA_FOV_RADIANS;
+    const float     cameraDistance = (height / 2.0f) / tan(fov / 2.0f);
+    PGraphics::camera(width / 2.0, height / 2.0, cameraDistance,
+                      width / 2.0, height / 2.0, 0,
+                      0, 1, 0);
+}
+
+void PGraphics::frustum(const float left, const float right, const float bottom, const float top, const float near, const float far) {
+    const glm::mat4 proj = glm::frustum(left, right, bottom, top, near, far);
+    if (in_camera_block) {
+        temp_projection_matrix = proj;
+    } else {
+        projection_matrix = proj;
+    }
+}
+
+void PGraphics::ortho(const float left, const float right, const float bottom, const float top, const float near, const float far) {
+    const glm::mat4 proj = glm::ortho(left, right, bottom, top, near, far);
+    if (in_camera_block) {
+        temp_projection_matrix = proj;
+    } else {
+        projection_matrix = proj;
+    }
+}
+
+void PGraphics::perspective(const float fovy, const float aspect, const float near, const float far) {
+    const glm::mat4 proj = glm::perspective(fovy, aspect, near, far);
+    if (in_camera_block) {
+        temp_projection_matrix = proj;
+    } else {
+        projection_matrix = proj;
+    }
+}
+
+void PGraphics::printCamera() {
+    const glm::mat4& mat = in_camera_block ? temp_view_matrix : view_matrix;
+    printMatrix(mat);
+}
+
+void PGraphics::printProjection() {
+    const glm::mat4& mat = in_camera_block ? temp_projection_matrix : projection_matrix;
+    printMatrix(mat);
 }

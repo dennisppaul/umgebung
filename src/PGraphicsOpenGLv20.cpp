@@ -718,71 +718,29 @@ void PGraphicsOpenGLv20::read_framebuffer(std::vector<unsigned char>& pixels) {
     restore_fbo_state();
 }
 
-#ifndef DISABLE_GRAPHICS
-#else // DISABLE_GRAPHICS
-void PGraphicsOpenGLv20::popMatrix() {
+void PGraphicsOpenGLv20::reset_mvp_matrices() {
+    PGraphics::reset_mvp_matrices();
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, framebuffer.width, 0, framebuffer.height, -depth_range, depth_range);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    /** flip y axis */
+    glScalef(1, -1, 1);
+    glTranslatef(0, -height, 0);
 }
 
-void PGraphicsOpenGLv20::pushMatrix() {
+void PGraphicsOpenGLv20::restore_mvp_matrices() {
+    PGraphics::restore_mvp_matrices();
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
 }
-
-void PGraphicsOpenGLv20::translate(float x, float y, float z) {
-}
-
-void PGraphicsOpenGLv20::rotateX(float angle) {
-}
-
-void PGraphicsOpenGLv20::rotateY(float angle) {
-}
-
-void PGraphicsOpenGLv20::rotateZ(float angle) {
-}
-
-void PGraphicsOpenGLv20::rotate(float angle) {
-}
-
-void PGraphicsOpenGLv20::rotate(float angle, float x, float y, float z) {
-}
-
-void PGraphicsOpenGLv20::scale(float x) {
-}
-
-void PGraphicsOpenGLv20::scale(float x, float y) {
-}
-
-void PGraphicsOpenGLv20::scale(float x, float y, float z) {
-}
-
-void PGraphicsOpenGLv20::background(float a, float b, float c, float d) {
-}
-
-void PGraphicsOpenGLv20::background(float a) {
-}
-
-void PGraphicsOpenGLv20::rect(float x, float y, float _width, float _height) const {
-}
-
-void PGraphicsOpenGLv20::line(float x1, float y1, float x2, float y2) const {
-}
-
-void PGraphicsOpenGLv20::bezier(float x1, float y1,
-                                float x2, float y2,
-                                float x3, float y3,
-                                float x4, float y4) const {}
-
-void PGraphicsOpenGLv20::bezier(float x1, float y1, float z1,
-                                float x2, float y2, float z2,
-                                float x3, float y3, float z3,
-                                float x4, float y4, float z4) const {}
-
-void PGraphicsOpenGLv20::bezierDetail(int detail) {}
-void PGraphicsOpenGLv20::pointSize(float point_size) {}
-void PGraphicsOpenGLv20::point(float x, float y, float z) const {}
-void PGraphicsOpenGLv20::beginShape(int shape) {}
-void PGraphicsOpenGLv20::endShape() {}
-void PGraphicsOpenGLv20::vertex(float x, float y, float z) {}
-void PGraphicsOpenGLv20::vertex(float x, float y, float z, float u, float v) {}
-void PGraphicsOpenGLv20::strokeWeight(float weight) {}
-void PGraphicsOpenGLv20::hint(const uint16_t property) {}
-
-#endif // DISABLE_GRAPHICS

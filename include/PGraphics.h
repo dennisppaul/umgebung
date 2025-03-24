@@ -77,8 +77,10 @@ namespace umgebung {
          * @param line_strip_closed
          */
         virtual void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) = 0;
-        virtual void beginDraw()                                                                                    = 0;
-        virtual void endDraw()                                                                                      = 0;
+        virtual void beginDraw();
+        virtual void endDraw();
+        virtual void reset_mvp_matrices();
+        virtual void restore_mvp_matrices();
 
         /* --- implemented in base class PGraphics --- */
 
@@ -153,12 +155,21 @@ namespace umgebung {
         virtual void     resetShader() {}
         virtual void     normal(float x, float y, float z, float w = 0);
         virtual void     blendMode(int mode) {}
+        // virtual void     beginCamera();
+        // virtual void     endCamera();
+        virtual void     camera();
+        virtual void     camera(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
+        virtual void     frustum(float left, float right, float bottom, float top, float near, float far);
+        virtual void     ortho(float left, float right, float bottom, float top, float near, float far);
+        virtual void     perspective(float fovy, float aspect, float near, float far);
+        virtual void     printCamera();
+        virtual void     printProjection();
+
         // virtual void    lights()                                                                                           = 0;
 
         /* --- additional --- */
 
         virtual void        mesh(PMesh* mesh_shape) {}
-        virtual void        reset_matrices();
         virtual void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {}
         virtual void        download_texture(PImage* img) {}
         virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
@@ -166,7 +177,7 @@ namespace umgebung {
         virtual void        pixelDensity(int density);
         virtual void        text_str(const std::string& text, float x, float y, float z = 0.0f); // TODO maybe make this private?
         virtual void        debug_text(const std::string& text, float x, float y) {}             // TODO implement this in PGraphics
-        void                to_screen_space(glm::vec3& world_position) const;                    // NOTE: convert from model space to screen space
+        void                to_screen_space(glm::vec3& model_position) const;                    // NOTE: convert from model space to screen space
         void                to_world_space(glm::vec3& model_position) const;                     // NOTE: convert from model space to works space
         void                linse(const float x1, const float y1, const float x2, const float y2) { line(x1, y1, x2, y2); }
         int                 getPixelDensity() const { return pixel_density; }
@@ -192,7 +203,7 @@ namespace umgebung {
             bool active = false;
         };
 
-        const float                      DEFAULT_FOV            = 2.0f * atan(0.5f); // = 53.1301f;
+        // const float                      DEFAULT_FOV            = 2.0f * atan(0.5f); // = 53.1301f; // P5 :: tan(PI*30.0 / 180.0);
         static constexpr uint16_t        ELLIPSE_DETAIL_MIN     = 3;
         static constexpr uint16_t        ELLIPSE_DETAIL_DEFAULT = 36;
         bool                             init_properties_locked{false};
@@ -231,12 +242,14 @@ namespace umgebung {
         PShader*                         default_shader{nullptr};
         PShader*                         current_shader{nullptr};
         glm::vec4                        current_normal{Vertex::DEFAULT_NORMAL};
+        glm::mat4                        temp_view_matrix{};
+        glm::mat4                        temp_projection_matrix{};
+        bool                             in_camera_block{false};
 
     public:
         glm::mat4              model_matrix{};
         glm::mat4              view_matrix{};
         glm::mat4              projection_matrix{};
-        glm::mat4              projection_matrix_2D{};
         std::vector<glm::mat4> model_matrix_stack{};
 
     protected:

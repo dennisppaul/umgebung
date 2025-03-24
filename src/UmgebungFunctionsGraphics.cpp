@@ -505,4 +505,67 @@ namespace umgebung {
         }
         g->normal(x, y, z, w);
     }
+
+    // void beginCamera() {
+    //     if (g == nullptr) {
+    //         return;
+    //     }
+    //     g->beginCamera();
+    // }
+    //
+    // void endCamera() {
+    //     if (g == nullptr) {
+    //         return;
+    //     }
+    //     g->endCamera();
+    // }
+
+    void camera(const float eyeX, const float eyeY, const float eyeZ, const float centerX, const float centerY, const float centerZ, const float upX, const float upY, const float upZ) {
+        if (g == nullptr) {
+            return;
+        }
+        g->camera(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+    }
+
+    void camera() {
+        if (g == nullptr) {
+            return;
+        }
+        g->camera();
+    }
+
+    void frustum(const float left, const float right, const float bottom, const float top, const float near, const float far) {
+        if (g == nullptr) {
+            return;
+        }
+        g->frustum(left, right, bottom, top, near, far);
+    }
+
+    void ortho(const float left, const float right, const float bottom, const float top, const float near, const float far) {
+        if (g == nullptr) {
+            return;
+        }
+        g->ortho(left, right, bottom, top, near, far);
+    }
+
+    void perspective(const float fovYDegrees, const float aspect, const float near, const float far) {
+        if (g == nullptr) {
+            return;
+        }
+        g->perspective(fovYDegrees, aspect, near, far);
+    }
+
+    void printCamera() {
+        if (g == nullptr) {
+            return;
+        }
+        g->printCamera();
+    }
+
+    void printProjection() {
+        if (g == nullptr) {
+            return;
+        }
+        g->printProjection();
+    }
 } // namespace umgebung

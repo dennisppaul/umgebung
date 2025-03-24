@@ -39,7 +39,7 @@ PGraphicsOpenGLv33::PGraphicsOpenGLv33(const bool render_to_offscreen) : PImage(
     this->render_to_offscreen = render_to_offscreen;
 }
 
-void PGraphicsOpenGLv33::IMPL_background(float a, float b, float c, float d) {
+void PGraphicsOpenGLv33::IMPL_background(const float a, const float b, const float c, const float d) {
     glClearColor(a, b, c, d);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // TODO should this also flush bins?
@@ -119,6 +119,10 @@ void PGraphicsOpenGLv33::emit_shape_stroke_line_strip(std::vector<Vertex>& line_
     }
 
     if (render_mode == RENDER_MODE_IMMEDIATE) {
+        // TODO add other render modes:
+        //      - STROKE_RENDER_MODE_TUBE_3D
+        //      - STROKE_RENDER_MODE_BARYCENTRIC_SHADER
+        //      - STROKE_RENDER_MODE_GEOMETRY_SHADER
         if (vertex_buffer_data.uninitialized()) {
             OGL3_init_vertex_buffer(vertex_buffer_data);
         }
@@ -129,6 +133,11 @@ void PGraphicsOpenGLv33::emit_shape_stroke_line_strip(std::vector<Vertex>& line_
         }
         if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
             OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_LINE_STRIP, line_strip_vertices);
+        }
+        if (line_render_mode == STROKE_RENDER_MODE_TUBE_3D) {
+            std::vector<Vertex> line_vertices;
+
+            OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, line_strip_vertices);
         }
     }
 
@@ -189,26 +198,18 @@ void PGraphicsOpenGLv33::debug_text(const std::string& text, const float x, cons
 
 /* --- UTILITIES --- */
 
-void PGraphicsOpenGLv33::reset_matrices() {
-    PGraphics::reset_matrices();
-
-    glViewport(0, 0, framebuffer.width, framebuffer.height);
-}
-
-void PGraphicsOpenGLv33::prepare_frame() {
-    set_default_graphics_state();
-
-    shader(default_shader);
-    default_shader->set_uniform(SHADER_UNIFORM_PROJECTION_MATRIX, projection_matrix);
-    default_shader->set_uniform(SHADER_UNIFORM_VIEW_MATRIX, view_matrix);
-    default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, glm::mat4(1.0f));
-
-    texture_id_current = 0;
-    IMPL_bind_texture(texture_id_solid_color);
-}
-
 void PGraphicsOpenGLv33::setup_fbo() {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+}
+
+void PGraphicsOpenGLv33::beginDraw() {
+    PGraphicsOpenGL::beginDraw();
+    texture_id_current = 0;
+    IMPL_bind_texture(texture_id_solid_color);
+    resetShader();
+    default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, model_matrix);
+    default_shader->set_uniform(SHADER_UNIFORM_VIEW_MATRIX, view_matrix);
+    default_shader->set_uniform(SHADER_UNIFORM_PROJECTION_MATRIX, projection_matrix);
 }
 
 void PGraphicsOpenGLv33::endDraw() {
@@ -547,7 +548,6 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
             // Handle framebuffer incomplete error
             error("ERROR Framebuffer is not complete!");
         }
-
         glViewport(0, 0, framebuffer.width, framebuffer.height);
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -561,9 +561,8 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
     }
 
     OGL3_create_solid_color_texture();
+    texture_id_current = 0;
     IMPL_bind_texture(texture_id_solid_color);
-
-    reset_matrices();
 }
 
 /* additional */
@@ -725,9 +724,9 @@ void PGraphicsOpenGLv33::OGL3_render_vertex_buffer(VertexBufferData&          ve
     glBindVertexArray(0);
 }
 
-void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData&    vertex_buffer,
-                                                                            const GLenum         mode,
-                                                                            std::vector<Vertex>& shape_vertices) const {
+void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData&          vertex_buffer,
+                                                                            const GLenum               mode,
+                                                                            const std::vector<Vertex>& shape_vertices) const {
     static bool _emit_warning_only_once = false;
     if (mode != GL_TRIANGLES && mode != GL_LINE_STRIP) {
         if (!_emit_warning_only_once) {
@@ -741,24 +740,31 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Vert
         return;
     }
 
-    static constexpr int MAX_NUM_VERTICES_CLIENT_SIDE_TRANSFORM = 4; // NOTE all shapes *up to* quads are transformed on CPU
+    // NOTE depending on the number of vertices transformation are handle on the GPU
+    //      i.e all shapes *up to* quads are transformed on CPU
+    static constexpr int MAX_NUM_VERTICES_CLIENT_SIDE_TRANSFORM = 4;
     bool                 mModelMatrixTransformOnGPU             = false;
+    std::vector<Vertex>  transformed_vertices                   = shape_vertices; // NOTE make copy
     if (model_matrix_dirty) {
-        // NOTE depending on the number of vertices transformation are handle on the GPU
-        if (shape_vertices.size() <= MAX_NUM_VERTICES_CLIENT_SIDE_TRANSFORM) {
-            for (auto& p: shape_vertices) {
-                p.position = glm::vec4(model_matrix * p.position);
-            }
-        } else {
-            mModelMatrixTransformOnGPU = true;
+        const glm::mat4 modelview = model_matrix;
+        for (auto& p: transformed_vertices) {
+            p.position = glm::vec4(modelview * p.position);
         }
+        // if (shape_vertices.size() <= MAX_NUM_VERTICES_CLIENT_SIDE_TRANSFORM) {
+        //     const glm::mat4 modelview = model_matrix;
+        //     for (auto& p: transformed_vertices) {
+        //         p.position = glm::vec4(modelview * p.position);
+        //     }
+        // } else {
+        //     mModelMatrixTransformOnGPU = true;
+        // }
     }
     if (mModelMatrixTransformOnGPU) {
         if (current_shader == default_shader) {
             default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, model_matrix);
         }
     }
-    OGL3_render_vertex_buffer(vertex_buffer, mode, shape_vertices);
+    OGL3_render_vertex_buffer(vertex_buffer, mode, transformed_vertices);
     if (mModelMatrixTransformOnGPU) {
         if (current_shader == default_shader) {
             default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, glm::mat4(1.0f));
@@ -770,9 +776,13 @@ void PGraphicsOpenGLv33::mesh(PMesh* mesh_shape) {
     if (mesh_shape == nullptr) {
         return;
     }
-    if (current_shader == default_shader) { default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, model_matrix); }
+    if (current_shader == default_shader) {
+        default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, model_matrix);
+    }
     mesh_shape->draw();
-    if (current_shader == default_shader) { default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, glm::mat4(1.0f)); }
+    if (current_shader == default_shader) {
+        default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, glm::mat4(1.0f));
+    }
 }
 
 PShader* PGraphicsOpenGLv33::loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code) {
@@ -783,8 +793,7 @@ PShader* PGraphicsOpenGLv33::loadShader(const std::string& vertex_code, const st
 
 void PGraphicsOpenGLv33::shader(PShader* shader) {
     if (shader == nullptr) {
-        default_shader->use();
-        current_shader = default_shader;
+        resetShader();
         return;
     }
     shader->use();
@@ -815,4 +824,30 @@ void PGraphicsOpenGLv33::store_fbo_state() {
 void PGraphicsOpenGLv33::restore_fbo_state() {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, previously_bound_read_FBO);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previously_bound_draw_FBO);
+}
+
+void PGraphicsOpenGLv33::camera(const float eyeX, const float eyeY, const float eyeZ, const float centerX, const float centerY, const float centerZ, const float upX, const float upY, const float upZ) {
+    PGraphics::camera(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+    update_shader_view_matrix();
+}
+
+void PGraphicsOpenGLv33::frustum(const float left, const float right, const float bottom, const float top, const float near, const float far) {
+    PGraphics::frustum(left, right, bottom, top, near, far);
+    update_shader_view_matrix();
+}
+
+void PGraphicsOpenGLv33::ortho(const float left, const float right, const float bottom, const float top, const float near, const float far) {
+    PGraphics::ortho(left, right, bottom, top, near, far);
+    update_shader_view_matrix();
+}
+
+void PGraphicsOpenGLv33::perspective(const float fovy, const float aspect, const float near, const float far) {
+    PGraphics::perspective(fovy, aspect, near, far);
+    update_shader_view_matrix();
+}
+
+void PGraphicsOpenGLv33::update_shader_view_matrix() const {
+    if (current_shader == default_shader) {
+        default_shader->set_uniform(SHADER_UNIFORM_VIEW_MATRIX, view_matrix);
+    }
 }

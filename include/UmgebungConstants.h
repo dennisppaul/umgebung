@@ -29,6 +29,7 @@ namespace umgebung {
     static constexpr int   DEFAULT_WINDOW_WIDTH          = 1024;
     static constexpr int   DEFAULT_WINDOW_HEIGHT         = 768;
     static constexpr int   DEFAULT_FRAME_RATE            = 60;
+    static constexpr float DEFAULT_CAMERA_FOV_RADIANS    = 1.04719755f; // glm::radians(60.f));
     static constexpr int   DEFAULT_AUDIO_DEVICE          = -1;
     static constexpr auto  DEFAULT_AUDIO_DEVICE_NAME     = "";
     static constexpr auto  DEFAULT_AUDIO_DEVICE_NOT_USED = "NOOP";

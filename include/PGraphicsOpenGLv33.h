@@ -42,11 +42,9 @@ namespace umgebung {
         void store_fbo_state() override;
         void restore_fbo_state() override;
 
-        void        restore_matrices() override {}
-        void        reset_matrices() override;
-        void        prepare_frame() override;
         void        setup_fbo() override;
         void        finish_fbo() override {}
+        void        beginDraw() override;
         void        endDraw() override;
         void        init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
         void        hint(uint16_t property) override;
@@ -58,6 +56,10 @@ namespace umgebung {
         void        shader(PShader* shader) override;
         PShader*    loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "") override;
         void        resetShader() override;
+        void        camera(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ) override;
+        void        frustum(float left, float right, float bottom, float top, float near, float far) override;
+        void        ortho(float left, float right, float bottom, float top, float near, float far) override;
+        void        perspective(float fovy, float aspect, float near, float far) override;
 
     private:
         struct RenderBatch {
@@ -102,7 +104,7 @@ namespace umgebung {
 
         // TODO move OGL methods to PGraphicsOpenGL
         bool OGL_generate_and_upload_image_as_texture(PImage* image, bool generate_texture_mipmapped); // TODO replace `init()` in PImage constructor with `upload_texture(...)`
-        void OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData& vertex_buffer, GLenum mode, std::vector<Vertex>& shape_vertices) const;
+        void OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData& vertex_buffer, GLenum mode, const std::vector<Vertex>& shape_vertices) const;
 
         /* --- OpenGL 3.3 specific methods --- */
 
@@ -110,5 +112,6 @@ namespace umgebung {
         static void OGL3_init_vertex_buffer(VertexBufferData& vertex_buffer);
         void        OGL3_create_solid_color_texture();
         static void OGL3_render_vertex_buffer(VertexBufferData& vertex_buffer, GLenum primitive_mode, const std::vector<Vertex>& shape_vertices);
+        void        update_shader_view_matrix() const;
     };
 } // namespace umgebung

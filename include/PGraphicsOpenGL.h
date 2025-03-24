@@ -51,21 +51,19 @@ namespace umgebung {
         // matrix management is implementation-specific, so these are pure virtual
         virtual void setup_fbo()        = 0;
         virtual void finish_fbo()       = 0;
-        virtual void prepare_frame()    = 0;
-        virtual void restore_matrices() = 0;
 
         void beginDraw() override {
+            PGraphics::beginDraw();
             if (render_to_offscreen) {
                 store_fbo_state();
                 setup_fbo();
             }
-            prepare_frame();
-            reset_matrices();
+            glViewport(0, 0, framebuffer.width, framebuffer.height);
         }
 
         void endDraw() override {
+            PGraphics::endDraw();
             if (render_to_offscreen) {
-                restore_matrices();
                 restore_fbo_state();
                 finish_fbo();
             }

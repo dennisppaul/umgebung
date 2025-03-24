@@ -99,4 +99,13 @@ namespace umgebung {
     struct ShaderSource;
     PShader* loadShader(const ShaderSource& shader_source);
     void     normal(float x, float y, float z, float w = 0);
+    void     beginCamera();
+    void     endCamera();
+    void     camera(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
+    void     camera();
+    void     frustum(float left, float right, float bottom, float top, float near, float far);
+    void     ortho(float left, float right, float bottom, float top, float near, float far);
+    void     perspective(float fovYDegrees, float aspect, float near, float far);
+    void     printCamera();
+    void     printProjection();
 } // namespace umgebung
