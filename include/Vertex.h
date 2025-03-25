@@ -32,7 +32,6 @@ namespace umgebung {
         glm::aligned_vec4     normal;
         glm::aligned_vec4     color;
         glm::vec2             tex_coord;
-        glm::vec2             padding = glm::vec2(0.0f);
 
         // NOTE aligned_vec4 makes sure all data types are aligned to 16 bytes ( GLM_ENABLE_EXPERIMENTAL )
         //      make sure this does not cause any issues … it s experimental after all

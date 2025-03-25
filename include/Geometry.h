@@ -771,11 +771,112 @@ namespace umgebung {
         }
     }
 
+    inline std::vector<Vertex> generateTubeMesh(
+        const std::vector<Vertex>& points,
+        float                      radius = 0.05f,
+        bool                       closed = false,
+        const glm::aligned_vec4&   color  = glm::aligned_vec4(1.0f)) {
 
-    inline std::vector<glm::vec3> generateTubeMesh(
-        const std::vector<glm::vec3>& points,
-        float                         radius = 0.05f,
-        bool                          closed = false) {
+        std::vector<Vertex> tubeVertices;
+        size_t              n = points.size();
+        if (n < 2) {
+            return tubeVertices;
+        }
+
+        constexpr int                          sides = 4;
+        std::vector<std::array<Vertex, sides>> ringVertices;
+
+        glm::vec3 referenceUp(0, 1, 0);
+        if (glm::length(glm::cross(referenceUp, glm::normalize(glm::vec3(points[1].position) - glm::vec3(points[0].position)))) < 0.1f) {
+            referenceUp = glm::vec3(1, 0, 0);
+        }
+
+        glm::vec3 prevTangent;
+        glm::vec3 normal, binormal;
+
+        for (size_t i = 0; i < n; ++i) {
+            glm::vec3 pi = glm::vec3(points[i].position);
+            glm::vec3 tangent;
+
+            if (i == 0) {
+                tangent = closed
+                              ? glm::normalize(glm::vec3(points[1].position) - glm::vec3(points[n - 1].position))
+                              : glm::normalize(glm::vec3(points[1].position) - pi);
+            } else if (i == n - 1) {
+                tangent = closed
+                              ? glm::normalize(glm::vec3(points[0].position) - glm::vec3(points[n - 2].position))
+                              : glm::normalize(pi - glm::vec3(points[n - 2].position));
+            } else {
+                tangent = glm::normalize(glm::vec3(points[i + 1].position) - glm::vec3(points[i - 1].position));
+            }
+
+            if (i == 0) {
+                normal   = glm::normalize(glm::cross(tangent, referenceUp));
+                binormal = glm::normalize(glm::cross(tangent, normal));
+            } else {
+                glm::vec3 rotationAxis = glm::cross(prevTangent, tangent);
+                float     angle        = glm::asin(glm::length(rotationAxis));
+
+                if (angle > 1e-4f) {
+                    rotationAxis = glm::normalize(rotationAxis);
+                    glm::mat4 R  = glm::rotate(glm::mat4(1.0f), angle, rotationAxis);
+                    normal       = glm::normalize(glm::vec3(R * glm::vec4(normal, 0.0f)));
+                    binormal     = glm::normalize(glm::cross(tangent, normal));
+                } else {
+                    binormal = glm::normalize(glm::cross(tangent, normal));
+                }
+            }
+
+            prevTangent = tangent;
+
+            std::array<Vertex, sides> ring;
+            for (int j = 0; j < sides; ++j) {
+                float     angle = glm::radians(90.0f * j);
+                glm::vec3 dir   = glm::cos(angle) * normal + glm::sin(angle) * binormal;
+                glm::vec3 pos   = pi + dir * radius;
+
+                ring[j] = Vertex{pos,
+                                 color,
+                                 glm::vec2(j / float(sides), i / float(n)),
+                                 glm::aligned_vec4(glm::normalize(dir), 0.0f)};
+            }
+
+            ringVertices.push_back(ring);
+        }
+
+        if (closed) {
+            ringVertices.push_back(ringVertices[0]);
+        }
+
+        size_t ringCount = ringVertices.size();
+        for (size_t i = 0; i < ringCount - 1; ++i) {
+            for (int j = 0; j < sides; ++j) {
+                int j0 = j;
+                int j1 = (j + 1) % sides;
+
+                const Vertex& a = ringVertices[i][j0];
+                const Vertex& b = ringVertices[i][j1];
+                const Vertex& c = ringVertices[i + 1][j0];
+                const Vertex& d = ringVertices[i + 1][j1];
+
+                // triangle 1
+                tubeVertices.push_back(a);
+                tubeVertices.push_back(c);
+                tubeVertices.push_back(b);
+
+                // triangle 2
+                tubeVertices.push_back(b);
+                tubeVertices.push_back(c);
+                tubeVertices.push_back(d);
+            }
+        }
+
+        return tubeVertices;
+    }
+
+    inline std::vector<glm::vec3> generateTubeMesh(const std::vector<glm::vec3>& points,
+                                                   float                         radius = 0.05f,
+                                                   bool                          closed = false) {
         std::vector<glm::vec3> tubeVertices;
         size_t                 n = points.size();
         if (n < 2) {
@@ -866,7 +967,6 @@ namespace umgebung {
                 tubeVertices.push_back(d);
             }
         }
-
         return tubeVertices;
     }
 } // namespace umgebung
