@@ -135,9 +135,13 @@ void PGraphicsOpenGLv33::emit_shape_stroke_line_strip(std::vector<Vertex>& line_
             OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_LINE_STRIP, line_strip_vertices);
         }
         if (line_render_mode == STROKE_RENDER_MODE_TUBE_3D) {
-            std::vector<Vertex> line_vertices;
-
-            OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, line_strip_vertices);
+            const std::vector<Vertex> line_vertices = generateTubeMesh(line_strip_vertices,
+                                                                       stroke_weight / 2.0f,
+                                                                       line_strip_closed,
+                                                                       color_stroke);
+            OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, line_vertices);
+        }
+        if (line_render_mode == STROKE_RENDER_MODE_GEOMETRY_SHADER) {
         }
     }
 
@@ -189,8 +193,8 @@ void PGraphicsOpenGLv33::emit_shape_fill_triangles(std::vector<Vertex>& triangle
 
 // TODO could move this to a shared method in `PGraphics` and use beginShape(TRIANGLES)
 void PGraphicsOpenGLv33::debug_text(const std::string& text, const float x, const float y) {
-    std::vector<Vertex> triangle_vertices = debug_font.generate(text, x, y, glm::vec4(color_fill));
-    const int           tmp_bound_texture = texture_id_current; // TODO use push_texture_id() and pop_texture_id()
+    const std::vector<Vertex> triangle_vertices = debug_font.generate(text, x, y, glm::vec4(color_fill));
+    const int                 tmp_bound_texture = texture_id_current; // TODO use push_texture_id() and pop_texture_id()
     IMPL_bind_texture(debug_font.textureID);
     OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, triangle_vertices);
     IMPL_bind_texture(tmp_bound_texture);
@@ -746,18 +750,14 @@ void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(Vert
     bool                 mModelMatrixTransformOnGPU             = false;
     std::vector<Vertex>  transformed_vertices                   = shape_vertices; // NOTE make copy
     if (model_matrix_dirty) {
-        const glm::mat4 modelview = model_matrix;
-        for (auto& p: transformed_vertices) {
-            p.position = glm::vec4(modelview * p.position);
+        if (shape_vertices.size() <= MAX_NUM_VERTICES_CLIENT_SIDE_TRANSFORM) {
+            const glm::mat4 modelview = model_matrix;
+            for (auto& p: transformed_vertices) {
+                p.position = glm::vec4(modelview * p.position);
+            }
+        } else {
+            mModelMatrixTransformOnGPU = true;
         }
-        // if (shape_vertices.size() <= MAX_NUM_VERTICES_CLIENT_SIDE_TRANSFORM) {
-        //     const glm::mat4 modelview = model_matrix;
-        //     for (auto& p: transformed_vertices) {
-        //         p.position = glm::vec4(modelview * p.position);
-        //     }
-        // } else {
-        //     mModelMatrixTransformOnGPU = true;
-        // }
     }
     if (mModelMatrixTransformOnGPU) {
         if (current_shader == default_shader) {
