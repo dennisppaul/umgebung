@@ -21,7 +21,9 @@
 
 #include <vector>
 #include <GL/glew.h>
+
 #include "Vertex.h"
+#include "PGraphicsOpenGLConstants.h"
 #include "UFontPixels.h"
 
 namespace umgebung {
@@ -59,11 +61,11 @@ namespace umgebung {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glTexImage2D(GL_TEXTURE_2D,
                          0,
-                         PGraphicsOpenGL::UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
                          FONT_ATLAS_WIDTH,
                          FONT_ATLAS_HEIGHT, 0,
-                         PGraphicsOpenGL::UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                         PGraphicsOpenGL::UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
                          pixelData);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

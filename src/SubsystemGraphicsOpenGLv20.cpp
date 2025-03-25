@@ -26,46 +26,11 @@
 #include "PGraphicsOpenGLv20.h"
 
 namespace umgebung {
+    static void draw_pre();
+    static void draw_post();
 
     static SDL_Window*   window     = nullptr;
     static SDL_GLContext gl_context = nullptr;
-
-    // TODO implement set_resizable and fullscreen() (at runtime) and is_minimized()
-    //    SDL_SetWindowFullscreen(window?!?, fullscreen_state ? SDL_WINDOW_FULLSCREEN: SDL_WINDOW_FULLSCREEN_DESKTOP);
-    //    SDL_SetWindowResizable(window?!?, SDL_TRUE);
-    //    if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) {}
-
-    // TODO these functions below should go into a more generic place
-    void set_window_position(const int x, const int y) {
-        if (window == nullptr) {
-            return;
-        }
-        SDL_SetWindowPosition(window, x, y);
-    }
-
-    void get_window_position(int& x, int& y) {
-        if (window == nullptr) {
-            return;
-        }
-        SDL_GetWindowPosition(window, &x, &y);
-    }
-
-    void set_window_size(const int width, const int height) {
-        if (window == nullptr) {
-            return;
-        }
-        SDL_SetWindowSize(window, width, height);
-    }
-
-    void get_window_size(int& width, int& height) {
-        if (window == nullptr) {
-            return;
-        }
-        SDL_GetWindowSize(window, &width, &height);
-    }
-
-    static void draw_pre();
-    static void draw_post();
 
     static bool init() {
         return OGL_init(window, gl_context, 2, 0, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
@@ -141,3 +106,49 @@ umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv20() {
     graphics->create_graphics = umgebung::create_graphics;
     return graphics;
 }
+
+namespace umgebung {
+    // TODO implement set_resizable and fullscreen() (at runtime) and is_minimized()
+    //    SDL_SetWindowFullscreen(window?!?, fullscreen_state ? SDL_WINDOW_FULLSCREEN: SDL_WINDOW_FULLSCREEN_DESKTOP);
+    //    SDL_SetWindowResizable(window?!?, SDL_TRUE);
+    //    if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) {}
+
+    // TODO these are currently in Umgebung.cpp
+    // std::string get_window_title() {
+    //     // TODO move this to subsystem and make it configurable
+    //     return UMGEBUNG_WINDOW_TITLE;
+    // }
+    //
+    // void set_window_title(std::string title) {
+    //     // TODO move this to subsystem
+    // }
+
+    // TODO these functions below should go into a more generic place
+    void set_window_position(const int x, const int y) {
+        if (window == nullptr) {
+            return;
+        }
+        SDL_SetWindowPosition(window, x, y);
+    }
+
+    void get_window_position(int& x, int& y) {
+        if (window == nullptr) {
+            return;
+        }
+        SDL_GetWindowPosition(window, &x, &y);
+    }
+
+    void set_window_size(const int width, const int height) {
+        if (window == nullptr) {
+            return;
+        }
+        SDL_SetWindowSize(window, width, height);
+    }
+
+    void get_window_size(int& width, int& height) {
+        if (window == nullptr) {
+            return;
+        }
+        SDL_GetWindowSize(window, &width, &height);
+    }
+} // namespace umgebung

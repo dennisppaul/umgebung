@@ -36,6 +36,10 @@ namespace umgebung {
     public:
         explicit PGraphicsDefault2D(SDL_Renderer* renderer) : renderer(renderer) {}
 
+        void IMPL_background(float a, float b, float c, float d) override {}
+        void IMPL_bind_texture(int bind_texture_id) override {}
+        void IMPL_set_texture(PImage* img) override {}
+
         void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) override {}
         void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) override {}
 

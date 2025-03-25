@@ -25,11 +25,10 @@ namespace umgebung {
     static void draw_pre();
     static void draw_post();
 
+    static SDL_Window*   window                                  = nullptr;
+    static SDL_GLContext gl_context                              = nullptr;
+    static bool          blit_framebuffer_object_to_screenbuffer = true;
     // NOTE FBO is BLITted directly into the color buffer instead of rendered with a textured quad
-    static bool blit_framebuffer_object_to_screenbuffer = true;
-
-    static SDL_Window*   window     = nullptr;
-    static SDL_GLContext gl_context = nullptr;
 
     static bool init() {
         return OGL_init(window, gl_context, 3, 3, SDL_GL_CONTEXT_PROFILE_CORE);

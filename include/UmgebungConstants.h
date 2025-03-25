@@ -51,52 +51,59 @@ namespace umgebung {
     static constexpr float QUARTER_PI                    = PI / 4;
     static constexpr float TWO_PI                        = PI * 2;
     static constexpr float TAU                           = TWO_PI;
-    static constexpr int   TRIANGLES                     = 0x00;
-    static constexpr int   TRIANGLE_STRIP                = 0x01;
-    static constexpr int   TRIANGLE_FAN                  = 0x02;
-    static constexpr int   QUADS                         = 0x03;
-    static constexpr int   QUAD_STRIP                    = 0x04;
-    static constexpr int   POLYGON                       = 0x05;
-    static constexpr int   POINTS                        = 0x06;
-    static constexpr int   LINES                         = 0x07;
-    static constexpr int   LINE_STRIP                    = 0x08;
-    static constexpr int   LEFT                          = 1;
-    static constexpr int   RIGHT                         = 2;
-    static constexpr int   MIDDLE                        = 3;
-    static constexpr bool  CLOSE                         = true;
-    static constexpr bool  NOT_CLOSED                    = false;
-    static constexpr int   CORNER                        = 0x00; // rectMode
-    static constexpr int   CORNERS                       = 0x01;
-    static constexpr int   CENTER                        = 0x02;
-    static constexpr int   RADIUS                        = 0x03;
+    static constexpr int  LEFT       = 1;
+    static constexpr int  RIGHT      = 2;
+    static constexpr int  MIDDLE     = 3;
+    static constexpr bool CLOSE      = true;
+    static constexpr bool NOT_CLOSED = false;
+    enum ShapeKind {
+        TRIANGLES = 0x10,
+        TRIANGLE_STRIP,
+        TRIANGLE_FAN,
+        QUADS,
+        QUAD_STRIP,
+        POLYGON,
+        POINTS,
+        LINES,
+        LINE_STRIP
+    };
+    enum RectMode {
+        CORNER = 0x20,
+        CORNERS,
+        CENTER,
+        RADIUS
+    };
     enum StrokeJoin {
-        BEVEL = 0x20,
+        BEVEL = 0x30,
         MITER,
         ROUND,
         NONE,
         BEVEL_FAST,
         MITER_FAST
     };
-    static constexpr int SQUARE  = 0x26; // strokeCap
-    static constexpr int PROJECT = 0x27;
-    static constexpr int POINTED = 0x28;
+    enum StrokeCap {
+        SQUARE = 0x40,
+        PROJECT,
+        POINTED
+    };
     enum StrokeRenderMode {
-        STROKE_RENDER_MODE_NATIVE = 0x30,
+        STROKE_RENDER_MODE_NATIVE = 0x50,
         STROKE_RENDER_MODE_TRIANGULATE_2D,
         STROKE_RENDER_MODE_TUBE_3D,
         STROKE_RENDER_MODE_BARYCENTRIC_SHADER,
         STROKE_RENDER_MODE_GEOMETRY_SHADER
     };
-    static constexpr int POINT_RENDER_MODE_NATIVE         = 0x40;
-    static constexpr int POINT_RENDER_MODE_TRIANGULATE    = 0x41;
-    static constexpr int POLYGON_TRIANGULATION_FASTER     = 0x10;
-    static constexpr int POLYGON_TRIANGULATION_BETTER     = 0x11;
-    static constexpr int POLYGON_TRIANGULATION_MID        = 0x12;
-    const std::string    SHADER_UNIFORM_MODEL_MATRIX      = "uModelMatrix";
-    const std::string    SHADER_UNIFORM_VIEW_MATRIX       = "uViewMatrix";
-    const std::string    SHADER_UNIFORM_PROJECTION_MATRIX = "uProjection";
+    enum PointRenderMode {
+        POINT_RENDER_MODE_NATIVE = 0x60,
+        POINT_RENDER_MODE_TRIANGULATE
+    };
+    enum PolygonTriangulation {
+        POLYGON_TRIANGULATION_FASTER = 0x70,
+        POLYGON_TRIANGULATION_BETTER,
+        POLYGON_TRIANGULATION_MID
+    };
     enum BlendMode {
-        BLEND = 0xB0,
+        BLEND = 0x80,
         ADD,
         SUBTRACT,
         LIGHTEST,
@@ -112,10 +119,18 @@ namespace umgebung {
         DODGE,      // not implemented
         BURN        // not implemented
     };
+    enum RenderMode {
+        RENDER_MODE_IMMEDIATE = 0x90,
+        RENDER_MODE_BUFFERED,
+        RENDER_MODE_SHAPE
+    };
     enum Hint {
         ENABLE_SMOOTH_LINES = 0xA0,
         DISABLE_SMOOTH_LINES,
         ENABLE_DEPTH_TEST,
         DISABLE_DEPTH_TEST
     };
+    const std::string SHADER_UNIFORM_MODEL_MATRIX      = "uModelMatrix";
+    const std::string SHADER_UNIFORM_VIEW_MATRIX       = "uViewMatrix";
+    const std::string SHADER_UNIFORM_PROJECTION_MATRIX = "uProjection";
 } // namespace umgebung

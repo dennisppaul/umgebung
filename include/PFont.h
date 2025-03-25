@@ -308,11 +308,6 @@ namespace umgebung {
         }
 
 #ifdef PFONT_INCLUDE_OPENGL
-
-        // TODO move to `UmgebungConstantsOpenGL.h`
-        static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
-        static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
-
         /**
          * @deprecated this is handle by PGraphics
          * @param font

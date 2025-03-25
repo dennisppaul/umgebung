@@ -48,11 +48,12 @@ namespace umgebung {
     }
 
     std::string get_window_title() {
+        // TODO move this to subsystem and make it configurable
         return UMGEBUNG_WINDOW_TITLE;
     }
 
     void set_window_title(std::string title) {
-        // TODO
+        // TODO move this to subsystem
     }
 
     void set_frame_rate(const float fps) {

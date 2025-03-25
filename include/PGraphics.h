@@ -26,11 +26,16 @@
 
 #include <sstream>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "UmgebungConstants.h"
+#include "PGraphicsOpenGLConstants.h"
 #include "PImage.h"
 #include "Vertex.h"
 #include "Triangulator.h"
+#include "UFont.h"
+
+#include <UmgebungFunctionsAdditional.h>
 
 namespace umgebung {
     class PFont;
@@ -55,9 +60,9 @@ namespace umgebung {
 
         /* --- implementation specific methods --- */
 
-        virtual void IMPL_background(float a, float b, float c, float d) {} // NOTE this needs to clear the color buffer and depth buffer
-        virtual void IMPL_bind_texture(int bind_texture_id) {}              // TODO on closer insepction this is only used in PGraphicsOpenGL
-        virtual void IMPL_set_texture(PImage* img) {}
+        virtual void IMPL_background(float a, float b, float c, float d) = 0; // NOTE this needs to clear the color buffer and depth buffer
+        virtual void IMPL_bind_texture(int bind_texture_id)              = 0;
+        virtual void IMPL_set_texture(PImage* img)                       = 0;
 
         virtual void render_framebuffer_to_screen(bool use_blit) {} // TODO this should probably go to PGraphicsOpenGL
         virtual void read_framebuffer(std::vector<unsigned char>& pixels) {}
@@ -150,21 +155,20 @@ namespace umgebung {
         void             process_collected_fill_vertices();
         void             process_collected_stroke_vertices(bool close_shape);
         virtual void     endShape(bool close_shape = false);
-        virtual void     shader(PShader* shader) {}
+        virtual void     shader(PShader* shader) {} // TODO maybe not implement them like this
         virtual PShader* loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "") { return nullptr; };
         virtual void     resetShader() {}
         virtual void     normal(float x, float y, float z, float w = 0);
         virtual void     blendMode(int mode) {}
         // virtual void     beginCamera();
         // virtual void     endCamera();
-        virtual void     camera();
-        virtual void     camera(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
-        virtual void     frustum(float left, float right, float bottom, float top, float near, float far);
-        virtual void     ortho(float left, float right, float bottom, float top, float near, float far);
-        virtual void     perspective(float fovy, float aspect, float near, float far);
-        virtual void     printCamera();
-        virtual void     printProjection();
-
+        virtual void camera();
+        virtual void camera(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
+        virtual void frustum(float left, float right, float bottom, float top, float near, float far);
+        virtual void ortho(float left, float right, float bottom, float top, float near, float far);
+        virtual void perspective(float fovy, float aspect, float near, float far);
+        virtual void printCamera();
+        virtual void printProjection();
         // virtual void    lights()                                                                                           = 0;
 
         /* --- additional --- */
@@ -185,6 +189,7 @@ namespace umgebung {
         void                stroke_properties(float stroke_join_round_resolution, float stroke_cap_round_resolution, float stroke_join_miter_max_angle);
         void                triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
         virtual void        set_default_graphics_state() {}
+        void                set_render_mode(const int render_mode) { this->render_mode = render_mode; }
         virtual std::string name() { return "PGraphics"; }
 
         template<typename T>
@@ -218,7 +223,7 @@ namespace umgebung {
         float                            stroke_weight{1};
         int                              bezier_detail{20};
         uint8_t                          pixel_density{1};
-        int                              texture_id_current{};
+        int                              texture_id_current{TEXTURE_NONE};
         bool                             shape_has_begun{false};
         int                              polygon_triangulation_strategy{POLYGON_TRIANGULATION_BETTER};
         int                              line_render_mode{STROKE_RENDER_MODE_TRIANGULATE_2D};
@@ -245,6 +250,8 @@ namespace umgebung {
         glm::mat4                        temp_view_matrix{};
         glm::mat4                        temp_projection_matrix{};
         bool                             in_camera_block{false};
+        int                              render_mode{RENDER_MODE_IMMEDIATE};
+        UFont                            debug_font;
 
     public:
         glm::mat4              model_matrix{};
@@ -255,13 +262,24 @@ namespace umgebung {
     protected:
         // TODO clean this up:
 
+        bool texture_id_pushed{false};
         void push_texture_id() {
-            last_bound_texture_id_cache = texture_id_current;
+            if (!texture_id_pushed) {
+                texture_id_pushed           = true;
+                last_bound_texture_id_cache = texture_id_current;
+            } else {
+                warning("unbalanced texture id *push*/pop");
+            }
         }
 
         void pop_texture_id() {
-            IMPL_bind_texture(last_bound_texture_id_cache);
-            last_bound_texture_id_cache = TEXTURE_NONE;
+            if (texture_id_pushed) {
+                texture_id_pushed = false;
+                IMPL_bind_texture(last_bound_texture_id_cache);
+                last_bound_texture_id_cache = TEXTURE_NONE;
+            } else {
+                warning("unbalanced texture id push/*pop*");
+            }
         }
 
         void vertex_vec(const glm::vec3& position, const glm::vec2& tex_coords) {

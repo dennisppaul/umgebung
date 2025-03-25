@@ -33,145 +33,6 @@
 #endif
 
 namespace umgebung {
-    // TODO clean this up … move methods to implementation file
-    class PGraphicsOpenGL : public PGraphics {
-    public:
-        static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
-        static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
-
-        ~PGraphicsOpenGL() override = default;
-
-        void set_default_graphics_state() override {
-            glClearColor(0, 0, 0, 1);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            blendMode(BLEND);
-        }
-
-        virtual void store_fbo_state()   = 0;
-        virtual void restore_fbo_state() = 0;
-        virtual void setup_fbo()         = 0;
-        virtual void finish_fbo()        = 0;
-
-        void beginDraw() override {
-            PGraphics::beginDraw();
-            if (render_to_offscreen) {
-                store_fbo_state();
-                setup_fbo();
-            }
-            glViewport(0, 0, framebuffer.width, framebuffer.height);
-        }
-
-        void endDraw() override {
-            PGraphics::endDraw();
-            if (render_to_offscreen) {
-                restore_fbo_state();
-                finish_fbo();
-            }
-        }
-
-        // Common method to bind a framebuffer texture
-        void bind_framebuffer_texture() const {
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id);
-        }
-
-        void blendMode(const int mode) override {
-            glEnable(GL_BLEND);
-            switch (mode) {
-                case REPLACE:
-                    glBlendEquation(GL_FUNC_ADD);
-                    glBlendFunc(GL_ONE, GL_ZERO);
-                    break;
-                case BLEND:
-                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
-                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                                        GL_ONE, GL_ONE);
-                    break;
-                case ADD:
-                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
-                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE,
-                                        GL_ONE, GL_ONE);
-                    break;
-                case SUBTRACT:
-                    glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD);
-                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE,
-                                        GL_ONE, GL_ONE);
-                    break;
-                case LIGHTEST:
-                    glBlendEquationSeparate(GL_MAX, GL_FUNC_ADD);
-                    glBlendFuncSeparate(GL_ONE, GL_ONE,
-                                        GL_ONE, GL_ONE);
-                    break;
-                case DARKEST:
-                    glBlendEquationSeparate(GL_MIN, GL_FUNC_ADD);
-                    glBlendFuncSeparate(GL_ONE, GL_ONE,
-                                        GL_ONE, GL_ONE);
-                    break;
-                case MULTIPLY:
-                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
-                    glBlendFuncSeparate(GL_ZERO, GL_SRC_COLOR,
-                                        GL_ONE, GL_ONE);
-                    break;
-                case SCREEN:
-                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
-                    glBlendFuncSeparate(GL_ONE_MINUS_DST_COLOR, GL_ONE,
-                                        GL_ONE, GL_ONE);
-                    break;
-                case EXCLUSION:
-                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
-                    glBlendFuncSeparate(GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR,
-                                        GL_ONE, GL_ONE);
-                    break;
-                // not possible in fixed-function blending
-                case DIFFERENCE:
-                case OVERLAY:
-                case HARD_LIGHT:
-                case SOFT_LIGHT:
-                case DODGE:
-                case BURN:
-                    // optionally: issue a warning here
-                    glBlendEquation(GL_FUNC_ADD);
-                    glBlendFunc(GL_ONE, GL_ZERO); // fallback: REPLACE
-                    break;
-                default:
-                    // fallback: BLEND
-                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
-                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                                        GL_ONE, GL_ONE);
-                    break;
-            }
-        }
-
-        void OGL_read_framebuffer(const FrameBufferObject&    framebuffer,
-                                  const int                   target,
-                                  std::vector<unsigned char>& pixels) {
-            // TODO replace with OGL_read_framebuffer(FrameBufferObject framebuffer, int target, ... pixels) i.e OGL_read_framebuffer(framebuffer, GL_FRAMEBUFFER, pixels)
-            // NOTE identical EXCEPT FOR the target GL_READ_FRAMEBUFFER or GL_FRAMEBUFFER >>>
-            const int _width  = framebuffer.width;
-            const int _height = framebuffer.height;
-            pixels.resize(_width * _height * DEFAULT_BYTES_PER_PIXELS);
-            store_fbo_state();
-            glBindFramebuffer(target, framebuffer.id); // Bind the correct framebuffer
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-            glReadPixels(0, 0, _width, _height,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-                         pixels.data());
-            restore_fbo_state();
-            // NOTE identical EXCEPT FOR ... <<<
-        }
-
-        /* --- interface --- */
-
-        void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override = 0;
-
-        /* --- additional methods --- */
-
-        void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override = 0;
-        void        download_texture(PImage* img) override                                                                                              = 0;
-        std::string name() override                                                                                                                     = 0;
-    };
 
     // TODO @maybe move the functions below into the class above
 
@@ -349,4 +210,204 @@ namespace umgebung {
         return _shape;
     }
 
+    // TODO clean this up … move methods to implementation file
+    class PGraphicsOpenGL : public PGraphics {
+    public:
+        ~PGraphicsOpenGL() override = default;
+
+        void set_default_graphics_state() override {
+            glClearColor(0, 0, 0, 1);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            blendMode(BLEND);
+        }
+
+        virtual void store_fbo_state()   = 0;
+        virtual void restore_fbo_state() = 0;
+        virtual void setup_fbo()         = 0;
+        virtual void finish_fbo()        = 0;
+
+        void beginDraw() override {
+            PGraphics::beginDraw();
+            if (render_to_offscreen) {
+                store_fbo_state();
+                setup_fbo();
+            }
+            glViewport(0, 0, framebuffer.width, framebuffer.height);
+        }
+
+        void endDraw() override {
+            PGraphics::endDraw();
+            if (render_to_offscreen) {
+                restore_fbo_state();
+                finish_fbo();
+            }
+        }
+
+        // Common method to bind a framebuffer texture
+        void bind_framebuffer_texture() const {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id);
+        }
+
+        void blendMode(const int mode) override {
+            glEnable(GL_BLEND);
+            switch (mode) {
+                case REPLACE:
+                    glBlendEquation(GL_FUNC_ADD);
+                    glBlendFunc(GL_ONE, GL_ZERO);
+                    break;
+                case BLEND:
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case ADD:
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case SUBTRACT:
+                    glBlendEquationSeparate(GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case LIGHTEST:
+                    glBlendEquationSeparate(GL_MAX, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_ONE, GL_ONE,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case DARKEST:
+                    glBlendEquationSeparate(GL_MIN, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_ONE, GL_ONE,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case MULTIPLY:
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_ZERO, GL_SRC_COLOR,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case SCREEN:
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_ONE_MINUS_DST_COLOR, GL_ONE,
+                                        GL_ONE, GL_ONE);
+                    break;
+                case EXCLUSION:
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR,
+                                        GL_ONE, GL_ONE);
+                    break;
+                // not possible in fixed-function blending
+                case DIFFERENCE:
+                case OVERLAY:
+                case HARD_LIGHT:
+                case SOFT_LIGHT:
+                case DODGE:
+                case BURN:
+                    // optionally: issue a warning here
+                    glBlendEquation(GL_FUNC_ADD);
+                    glBlendFunc(GL_ONE, GL_ZERO); // fallback: REPLACE
+                    break;
+                default:
+                    // fallback: BLEND
+                    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+                    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                                        GL_ONE, GL_ONE);
+                    break;
+            }
+        }
+
+        /* --- interface --- */
+
+        void        init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override                                            = 0;
+        void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override = 0;
+        void        download_texture(PImage* img) override                                                                                              = 0;
+        std::string name() override                                                                                                                     = 0;
+
+        /* --- additional methods --- */
+
+        void OGL_read_framebuffer(const FrameBufferObject&    framebuffer,
+                                  const int                   target,
+                                  std::vector<unsigned char>& pixels) {
+            const int _width  = framebuffer.width;
+            const int _height = framebuffer.height;
+            pixels.resize(_width * _height * DEFAULT_BYTES_PER_PIXELS);
+            store_fbo_state();
+            glBindFramebuffer(target, framebuffer.id); // Bind the correct framebuffer
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+            glReadPixels(0, 0, _width, _height,
+                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                         pixels.data());
+            restore_fbo_state();
+        }
+
+        bool OGL_generate_and_upload_image_as_texture(PImage* image, const bool generate_texture_mipmapped) {
+            if (image == nullptr) {
+                error("Failed to upload texture because image nullptr.");
+                return false;
+            }
+
+            if (image->pixels == nullptr) {
+                error("Failed to upload texture because pixels are null. make sure pixel array exists.");
+                return false;
+            }
+
+            GLuint mTextureID;
+            glGenTextures(1, &mTextureID);
+
+            if (mTextureID == 0) {
+                error("Failed to generate texture ID");
+                return false;
+            }
+
+            image->texture_id           = static_cast<int>(mTextureID);
+            const int tmp_bound_texture = texture_id_current;
+            IMPL_bind_texture(image->texture_id);
+
+            // Set texture parameters
+            if (generate_texture_mipmapped) {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            } else {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            }
+
+            // Load image data
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+            glTexImage2D(GL_TEXTURE_2D,
+                         0,
+                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         static_cast<GLint>(image->width),
+                         static_cast<GLint>(image->height),
+                         0,
+                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                         image->pixels);
+
+            // TODO this does not work … need to test differently for OpenGL 2.0
+            // if (generate_texture_mipmapped) {
+            //     if (has_fbo_extension) {
+            // glGenerateMipmap(GL_TEXTURE_2D);
+            //     } else {
+            //         // fallback for OpenGL 2.0
+            //         glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE); // must be BEFORE glTexImage2D
+            //     }
+            // }
+
+            if (generate_texture_mipmapped) {
+                glGenerateMipmap(GL_TEXTURE_2D); // NOTE this works on macOS … but might not work on all platforms
+            }
+
+            IMPL_bind_texture(tmp_bound_texture);
+            return true;
+        }
+
+
+    }; // class PGraphicsOpenGL
 } // namespace umgebung

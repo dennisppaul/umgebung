@@ -137,7 +137,7 @@ namespace umgebung {
         console("render to offscreen: ", g->render_to_offscreen ? "true" : "false");
         console("framebuffer size   : ", framebuffer_width, " x ", framebuffer_height);
         console("graphics    size   : ", width, " x ", height);
-        console("pixel_density      : ", pixel_density, "( note that if graphics and framebuffer size do not align the pixel density should not be 1 )");
+        console("pixel_density      : ", pixel_density, width != framebuffer_width ? " ( note that if graphics and framebuffer size do not align the pixel density should not be 1 )" : "");
         g->pixelDensity(pixel_density); // NOTE setting pixel density from configuration
 
         g->init(nullptr, framebuffer_width, framebuffer_height, 0, false);

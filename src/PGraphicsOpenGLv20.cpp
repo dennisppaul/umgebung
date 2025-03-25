@@ -39,41 +39,40 @@ PGraphicsOpenGLv20::PGraphicsOpenGLv20(const bool render_to_offscreen) : PImage(
 }
 
 void PGraphicsOpenGLv20::strokeWeight(const float weight) {
-    stroke_weight = weight;
+    PGraphics::strokeWeight(weight);
     glLineWidth(weight);
 }
 
-void PGraphicsOpenGLv20::background(const float a, const float b, const float c, const float d) {
-    glClearColor(a, b, c, d);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void PGraphicsOpenGLv20::background(const float a) {
-    background(a, a, a);
-}
-
 void PGraphicsOpenGLv20::rect(const float x, const float y, const float width, const float height) {
-    if (color_fill.active) {
-        glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-        glBegin(GL_QUADS);
-        glTexCoord2f(0, 0);
-        glVertex2f(x, y);
-        glTexCoord2f(1, 0);
-        glVertex2f(x + width, y);
-        glTexCoord2f(1, 1);
-        glVertex2f(x + width, y + height);
-        glTexCoord2f(0, 1);
-        glVertex2f(x, y + height);
-        glEnd();
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        // add rectMode
+        if (color_fill.active) {
+            glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+            glBegin(GL_QUADS);
+            glTexCoord2f(0, 0);
+            glVertex2f(x, y);
+            glTexCoord2f(1, 0);
+            glVertex2f(x + width, y);
+            glTexCoord2f(1, 1);
+            glVertex2f(x + width, y + height);
+            glTexCoord2f(0, 1);
+            glVertex2f(x, y + height);
+            glEnd();
+        }
+        if (color_stroke.active) {
+            glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+            glBegin(GL_LINE_LOOP);
+            glVertex2f(x, y);
+            glVertex2f(x + width, y);
+            glVertex2f(x + width, y + height);
+            glVertex2f(x, y + height);
+            glEnd();
+        }
+        return;
     }
-    if (color_stroke.active) {
-        glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(x, y);
-        glVertex2f(x + width, y);
-        glVertex2f(x + width, y + height);
-        glVertex2f(x, y + height);
-        glEnd();
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::rect(x, y, width, height);
+        return;
     }
 }
 
@@ -103,14 +102,21 @@ static void draw_ellipse(const GLenum shape,
 }
 
 void PGraphicsOpenGLv20::ellipse(const float x, const float y, const float width, const float height) {
-    if (color_fill.active) {
-        glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-        draw_ellipse(GL_TRIANGLE_FAN, ellipse_detail, x, y, width, height);
-    }
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        if (color_fill.active) {
+            glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+            draw_ellipse(GL_TRIANGLE_FAN, ellipse_detail, x, y, width, height);
+        }
 
-    if (color_stroke.active) {
-        glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-        draw_ellipse(GL_LINE_LOOP, ellipse_detail, x, y, width, height);
+        if (color_stroke.active) {
+            glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+            draw_ellipse(GL_LINE_LOOP, ellipse_detail, x, y, width, height);
+        }
+        return;
+    }
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::ellipse(x, y, width, height);
+        return;
     }
 }
 
@@ -119,236 +125,165 @@ void PGraphicsOpenGLv20::circle(const float x, const float y, const float diamet
 }
 
 void PGraphicsOpenGLv20::line(const float x1, const float y1, const float x2, const float y2) {
-    if (!color_stroke.active) {
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        if (!color_stroke.active) {
+            return;
+        }
+        glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+        glBegin(GL_LINES);
+        glVertex2f(x1, y1);
+        glVertex2f(x2, y2);
+        glEnd();
         return;
     }
-    glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-    glBegin(GL_LINES);
-    glVertex2f(x1, y1);
-    glVertex2f(x2, y2);
-    glEnd();
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::line(x1, y1, x2, y2);
+        return;
+    }
 }
 
 void PGraphicsOpenGLv20::line(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2) {
-    if (!color_stroke.active) {
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        if (!color_stroke.active) {
+            return;
+        }
+        glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+        glBegin(GL_LINES);
+        glVertex3f(x1, y1, z1);
+        glVertex3f(x2, y2, z2);
+        glEnd();
         return;
     }
-    glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-    glBegin(GL_LINES);
-    glVertex3f(x1, y1, z1);
-    glVertex3f(x2, y2, z2);
-    glEnd();
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::line(x1, y1, z1, x2, y2, z2);
+        return;
+    }
 }
 
 void PGraphicsOpenGLv20::triangle(const float x1, const float y1, const float z1, const float x2, const float y2, const float z2, const float x3, const float y3, const float z3) {
-    if (!color_stroke.active) {
-        glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-        glBegin(GL_TRIANGLES);
-        glVertex3f(x1, y1, z1);
-        glVertex3f(x2, y2, z2);
-        glVertex3f(x3, y3, z3);
-        glEnd();
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        if (!color_stroke.active) {
+            glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+            glBegin(GL_TRIANGLES);
+            glVertex3f(x1, y1, z1);
+            glVertex3f(x2, y2, z2);
+            glVertex3f(x3, y3, z3);
+            glEnd();
+        }
+        if (!color_fill.active) {
+            glColor4f(color_fill.r, color_fill.g, color_fill.b, color_stroke.a);
+            glBegin(GL_TRIANGLES);
+            glVertex3f(x1, y1, z1);
+            glVertex3f(x2, y2, z2);
+            glVertex3f(x3, y3, z3);
+            glEnd();
+        }
         return;
     }
-    if (!color_fill.active) {
-        glColor4f(color_fill.r, color_fill.g, color_fill.b, color_stroke.a);
-        glBegin(GL_TRIANGLES);
-        glVertex3f(x1, y1, z1);
-        glVertex3f(x2, y2, z2);
-        glVertex3f(x3, y3, z3);
-        glEnd();
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::triangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
         return;
     }
 }
 
 void PGraphicsOpenGLv20::bezier(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4) {
-    if (!color_stroke.active) {
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        if (!color_stroke.active) {
+            return;
+        }
+        glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+
+        const int   segments = bezier_detail;
+        const float step     = 1.0f / static_cast<float>(segments);
+
+        glBegin(GL_LINE_STRIP);
+        for (int i = 0; i <= segments; ++i) {
+            const float t = static_cast<float>(i) * step;
+            const float u = 1.0f - t;
+
+            const float b0 = u * u * u;
+            const float b1 = 3 * u * u * t;
+            const float b2 = 3 * u * t * t;
+            const float b3 = t * t * t;
+
+            const float x = b0 * x1 + b1 * x2 + b2 * x3 + b3 * x4;
+            const float y = b0 * y1 + b1 * y2 + b2 * y3 + b3 * y4;
+
+            glVertex2f(x, y);
+        }
+        glEnd();
         return;
     }
-    glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-
-    const int   segments = bezier_detail;
-    const float step     = 1.0f / static_cast<float>(segments);
-
-    glBegin(GL_LINE_STRIP);
-    for (int i = 0; i <= segments; ++i) {
-        const float t = static_cast<float>(i) * step;
-        const float u = 1.0f - t;
-
-        const float b0 = u * u * u;
-        const float b1 = 3 * u * u * t;
-        const float b2 = 3 * u * t * t;
-        const float b3 = t * t * t;
-
-        const float x = b0 * x1 + b1 * x2 + b2 * x3 + b3 * x4;
-        const float y = b0 * y1 + b1 * y2 + b2 * y3 + b3 * y4;
-
-        glVertex2f(x, y);
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::bezier(x1, y1, x2, y2, x3, y3, x4, y4);
+        return;
     }
-    glEnd();
 }
 
 void PGraphicsOpenGLv20::bezier(const float x1, const float y1, const float z1,
                                 const float x2, const float y2, const float z2,
                                 const float x3, const float y3, const float z3,
                                 const float x4, const float y4, const float z4) {
-    if (!color_stroke.active) {
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+
+        if (!color_stroke.active) {
+            return;
+        }
+        glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+
+        const int   segments = bezier_detail;
+        const float step     = 1.0f / static_cast<float>(segments);
+
+        glBegin(GL_LINE_STRIP);
+        for (int i = 0; i <= segments; ++i) {
+            const float t = static_cast<float>(i) * step;
+            const float u = 1.0f - t;
+
+            const float b0 = u * u * u;
+            const float b1 = 3 * u * u * t;
+            const float b2 = 3 * u * t * t;
+            const float b3 = t * t * t;
+
+            const float x = b0 * x1 + b1 * x2 + b2 * x3 + b3 * x4;
+            const float y = b0 * y1 + b1 * y2 + b2 * y3 + b3 * y4;
+            const float z = b0 * z1 + b1 * z2 + b2 * z3 + b3 * z4;
+
+            glVertex3f(x, y, z);
+        }
+        glEnd();
         return;
     }
-    glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-
-    const int   segments = bezier_detail;
-    const float step     = 1.0f / static_cast<float>(segments);
-
-    glBegin(GL_LINE_STRIP);
-    for (int i = 0; i <= segments; ++i) {
-        const float t = static_cast<float>(i) * step;
-        const float u = 1.0f - t;
-
-        const float b0 = u * u * u;
-        const float b1 = 3 * u * u * t;
-        const float b2 = 3 * u * t * t;
-        const float b3 = t * t * t;
-
-        const float x = b0 * x1 + b1 * x2 + b2 * x3 + b3 * x4;
-        const float y = b0 * y1 + b1 * y2 + b2 * y3 + b3 * y4;
-        const float z = b0 * z1 + b1 * z2 + b2 * z3 + b3 * z4;
-
-        glVertex3f(x, y, z);
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::bezier(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4);
+        return;
     }
-    glEnd();
-}
-
-void PGraphicsOpenGLv20::bezierDetail(const int detail) {
-    bezier_detail = detail;
-}
-
-void PGraphicsOpenGLv20::pointSize(const float size) {
-    point_size = size;
 }
 
 void PGraphicsOpenGLv20::point(const float x, const float y, const float z) {
-    if (!color_stroke.active) {
-        return;
-    }
-
-    // TODO maybe implement point by rect
-    glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
-
-    //    glPushMatrix();
-    //    translate(x - point_size * 0.5, y - point_size * 0.5, z);
-    //    rect(0, 0, point_size, point_size);
-    //    glPopMatrix();
-
-    const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
-
-    glPointSize(tmp_point_size); // @development when using antialiasing a point size of 1 produces a semitransparent point
-    glBegin(GL_POINTS);
-    glVertex3f(x, y, z);
-    glEnd();
-}
-
-void PGraphicsOpenGLv20::beginShape(const int shape) {
-    // TODO collect vertices for outline
-    outline_vertices.clear();
-
-    shape_has_begun = true;
-
-    int mShape;
-    switch (shape) {
-        case TRIANGLES:
-            mShape = GL_TRIANGLES;
-            break;
-        case TRIANGLE_STRIP:
-            mShape = GL_TRIANGLE_STRIP;
-            break;
-        case TRIANGLE_FAN:
-            mShape = GL_TRIANGLE_FAN;
-            break;
-        case QUADS:
-            mShape = GL_QUADS;
-            break;
-        case QUAD_STRIP:
-            mShape = GL_QUAD_STRIP;
-            break;
-        case POLYGON:
-            mShape = GL_POLYGON;
-            break;
-        case POINTS:
-            mShape = GL_POINTS;
-            break;
-        case LINES:
-            mShape = GL_LINES;
-            break;
-        case LINE_STRIP:
-            mShape = GL_LINE_STRIP;
-            break;
-        default:
-            mShape = GL_TRIANGLES;
-    }
-    glBegin(mShape);
-}
-
-void PGraphicsOpenGLv20::endShape(bool close_shape) {
-    if (shape_has_begun) {
-        glEnd();
-        shape_has_begun = false;
-    }
-    if (enabled_texture_in_shape) {
-        glDisable(GL_TEXTURE_2D);
-        enabled_texture_in_shape = false;
-    }
-
-    /* --- stroke --- */
-
-    glLineWidth(stroke_weight * pixel_density);
-    if (!outline_vertices.empty()) {
-        if (close_shape) {
-            outline_vertices.push_back(outline_vertices[0]);
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        if (!color_stroke.active) {
+            return;
         }
-        glBegin(GL_LINE_STRIP);
-        for (const auto v: outline_vertices) {
-            glColor4f(v.color.r, v.color.g, v.color.b, v.color.a);
-            glVertex3f(v.position.x, v.position.y, v.position.z);
-        }
+
+        // TODO maybe implement point by rect
+        glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
+
+        //    glPushMatrix();
+        //    translate(x - point_size * 0.5, y - point_size * 0.5, z);
+        //    rect(0, 0, point_size, point_size);
+        //    glPopMatrix();
+
+        const float tmp_point_size = std::max(std::min(point_size, open_gl_capabilities.point_size_max), open_gl_capabilities.point_size_min);
+
+        glPointSize(tmp_point_size); // @development when using antialiasing a point size of 1 produces a semitransparent point
+        glBegin(GL_POINTS);
+        glVertex3f(x, y, z);
         glEnd();
-        outline_vertices.clear();
-    }
-}
-
-void PGraphicsOpenGLv20::vertex(const float x, const float y, const float z) {
-    if (!shape_has_begun) {
-        console("`vertex()` should only be called between `beginShape()` and `endShape()`");
         return;
     }
-    if (color_fill.active) {
-        glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-        glVertex3f(x, y, z);
-    }
-
-    if (color_stroke.active) {
-        outline_vertices.emplace_back(x, y, z,
-                                      color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a,
-                                      0, 0);
-    }
-}
-
-
-void PGraphicsOpenGLv20::vertex(const float x, const float y, const float z, const float u, const float v) {
-    if (!shape_has_begun) {
-        console("`vertex()` should only be called between `beginShape()` and `endShape()`");
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::point(x, y, z);
         return;
-    }
-    if (color_fill.active) {
-        glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-        glTexCoord2f(u, v);
-        glVertex3f(x, y, z);
-    }
-
-    if (color_stroke.active) {
-        outline_vertices.emplace_back(x, y, z,
-                                      color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a,
-                                      u, v);
     }
 }
 
@@ -410,55 +345,6 @@ void PGraphicsOpenGLv20::text(const char* value, const float x, const float y, c
 PImage* PGraphicsOpenGLv20::loadImage(const std::string& filename) {
     auto* img = new PImage(filename);
     return img;
-}
-
-
-static bool OGL_generate_and_upload_image_as_texture(PImage* image, const bool generate_texture_mipmapped) {
-    // TODO merge with method in PGraphicsOpenGLv33
-    if (image->pixels == nullptr) {
-        error("Failed to upload texture because pixels are null");
-        return false;
-    }
-
-    GLuint mTextureID;
-    glGenTextures(1, &mTextureID);
-
-    if (mTextureID == 0) {
-        error("Failed to generate texture ID");
-        return false;
-    }
-
-    image->texture_id = static_cast<int>(mTextureID);
-    glBindTexture(GL_TEXTURE_2D, image->texture_id);
-
-    // Set texture parameters
-    if (generate_texture_mipmapped) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    } else {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-
-    // Load image data
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 PGraphicsOpenGL::UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                 static_cast<GLint>(image->width),
-                 static_cast<GLint>(image->height),
-                 0,
-                 PGraphicsOpenGL::UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                 PGraphicsOpenGL::UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-                 image->pixels);
-    if (generate_texture_mipmapped) {
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    return true;
 }
 
 void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, float w, float h) {
@@ -547,6 +433,24 @@ void PGraphicsOpenGLv20::texture(PImage* img) {
     enabled_texture_in_shape = true;
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, img->texture_id);
+}
+
+// TODO could move this to a shared method in `PGraphics` and use beginShape(TRIANGLES)
+void PGraphicsOpenGLv20::debug_text(const std::string& text, const float x, const float y) {
+    const std::vector<Vertex> triangle_vertices = debug_font.generate(text, x, y, glm::vec4(color_fill));
+    push_texture_id();
+    glEnable(GL_TEXTURE_2D);
+    IMPL_bind_texture(debug_font.textureID);
+    glBegin(GL_TRIANGLES);
+    for (const auto& vertex: triangle_vertices) {
+        glColor4f(vertex.color.r, vertex.color.g, vertex.color.b, vertex.color.a);
+        glTexCoord2f(vertex.tex_coord.x, vertex.tex_coord.y);
+        glVertex2f(vertex.position.x, vertex.position.y);
+        // OGL3_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, triangle_vertices);
+    }
+    glEnd();
+    pop_texture_id();
+    glDisable(GL_TEXTURE_2D);
 }
 
 void PGraphicsOpenGLv20::popMatrix() {
@@ -710,26 +614,41 @@ void PGraphicsOpenGLv20::read_framebuffer(std::vector<unsigned char>& pixels) {
 void PGraphicsOpenGLv20::reset_mvp_matrices() {
     PGraphics::reset_mvp_matrices();
 
+    // glMatrixMode(GL_PROJECTION);
+    // glPushMatrix();
+    // glLoadIdentity();
+    // glOrtho(0, framebuffer.width, 0, framebuffer.height, -depth_range, depth_range);
+    //
+    // glMatrixMode(GL_MODELVIEW);
+    // glPushMatrix();
+    // glLoadIdentity();
+
+    /* store MVP matrices */
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, framebuffer.width, 0, framebuffer.height, -depth_range, depth_range);
-
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
-    glLoadIdentity();
 
-    /** flip y axis */
-    glScalef(1, -1, 1);
-    glTranslatef(0, -height, 0);
+    // projection matrix
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(glm::value_ptr(projection_matrix));
+
+    // modelview matrix
+    const glm::mat4 modelview = view_matrix * model_matrix;
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(glm::value_ptr(modelview));
+
+    // /** flip y axis */
+    // glScalef(1, -1, 1);
+    // glTranslatef(0, -height, 0);
 }
 
 void PGraphicsOpenGLv20::restore_mvp_matrices() {
     PGraphics::restore_mvp_matrices();
 
+    /* restore MVP matrices */
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
-
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
 }
@@ -753,4 +672,210 @@ void PGraphicsOpenGLv20::beginDraw() {
 
 void PGraphicsOpenGLv20::endDraw() {
     PGraphicsOpenGL::endDraw();
+}
+
+void PGraphicsOpenGLv20::setup_fbo() {
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glPushMatrix();
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
+}
+
+void PGraphicsOpenGLv20::finish_fbo() {
+    glPopMatrix();
+    glPopAttrib();
+}
+
+void PGraphicsOpenGLv20::store_fbo_state() {
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previously_bound_FBO);
+}
+
+void PGraphicsOpenGLv20::restore_fbo_state() {
+    glBindFramebuffer(GL_FRAMEBUFFER, previously_bound_FBO);
+}
+
+void PGraphicsOpenGLv20::IMPL_background(const float a, const float b, const float c, const float d) {
+    glClearColor(a, b, c, d);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void PGraphicsOpenGLv20::IMPL_bind_texture(const int bind_texture_id) {
+    if (bind_texture_id != texture_id_current) {
+        texture_id_current = bind_texture_id;
+        glBindTexture(GL_TEXTURE_2D, texture_id_current); // NOTE this should be the only glBindTexture ( except for initializations )
+    }
+}
+
+void PGraphicsOpenGLv20::IMPL_set_texture(PImage* img) {
+    // if (img == nullptr) {
+    //     IMPL_bind_texture(texture_id_solid_color);
+    //     return;
+    // }
+    // NOTE identical >>>
+    if (shape_has_begun) {
+        console("`texture()` can only be called right before `beginShape(...)`. ( note, this is different from the original processing )");
+        return;
+    }
+
+    // TODO move this to own method and share with `texture()`
+    if (img->texture_id == TEXTURE_NOT_GENERATED) {
+        OGL_generate_and_upload_image_as_texture(img, true);
+        if (img->texture_id == TEXTURE_NOT_GENERATED) {
+            error("image cannot create texture.");
+            return;
+        }
+    }
+
+    IMPL_bind_texture(img->texture_id);
+    // TODO so this is interesting: we could leave the texture bound and require the client
+    //      to unbind it with `texture_unbind()` or should `endShape()` always reset to
+    //      `texture_id_solid_color` with `texture_unbind()`.
+    // NOTE identical <<<
+}
+
+/* --- shape --- */
+
+void PGraphicsOpenGLv20::beginShape(const int shape) {
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        outline_vertices.clear();
+        shape_has_begun  = true;
+        const int mShape = get_draw_mode(shape);
+        glBegin(mShape);
+        return;
+    }
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::beginShape(shape);
+        return;
+    }
+}
+
+void PGraphicsOpenGLv20::endShape(const bool close_shape) {
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        if (shape_has_begun) {
+            glEnd();
+            shape_has_begun = false;
+        }
+        if (enabled_texture_in_shape) {
+            glDisable(GL_TEXTURE_2D);
+            enabled_texture_in_shape = false;
+        }
+
+        /* --- stroke --- */
+
+        glLineWidth(stroke_weight * pixel_density);
+        if (!outline_vertices.empty()) {
+            if (close_shape) {
+                outline_vertices.push_back(outline_vertices[0]);
+            }
+            glBegin(GL_LINE_STRIP);
+            for (const auto v: outline_vertices) {
+                glColor4f(v.color.r, v.color.g, v.color.b, v.color.a);
+                glVertex3f(v.position.x, v.position.y, v.position.z);
+            }
+            glEnd();
+            outline_vertices.clear();
+        }
+        return;
+    }
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::endShape(close_shape);
+        return;
+    }
+}
+
+void PGraphicsOpenGLv20::vertex(const float x, const float y, const float z) {
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+
+        if (!shape_has_begun) {
+            console("`vertex()` should only be called between `beginShape()` and `endShape()`");
+            return;
+        }
+        if (color_fill.active) {
+            glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+            glVertex3f(x, y, z);
+        }
+
+        if (color_stroke.active) {
+            outline_vertices.emplace_back(x, y, z,
+                                          color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a,
+                                          0, 0);
+        }
+        return;
+    }
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::vertex(x, y, z);
+        return;
+    }
+}
+
+void PGraphicsOpenGLv20::vertex(const float x, const float y, const float z, const float u, const float v) {
+    if (render_mode == RENDER_MODE_IMMEDIATE) {
+        if (!shape_has_begun) {
+            console("`vertex()` should only be called between `beginShape()` and `endShape()`");
+            return;
+        }
+        if (color_fill.active) {
+            glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
+            glTexCoord2f(u, v);
+            glVertex3f(x, y, z);
+        }
+
+        if (color_stroke.active) {
+            outline_vertices.emplace_back(x, y, z,
+                                          color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a,
+                                          u, v);
+        }
+        return;
+    }
+    if (render_mode == RENDER_MODE_SHAPE) {
+        PGraphics::vertex(x, y, z, u, v);
+        return;
+    }
+}
+
+static void emit_vertex(const Vertex& v) {
+    glColor4f(v.color.r, v.color.g, v.color.b, v.color.a);
+    glTexCoord2f(v.tex_coord.x, v.tex_coord.y);
+    glNormal3f(v.normal.x, v.normal.y, v.normal.z);
+    glVertex3f(v.position.x, v.position.y, v.position.z);
+}
+
+void PGraphicsOpenGLv20::emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, const bool line_strip_closed) {
+    glBegin(GL_LINE_STRIP);
+    for (const auto& v: line_strip_vertices) {
+        emit_vertex(v);
+    }
+    if (line_strip_closed) {
+        emit_vertex(line_strip_vertices[0]);
+    }
+    glEnd();
+}
+
+void PGraphicsOpenGLv20::emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) {
+    glBegin(GL_TRIANGLES);
+    for (const auto& v: triangle_vertices) {
+        emit_vertex(v);
+    }
+    glEnd();
+}
+
+void PGraphicsOpenGLv20::camera(const float eyeX, const float eyeY, const float eyeZ,
+                                const float centerX, const float centerY, const float centerZ,
+                                const float upX, const float upY, const float upZ) {
+    PGraphics::camera(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ);
+}
+
+void PGraphicsOpenGLv20::camera() {
+    PGraphics::camera();
+}
+
+void PGraphicsOpenGLv20::frustum(const float left, const float right, const float bottom, const float top, const float near, const float far) {
+    PGraphics::frustum(left, right, bottom, top, near, far);
+}
+
+void PGraphicsOpenGLv20::ortho(const float left, const float right, const float bottom, const float top, const float near, const float far) {
+    PGraphics::ortho(left, right, bottom, top, near, far);
+}
+
+void PGraphicsOpenGLv20::perspective(const float fovy, const float aspect, const float near, const float far) {
+    PGraphics::perspective(fovy, aspect, near, far);
 }

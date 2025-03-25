@@ -57,7 +57,7 @@ void PGraphicsOpenGLv33::IMPL_set_texture(PImage* img) {
         IMPL_bind_texture(texture_id_solid_color);
         return;
     }
-
+    // NOTE identical >>>
     if (shape_has_begun) {
         console("`texture()` can only be called right before `beginShape(...)`. ( note, this is different from the original processing )");
         return;
@@ -76,6 +76,7 @@ void PGraphicsOpenGLv33::IMPL_set_texture(PImage* img) {
     // TODO so this is interesting: we could leave the texture bound and require the client
     //      to unbind it with `texture_unbind()` or should `endShape()` always reset to
     //      `texture_id_solid_color` with `texture_unbind()`.
+    // NOTE identical <<<
 }
 
 /**
@@ -132,14 +133,14 @@ void PGraphicsOpenGLv33::emit_shape_stroke_line_strip(std::vector<Vertex>& line_
             OGL3_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, line_vertices);
         }
         if (line_render_mode == STROKE_RENDER_MODE_NATIVE) {
-            OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_LINE_STRIP, line_strip_vertices);
+            OGL3_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_LINE_STRIP, line_strip_vertices);
         }
         if (line_render_mode == STROKE_RENDER_MODE_TUBE_3D) {
             const std::vector<Vertex> line_vertices = generateTubeMesh(line_strip_vertices,
                                                                        stroke_weight / 2.0f,
                                                                        line_strip_closed,
                                                                        color_stroke);
-            OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, line_vertices);
+            OGL3_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, line_vertices);
         }
         if (line_render_mode == STROKE_RENDER_MODE_GEOMETRY_SHADER) {
         }
@@ -187,17 +188,17 @@ void PGraphicsOpenGLv33::emit_shape_fill_triangles(std::vector<Vertex>& triangle
         if (vertex_buffer_data.uninitialized()) {
             OGL3_init_vertex_buffer(vertex_buffer_data);
         }
-        OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, triangle_vertices);
+        OGL3_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, triangle_vertices);
     }
 }
 
 // TODO could move this to a shared method in `PGraphics` and use beginShape(TRIANGLES)
 void PGraphicsOpenGLv33::debug_text(const std::string& text, const float x, const float y) {
     const std::vector<Vertex> triangle_vertices = debug_font.generate(text, x, y, glm::vec4(color_fill));
-    const int                 tmp_bound_texture = texture_id_current; // TODO use push_texture_id() and pop_texture_id()
+    push_texture_id();
     IMPL_bind_texture(debug_font.textureID);
-    OGL_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, triangle_vertices);
-    IMPL_bind_texture(tmp_bound_texture);
+    OGL3_tranform_model_matrix_and_render_vertex_buffer(vertex_buffer_data, GL_TRIANGLES, triangle_vertices);
+    pop_texture_id();
 }
 
 /* --- UTILITIES --- */
@@ -207,8 +208,17 @@ void PGraphicsOpenGLv33::setup_fbo() {
 }
 
 void PGraphicsOpenGLv33::beginDraw() {
+    if (render_mode == RENDER_MODE_SHAPE) {
+        static bool warning_once = true;
+        if (warning_once) {
+            warning("render_mode is set to RENDER_MODE_SHAPE. this is not implemented yet.");
+            warning("switching to RENDER_MODE_IMMEDIATE.");
+            warning_once = false;
+            render_mode = RENDER_MODE_IMMEDIATE;
+        }
+    }
     PGraphicsOpenGL::beginDraw();
-    texture_id_current = 0;
+    texture_id_current = TEXTURE_NONE;
     IMPL_bind_texture(texture_id_solid_color);
     resetShader();
     default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, model_matrix);
@@ -565,67 +575,11 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
     }
 
     OGL3_create_solid_color_texture();
-    texture_id_current = 0;
+    texture_id_current = TEXTURE_NONE;
     IMPL_bind_texture(texture_id_solid_color);
 }
 
 /* additional */
-
-bool PGraphicsOpenGLv33::OGL_generate_and_upload_image_as_texture(PImage* image, const bool generate_texture_mipmapped) {
-    // TODO merge with method in PGraphicsOpenGLv20
-    if (image == nullptr) {
-        error("Failed to upload texture because image nullptr.");
-        return false;
-    }
-
-    if (image->pixels == nullptr) {
-        error("Failed to upload texture because pixels are null. make sure pixel array exists.");
-        return false;
-    }
-
-    GLuint mTextureID;
-    glGenTextures(1, &mTextureID);
-
-    if (mTextureID == 0) {
-        error("Failed to generate texture ID");
-        return false;
-    }
-
-    image->texture_id           = static_cast<int>(mTextureID);
-    const int tmp_bound_texture = texture_id_current;
-    IMPL_bind_texture(image->texture_id);
-
-    // Set texture parameters
-    if (generate_texture_mipmapped) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    } else {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-
-    // Load image data
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                 static_cast<GLint>(image->width),
-                 static_cast<GLint>(image->height),
-                 0,
-                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                 UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-                 image->pixels);
-    if (generate_texture_mipmapped) {
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-
-    IMPL_bind_texture(tmp_bound_texture);
-    return true;
-}
 
 void PGraphicsOpenGLv33::OGL3_create_solid_color_texture() {
     GLuint texture_id;
@@ -728,9 +682,9 @@ void PGraphicsOpenGLv33::OGL3_render_vertex_buffer(VertexBufferData&          ve
     glBindVertexArray(0);
 }
 
-void PGraphicsOpenGLv33::OGL_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData&          vertex_buffer,
-                                                                            const GLenum               mode,
-                                                                            const std::vector<Vertex>& shape_vertices) const {
+void PGraphicsOpenGLv33::OGL3_tranform_model_matrix_and_render_vertex_buffer(VertexBufferData&          vertex_buffer,
+                                                                             const GLenum               mode,
+                                                                             const std::vector<Vertex>& shape_vertices) const {
     static bool _emit_warning_only_once = false;
     if (mode != GL_TRIANGLES && mode != GL_LINE_STRIP) {
         if (!_emit_warning_only_once) {
