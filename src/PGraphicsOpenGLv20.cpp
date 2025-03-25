@@ -595,20 +595,19 @@ void PGraphicsOpenGLv20::render_framebuffer_to_screen(bool use_blit) {
     glTexCoord2f(0.0, 0.0);
     glVertex2f(0, 0);
     glTexCoord2f(1.0, 0.0);
-    glVertex2f(static_cast<float>(framebuffer.width), 0);
+    glVertex2f(ortho_width, 0);
     glTexCoord2f(1.0, 1.0);
-    glVertex2f(static_cast<float>(framebuffer.width),
-               static_cast<float>(framebuffer.height));
+    glVertex2f(ortho_width, ortho_height);
     glTexCoord2f(0.0, 1.0);
-    glVertex2f(0, static_cast<float>(framebuffer.height));
+    glVertex2f(0, ortho_height);
     glEnd();
 
     glDisable(GL_TEXTURE_2D);
     glPopAttrib();
 }
 
-void PGraphicsOpenGLv20::read_framebuffer(std::vector<unsigned char>& pixels) {
-    OGL_read_framebuffer(framebuffer, GL_FRAMEBUFFER, pixels);
+bool PGraphicsOpenGLv20::read_framebuffer(std::vector<unsigned char>& pixels) {
+    return OGL_read_framebuffer(framebuffer, pixels);
 }
 
 void PGraphicsOpenGLv20::reset_mvp_matrices() {

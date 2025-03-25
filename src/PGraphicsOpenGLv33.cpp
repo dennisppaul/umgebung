@@ -214,7 +214,7 @@ void PGraphicsOpenGLv33::beginDraw() {
             warning("render_mode is set to RENDER_MODE_SHAPE. this is not implemented yet.");
             warning("switching to RENDER_MODE_IMMEDIATE.");
             warning_once = false;
-            render_mode = RENDER_MODE_IMMEDIATE;
+            render_mode  = RENDER_MODE_IMMEDIATE;
         }
     }
     PGraphicsOpenGL::beginDraw();
@@ -428,43 +428,6 @@ void PGraphicsOpenGLv33::download_texture(PImage* img) {
                   img->pixels);
     IMPL_bind_texture(tmp_bound_texture);
 }
-
-// static void initMSAAFBO() {
-//     GLuint framebuffer.id;
-//     GLuint framebuffer.texture_id;
-//
-//     // Create FBO
-//     glGenFramebuffers(1, &framebuffer.id);
-//     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-//     // Create Multisampled Color Buffer
-//     glGenTextures(1, &framebuffer.texture_id);
-//
-//     GLuint    msaaDepthBuffer;
-//     const int samples = 4; // Number of MSAA samples
-//     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer.texture_id);
-//     glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE,
-//                             samples,
-//                             GL_RGBA8,
-//                             framebuffer.width,
-//                             framebuffer.height,
-//                             GL_TRUE);
-//     glFramebufferTexture2D(GL_FRAMEBUFFER,
-//                            GL_COLOR_ATTACHMENT0,
-//                            GL_TEXTURE_2D_MULTISAMPLE,
-//                            framebuffer.texture_id, 0);
-//     // Create Multisampled Depth Buffer
-//     glGenRenderbuffers(1, &msaaDepthBuffer);
-//     glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBuffer);
-//     glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH24_STENCIL8, framebuffer.width, framebuffer.height);
-//     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msaaDepthBuffer);
-//
-//     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-//         std::cerr << "MSAA FBO is incomplete!" << std::endl;
-//     }
-//
-//     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0); // NOTE no need to use `IMPL_bind_texture()`
-// }
 
 void PGraphicsOpenGLv33::init(uint32_t* pixels,
                               const int width,
@@ -759,8 +722,8 @@ void PGraphicsOpenGLv33::resetShader() {
     current_shader = default_shader;
 }
 
-void PGraphicsOpenGLv33::read_framebuffer(std::vector<unsigned char>& pixels) {
-    OGL_read_framebuffer(framebuffer, GL_READ_FRAMEBUFFER, pixels);
+bool PGraphicsOpenGLv33::read_framebuffer(std::vector<unsigned char>& pixels) {
+    return OGL_read_framebuffer(framebuffer, pixels);
 }
 
 void PGraphicsOpenGLv33::store_fbo_state() {

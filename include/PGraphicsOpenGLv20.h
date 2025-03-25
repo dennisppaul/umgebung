@@ -36,7 +36,7 @@ namespace umgebung {
         void IMPL_set_texture(PImage* img) override;
 
         void render_framebuffer_to_screen(bool use_blit = false) override;
-        void read_framebuffer(std::vector<unsigned char>& pixels) override;
+        bool read_framebuffer(std::vector<unsigned char>& pixels) override;
         void store_fbo_state() override;
         void restore_fbo_state() override;
         void setup_fbo() override;

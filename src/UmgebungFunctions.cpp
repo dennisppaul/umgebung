@@ -568,7 +568,10 @@ namespace umgebung {
         // Allocate memory for pixel data (RGBA)
         std::vector<unsigned char> pixels;
         // glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
-        g->read_framebuffer(pixels);
+        const bool success = g->read_framebuffer(pixels);
+        if (!success) {
+            warning("could not read pixel from color buffer. not saving image. try turning of anti-aliasing or offscreen rendering.");
+        }
 
         // Flip the image vertically because OpenGL's origin is bottom-left
         std::vector<unsigned char> flippedPixels(_width * _height * DEFAULT_BYTES_PER_PIXELS);

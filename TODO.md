@@ -247,14 +247,14 @@ this is a VERY unsorted todo list and a note pad.
 
 ## examples
 
-- [ ] start a series of *educated* examples
-- [ ] @umgebung example style ( and also logo style?!? and neon font below style )
+- @umgebung example style:
     ```C
     background(0.85f); // grey
     fill(0.5f, 0.85f, 1.0f); // blue
     fill(1.0f, 0.25f, 0.35f); // red
     stroke(0.0f);
     ```
+- [ ] @umgebung start a series of *educated* examples
 - [ ] @umgebung start dedicated font example
 - [ ] @umgebung try with font [Inter](https://rsms.me/inter/)
 - [ ] @umgebung @example add nice stroke example with rotierender box, square, open-closed-shape + linen im 0.5,0.85,1.0 style
