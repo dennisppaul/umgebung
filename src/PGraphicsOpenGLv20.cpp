@@ -607,7 +607,15 @@ void PGraphicsOpenGLv20::render_framebuffer_to_screen(bool use_blit) {
 }
 
 bool PGraphicsOpenGLv20::read_framebuffer(std::vector<unsigned char>& pixels) {
-    return OGL_read_framebuffer(framebuffer, pixels);
+    store_fbo_state();
+    if (render_to_offscreen) {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    } else {
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id); // non-MSAA FBO or default
+    }
+    const bool success = OGL_read_framebuffer(framebuffer, pixels);
+    restore_fbo_state();
+    return success;
 }
 
 void PGraphicsOpenGLv20::reset_mvp_matrices() {

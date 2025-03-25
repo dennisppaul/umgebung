@@ -723,7 +723,23 @@ void PGraphicsOpenGLv33::resetShader() {
 }
 
 bool PGraphicsOpenGLv33::read_framebuffer(std::vector<unsigned char>& pixels) {
-    return OGL_read_framebuffer(framebuffer, pixels);
+    store_fbo_state();
+    if (render_to_offscreen && antialiasing > 0) {
+        // NOTE this is a bit tricky. when the offscreen FBO is a multisample FBO ( MSAA ) we need to resolve it first
+        //      i.e blit it into the color buffer of the default framebuffer. otherwise we can just read from the
+        //      offscreen FBO.
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.id);
+        glBlitFramebuffer(0, 0, framebuffer.width, framebuffer.height,
+                          0, 0, framebuffer.width, framebuffer.height,
+                          GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    } else {
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id); // non-MSAA FBO or default
+    }
+    const bool success = OGL_read_framebuffer(framebuffer, pixels);
+    restore_fbo_state();
+    return success;
 }
 
 void PGraphicsOpenGLv33::store_fbo_state() {

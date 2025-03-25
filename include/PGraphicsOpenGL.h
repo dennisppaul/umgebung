@@ -327,18 +327,6 @@ namespace umgebung {
         /* --- additional methods --- */
 
         bool OGL_read_framebuffer(const FrameBufferObject& framebuffer, std::vector<unsigned char>& pixels) {
-            store_fbo_state();
-            if (render_to_offscreen) {
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.id);
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-                glBlitFramebuffer(0, 0, framebuffer.width, framebuffer.height,
-                                  0, 0, framebuffer.width, framebuffer.height,
-                                  GL_COLOR_BUFFER_BIT, GL_LINEAR); // TODO maybe GL_NEAREST is enough
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            } else {
-                glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-            }
             const int _width  = framebuffer.width;
             const int _height = framebuffer.height;
             pixels.resize(_width * _height * DEFAULT_BYTES_PER_PIXELS);
@@ -347,7 +335,6 @@ namespace umgebung {
                          UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
                          UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
                          pixels.data());
-            restore_fbo_state();
             return true;
         }
 
