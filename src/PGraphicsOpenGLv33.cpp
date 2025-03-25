@@ -806,14 +806,7 @@ void PGraphicsOpenGLv33::resetShader() {
 }
 
 void PGraphicsOpenGLv33::read_framebuffer(std::vector<unsigned char>& pixels) {
-    const int _width  = framebuffer.width;
-    const int _height = framebuffer.height;
-    pixels.resize(_width * _height * DEFAULT_BYTES_PER_PIXELS);
-    store_fbo_state();
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.id); // Bind the correct framebuffer
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glReadPixels(0, 0, _width, _height, UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT, UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE, pixels.data());
-    restore_fbo_state();
+    OGL_read_framebuffer(framebuffer, GL_READ_FRAMEBUFFER, pixels);
 }
 
 void PGraphicsOpenGLv33::store_fbo_state() {

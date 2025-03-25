@@ -17,18 +17,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Umgebung.h"
+#include "SubsystemGraphicsOpenGL.h"
 #include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv33.h"
 
 namespace umgebung {
-    static void       setup_pre();
-    static void       setup_post();
-    static void       draw_pre();
-    static void       draw_post();
-    static void       shutdown();
-    static void       set_flags(uint32_t& subsystem_flags);
-    static PGraphics* create_graphics(bool render_to_offscreen);
+    static void draw_pre();
+    static void draw_post();
 
     // NOTE FBO is BLITted directly into the color buffer instead of rendered with a textured quad
     static bool blit_framebuffer_object_to_screenbuffer = true;
@@ -36,159 +31,33 @@ namespace umgebung {
     static SDL_Window*   window     = nullptr;
     static SDL_GLContext gl_context = nullptr;
 
-    static void center_display() {
-        int mDisplayLocation;
-        if (display == DEFAULT) {
-            mDisplayLocation = SDL_WINDOWPOS_CENTERED;
-        } else {
-            int mNumDisplays = 0;
-            SDL_GetDisplays(&mNumDisplays);
-            if (display >= mNumDisplays) {
-                error("display index '", display, "' out of range. ",
-                      mNumDisplays, " display", mNumDisplays > 1 ? "s are" : " is",
-                      " available. using default display.");
-                mDisplayLocation = SDL_WINDOWPOS_CENTERED;
-            } else {
-                mDisplayLocation = SDL_WINDOWPOS_CENTERED_DISPLAY(display);
-            }
-        }
-        SDL_SetWindowPosition(window, mDisplayLocation, mDisplayLocation);
-    }
-
-    static bool init() { // TODO maybe merge v2.0 & v3.3 they are identical except for SDL_GL_CONTEXT_PROFILE_MASK + SDL_GL_CONTEXT_MAJOR_VERSION + SDL_GL_CONTEXT_MINOR_VERSION
-        // NOTE this is identical with the other OpenGL renderer >>>
-        /* setup opengl */
-
-        // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // always required on Mac?
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-        if (antialiasing > 0) {
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); // @TODO check number of buffers
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, antialiasing);
-        }
-
-        /* window */
-
-        SDL_WindowFlags flags = SDL_WINDOW_OPENGL;
-        window                = SDL_CreateWindow(get_window_title().c_str(),
-                                                 static_cast<int>(umgebung::width),
-                                                 static_cast<int>(umgebung::height),
-                                                 get_SDL_WindowFlags(flags));
-        if (window == nullptr) {
-            error("Couldn't create window: ", SDL_GetError());
-            return false;
-        }
-
-        center_display();
-
-        /* create opengl context */
-
-        gl_context = SDL_GL_CreateContext(window);
-        if (gl_context == nullptr) {
-            error("Couldn't create OpenGL context: ", SDL_GetError());
-            SDL_DestroyWindow(window);
-            return false;
-        }
-
-        SDL_GL_MakeCurrent(window, gl_context);
-        SDL_GL_SetSwapInterval(vsync ? 1 : 0);
-
-        /* display window */
-
-        SDL_ShowWindow(window);
-
-        // PGraphicsOpenGL::set_default_graphics_state();
-
-        /* initialize GLEW */
-
-        glewExperimental            = GL_TRUE;
-        const GLenum glewInitResult = glewInit();
-        if (GLEW_OK != glewInitResult) {
-            error("problem initializing GLEW: ", glewGetErrorString(glewInitResult));
-            SDL_GL_DestroyContext(gl_context);
-            SDL_DestroyWindow(window);
-            return false;
-        }
-
-        query_opengl_capabilities(open_gl_capabilities);
-
-        return true;
-        // <<< NOTE this is identical with the other OpenGL renderer
+    static bool init() {
+        return OGL_init(window, gl_context, 3, 3, SDL_GL_CONTEXT_PROFILE_CORE);
     }
 
     static void setup_pre() {
-        // NOTE this is identical with the other OpenGL renderer >>>
-        if (g == nullptr) {
-            return;
-        }
-
-        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_pre(begin)");
-
-        int current_framebuffer_width;
-        int current_framebuffer_height;
-        SDL_GetWindowSizeInPixels(window, &current_framebuffer_width, &current_framebuffer_height);
-        int current_framebuffer_width_in_pixel;
-        int current_framebuffer_height_in_pixel;
-        SDL_GetWindowSizeInPixels(window, &current_framebuffer_width_in_pixel, &current_framebuffer_height_in_pixel);
-        int         framebuffer_width  = static_cast<float>(current_framebuffer_width);
-        int         framebuffer_height = static_cast<float>(current_framebuffer_height);
-        const float pixel_density      = SDL_GetWindowPixelDensity(window);
-
-        console("main renderer        : ", g->name());
-        console("render to offscreen  : ", g->render_to_offscreen ? "true" : "false");
-        console("framebuffer size     : ", framebuffer_width, " x ", framebuffer_height);
-        console("framebuffer size (px): ", current_framebuffer_width_in_pixel, " x ", current_framebuffer_height_in_pixel);
-        console("graphics size        : ", width, " x ", height);
-        console("pixel_density        : ", pixel_density);
-        g->pixelDensity(pixel_density); // NOTE setting pixel density from configuration
-
-        g->init(nullptr, framebuffer_width, framebuffer_height, 0, false);
-        g->width  = static_cast<int>(width);
-        g->height = static_cast<int>(height);
-        g->lock_init_properties(true);
-
-        g->set_default_graphics_state();
-        draw_pre();
-
-        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_pre(end)");
-        // <<< NOTE this is identical with the other OpenGL renderer
+        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL33::setup_pre(begin)");
+        OGL_setup_pre(window);
+        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL33::setup_pre(end)");
     }
 
     static void setup_post() {
-        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::setup_post");
-        draw_post();
+        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL33::setup_post(begin)");
+        OGL_setup_post();
+        OGL_draw_post(window, blit_framebuffer_object_to_screenbuffer); // TODO maybe move this to shared methods once it is fully integrated
+        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL33::setup_post(end)");
     }
 
     static void draw_pre() {
-        if (g == nullptr) {
-            return;
-        }
-
-        g->beginDraw();
-        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw_pre");
+        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL33::draw_pre(begin)");
+        OGL_draw_pre();
+        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL33::draw_pre(end)");
     }
 
     static void draw_post() {
-        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw");
-
-        if (window == nullptr || g == nullptr) {
-            return;
-        }
-
-        g->endDraw();
-
-        if (g->render_to_offscreen && g->framebuffer.id > 0) {
-            g->render_framebuffer_to_screen(blit_framebuffer_object_to_screenbuffer);
-        }
-
-        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL::draw_post");
-        SDL_GL_SwapWindow(window);
+        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL33::draw_post(begin)");
+        OGL_draw_post(window, blit_framebuffer_object_to_screenbuffer);
+        checkOpenGLError("SUBSYSTEM_GRAPHICS_OPENGL33::draw_post(end)");
     }
 
     static void shutdown() {
@@ -200,7 +69,17 @@ namespace umgebung {
         subsystem_flags |= SDL_INIT_VIDEO;
     }
 
-    static void event(SDL_Event* event) {}
+    static void event(SDL_Event* event) {
+        if (event->type == SDL_EVENT_WINDOW_RESIZED) {
+            warning("TODO implement resize in OGLv33");
+        }
+    }
+
+    static void event_loop(SDL_Event* event) {
+        if (event->type == SDL_EVENT_WINDOW_RESIZED) {
+            warning("TODO implement resize in OGLv33");
+        }
+    }
 
     static const char* name() {
         return "OpenGL 3.3 core";
@@ -221,6 +100,7 @@ umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv33() {
     graphics->draw_post       = umgebung::draw_post;
     graphics->shutdown        = umgebung::shutdown;
     graphics->event           = umgebung::event;
+    graphics->event_loop      = umgebung::event_loop;
     graphics->name            = umgebung::name;
     graphics->create_graphics = umgebung::create_graphics;
     return graphics;

@@ -59,7 +59,7 @@ namespace umgebung {
         virtual void IMPL_bind_texture(int bind_texture_id) {}              // TODO on closer insepction this is only used in PGraphicsOpenGL
         virtual void IMPL_set_texture(PImage* img) {}
 
-        virtual void render_framebuffer_to_screen(bool use_blit = false) {} // TODO this should probably go to PGraphicsOpenGL
+        virtual void render_framebuffer_to_screen(bool use_blit) {} // TODO this should probably go to PGraphicsOpenGL
         virtual void read_framebuffer(std::vector<unsigned char>& pixels) {}
 
         /* --- implementation specific methods ( pure virtual ) --- */

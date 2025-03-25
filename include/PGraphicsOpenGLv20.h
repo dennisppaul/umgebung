@@ -60,7 +60,10 @@ namespace umgebung {
             glPopAttrib();
         }
 
-        void    init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
+        void beginDraw() override;
+        void endDraw() override;
+        void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override;
+
         void    strokeWeight(float weight) override;
         void    background(float a, float b, float c, float d = 1.0f) override;
         void    background(float a) override;

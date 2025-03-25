@@ -448,12 +448,12 @@ static bool OGL_generate_and_upload_image_as_texture(PImage* image, const bool g
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D,
                  0,
-                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                 PGraphicsOpenGL::UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
                  static_cast<GLint>(image->width),
                  static_cast<GLint>(image->height),
                  0,
-                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                 UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                 PGraphicsOpenGL::UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                 PGraphicsOpenGL::UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
                  image->pixels);
     if (generate_texture_mipmapped) {
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -704,18 +704,7 @@ void PGraphicsOpenGLv20::render_framebuffer_to_screen(bool use_blit) {
 }
 
 void PGraphicsOpenGLv20::read_framebuffer(std::vector<unsigned char>& pixels) {
-    const int _width  = framebuffer.width;
-    const int _height = framebuffer.height;
-    pixels.resize(_width * _height * DEFAULT_BYTES_PER_PIXELS);
-
-    store_fbo_state();
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id); // Bind the correct framebuffer
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glReadPixels(0, 0, _width, _height,
-                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                 UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-                 pixels.data());
-    restore_fbo_state();
+    OGL_read_framebuffer(framebuffer, GL_FRAMEBUFFER, pixels);
 }
 
 void PGraphicsOpenGLv20::reset_mvp_matrices() {
@@ -743,4 +732,25 @@ void PGraphicsOpenGLv20::restore_mvp_matrices() {
 
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
+}
+
+void PGraphicsOpenGLv20::beginDraw() {
+    PGraphicsOpenGL::beginDraw();
+    if (!render_to_offscreen) {
+        set_default_graphics_state();
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, width, 0, height, -depth_range, depth_range);
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        glScalef(1, -1, 1);
+        glTranslatef(0, -height, 0);
+    }
+}
+
+void PGraphicsOpenGLv20::endDraw() {
+    PGraphicsOpenGL::endDraw();
 }

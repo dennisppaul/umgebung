@@ -346,8 +346,8 @@ static void handle_event(const SDL_Event& event, bool& app_is_running) {
     //     // imgui_processevent(event);
     switch (event.type) {
         case SDL_EVENT_WINDOW_RESIZED:
-            // TODO implement window resize … how will the subsystems be updated?
-            umgebung::warning("TODO window resized. subsystem needs to be update …");
+            // // TODO implement window resize … how will the subsystems be updated?
+            // umgebung::warning("TODO window resized. subsystem needs to be update …");
             windowResized(-1, -1);
             break;
         case SDL_EVENT_QUIT:

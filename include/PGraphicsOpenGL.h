@@ -33,9 +33,12 @@
 #endif
 
 namespace umgebung {
+    // TODO clean this up … move methods to implementation file
     class PGraphicsOpenGL : public PGraphics {
-        // TODO clean this up … move methods to implementation file
     public:
+        static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
+        static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
+
         ~PGraphicsOpenGL() override = default;
 
         void set_default_graphics_state() override {
@@ -47,10 +50,8 @@ namespace umgebung {
 
         virtual void store_fbo_state()   = 0;
         virtual void restore_fbo_state() = 0;
-
-        // matrix management is implementation-specific, so these are pure virtual
-        virtual void setup_fbo()        = 0;
-        virtual void finish_fbo()       = 0;
+        virtual void setup_fbo()         = 0;
+        virtual void finish_fbo()        = 0;
 
         void beginDraw() override {
             PGraphics::beginDraw();
@@ -142,6 +143,25 @@ namespace umgebung {
             }
         }
 
+        void OGL_read_framebuffer(const FrameBufferObject&    framebuffer,
+                                  const int                   target,
+                                  std::vector<unsigned char>& pixels) {
+            // TODO replace with OGL_read_framebuffer(FrameBufferObject framebuffer, int target, ... pixels) i.e OGL_read_framebuffer(framebuffer, GL_FRAMEBUFFER, pixels)
+            // NOTE identical EXCEPT FOR the target GL_READ_FRAMEBUFFER or GL_FRAMEBUFFER >>>
+            const int _width  = framebuffer.width;
+            const int _height = framebuffer.height;
+            pixels.resize(_width * _height * DEFAULT_BYTES_PER_PIXELS);
+            store_fbo_state();
+            glBindFramebuffer(target, framebuffer.id); // Bind the correct framebuffer
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+            glReadPixels(0, 0, _width, _height,
+                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                         pixels.data());
+            restore_fbo_state();
+            // NOTE identical EXCEPT FOR ... <<<
+        }
+
         /* --- interface --- */
 
         void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap) override = 0;
@@ -156,11 +176,9 @@ namespace umgebung {
     // TODO @maybe move the functions below into the class above
 
     struct OpenGLCapabilities;
-    static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
-    static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
-    static constexpr int   OPENGL_PROFILE_NONE                    = -1;
-    static constexpr int   OPENGL_PROFILE_CORE                    = 1;
-    static constexpr int   OPENGL_PROFILE_COMPATIBILITY           = 2;
+    static constexpr int OPENGL_PROFILE_NONE          = -1;
+    static constexpr int OPENGL_PROFILE_CORE          = 1;
+    static constexpr int OPENGL_PROFILE_COMPATIBILITY = 2;
 
     inline double depth_range = 10000; // TODO this should be configurable … maybe in `reset_matrices()`
 
