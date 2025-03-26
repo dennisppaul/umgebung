@@ -21,12 +21,12 @@
 #include <glm/glm.hpp>
 #include <iostream>
 
-#include "PMesh.h"
+#include "VertexBuffer.h"
 #include "PGraphicsOpenGL.h"
 
 using namespace umgebung;
 
-void PMesh::init() {
+void VertexBuffer::init() {
     checkVAOSupport();
     glGenBuffers(1, &vbo);
     if (vao_supported) {
@@ -35,14 +35,14 @@ void PMesh::init() {
     buffer_initialized = true;
 }
 
-PMesh::~PMesh() {
+VertexBuffer::~VertexBuffer() {
     glDeleteBuffers(1, &vbo);
     if (vao_supported) {
         glDeleteVertexArrays(1, &vao);
     }
 }
 
-void PMesh::checkVAOSupport() {
+void VertexBuffer::checkVAOSupport() {
     GLint major, minor;
     glGetIntegerv(GL_MAJOR_VERSION, &major);
     glGetIntegerv(GL_MINOR_VERSION, &minor);
@@ -58,22 +58,22 @@ void PMesh::checkVAOSupport() {
     }
 }
 
-void PMesh::add_vertex(const Vertex& vertex) {
+void VertexBuffer::add_vertex(const Vertex& vertex) {
     dirty = true;
     _vertices.push_back(vertex);
 }
 
-void PMesh::add_vertices(const std::vector<Vertex>& new_vertices) {
+void VertexBuffer::add_vertices(const std::vector<Vertex>& new_vertices) {
     dirty = true;
     _vertices.insert(_vertices.end(), new_vertices.begin(), new_vertices.end());
 }
 
-void PMesh::clear() {
+void VertexBuffer::clear() {
     dirty = true;
     _vertices.clear();
 }
 
-void PMesh::resize_buffer() {
+void VertexBuffer::resize_buffer() {
     const size_t client_buffer_size_bytes = _vertices.size() * sizeof(Vertex);
     const size_t server_buffer_size_bytes = server_buffer_size * sizeof(Vertex);
 
@@ -95,7 +95,7 @@ void PMesh::resize_buffer() {
     }
 }
 
-void PMesh::upload() {
+void VertexBuffer::upload() {
     if (_vertices.empty()) {
         return;
     }
@@ -135,7 +135,7 @@ void PMesh::upload() {
     server_buffer_size = _vertices.size();
 }
 
-void PMesh::draw() {
+void VertexBuffer::draw() {
     if (!buffer_initialized) { init(); }
 
     if (_vertices.empty()) {
@@ -173,7 +173,7 @@ void PMesh::draw() {
     }
 }
 
-void PMesh::update() {
+void VertexBuffer::update() {
     if (!buffer_initialized) { init(); }
 
     if (_vertices.empty()) {

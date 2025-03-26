@@ -466,7 +466,7 @@ namespace umgebung {
         g->sphere(width, height, depth);
     }
 
-    void mesh(PMesh* mesh_shape) {
+    void mesh(VertexBuffer* mesh_shape) {
         if (g == nullptr) {
             return;
         }
@@ -567,5 +567,14 @@ namespace umgebung {
             return;
         }
         g->printProjection();
+    }
+
+    /* additional */
+
+    void debug_text(const std::string& text, const float x, const float y) {
+        if (g == nullptr) {
+            return;
+        }
+        g->debug_text(text, x, y);
     }
 } // namespace umgebung

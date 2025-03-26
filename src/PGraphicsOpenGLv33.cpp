@@ -29,7 +29,7 @@
 #include "PGraphicsOpenGLv33.h"
 #include "Vertex.h"
 #include "Geometry.h"
-#include "PMesh.h"
+#include "VertexBuffer.h"
 #include "PShader.h"
 #include "ShaderSourceColorTexture.h"
 
@@ -614,7 +614,7 @@ void PGraphicsOpenGLv33::OGL3_resize_vertex_buffer(const size_t buffer_size_byte
 void PGraphicsOpenGLv33::OGL3_render_vertex_buffer(VertexBufferData&          vertex_buffer,
                                                    const GLenum               primitive_mode,
                                                    const std::vector<Vertex>& shape_vertices) {
-    // TODO maybe replace this with PMesh
+    // TODO maybe replace this with VertexBuffer
     // Ensure there are vertices to render
     if (shape_vertices.empty()) {
         return;
@@ -689,7 +689,7 @@ void PGraphicsOpenGLv33::OGL3_tranform_model_matrix_and_render_vertex_buffer(Ver
     }
 }
 
-void PGraphicsOpenGLv33::mesh(PMesh* mesh_shape) {
+void PGraphicsOpenGLv33::mesh(VertexBuffer* mesh_shape) {
     if (mesh_shape == nullptr) {
         return;
     }

@@ -185,7 +185,7 @@ namespace umgebung {
         void text_str(const std::string& text, float x, float y, float z = 0.0f) override {}
         void beginDraw() override {}
         void endDraw() override {}
-        void mesh(PMesh* mesh_shape) override { /* TODO implement */ }
+        void mesh(VertexBuffer* mesh_shape) override { /* TODO implement */ }
 
         void init(uint32_t* pixels, const int width, const int height, int format, bool generate_mipmap) override {
             this->width  = width;

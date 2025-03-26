@@ -99,7 +99,7 @@ namespace umgebung {
         void    pixelDensity(int density) override;
         void    hint(uint16_t property) override;
         void    text_str(const std::string& text, float x, float y, float z = 0.0f) override;
-        void    mesh(PMesh* mesh_shape) override { /* TODO implement */ console("TODO implement mesh"); }
+        void    mesh(VertexBuffer* mesh_shape) override { /* TODO implement */ console("TODO implement mesh"); }
         void    debug_text(const std::string& text, float x, float y) override; // TODO move to PGraphics ( use glBeginShape() )
 
     private:

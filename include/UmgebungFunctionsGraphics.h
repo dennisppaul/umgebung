@@ -93,7 +93,7 @@ namespace umgebung {
     void     box(float width, float height, float depth);
     void     sphere(float size);
     void     sphere(float width, float height, float depth);
-    void     mesh(PMesh* mesh_shape = nullptr);
+    void     mesh(VertexBuffer* mesh_shape = nullptr);
     void     shader(PShader* shader = nullptr);
     PShader* loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "");
     struct ShaderSource;
@@ -108,4 +108,6 @@ namespace umgebung {
     void     perspective(float fovYDegrees, float aspect, float near, float far);
     void     printCamera();
     void     printProjection();
+    /* --- additional --- */
+    void debug_text(const std::string& text, float x, float y);
 } // namespace umgebung

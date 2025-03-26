@@ -122,9 +122,9 @@ void PImage::update(PGraphics*   graphics,
 
 void PImage::update_full_internal(PGraphics* graphics) {
     graphics->upload_texture(this,
-                           pixels,
-                           static_cast<int>(width), static_cast<int>(height),
-                           0, 0, true);
+                             pixels,
+                             static_cast<int>(width), static_cast<int>(height),
+                             0, 0, true);
 }
 
 void PImage::update(PGraphics* graphics, const uint32_t* pixel_data) {

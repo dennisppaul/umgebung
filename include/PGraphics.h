@@ -39,7 +39,7 @@
 
 namespace umgebung {
     class PFont;
-    class PMesh;
+    class VertexBuffer;
     class PShader;
 
     class PGraphics : public virtual PImage {
@@ -173,7 +173,7 @@ namespace umgebung {
 
         /* --- additional --- */
 
-        virtual void        mesh(PMesh* mesh_shape) {}
+        virtual void        mesh(VertexBuffer* mesh_shape) {}
         virtual void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {}
         virtual void        download_texture(PImage* img) {}
         virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
