@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Usage: ./script.sh <GitHub Repo URL> <Branch Name> <Start Date> <End Date>
-# Example: ./script.sh https://github.com/user/repo.git SDL3-dev "2025-03-01" "2025-03-04"
+# Usage   : ./compile-git-activity.sh <GitHub Repo URL> <Branch Name> <Start Date> <End Date>
+# Example : ./compile-git-activity.sh https://github.com/dennisppaul/umgebung SDL3-dev "2025-03-01" "2025-03-04"
 
 # Input validation
 if [ "$#" -ne 4 ]; then
