@@ -17,6 +17,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string>
+#include <sstream>
+
 #include "Umgebung.h"
 #include "UmgebungFunctionsGraphics.h"
 #include "ShaderSource.h"
@@ -319,11 +322,21 @@ namespace umgebung {
     }
 
     void text(const char* value, const float x, const float y, const float z) {
+        text(std::string(value), x, y, z);
+    }
+
+    void text(const std::string& text, const float x, const float y, const float z) {
         if (g == nullptr) {
             return;
         }
-        g->text(value, x, y, z);
+        g->text(text, x, y, z);
     }
+
+    float textWidth(char c) {
+        const auto text = std::string(1, c);
+        return textWidth(text);
+    }
+
 
     float textWidth(const std::string& text) {
         if (g == nullptr) {

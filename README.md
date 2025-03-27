@@ -58,22 +58,23 @@ trust the process.
 
 this project relies on the following packages:
 
-- [CMake](https://cmake.org/) `@version(3.30.3)`
-- [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) `@version(0.29.2)`
-- [SDL2](https://www.libsdl.org) `@version(2.30.7)`
-- [FTGL](https://github.com/frankheckenbach/ftgl) `@version(2.1.3)`
-- [GLEW](https://glew.sourceforge.net/) `@version(2.2.0)`
-- [ffmpeg](https://ffmpeg.org) `@version(7.0.2)`
-- [rtmidi](https://github.com/thestk/rtmidi) `@version(6.0.0)`
+- [CMake](https://cmake.org/) `@version(macOS, 3.31.6)`
+- [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) `@version(macOS, 2.4.3)`
+- [SDL3](https://www.libsdl.org) `@version(macOS, 3.2.8)`
+- [GLEW](https://glew.sourceforge.net/) `@version(macOS, 2.2.0)`
+- [HarfBuzz](https://github.com/harfbuzz/harfbuzz) `@version(macOS, 11.0.0)`
+- [Freetype](https://www.freetype.org/) `@version(macOS, 2.13.3)`
+- [ffmpeg](https://ffmpeg.org) `@version(macOS, 7.1.1)`
+- [rtmidi](https://github.com/thestk/rtmidi) `@version(macOS, 6.0.0)`
 - [oscpack](http://www.rossbencina.com/code/oscpack) ( included as source files )
 - [dr_libs](https://github.com/mackron/dr_libs) ( included as source files )
 - [dylibbundler](https://github.com/auriamg/macdylibbundler) ( only required for bundling standalone macOS applications.
-  it can also be installed via homebrew with `brew install dylibbundler` ) `@version(1.0.5)`
-- [PortAudio](https://www.portaudio.com) ( can be used as a replacement for SDL2-based audio. in contrast to SDL2 it can
+  it can also be installed via homebrew with `brew install dylibbundler` ) `@version(macOS, 1.0.5)`
+- [PortAudio](https://www.portaudio.com) ( can be used as a replacement for SDL-based audio. in contrast to SDL it can
   output audio to multiple channels. it can also be installed via homebrew with `brew install portaudio` )
-  `@version(19.7.0)`
+  `@version(macOS, 19.7.0)`
 
-( `@version(X.X.X)` states the version number of the library with which *Umgebung* has been tested on macOS. other
+( `@version(macOS, X.X.X)` states the platform and version number of the library with which *Umgebung* has been tested on macOS. other
 versions might work as well but are not guaranteed to. )
 
 ### macOS
@@ -82,8 +83,8 @@ in order to compile and run applications install the following packages with [Ho
 
 either manually with:
 
-```
-$ brew install cmake pkgconfig sdl2 ftgl glew ffmpeg rtmidi
+```sh
+brew install cmake pkgconfig sdl3 glew harfbuzz freetype ffmpeg rtmidi
 ```
 
 or run installer script `./install-macOS.sh` ( i.e checking for Homebrew and running the bundler with `brew bundle` ).
@@ -93,11 +94,13 @@ or run installer script `./install-macOS.sh` ( i.e checking for Homebrew and run
 on linux ( including Raspberry Pi OS ) install the required packages
 with [APT](https://en.wikipedia.org/wiki/APT_(software)):
 
-```
-$ sudo apt-get update -y
-$ sudo apt-get upgrade -y
-$ sudo apt-get install git clang mesa-utils # optional -y
-$ sudo apt-get install cmake pkg-config libsdl2-dev libftgl-dev libglew-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev -y
+@TODO(not tested with new libraries)
+
+```sh
+sudo apt-get update -y
+sudo apt-get upgrade -y
+sudo apt-get install git clang mesa-utils # optional -y
+sudo apt-get install cmake pkg-config libsdl3-dev libglew-dev harfbuzz freetype ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev -y
 ```
 
 alternatively, run installer script `./install-linux.sh` to install packages
@@ -124,10 +127,12 @@ however, it has not been tested carefully. there might be glitches …
 - install [MSYS2](https://www.msys2.org/)
 - install the following modules with `pacman` in `MSYS2 UCRT64`:
 
-```
-$ pacman -Syu --noconfirm
-$ pacman -S --noconfirm mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake git
-$ pacman -S --noconfirm mingw-w64-ucrt-x86_64-glew mingw-w64-ucrt-x86_64-mesa mingw-w64-ucrt-x86_64-ftgl mingw-w64-ucrt-x86_64-SDL2 mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-rtmidi
+@TODO(update packages to SDL3)
+
+```sh
+pacman -Syu --noconfirm
+pacman -S --noconfirm mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake git
+pacman -S --noconfirm mingw-w64-ucrt-x86_64-glew mingw-w64-ucrt-x86_64-mesa mingw-w64-ucrt-x86_64-ftgl mingw-w64-ucrt-x86_64-SDL2 mingw-w64-ucrt-x86_64-ffmpeg mingw-w64-ucrt-x86_64-rtmidi
 ```
 
 the setup is exclusively for the `MSYS2 UCRT64` branch ( and not for `MSYS2 MINGW64` etcetera ). also it uses `ninja` as
@@ -147,17 +152,17 @@ repository [umgebung-examples](https://github.com/dennisppaul/umgebung-examples)
 to run example `umgebung-simple` do the
 following:
 
-```
-$ cd ./umgebung-examples/examples/umgebung-simple/
-$ cmake -B build .         # prepare build system
-$ cmake --build build      # build application
-$ ./build/umgebung-simple  # run application 
+```sh
+cd ./umgebung-examples/examples/umgebung-simple/
+cmake -B build .         # prepare build system
+cmake --build build      # build application
+./build/umgebung-simple  # run application 
 ```
 
 if changes are made to `umgebung-simple.cpp` ( or any other file in that folder ) it is enough to just run:
 
-```
-$ make -C build ; ./build/umgebung-simple
+```sh
+make -C build ; ./build/umgebung-simple
 ```
 
 ## Known Differences
@@ -194,9 +199,9 @@ profile e.g in `~/.zshrc` in *zsh* shell. note, that other shell environments us
 if you have NO idea what this all means you might just try the following lines ( as always without the `$` ;) ) for
 *zsh*:
 
-```
-$ { echo -e "\n# set library path\n"; [ -n "$LIBRARY_PATH" ] && echo "export LIBRARY_PATH=/usr/local/lib:\"\$LIBRARY_PATH\"" || echo "export LIBRARY_PATH=/usr/local/lib"; } >> "$HOME/.zshrc"
-$ source "$HOME/.zshrc"
+```sh
+{ echo -e "\n# set library path\n"; [ -n "$LIBRARY_PATH" ] && echo "export LIBRARY_PATH=/usr/local/lib:\"\$LIBRARY_PATH\"" || echo "export LIBRARY_PATH=/usr/local/lib"; } >> "$HOME/.zshrc"
+source "$HOME/.zshrc"
 ```
 
 this will set the `$LIBRARY_PATH` in your *zsh* profile file.

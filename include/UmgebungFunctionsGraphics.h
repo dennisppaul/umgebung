@@ -72,8 +72,10 @@ namespace umgebung {
     PFont*   loadFont(const std::string& file, float size); // @development maybe use smart pointers here
     void     textFont(PFont* font);
     void     textSize(float size);
+    void     text(const std::string& text, float x, float y, float z = 0.0f);
     void     text(const char* value, float x, float y, float z = 0.0f);
     float    textWidth(const std::string& text);
+    float    textWidth(char c);
     void     popMatrix();
     void     pushMatrix();
     void     translate(float x, float y, float z = 0);
@@ -110,4 +112,12 @@ namespace umgebung {
     void     printProjection();
     /* --- additional --- */
     void debug_text(const std::string& text, float x, float y);
+
+    template<typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_same<T, char>::value, void>::type
+    text(const T& value, const float x, const float y, const float z = 0.0f) {
+        std::ostringstream oss;
+        oss << value;
+        text(oss.str(), x, y, z);
+    }
 } // namespace umgebung

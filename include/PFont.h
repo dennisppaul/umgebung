@@ -104,9 +104,11 @@ namespace umgebung {
             pixels = new uint32_t[static_cast<int>(width * height)];
             copy_atlas_to_rgba(*font, reinterpret_cast<unsigned char*>(pixels));
 
-            console("PFont     :  created atlas");
-            console("size      : ", width, "×", height);
-            console("texture id: ", texture_id == TEXTURE_NOT_GENERATED ? "(NOT YET GENERATED)" : to_string(texture_id));
+            console("PFont      :  created atlas");
+            console("size       : ", width, "×", height);
+            // console("texture id: ", texture_id == TEXTURE_NOT_GENERATED ? "(NOT YET GENERATED)" : to_string(texture_id));
+            baseline_offset = static_cast<float>(font->face->size->metrics.ascender) / 64.0f;
+            console("font ascent: ", baseline_offset);
 #ifdef PFONT_DEBUG_FONT
             DEBUG_save_font_atlas(*font, font_filepath + "--font_atlas.png");
             DEBUG_save_text(*font, "AVTAWaToVAWeYoyo Hamburgefonts", font_filepath + "--text.png");
@@ -115,9 +117,9 @@ namespace umgebung {
 
         static constexpr int atlas_pixel_width       = 512;
         static constexpr int atlas_character_padding = 2;
-        const int            font_size;
+        const float          font_size;
 
-        PImage* create_image(const std::string& text) const {
+        static PImage* create_image(const std::string& text) {
             error("PImage / implement `create_image`: ", text);
             return nullptr;
         }
@@ -134,6 +136,9 @@ namespace umgebung {
 
             g->pushMatrix();
             g->translate(x, y, z);
+            const float text_scale = text_size / font_size;
+            g->scale(text_scale, text_scale, 1);
+            g->translate(0, -baseline_offset, 0);
             g->texture(this);
             g->beginShape(TRIANGLES);
             for (const auto q: text_quads) {
@@ -146,18 +151,24 @@ namespace umgebung {
                 g->vertex(q.x2, q.y2, 0, q.u2, q.v2);
             }
             g->endShape(CLOSE);
+            g->texture();
             g->popMatrix();
         }
 
-        float textWidth(const char* text) const { // TODO move to std::string
-            (void) text;
-            error("PFont implement `textWidth`");
-            return 0.0f;
+        float textWidth(const std::string& str) const {
+            if (font == nullptr) {
+                return 0.0f;
+            }
+            if (str.empty()) {
+                return 0.0f;
+            }
+
+            const float text_scale = text_size / font_size;
+            return get_text_width(*font, str) * text_scale;
         }
 
-        void textSize(const float textSize) const {
-            (void) textSize;
-            error("PFont implement `textSize`");
+        void textSize(const float size) {
+            text_size = size;
         }
 
         ~PFont() override {
@@ -195,9 +206,10 @@ namespace umgebung {
         };
 
         std::vector<TexturedQuad> text_quads;
-        // GLuint                    font_texture{0};
-        FontData*  font{nullptr};
-        FT_Library freetype{nullptr};
+        FontData*                 font{nullptr};
+        FT_Library                freetype{nullptr};
+        float                     text_size{1};
+        float                     baseline_offset{0};
 
 #ifdef PFONT_DEBUG_FONT
         void DEBUG_save_font_atlas(const FontData& font, const std::string& output_path) const;
@@ -209,7 +221,7 @@ namespace umgebung {
         //     return convert.from_bytes(utf8);
         // }
 
-        void create_font_atlas(FontData& font, const std::string& characters_in_atlas) const {
+        static void create_font_atlas(FontData& font, const std::string& characters_in_atlas) {
             if (font.face == nullptr || font.hb_font == nullptr) {
                 error("font data not intizialized");
                 return;
@@ -293,7 +305,7 @@ namespace umgebung {
             }
         }
 
-        void copy_atlas_to_rgba(const FontData& font, unsigned char* atlas_rgba) const {
+        static void copy_atlas_to_rgba(const FontData& font, unsigned char* atlas_rgba) {
             for (int y = 0; y < font.atlas_height; y++) {
                 for (int x = 0; x < font.atlas_width; x++) {
                     const unsigned char val = font.atlas[y * font.atlas_width + x];
@@ -358,6 +370,27 @@ namespace umgebung {
             return texture_id;
         }
 #endif // PFONT_INCLUDE_OPENGL
+
+        static float get_text_width(const FontData& font, const std::string& text) {
+            hb_buffer_clear_contents(font.buffer);
+
+            hb_buffer_add_utf8(font.buffer, text.c_str(), -1, 0, -1);
+            hb_buffer_set_direction(font.buffer, HB_DIRECTION_LTR);
+            hb_buffer_set_script(font.buffer, HB_SCRIPT_LATIN);
+            hb_buffer_set_language(font.buffer, hb_language_from_string("en", 2));
+
+            hb_shape(font.hb_font, font.buffer, nullptr, 0);
+
+            unsigned int               glyph_count;
+            const hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(font.buffer, &glyph_count);
+
+            float width = 0.0f;
+            for (unsigned int i = 0; i < glyph_count; ++i) {
+                width += static_cast<float>(glyph_pos[i].x_advance) / 64.0f; // divide by 64 to convert from subpixels
+            }
+
+            return width;
+        }
 
         static void generate_text_quads(const FontData&            font,
                                         const std::string&         text,

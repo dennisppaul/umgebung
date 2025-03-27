@@ -170,6 +170,10 @@ namespace umgebung {
         return out.str();
     }
 
+    std::string nf(const double num, const int digits) {
+        return nf(static_cast<float>(num), digits);
+    }
+
     std::string nf(const float num, const int left, const int right) {
         std::ostringstream out;
         out << std::fixed << std::setprecision(right);

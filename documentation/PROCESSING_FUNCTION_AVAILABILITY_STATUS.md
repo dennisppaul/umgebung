@@ -3,21 +3,21 @@
 ### Composite
 
 - [ ] `Array` :: An array is a list of data
-- [ ] `ArrayList` :: An*ArrayList*stores a variable number of objects
-- [ ] `FloatDict` :: A simple table class to use a*String*as a lookup for a float value
+- [ ] `ArrayList` :: An *ArrayList* stores a variable number of objects
+- [ ] `FloatDict` :: A simple table class to use a *String* as a lookup for a float value
 - [ ] `FloatList` :: Helper class for a list of floats
-- [ ] `HashMap` :: A*HashMap*stores a collection of objects, each referenced by a key
-- [ ] `IntDict` :: A simple class to use a*String*as a lookup for an int value
+- [ ] `HashMap` :: A *HashMap* stores a collection of objects, each referenced by a key
+- [ ] `IntDict` :: A simple class to use a *String* as a lookup for an int value
 - [ ] `IntList` :: Helper class for a list of ints
 - [ ] `JSONArray` :: A JSONArray is an ordered sequence of values
-- [ ] `JSONObject` :: A*JSONObject*is an unordered collection of name/value pairs
+- [ ] `JSONObject` :: A *JSONObject* is an unordered collection of name/value pairs
 - [ ] `Object` :: Objects are instances of classes
-- [ ] `String` :: A string is a sequence of characters
-- [ ] `StringDict` :: A simple class to use a*String*as a lookup for an*String*value
+- [ ] `String` :: A string is a sequence of characters ==@note(replaced by `std::string`)==
+- [ ] `StringDict` :: A simple class to use a *String* as a lookup for an*String*value
 - [ ] `StringList` :: Helper class for a list of Strings
 - [ ] `Table` :: Generic class for handling tabular data, typically from a CSV, TSV, or other sort of spreadsheet file
-- [ ] `TableRow` :: Represents a single row of data values, stored in columns, from a*Table*
-- [ ] `XML` :: This is the base class used for the Processing XML library, representing a single node of an*XML*tree
+- [ ] `TableRow` :: Represents a single row of data values, stored in columns, from a *Table*
+- [ ] `XML` :: This is the base class used for the Processing XML library, representing a single node of an *XML* tree
 
 ### Array Functions
 
@@ -36,11 +36,11 @@
 - [x] `binary()` :: Converts an*int*,*byte*,*char*, or*color*to a*String* containing the equivalent binary notation
 - [ ] `boolean()` :: Converts an*int*or*String*to its boolean representation
 - [ ] `byte()` :: Converts any value of a primitive data type (*boolean*,*byte*,*char*,*color*,*double*,*float*,*int*,
-  or*long*) to its byte representation
+  or *long*) to its byte representation
 - [ ] `char()` :: Converts any value of a primitive data type (*boolean*,*byte*,*char*,*color*,*double*,*float*,*int*,
-  or*long*) to its numeric character representation
-- [ ] `float()` :: Converts an*int*or*String*to its floating point representation
-- [x] `hex()` :: Converts a*byte*,*char*,*int*, or*color*to a*String* containing the equivalent hexadecimal notation
+  or *long*) to its numeric character representation
+- [ ] `float()` :: Converts an *int* or *String* to its floating point representation
+- [x] `hex()` :: Converts a *byte*, *char*, *int*, or *color* to a *String* containing the equivalent hexadecimal notation
 - [ ] `int()` :: Converts any value of a primitive data type (*boolean*,*byte*,*char*,*color*,*float*,*int*, or*long*)
   or String to its integer representation
 - [x] `str()` :: Converts a value of a primitive data type (*boolean*,*byte*,*char*,*int*, or*float*) to its*String*
@@ -158,8 +158,8 @@
 - [ ] `textAlign()` :: Sets the current alignment for drawing text
 - [ ] `textLeading()` :: Sets the spacing between lines of text in units of pixels
 - [ ] `textMode()` :: Sets the way text draws to the screen
-- [ ] `textSize()` :: Sets the current font size
-- [ ] `textWidth()` :: Calculates and returns the width of any character or text string
+- [x] `textSize()` :: Sets the current font size
+- [x] `textWidth()` :: Calculates and returns the width of any character or text string
 
 ### Metrics
 

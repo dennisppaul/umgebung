@@ -101,6 +101,7 @@ namespace umgebung {
     std::vector<std::string>              match(const std::string& text, const std::regex& regexp);
     std::vector<std::vector<std::string>> matchAll(const std::string& text, const std::regex& regexp);
     std::string                           nf(float num, int digits = 2);
+    std::string                           nf(double num, int digits = 2);
     std::string                           nf(float num, int left, int right);
     std::string                           nf(int num, int digits = 2);
     std::string                           nfc(int num);
