@@ -25,8 +25,6 @@
 
 #ifndef DISABLE_GRAPHICS
 
-#include <GL/glew.h>
-
 #endif
 
 #include "UmgebungConstants.h"
@@ -50,7 +48,8 @@ namespace umgebung {
         int  fShape      = POLYGON;
         // int  fVerticesSize = 0;
 #ifndef DISABLE_GRAPHICS
-        std::vector<GLfloat> vertices;
+        std::vector<float> vertices;
+        // std::vector<GLfloat> vertices;
         // GLuint               vertexArray, vertexBuffer;
         // GLuint               vertexShader, fragmentShader, shaderProgram;
 

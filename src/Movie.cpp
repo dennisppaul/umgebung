@@ -19,6 +19,8 @@
 
 #include "Movie.h"
 
+#include <UmgebungFunctionsAdditional.h>
+
 // TODO look into audio processing
 // TODO look into camera access
 // TODO implement `MovieListener` including callback
@@ -168,11 +170,11 @@ int Movie::init_from_file(const std::string& filename, int _channels) {
                          1);
     packet = av_packet_alloc();
 
-    // TODO check if this still works
     PImage::init(reinterpret_cast<uint32_t*>(convertedFrame->data[0]),
                  videoCodecContext->width,
                  videoCodecContext->height,
-                 _channels);
+                 _channels,
+                 false);
 
 #ifndef OMIT_PRINT_MOVIE_INFO
     std::cout << "+++ Movie: dimensions    : " << videoCodecContext->width << ", " << videoCodecContext->height << std::endl;
@@ -384,24 +386,45 @@ bool Movie::processFrame() {
     return false;
 }
 
-void Movie::reload() {
+void Movie::reload(PGraphics* graphics) {
+    if (graphics == nullptr) {
+        return;
+    }
+
+    if (convertedFrame == nullptr) {
+        return;
+    }
+
     pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
-    update_full_internal();
+    update_full_internal(graphics);
 }
 
-void  Movie::set_listener(MovieListener* listener) { fListener = listener; }
+void Movie::set_listener(MovieListener* listener) { fListener = listener; }
 
-bool Movie::read() {
+bool Movie::read(PGraphics* graphics) {
+    if (graphics == nullptr) {
+        return false;
+    }
+
+    if (convertedFrame == nullptr) {
+        return false;
+    }
+
     if (!processFrame()) {
         return false; // No frame available or error processing frame
     }
+
     pixels = reinterpret_cast<uint32_t*>(convertedFrame->data[0]);
-    update_full_internal();
+    update_full_internal(graphics);
     return true;
 }
 
 // Example of frameRate() method
 float Movie::frameRate() const {
+    if (formatContext == nullptr) {
+        return 0;
+    }
+
     const AVRational frame_rate = formatContext->streams[videoStreamIndex]->avg_frame_rate;
     return static_cast<float>(frame_rate.num) / static_cast<float>(frame_rate.den);
 }
@@ -413,10 +436,18 @@ void Movie::speed(const float factor) {
 }
 
 float Movie::duration() const {
+    if (formatContext == nullptr) {
+        return 0;
+    }
+
     return static_cast<float>(formatContext->duration) / AV_TIME_BASE;
 }
 
 void Movie::jump(const float seconds) const {
+    if (formatContext == nullptr) {
+        return;
+    }
+
     const int64_t timestamp = static_cast<int64_t>(seconds) * AV_TIME_BASE;
     av_seek_frame(formatContext, videoStreamIndex, timestamp, AVSEEK_FLAG_ANY);
     // Reset any buffers or states as needed
@@ -438,14 +469,14 @@ void Movie::noLoop() {
 #else
 
 Movie::Movie(const std::string& filename, int _channels) : PImage() {
-    std::cerr << "Movie - ERROR: video is disabled" << std::endl;
+    error("Movie - ERROR: video is disabled");
 }
 
 Movie::~Movie() {}
 
 bool Movie::available() { return false; }
 
-bool Movie::read() { return false; }
+bool read(PGraphics* graphics = g) { return false; }
 
 int Movie::init_from_file(const std::string& filename, int _channels) { return -1; }
 

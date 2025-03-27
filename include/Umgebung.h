@@ -19,104 +19,77 @@
 
 #pragma once
 
-// TODO make audio settings configurable
-// TODO what if `audio_input_channels` equals `0`? is microphone access still requested?
-// TODO fix warnings on RPI
-// TODO consider using namespace here `namespace umgebung {}` for entire project
+#include <vector>
+#include <string>
 
-#include <iostream>
-#include <cmath>
-
-#if !defined(DISABLE_GRAPHICS) || !defined(DISABLE_AUDIO)
-
-#include <SDL2/SDL.h>
-
-#endif
-
-#ifndef DISABLE_GRAPHICS
-#define APP_WINDOW SDL_Window
-#else
-// @TODO maybe find a better solution then `void`
-#define APP_WINDOW void
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-#ifndef FALSE
-#define FALSE 0
-#endif
-#ifndef WEAK
-#define WEAK __attribute__((weak))
-#endif
-
-#define USE_CURRENT_OPENGL FALSE // on macOS currently VERSION 3.3 // TODO does not work currently
-#ifndef RENDER_INTO_FRAMEBUFFER
-#define RENDER_INTO_FRAMEBUFFER TRUE // this is required when not clearing the framebuffer each frame
-#endif                               // RENDER_INTO_FRAMEBUFFER
-
-namespace umgebung {
-    static constexpr int DEFAULT_AUDIO_DEVICE = -1;
-
-#ifndef DEFAULT_AUDIO_SAMPLE_RATE
-#define DEFAULT_AUDIO_SAMPLE_RATE 48000 // TODO make this configurable
-#endif
-
-#ifndef DEFAULT_FRAMES_PER_BUFFER
-#define DEFAULT_FRAMES_PER_BUFFER 2048 // TODO make this configurable
-#endif
-
-#define DEFAULT_NUMBER_OF_INPUT_CHANNELS  1 // TODO make this configurable
-#define DEFAULT_NUMBER_OF_OUTPUT_CHANNELS 2 // TODO make this configurable
-#define DEFAULT                           (-1)
-#define DEFAULT_WINDOW_WIDTH              1024
-#define DEFAULT_WINDOW_HEIGHT             768
-#define DEFAULT_WINDOW_TITLE              "Umgebung"
-#ifndef UMGEBUNG_WINDOW_TITLE // can be set in `CMakeLists.txt`
-#define UMGEBUNG_WINDOW_TITLE DEFAULT_WINDOW_TITLE
-#endif
-
-    extern int  audio_input_device;
-    extern int  audio_output_device;
-    extern int  audio_input_channels;
-    extern int  audio_output_channels;
-    extern int  monitor;
-    extern bool fullscreen;
-    extern bool borderless;
-    extern int  antialiasing;
-    extern bool resizable;
-    extern bool always_on_top;
-    extern bool enable_retina_support; // @development maybe implement as `HINT(ENABLE_RETINA_SUPPORT, true)`
-    extern bool headless;
-    extern bool no_audio;
-} // namespace umgebung
-
+#include "UmgebungDefines.h"
 #include "UmgebungConstants.h"
-
-#include "PVector.h"
-#include "PFont.h"
-#include "PImage.h"
-#include "PGraphics.h"
-#include "PShape.h"
-
+#include "UmgebungCallbacks.h"
 #include "UmgebungFunctions.h"
-#include "PApplet.h"
+#include "UmgebungFunctionsGraphics.h"
+#include "Subsystems.h"
 
-/* Graphics Prototypes */
 namespace umgebung {
-    void set_graphics_context(PApplet* applet);
 
-    APP_WINDOW* init_graphics(int width, int height, const char* title);
+    /* public variables *for initialization only*  */
 
-    void handle_setup(APP_WINDOW* window);
+    /* --- audio  --- */
+    inline bool enable_audio           = false;
+    inline int  audio_unique_device_id = 0x0010;
+    // inline int        audio_format       = 0; // TODO currently only supporting F32
 
-    void handle_draw(APP_WINDOW* window);
+    /* --- graphics --- */
+    inline bool enable_graphics  = false;
+    inline bool always_on_top    = false;
+    inline int  antialiasing     = DEFAULT;
+    inline bool borderless       = false;
+    inline int  display          = DEFAULT;
+    inline bool fullscreen       = false;
+    inline bool resizable        = false;
+    inline bool retina_support   = true;
+    inline bool vsync            = false;
+    inline bool render_to_buffer = false;
 
-    void handle_event(const SDL_Event& event, bool& fAppIsRunning, bool& fMouseIsPressed, bool& fWindowIsResized);
+    /* --- libraries + events --- */
+    inline bool enable_libraries = true;
+    inline bool enable_events    = true;
 
-    void handle_shutdown(APP_WINDOW* window);
+    /* public variables ( updated by system ) */
 
-    bool handle_window_resized(APP_WINDOW* window);
+    /* --- audio  --- */
+    inline PAudio*     a                        = nullptr;
+    inline float*      audio_input_buffer       = nullptr;
+    inline int         input_channels           = DEFAULT_INPUT_CHANNELS;
+    inline float*      audio_output_buffer      = nullptr;
+    inline int         output_channels          = DEFAULT_OUTPUT_CHANNELS;
+    inline int         audio_buffer_size        = 0;
+    inline int         sample_rate              = 0;
+    inline int         audio_input_device_id    = DEFAULT_AUDIO_DEVICE;
+    inline std::string audio_input_device_name  = DEFAULT_AUDIO_DEVICE_NAME;
+    inline int         audio_output_device_id   = DEFAULT_AUDIO_DEVICE;
+    inline std::string audio_output_device_name = DEFAULT_AUDIO_DEVICE_NAME;
 
-    int print_audio_devices();
+    /* --- graphics --- */
+    inline PGraphics* g              = nullptr;
+    inline float      width          = DEFAULT_WINDOW_WIDTH;
+    inline float      height         = DEFAULT_WINDOW_HEIGHT;
+    inline int        frameCount     = 0;
+    inline float      frameRate      = DEFAULT_FRAME_RATE;
+    inline int        key            = 0; // events
+    inline bool       isKeyPressed   = false;
+    inline int        mouseButton    = DEFAULT;
+    inline bool       isMousePressed = false;
+    inline float      mouseX         = 0;
+    inline float      mouseY         = 0;
+    inline float      pmouseX        = 0;
+    inline float      pmouseY        = 0;
+
+    /* public variables *mainly for internal use* */
+
+    inline bool                    use_esc_key_to_quit = true;
+    inline std::vector<Subsystem*> subsystems;
+    inline SubsystemGraphics*      subsystem_graphics   = nullptr;
+    inline SubsystemAudio*         subsystem_audio      = nullptr;
+    inline Subsystem*              subsystem_libraries  = nullptr;
+    inline Subsystem*              subsystem_hid_events = nullptr;
 } // namespace umgebung

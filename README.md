@@ -12,7 +12,7 @@ original [Processing.org](https://processing.org) environment.
 the [Processing.org](https://processing.org) *idiom* while at the same time suggesting disconnecting it from one
 specific group, application or project … maybe a bit like markdown in that sense.
 
-see [DOCUMENTATION](./DOCUMENTATION.md) for usage information
+see [DOCUMENTATION](DOCUMENTATION.md) for usage information
 and [examples](https://github.com/dennisppaul/umgebung-examples) for applications.
 
 ## Why *Umgebung*?

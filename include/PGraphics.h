@@ -19,169 +19,288 @@
 
 #pragma once
 
-// TODO implement color modes and ranges i.e 0–255 or 0–1 and HSB or RGB ...
-
-/*
-// TODO implement 2D Primitives
-arc() Draws an arc in the display window
-circle() Draws a circle to the screen
-ellipse() Draws an ellipse (oval) in the display window
-line() Draws a line (a direct path between two points) to the screen  // 3D
-point() Draws a point, a coordinate in space at the dimension of one pixel // 3D
-quad() A quad is a quadrilateral, a four sided polygon
-rect() Draws a rectangle to the screen
-square() Draws a square to the screen
-triangle() A triangle is a plane created by connecting three points
-// TODO implement 3D Primitives
-box() A box is an extruded rectangle
-sphereDetail() Controls the detail used to render a sphere by adjusting the number of vertices of the sphere mesh
-sphere() A sphere is a hollow ball made from tessellated triangles
-*/
-
-#ifndef DISABLE_GRAPHICS
-#define PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+// TODO implement primitives
+//     arc() Draws an arc in the display window
+//     square() Draws a square to the screen
+//     sphereDetail() Controls the detail used to render a sphere by adjusting the number of vertices of the sphere mesh
 
 #include <sstream>
-#include <GL/glew.h>
-
-#endif // DISABLE_GRAPHICS
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "UmgebungConstants.h"
+#include "PGraphicsOpenGLConstants.h"
 #include "PImage.h"
+#include "Vertex.h"
+#include "Triangulator.h"
+#include "UFont.h"
 
-// #define PGRAPHICS_USE_VBO
+#include <UmgebungFunctionsAdditional.h>
 
 namespace umgebung {
-
-    class PImage;
     class PFont;
+    class VertexBuffer;
+    class PShader;
 
     class PGraphics : public virtual PImage {
     public:
-        static constexpr uint16_t ENABLE_SMOOTH_LINES  = 0;
-        static constexpr uint16_t DISABLE_SMOOTH_LINES = 1;
+        struct FrameBufferObject {
+            unsigned int id{};
+            unsigned int texture_id{};
+            int          width{};
+            int          height{};
+        };
+
+        FrameBufferObject framebuffer{};
+        bool              render_to_offscreen{true};
+        float             depth_range = 10000.0f;
 
         PGraphics();
+        ~PGraphics() override = default;
 
-        void    stroke(float r, float g, float b, float a = 1.0);
-        void    stroke(float brightness, float a);
-        void    stroke(float a);
-        void    stroke(uint32_t c);
-        void    noStroke();
-        void    strokeWeight(float weight);
-        void    fill(float r, float g, float b, float a = 1.0);
-        void    fill(float brightness, float a);
-        void    fill(float a);
-        void    fill(uint32_t c);
-        void    noFill();
-        void    background(float a, float b, float c, float d = 1.0);
-        void    background(float a);
-        void    rect(float x, float y, float width, float height) const;
-        void    ellipse(float x, float y, float width, float height) const;
-        void    circle(float x, float y, float radius) const;
-        void    ellipseDetail(int detail);
-        void    line(float x1, float y1, float x2, float y2) const;
-        void    bezier(float x1, float y1,
-                       float x2, float y2,
-                       float x3, float y3,
-                       float x4, float y4) const;
-        void    bezier(float x1, float y1, float z1,
-                       float x2, float y2, float z2,
-                       float x3, float y3, float z3,
-                       float x4, float y4, float z4) const;
-        void    bezierDetail(int detail);
-        void    pointSize(float point_size);
-        void    point(float x, float y, float z = 0.0) const;
-        void    beginShape(int shape = POLYGON);
-        void    endShape();
-        void    vertex(float x, float y, float z = 0.0);
-        void    vertex(float x, float y, float z, float u, float v);
-        PFont*  loadFont(const std::string& file, float size); // @development maybe use smart pointers here
-        void    textFont(PFont* font);
-        void    textSize(float size) const;
-        void    text(const char* value, float x, float y, float z = 0.0f) const;
-        float   textWidth(const std::string& text) const;
-        PImage* loadImage(const std::string& filename);
-        void    image(const PImage* img, float x, float y, float w, float h) const;
-        void    image(PImage* img, float x, float y);
-        void    texture(const PImage* img);
-        void    popMatrix();
-        void    pushMatrix();
-        void    translate(float x, float y, float z = 0);
-        void    rotateX(float angle);
-        void    rotateY(float angle);
-        void    rotateZ(float angle);
-        void    rotate(float angle);
-        void    rotate(float angle, float x, float y, float z);
-        void    scale(float x);
-        void    scale(float x, float y);
-        void    scale(float x, float y, float z);
-        void    pixelDensity(int density);
+        /* --- implementation specific methods --- */
+
+        virtual void IMPL_background(float a, float b, float c, float d) = 0; // NOTE this needs to clear the color buffer and depth buffer
+        virtual void IMPL_bind_texture(int bind_texture_id)              = 0;
+        virtual void IMPL_set_texture(PImage* img)                       = 0;
+
+        virtual void render_framebuffer_to_screen(bool use_blit) {} // TODO this should probably go to PGraphicsOpenGL
+        virtual bool read_framebuffer(std::vector<unsigned char>& pixels) { return false; }
+
+        /* --- implementation specific methods ( pure virtual ) --- */
+
+        /**
+         * @brief method should emit the fill vertices to the rendering backend. recording, collecting,
+         *        and transforming vertices needs to happen here. any drawing should use this method.
+         * @param triangle_vertices
+         */
+        virtual void emit_shape_fill_triangles(std::vector<Vertex>& triangle_vertices) = 0;
+        /**
+         * @brief method should emit the stroke vertices to the rendering backend. recording, collecting,
+         *        and transforming vertices needs to happen here. any drawing should use this method.
+         * @param line_strip_vertices
+         * @param line_strip_closed
+         */
+        virtual void emit_shape_stroke_line_strip(std::vector<Vertex>& line_strip_vertices, bool line_strip_closed) = 0;
+        virtual void beginDraw();
+        virtual void endDraw();
+        virtual void reset_mvp_matrices();
+        virtual void restore_mvp_matrices();
+
+        /* --- implemented in base class PGraphics --- */
+
+        virtual void popMatrix();
+        virtual void pushMatrix();
+        virtual void resetMatrix();
+        virtual void printMatrix(const glm::mat4& matrix);
+        virtual void printMatrix();
+        virtual void translate(float x, float y, float z = 0.0f);
+        virtual void rotateX(float angle);
+        virtual void rotateY(float angle);
+        virtual void rotateZ(float angle);
+        virtual void rotate(float angle);
+        virtual void rotate(float angle, float x, float y, float z);
+        virtual void scale(float x);
+        virtual void scale(float x, float y);
+        virtual void scale(float x, float y, float z);
+
+        virtual void background(PImage* img);
+        virtual void background(float a, float b, float c, float d = 1.0f);
+        virtual void background(float a);
+        virtual void fill(float r, float g, float b, float alpha = 1.0f);
+        virtual void fill(float gray, float alpha = 1.0f);
+        virtual void fill_color(uint32_t c);
+        virtual void noFill();
+        virtual void stroke(float r, float g, float b, float alpha = 1.0f);
+        virtual void stroke(float gray, float alpha);
+        virtual void stroke(float a);
+        virtual void stroke_color(uint32_t c);
+        virtual void noStroke();
+        virtual void strokeWeight(float weight);
+        virtual void strokeJoin(int join);
+        virtual void strokeCap(int cap);
+
+        virtual void     bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
+        virtual void     bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
+        virtual void     bezierDetail(int detail);
+        virtual void     ellipse(float x, float y, float width, float height);
+        virtual void     ellipseMode(int mode);
+        virtual void     ellipseDetail(int detail);
+        virtual void     circle(float x, float y, float diameter);
+        virtual void     image(PImage* img, float x, float y, float w, float h);
+        virtual void     image(PImage* img, float x, float y);
+        virtual void     texture(PImage* img = nullptr);
+        virtual PImage*  loadImage(const std::string& filename);
+        virtual void     line(float x1, float y1, float z1, float x2, float y2, float z2);
+        virtual void     line(float x1, float y1, float x2, float y2);
+        virtual void     point(float x, float y, float z = 0.0f);
+        virtual void     pointSize(float size);
+        virtual void     quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
+        virtual void     rect(float x, float y, float width, float height);
+        virtual void     rectMode(int mode);
+        virtual void     square(const float x, const float y, const float extent) { rect(x, y, extent, extent); }
+        virtual void     triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
+        virtual void     textFont(PFont* font);
+        virtual void     textSize(float size);
+        virtual void     text(const char* value, float x, float y, float z = 0.0f);
+        virtual float    textWidth(const std::string& text);
+        virtual PFont*   loadFont(const std::string& file, float size);
+        virtual void     box(float width, float height, float depth);
+        virtual void     box(const float size) { box(size, size, size); }
+        virtual void     sphere(float width, float height, float depth);
+        virtual void     sphere(const float size) { sphere(size, size, size); }
+        virtual void     vertex(float x, float y, float z, float u, float v);
+        virtual void     vertex(float x, float y, float z = 0.0f);
+        virtual void     beginShape(int shape = POLYGON);
+        void             process_collected_fill_vertices();
+        void             process_collected_stroke_vertices(bool close_shape);
+        virtual void     endShape(bool close_shape = false);
+        virtual void     shader(PShader* shader) {} // TODO maybe not implement them like this
+        virtual PShader* loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "") { return nullptr; };
+        virtual void     resetShader() {}
+        virtual void     normal(float x, float y, float z, float w = 0);
+        virtual void     blendMode(int mode) {}
+        // virtual void     beginCamera();
+        // virtual void     endCamera();
+        virtual void camera();
+        virtual void camera(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
+        virtual void frustum(float left, float right, float bottom, float top, float near, float far);
+        virtual void ortho(float left, float right, float bottom, float top, float near, float far);
+        virtual void perspective(float fovy, float aspect, float near, float far);
+        virtual void printCamera();
+        virtual void printProjection();
+        // virtual void    lights()                                                                                           = 0;
+
+        /* --- additional --- */
+
+        virtual void        mesh(VertexBuffer* mesh_shape) {}
+        virtual void        upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) {}
+        virtual void        download_texture(PImage* img) {}
+        virtual void        lock_init_properties(const bool lock_properties) { init_properties_locked = lock_properties; }
+        virtual void        hint(uint16_t property);
+        virtual void        pixelDensity(int density);
+        virtual void        text_str(const std::string& text, float x, float y, float z = 0.0f); // TODO maybe make this private?
+        virtual void        debug_text(const std::string& text, float x, float y) {}             // TODO implement this in PGraphics
+        void                to_screen_space(glm::vec3& model_position) const;                    // NOTE: convert from model space to screen space
+        void                to_world_space(glm::vec3& model_position) const;                     // NOTE: convert from model space to works space
+        void                linse(const float x1, const float y1, const float x2, const float y2) { line(x1, y1, x2, y2); }
+        int                 getPixelDensity() const { return pixel_density; }
+        void                stroke_mode(const int line_render_mode) { this->line_render_mode = line_render_mode; }
+        void                stroke_properties(float stroke_join_round_resolution, float stroke_cap_round_resolution, float stroke_join_miter_max_angle);
+        void                triangulate_line_strip_vertex(const std::vector<Vertex>& line_strip, bool close_shape, std::vector<Vertex>& line_vertices) const;
+        virtual void        set_default_graphics_state() {}
+        void                set_render_mode(const int render_mode) { this->render_mode = render_mode; }
+        virtual std::string name() { return "PGraphics"; }
 
         template<typename T>
-        void text(const T& value, const float x, const float y, const float z = 0.0f) const {
+        void text(const T& value, const float x, const float y, const float z = 0.0f) {
             std::ostringstream ss;
             ss << value;
             text_str(ss.str(), x, y, z);
         }
 
-        ~PGraphics() override;
+        static std::vector<Vertex> triangulate_faster(const std::vector<Vertex>& vertices);
+        static std::vector<Vertex> triangulate_better_quality(const std::vector<Vertex>& vertices);
+        static std::vector<Vertex> triangulate_good(const std::vector<Vertex>& vertices);
 
-    private:
-        PFont* fCurrentFont           = nullptr;
-        float  fPointSize             = 1;
-        bool   fEnabledTextureInShape = false;
-        bool   fShapeBegun            = false;
-        int    fEllipseDetail         = 32;
-        int    fBezierDetail          = 20;
-        int    fPixelDensity          = 1;
+    protected:
+        struct ColorState : glm::vec4 {
+            bool active = false;
+        };
 
-        struct {
-            float r      = 0;
-            float g      = 0;
-            float b      = 0;
-            float a      = 1;
-            bool  active = false;
-        } fill_color, stroke_color;
-
-        static constexpr int ELLIPSE_NUM_SEGMENTS = 32;
-
-        void text_str(const std::string& text, float x, float y, float z = 0.0f) const;
-
-#ifdef PGRAPHICS_RENDER_INTO_FRAMEBUFFER
-    private:
-        GLuint fbo{}, fbo_texture{};
-        int    fbo_width{};
-        int    fbo_height{};
-        GLint  fPreviousFBO = 0;
+        // const float                      DEFAULT_FOV            = 2.0f * atan(0.5f); // = 53.1301f; // P5 :: tan(PI*30.0 / 180.0);
+        static constexpr uint16_t        ELLIPSE_DETAIL_MIN     = 3;
+        static constexpr uint16_t        ELLIPSE_DETAIL_DEFAULT = 36;
+        bool                             init_properties_locked{false};
+        PFont*                           current_font{nullptr};
+        ColorState                       color_stroke{};
+        ColorState                       color_fill{};
+        uint8_t                          rect_mode{CORNER};
+        uint8_t                          ellipse_mode{CENTER};
+        int                              ellipse_detail{0};
+        std::vector<glm::vec2>           ellipse_points_LUT{};
+        float                            point_size{1};
+        float                            stroke_weight{1};
+        int                              bezier_detail{20};
+        uint8_t                          pixel_density{1};
+        int                              texture_id_current{TEXTURE_NONE};
+        bool                             shape_has_begun{false};
+        int                              polygon_triangulation_strategy{POLYGON_TRIANGULATION_BETTER};
+        int                              line_render_mode{STROKE_RENDER_MODE_TRIANGULATE_2D};
+        int                              point_render_mode{POINT_RENDER_MODE_TRIANGULATE};
+        int                              stroke_join_mode{BEVEL_FAST};
+        int                              stroke_cap_mode{PROJECT};
+        float                            stroke_join_round_resolution{glm::radians(20.0f)}; // TODO maybe make these configurable
+        float                            stroke_cap_round_resolution{glm::radians(20.0f)};  // 20° resolution i.e 18 segment for whole circle
+        float                            stroke_join_miter_max_angle{163.0f};
+        inline static const Triangulator triangulator{};
+        std::vector<ColorState>          color_stroke_stack{};
+        std::vector<ColorState>          color_fill_stack{};
+        std::vector<glm::vec3>           box_vertices_LUT{};
+        std::vector<glm::vec3>           sphere_vertices_LUT{};
+        int                              shape_mode_cache{POLYGON};
+        static constexpr uint32_t        VBO_BUFFER_CHUNK_SIZE{1024 * 1024}; // 1MB
+        std::vector<Vertex>              shape_stroke_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
+        std::vector<Vertex>              shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
+        int                              last_bound_texture_id_cache{TEXTURE_NONE};
+        bool                             model_matrix_dirty{false};
+        PShader*                         default_shader{nullptr};
+        PShader*                         current_shader{nullptr};
+        glm::vec4                        current_normal{Vertex::DEFAULT_NORMAL};
+        glm::mat4                        temp_view_matrix{};
+        glm::mat4                        temp_projection_matrix{};
+        bool                             in_camera_block{false};
+        int                              render_mode{RENDER_MODE_IMMEDIATE};
+        UFont                            debug_font;
 
     public:
-        void beginDraw();
-        void endDraw() const;
-        void bind() const override;
-        void init(uint32_t* pixels, int width, int height, int format) override;
-#endif // PGRAPHICS_RENDER_INTO_FRAMEBUFFER
+        glm::mat4              model_matrix{};
+        glm::mat4              view_matrix{};
+        glm::mat4              projection_matrix{};
+        std::vector<glm::mat4> model_matrix_stack{};
 
-        static void hint(const uint16_t property) {
-            switch (property) {
-                case ENABLE_SMOOTH_LINES:
-                    glEnable(GL_LINE_SMOOTH);
-                    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-                    break;
-                case DISABLE_SMOOTH_LINES:
-                    glDisable(GL_LINE_SMOOTH);
-                    glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
-                    break;
-                default:
-                    break;
+    protected:
+        // TODO clean this up:
+
+        bool texture_id_pushed{false};
+        void push_texture_id() {
+            if (!texture_id_pushed) {
+                texture_id_pushed           = true;
+                last_bound_texture_id_cache = texture_id_current;
+            } else {
+                warning("unbalanced texture id *push*/pop");
             }
         }
 
-#ifdef PGRAPHICS_USE_VBO
-        GLuint ellipseVBO;
-        int    ellipseSegments;
-        bool   bufferInitialized;
-        void   setupEllipseBuffer(int num_segments);
-#endif // PGRAPHICS_USE_VBO
+        void pop_texture_id() {
+            if (texture_id_pushed) {
+                texture_id_pushed = false;
+                IMPL_bind_texture(last_bound_texture_id_cache);
+                last_bound_texture_id_cache = TEXTURE_NONE;
+            } else {
+                warning("unbalanced texture id push/*pop*");
+            }
+        }
+
+        void vertex_vec(const glm::vec3& position, const glm::vec2& tex_coords) {
+            vertex(position.x, position.y, position.z, tex_coords.x, tex_coords.y);
+        }
+
+        static glm::vec4 as_vec4(const ColorState& color) {
+            return {color.r, color.g, color.b, color.a};
+        }
+
+        static void push_color_state(const ColorState& current, std::vector<ColorState>& stack) {
+            stack.push_back(current);
+        }
+
+        static void pop_color_state(ColorState& current, std::vector<ColorState>& stack) {
+            if (!stack.empty()) {
+                current = stack.back();
+                stack.pop_back();
+            }
+        }
+
+        void resize_ellipse_points_LUT();
     };
 } // namespace umgebung

@@ -23,7 +23,9 @@
 #include <stdbool.h>
 #include <iostream>
 
+#define DR_WAV_IMPLEMENTATION
 #include "dr_wav.h"
+#define DR_MP3_IMPLEMENTATION
 #include "dr_mp3.h"
 
 /**
@@ -34,7 +36,7 @@ class AudioFileReader {
 private:
     class Reader {
     public:
-        virtual ~    Reader() {}
+        virtual ~Reader() {}
         virtual bool open(const std::string& filepath)       = 0;
         virtual bool open(const char* data, size_t size)     = 0;
         virtual void close()                                 = 0;
@@ -48,109 +50,109 @@ private:
         virtual int  sample_rate()                           = 0;
     };
 
-    class MP3Reader : public Reader {
-        drmp3 mp3;
-        int   frame_size;
+    class MP3Reader final : public Reader {
+        drmp3 mp3        = {};
+        int   frame_size = 0;
 
     public:
-        bool open(const std::string& filepath) {
-            bool mInitState = drmp3_init_file(&mp3, filepath.c_str(), NULL);
+        bool open(const std::string& filepath) override {
+            bool mInitState = drmp3_init_file(&mp3, filepath.c_str(), nullptr);
             if (mInitState) {
                 frame_size = drmp3_get_pcm_frame_count(&mp3);
             }
             return mInitState;
         }
 
-        bool open(const char* data, size_t size) {
-            return drmp3_init_memory(&mp3, data, size, NULL);
+        bool open(const char* data, const size_t size) override {
+            return drmp3_init_memory(&mp3, data, size, nullptr);
         }
 
-        void close() {
+        void close() override {
             drmp3_uninit(&mp3);
         }
 
-        int read(int frames_to_read, float* buffer) {
+        int read(const int frames_to_read, float* buffer) override {
             return drmp3_read_pcm_frames_f32(&mp3, frames_to_read, buffer);
         }
 
-        void rewind() {
+        void rewind() override {
             drmp3_seek_to_pcm_frame(&mp3, 0);
         }
 
-        void seek(int frame) {
+        void seek(const int frame) override {
             drmp3_seek_to_pcm_frame(&mp3, frame);
         }
 
-        int channels() {
+        int channels() override {
             return mp3.channels;
         }
 
-        int length() {
+        int length() override {
             return frame_size;
         }
 
-        int current_position() {
+        int current_position() override {
             return mp3.currentPCMFrame;
         }
 
-        bool eof() {
+        bool eof() override {
             return mp3.atEnd;
         }
 
-        int sample_rate() {
+        int sample_rate() override {
             return mp3.sampleRate;
         }
     };
 
-    class WAVReader : public Reader {
-        drwav wav;
+    class WAVReader final : public Reader {
+        drwav wav = {};
 
     public:
-        bool open(const std::string& filepath) {
-            return drwav_init_file(&wav, filepath.c_str(), NULL);
+        bool open(const std::string& filepath) override {
+            return drwav_init_file(&wav, filepath.c_str(), nullptr);
         }
 
-        bool open(const char* data, size_t size) {
-            return drwav_init_memory(&wav, data, size, NULL);
+        bool open(const char* data, const size_t size) override {
+            return drwav_init_memory(&wav, data, size, nullptr);
         }
 
-        void close() {
+        void close() override {
             drwav_uninit(&wav);
         }
 
-        int read(int frames_to_read, float* buffer) {
+        int read(const int frames_to_read, float* buffer) override {
             return drwav_read_pcm_frames_f32(&wav, frames_to_read, buffer);
         }
 
-        void rewind() {
+        void rewind() override {
             drwav_seek_to_pcm_frame(&wav, 0);
         }
 
-        void seek(int frame) {
+        void seek(const int frame) override {
             drwav_seek_to_pcm_frame(&wav, frame);
         }
 
-        int channels() {
+        int channels() override {
             return wav.channels;
         }
 
-        int length() {
+        int length() override {
             return wav.totalPCMFrameCount;
         }
 
-        int bits_per_sample() {
+        int bits_per_sample() const {
             return wav.bitsPerSample;
         }
 
-        int current_position() {
+        int current_position() override {
             return wav.readCursorInPCMFrames;
         }
 
-        bool eof() {
+        bool eof() override {
             return current_position() >= length();
         }
 
-        int sample_rate() {
+        int sample_rate() override {
             return wav.sampleRate;
         }
     };
@@ -162,13 +164,16 @@ public:
         FILL_WITH_ZERO
     };
 
-    AudioFileReader() : fIsOpened(false) {}
+    AudioFileReader() : fIsOpened(false), fReader(nullptr) {}
 
     ~AudioFileReader() {
         close();
     }
 
-    bool eof() {
+    bool eof() const {
+        if (fReader == nullptr) {
+            return true;
+        }
         if (!fIsOpened) {
             return false;
         }
@@ -179,27 +184,28 @@ public:
                        unsigned int&      channels,
                        unsigned int&      sample_rate,
                        drwav_uint64&      length) {
-        FileType mFileType = determineFileType(filepath);
+        const FileType mFileType = determineFileType(filepath);
         if (mFileType == FileType::WAV) {
             float* pSampleData = drwav_open_file_and_read_pcm_frames_f32(filepath.c_str(),
                                                                          &channels,
                                                                          &sample_rate,
                                                                          &length,
-                                                                         NULL);
-            if (pSampleData == NULL) {
+                                                                         nullptr);
+            if (pSampleData == nullptr) {
                 std::cerr << "+++ error opening file: " << filepath << std::endl;
             }
             return pSampleData;
-        } else if (mFileType == FileType::MP3) {
+        }
+        if (mFileType == FileType::MP3) {
             drmp3_config config;
             float*       pSampleData = drmp3_open_file_and_read_pcm_frames_f32(filepath.c_str(),
                                                                                &config,
                                                                                &length,
-                                                                               NULL);
+                                                                               nullptr);
             // set channels from config
             channels    = config.channels;
             sample_rate = config.sampleRate;
-            if (pSampleData == NULL) {
+            if (pSampleData == nullptr) {
                 std::cerr << "+++ error opening file: " << filepath << std::endl;
             }
             return pSampleData;
@@ -243,7 +249,7 @@ public:
         fIsOpened = false;
     }
 
-    int read(int frames_to_read, float* buffer, ReadStyle read_style = NORMAL) {
+    int read(const int frames_to_read, float* buffer, const ReadStyle read_style = NORMAL) const {
         if (!fIsOpened) {
             return 0;
         }
@@ -266,49 +272,49 @@ public:
         return mReadFrames;
     }
 
-    void rewind() {
+    void rewind() const {
         if (!fIsOpened) {
             return;
         }
         fReader->rewind();
     }
 
-    void seek(int frame) {
+    void seek(const int frame) const {
         if (!fIsOpened) {
             return;
         }
         fReader->seek(frame);
     }
 
-    int channels() {
+    int channels() const {
         if (!fIsOpened) {
             return 0;
         }
         return fReader->channels();
     }
 
-    int length() {
+    int length() const {
         if (!fIsOpened) {
             return 0;
         }
         return fReader->length();
     }
 
-    int current_position() {
+    int current_position() const {
         if (!fIsOpened) {
             return 0;
         }
         return fReader->current_position();
     }
 
-    int sample_rate() {
+    int sample_rate() const {
         if (!fIsOpened) {
             return 0;
         }
         return fReader->sample_rate();
     }
 
-    int type() {
+    int type() const {
         if (!fIsOpened) {
             return 0;
         }

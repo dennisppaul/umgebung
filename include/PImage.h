@@ -19,50 +19,99 @@
 
 #pragma once
 
-#include <iostream>
 #include <cstdint>
+#include <SDL3/SDL.h>
+
+#include "UmgebungConstants.h"
 
 namespace umgebung {
+
+    class PGraphics;
     class PImage {
     public:
-        virtual ~PImage() = default;
         explicit PImage(const std::string& filename);
-                 PImage(int width, int height, int format);
-                 PImage();
+        PImage(int width, int height, int format);
+        PImage();
+        virtual ~PImage() = default;
 
-        virtual void bind() const;
-        virtual void loadPixels() const;
-        virtual void init(uint32_t* pixels, int width, int height, int format);
+        // virtual void bind();
+        virtual void loadPixels(PGraphics* graphics);
+        virtual void init(uint32_t* pixels, int width, int height, int format, bool generate_mipmap);
 
-        void updatePixels() const;
-        void updatePixels(int x, int y, int w, int h) const;
-        void update(const uint32_t* pixel_data) const;
-        void update(const uint32_t* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
-        void update(const float* pixel_data, int _width, int _height, int offset_x, int offset_y) const;
+        void updatePixels(PGraphics* graphics);
+        void updatePixels(PGraphics* graphics, int x, int y, int w, int h);
+        void update(PGraphics* graphics, const uint32_t* pixel_data);
+        void update(PGraphics* graphics, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y);
+        void update(PGraphics* graphics, const float* pixel_data, int width, int height, int offset_x, int offset_y);
 
-        void set(const uint16_t x, const uint16_t y, const uint32_t c) const {
-            if (x >= width || y >= height) {
+        // ReSharper disable once CppMemberFunctionMayBeConst
+        void set(const uint16_t x, const uint16_t y, const uint32_t c) {
+            if (x >= static_cast<uint16_t>(width) || y >= static_cast<uint16_t>(height)) {
                 return;
             }
-            pixels[y * width + x] = c;
+            pixels[y * static_cast<uint16_t>(width) + x] = c;
         }
 
-        [[nodiscard]] uint32_t get(const uint16_t x, const uint16_t y) const {
-            if (x >= width || y >= height) {
+        uint32_t get(const uint16_t x, const uint16_t y) const {
+            if (x >= static_cast<uint16_t>(width) || y >= static_cast<uint16_t>(height)) {
                 return 0;
             }
-            const uint32_t c = pixels[y * width + x];
+            const uint32_t c = pixels[y * static_cast<uint16_t>(width) + x];
             return c;
         }
 
-        uint16_t  width;
-        uint16_t  height;
-        uint8_t   format;
-        uint32_t* pixels;
+        float        width;
+        float        height;
+        uint8_t      format;
+        uint32_t*    pixels;
+        int          texture_id  = TEXTURE_NOT_GENERATED;
+        SDL_Texture* sdl_texture = nullptr;
 
     protected:
-        unsigned int textureID = -1;
+        void update_full_internal(PGraphics* graphics);
 
-        void update_full_internal() const;
+    public:
+        static PImage convert_SDL_Surface_to_PImage(SDL_Surface* surface) {
+            if (!surface) {
+                return PImage(); // Return empty image if surface is null
+            }
+
+            const int     width  = surface->w;
+            const int     height = surface->h;
+            constexpr int format = SDL_PIXELFORMAT_RGBA8888; // Assuming default RGBA format
+
+            PImage image(width, height, format);
+
+            // Convert surface to the correct format if necessary
+            SDL_Surface* convertedSurface = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA8888);
+            if (!convertedSurface) {
+                return PImage(); // Conversion failed, return empty image
+            }
+
+            // Copy pixels
+            image.pixels = new uint32_t[width * height];
+            std::memcpy(image.pixels, convertedSurface->pixels, width * height * sizeof(uint32_t));
+
+            SDL_DestroySurface(convertedSurface); // Clean up converted surface
+
+            return image;
+        }
+
+        static SDL_Surface* convert_PImage_to_SDL_Surface(const PImage& image) {
+            if (!image.pixels || image.width <= 0 || image.height <= 0) {
+                return nullptr;
+            }
+
+            // Create SDL surface with the correct format
+            SDL_Surface* surface = SDL_CreateSurface(image.width, image.height, SDL_PIXELFORMAT_RGBA8888);
+            if (!surface) {
+                return nullptr;
+            }
+
+            // Copy pixel data into the surface
+            std::memcpy(surface->pixels, image.pixels, image.width * image.height * sizeof(uint32_t));
+
+            return surface;
+        }
     };
 } // namespace umgebung

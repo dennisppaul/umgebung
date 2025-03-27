@@ -17,683 +17,483 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+
 #include <iostream>
-#define UMGEBUNG_AUDIO_DRIVER_SDL_AUDIO 0
-#define UMGEBUNG_AUDIO_DRIVER_PORTAUDIO 1
-
-#ifndef DISABLE_AUDIO
-
-#ifdef ENABLE_PORTAUDIO
-#define UMGEBUNG_AUDIO_DRIVER UMGEBUNG_AUDIO_DRIVER_PORTAUDIO
-#else
-#define UMGEBUNG_AUDIO_DRIVER UMGEBUNG_AUDIO_DRIVER_SDL_AUDIO
-#endif
-
-#include <chrono>
-#include <thread>
-
-#if (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_PORTAUDIO)
-#include <utility>
-#include "portaudio.h"
-#endif // UMGEBUNG_AUDIO_DRIVER
-
-#endif
+#include <string>
 
 #include "Umgebung.h"
+#include "PAudio.h"
+
+using namespace std::chrono;
 
 namespace umgebung {
-    /* public */
-
-    int  audio_input_device      = DEFAULT_AUDIO_DEVICE;
-    int  audio_output_device     = DEFAULT_AUDIO_DEVICE;
-    int  audio_input_channels    = DEFAULT_NUMBER_OF_INPUT_CHANNELS;
-    int  audio_output_channels   = DEFAULT_NUMBER_OF_OUTPUT_CHANNELS;
-    int  audio_sample_rate       = DEFAULT_AUDIO_SAMPLE_RATE;
-    int  audio_samples_per_frame = DEFAULT_FRAMES_PER_BUFFER;
-    int  monitor                 = DEFAULT;
-    bool fullscreen              = false;
-    bool borderless              = false;
-    int  antialiasing            = DEFAULT;
-    bool resizable               = false;
-    bool always_on_top           = false;
-    bool enable_retina_support   = true;
-    bool headless                = false;
-    bool no_audio                = false;
-
-    /* private */
-
-    static PApplet*         fApplet           = nullptr;
-    static bool             fAppIsRunning     = true;
-    static constexpr double fTargetFrameTime  = 1.0 / 120.0; // @development make this adjustable
-    static bool             fAppIsInitialized = false;
-    static bool             fMouseIsPressed   = false;
-    static bool             fWindowIsResized  = false;
-
-#ifndef DISABLE_AUDIO
-
-#if (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_SDL_AUDIO)
-    static SDL_AudioDeviceID audio_output_stream = 0;
-    static SDL_AudioDeviceID audio_input_stream  = 0;
-#elif (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_PORTAUDIO)
-    static PaStream* stream;
-#endif // UMGEBUNG_AUDIO_DRIVER
-
-#if (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_SDL_AUDIO)
-
-    float* input_buffer          = nullptr;
-    bool   audio_input_ready     = false;
-    bool   audio_was_initialized = false;
-
-#define FIXED_MEMORY_ALLOCATION
-#ifdef FIXED_MEMORY_ALLOCATION
-
-    // #define MAX_CHANNELS 8                       // TODO make this configurable
-    // #define MAX_FRAMES DEFAULT_FRAMES_PER_BUFFER // TODO make this configurable
-
-    void audioOutputCallback(void* userdata, Uint8* stream, int len) {
-        (void) userdata;
-        const int samples       = len / static_cast<int>(sizeof(float)); // Number of samples to fill
-        auto*     output_buffer = reinterpret_cast<float*>(stream);      // Assuming AUDIO_F32 format
-
-        if (input_buffer == nullptr && audio_input_channels > 0) {
-            std::fill_n(output_buffer, samples, 0);
-            return;
-        }
-        if (!fAppIsInitialized) {
-            /* wait with callback until after `setup()` */
-            std::fill_n(output_buffer, samples, 0);
-            return;
-        }
-        int mIterationGuard = audio_sample_rate / audio_samples_per_frame;
-        while (!audio_input_ready && mIterationGuard-- > 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        if (mIterationGuard <= 1) {
-            std::fill_n(output_buffer, samples, 0);
-            return;
-        }
-
-        // TODO this needs to be tested and cleaned up
-        const int frames       = (audio_output_channels == 0) ? (samples / audio_input_channels) : (samples / audio_output_channels);
-        const int MAX_FRAMES   = audio_samples_per_frame;
-        const int MAX_CHANNELS = audio_output_channels > audio_input_channels ? audio_output_channels : audio_input_channels;
-
-        // Ensure that frames and channels do not exceed maximum allowed values
-        if (audio_input_channels > MAX_CHANNELS || audio_output_channels > MAX_CHANNELS || frames > MAX_FRAMES) {
-            std::cerr << "Error: Exceeded maximum channel or frame count." << std::endl;
-            std::fill_n(output_buffer, samples, 0);
-            return;
-        }
-
-        // Statically allocated arrays for deinterleaving and interleaving
-        float input_channels[MAX_CHANNELS][MAX_FRAMES];
-        float output_channels[MAX_CHANNELS][MAX_FRAMES];
-
-        // Deinterleave input buffer into separate channels
-        if (input_buffer != nullptr) {
-            for (int frame = 0; frame < frames; ++frame) {
-                for (int ch = 0; ch < audio_input_channels; ++ch) {
-                    input_channels[ch][frame] = input_buffer[frame * audio_input_channels + ch];
-                }
-            }
-        }
-
-        // Process the deinterleaved audio
-        float* input_ptrs[MAX_CHANNELS];
-        float* output_ptrs[MAX_CHANNELS];
-        for (int ch = 0; ch < audio_input_channels; ++ch) {
-            input_ptrs[ch] = input_channels[ch];
-        }
-        for (int ch = 0; ch < audio_output_channels; ++ch) {
-            output_ptrs[ch] = output_channels[ch];
-        }
-
-        fApplet->audioblock(input_ptrs, output_ptrs, frames);
-
-        // Interleave the processed output channels into the output buffer
-        for (int frame = 0; frame < frames; ++frame) {
-            for (int ch = 0; ch < audio_output_channels; ++ch) {
-                output_buffer[frame * audio_output_channels + ch] = output_channels[ch][frame];
-            }
-        }
-
-        // Apply fade-in if audio was not initialized before
-        if (!audio_was_initialized) {
-            audio_was_initialized = true;
-            for (int i = 0; i < samples; ++i) {
-                output_buffer[i] *= static_cast<float>(i) / static_cast<float>(samples);
-            }
-        }
-    }
-
-#else
-    void audioOutputCallback(void* userdata, Uint8* stream, int len) {
-        const int samples       = len / sizeof(float);              // Number of samples to fill
-        float*    output_buffer = reinterpret_cast<float*>(stream); // (assuming AUDIO_F32 format)
-        if (input_buffer == nullptr && audio_input_channels > 0) {
-            std::fill(output_buffer, output_buffer + samples, 0);
-            return;
-        }
-        if (!fAppIsInitialized) {
-            /* wait with callback until after `setup()` */
-            std::fill(output_buffer, output_buffer + samples, 0);
-            return;
-        }
-        int mIterationGuard = audio_sample_rate / audio_samples_per_frame;
-        while (!audio_input_ready && mIterationGuard-- > 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        if (mIterationGuard <= 1) {
-            std::fill(output_buffer, output_buffer + samples, 0);
-            return;
-        }
-
-        const int frames = (audio_output_channels == 0) ? (samples / audio_input_channels) : (samples / audio_output_channels);
-
-        // Dynamically allocate memory for deinterleaved channels
-        float** input_channels  = new float*[audio_input_channels];
-        float** output_channels = new float*[audio_output_channels];
-
-        for (int ch = 0; ch < audio_input_channels; ++ch) {
-            input_channels[ch] = new float[frames];
-        }
-
-        for (int ch = 0; ch < audio_output_channels; ++ch) {
-            output_channels[ch] = new float[frames];
-        }
-
-        // Deinterleave input buffer into separate channels
-        if (input_buffer != nullptr) {
-            for (int frame = 0; frame < frames; ++frame) {
-                for (int ch = 0; ch < audio_input_channels; ++ch) {
-                    input_channels[ch][frame] = input_buffer[frame * audio_input_channels + ch];
-                }
-            }
-        }
-
-        // Process the deinterleaved audio
-        fApplet->audioblock(input_channels, output_channels, frames);
-
-        // Interleave the processed output channels into the output buffer
-        for (int frame = 0; frame < frames; ++frame) {
-            for (int ch = 0; ch < audio_output_channels; ++ch) {
-                output_buffer[frame * audio_output_channels + ch] = output_channels[ch][frame];
-            }
-        }
-
-        // Apply fade-in if audio was not initialized before
-        if (!audio_was_initialized) {
-            audio_was_initialized = true;
-            for (int i = 0; i < samples; ++i) {
-                output_buffer[i] *= static_cast<float>(i) / samples;
-            }
-        }
-
-        // Deallocate memory
-        for (int ch = 0; ch < audio_input_channels; ++ch) {
-            delete[] input_channels[ch];
-        }
-        for (int ch = 0; ch < audio_output_channels; ++ch) {
-            delete[] output_channels[ch];
-        }
-        delete[] input_channels;
-        delete[] output_channels;
-    }
-#endif // FIXED_MEMORY_ALLOCATION
-
-    void audioInputCallback(void* userdata, Uint8* stream, const int len) {
-        (void) userdata;
-        audio_input_ready        = false;
-        const float* samples     = reinterpret_cast<float*>(stream); // Assuming AUDIO_F32 format
-        const int    sampleCount = len / static_cast<int>(sizeof(float));
-
-        if (input_buffer == nullptr) {
-            return;
-        }
-
-        for (int i = 0; i < sampleCount; ++i) {
-            input_buffer[i] = samples[i];
-        }
-        audio_input_ready = true;
-    }
-
-    int print_audio_devices() {
-        std::cout << "Available audio devices:\n";
-
-        const int numInputDevices = SDL_GetNumAudioDevices(SDL_TRUE);
-        for (int i = 0; i < numInputDevices; i++) {
-            const char*   deviceName = SDL_GetAudioDeviceName(i, SDL_TRUE);
-            SDL_AudioSpec spec;
-            SDL_GetAudioDeviceSpec(i, SDL_TRUE, &spec);
-            std::cout << "- Input Device  : " << i << " : " << deviceName;
-            std::cout << " ( ";
-            std::cout << "channels : " << static_cast<int>(spec.channels);
-            std::cout << " + frequency : " << spec.freq;
-            std::cout << " )";
-            std::cout << std::endl;
-        }
-
-        const int numOutputDevices = SDL_GetNumAudioDevices(SDL_FALSE);
-        for (int i = 0; i < numOutputDevices; i++) {
-            const char*   deviceName = SDL_GetAudioDeviceName(i, SDL_FALSE);
-            SDL_AudioSpec spec;
-            SDL_GetAudioDeviceSpec(i, SDL_FALSE, &spec);
-            std::cout << "- Output Device : " << i << " : " << deviceName;
-            std::cout << " ( ";
-            std::cout << "channels : " << static_cast<int>(spec.channels);
-            std::cout << " + frequency : " << spec.freq;
-            std::cout << " )";
-            std::cout << std::endl;
-        }
-
-        return 0;
-    }
-
-    static void init_audio(const int input_channels, const int output_channels) {
-        if (audio_input_device != DEFAULT_AUDIO_DEVICE || audio_output_device != DEFAULT_AUDIO_DEVICE) {
-            print_audio_devices();
-        }
-        if (output_channels > 0) {
-            SDL_AudioSpec audio_output_spec, audio_output_obtained_spec;
-            SDL_zero(audio_output_spec);
-            audio_output_spec.freq     = audio_sample_rate; // @TODO make this adjustable
-            audio_output_spec.format   = AUDIO_F32;         // @TODO make this adjustable
-            audio_output_spec.channels = output_channels;
-            audio_output_spec.samples  = audio_samples_per_frame; // @TODO make this adjustable
-            audio_output_spec.callback = audioOutputCallback;
-
-            audio_output_stream = SDL_OpenAudioDevice(
-                audio_output_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_output_device, 0),
-                SDL_FALSE,
-                &audio_output_spec,
-                &audio_output_obtained_spec,
-                SDL_AUDIO_ALLOW_CHANNELS_CHANGE | SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
-            if (audio_output_stream == 0) {
-                std::cerr << "error: failed to open audio output: " << SDL_GetError() << std::endl;
-                return;
-            }
-
-            if (audio_output_spec.channels != audio_output_obtained_spec.channels || audio_output_spec.freq != audio_output_obtained_spec.freq) {
-                std::cout << "+++ warning opening audio device with different specs: ";
-                std::cout << " channel(s): " << static_cast<int>(audio_output_spec.channels);
-                std::cout << " frequency: " << audio_output_spec.freq;
-                std::cout << std::endl;
-            }
-
-            SDL_PauseAudioDevice(audio_output_stream, 0);
-        }
-
-        if (input_channels > 0) {
-            SDL_AudioSpec audio_input_spec, audio_input_obtained_spec;
-            SDL_zero(audio_input_spec);
-            audio_input_spec.freq     = audio_sample_rate; // @TODO make this adjustable
-            audio_input_spec.format   = AUDIO_F32;         // @TODO make this adjustable
-            audio_input_spec.channels = input_channels;
-            audio_input_spec.samples  = audio_samples_per_frame; // @TODO make this adjustable
-            audio_input_spec.callback = audioInputCallback;
-            audio_input_stream        = SDL_OpenAudioDevice(
-                audio_input_device == DEFAULT_AUDIO_DEVICE ? nullptr : SDL_GetAudioDeviceName(audio_input_device, 1),
-                1,
-                &audio_input_spec,
-                &audio_input_obtained_spec,
-                SDL_AUDIO_ALLOW_FORMAT_CHANGE);
-            if (audio_input_stream == 0) {
-                std::cerr << "error: failed to open audio input: " << SDL_GetError() << std::endl;
-                return;
-            }
-
-            input_buffer = new float[audio_samples_per_frame * input_channels];
-            SDL_PauseAudioDevice(audio_input_stream, 0);
-        }
-
-        if (!audio_output_stream && audio_output_channels > 0) {
-            std::cerr << "+++ error: no audio output stream" << std::endl;
-        }
-        if (!audio_input_stream && audio_input_channels > 0) {
-            std::cerr << "+++ error: no audio input stream" << std::endl;
-        }
-    }
-
-    static void shutdown_audio() {
-        if (!audio_output_stream) {
-            SDL_CloseAudioDevice(audio_output_stream);
-        }
-        if (!audio_input_stream) {
-            SDL_CloseAudioDevice(audio_input_stream);
-        }
-    }
-#elif (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_PORTAUDIO)
-    static int audioCallback(const void* inputBuffer, void* outputBuffer,
-                             unsigned long                   framesPerBuffer,
-                             const PaStreamCallbackTimeInfo* timeInfo,
-                             PaStreamCallbackFlags           statusFlags,
-                             void*                           userData) {
-        (void) timeInfo;
-        (void) statusFlags;
-        (void) userData;
-        // assuming the sample format is paFloat32
-        auto in  = static_cast<const float*>(inputBuffer);
-        auto out = static_cast<float*>(outputBuffer);
-
-        // create 2D arrays on stack for input and output
-        std::vector<std::vector<float>> inputArray(audio_input_channels, std::vector<float>(framesPerBuffer));
-        std::vector<std::vector<float>> outputArray(audio_output_channels, std::vector<float>(framesPerBuffer));
-
-        // pointers array to pass to processing function
-        std::vector<float*> inputPtrs(audio_input_channels);
-        std::vector<float*> outputPtrs(audio_output_channels);
-
-        // fill input arrays from input buffer and setup pointers
-        for (unsigned int ch = 0; ch < audio_input_channels; ++ch) {
-            inputPtrs[ch] = inputArray[ch].data();
-            for (unsigned long i = 0; i < framesPerBuffer; ++i) {
-                if (audio_input_channels > 0) {
-                    inputArray[ch][i] = in[i * audio_input_channels + ch];
-                }
-            }
-        }
-
-        // setup output pointers
-        for (unsigned int ch = 0; ch < audio_output_channels; ++ch) {
-            outputPtrs[ch] = outputArray[ch].data();
-        }
-
-        // process audio block
-        if (fApplet != nullptr) {
-            fApplet->audioblock(inputPtrs.data(), outputPtrs.data(), static_cast<int>(framesPerBuffer));
-        }
-
-        // write processed output to output buffer
-        for (unsigned int ch = 0; ch < audio_output_channels; ++ch) {
-            for (unsigned long i = 0; i < framesPerBuffer; ++i) {
-                out[i * audio_output_channels + ch] = outputArray[ch][i];
-            }
-        }
-        return paContinue;
-    }
-
-    static void shutdown_audio() {
-        PaError err;
-
-        err = Pa_StopStream(stream);
-        if (err != paNoError) {
-            std::cerr << "+++ error when stopping stream: " << Pa_GetErrorText(err) << std::endl;
-            return;
-        }
-
-        err = Pa_CloseStream(stream);
-        if (err != paNoError) {
-            std::cerr << "+++ error when closing stream: " << Pa_GetErrorText(err) << std::endl;
-            return;
-        }
-
-        Pa_Terminate();
-    }
-
-    int print_audio_devices() {
-        int numDevices = Pa_GetDeviceCount();
-        if (numDevices < 0) {
-            std::cerr << "+++ error 'Pa_CountDevices' returned " << numDevices << std::endl;
-            std::cerr << "+++ error when counting devices: " << Pa_GetErrorText(numDevices) << std::endl;
-            return -1;
-        }
-
-        std::cout << "Found " << numDevices << " audio devices:" << std::endl;
-        for (int i = 0; i < numDevices; i++) {
-            const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
-            std::cout << "Device " << i << ": " << deviceInfo->name << std::endl;
-            std::cout << "  Max input channels: " << deviceInfo->maxInputChannels << std::endl;
-            std::cout << "  Max output channels: " << deviceInfo->maxOutputChannels << std::endl;
-            std::cout << "  Default sample rate: " << deviceInfo->defaultSampleRate << std::endl;
-
-            const PaHostApiInfo* hostInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
-            if (hostInfo) {
-                std::cout << "  Host API: " << hostInfo->name << std::endl;
-            }
-        }
-        std::cout << "---" << std::endl;
-        return 0;
-    }
-
-    static void init_audio(int input_channels, int output_channels) {
-        PaError err;
-
-        if (audio_input_device == DEFAULT_AUDIO_DEVICE && audio_output_device == DEFAULT_AUDIO_DEVICE) {
-            std::cout << "Opening default audio device." << std::endl;
-            err = Pa_OpenDefaultStream(&stream,
-                                       input_channels,
-                                       output_channels,
-                                       paFloat32,
-                                       audio_sample_rate,
-                                       audio_samples_per_frame,
-                                       audioCallback,
-                                       nullptr);
-        } else {
-            print_audio_devices();
-
-            if (audio_input_device < 0) {
-                audio_input_device = Pa_GetDefaultInputDevice();
-                std::cout << "Using default input device with ID: " << audio_input_device << std::endl;
-            }
-            if (audio_output_device < 0) {
-                audio_output_device = Pa_GetDefaultOutputDevice();
-                std::cout << "Using default output device with ID: " << audio_output_device << std::endl;
-            }
-
-            std::cout << "Opening audio device (input/output): (" << audio_input_device << "/" << audio_output_device << ")" << std::endl;
-            const PaDeviceInfo*  deviceInfo  = Pa_GetDeviceInfo(audio_output_device);
-            const PaHostApiInfo* hostApiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
-
-            std::cout << "Opening stream for device with ID: " << deviceInfo->name;
-            std::cout << "( Host API: " << hostApiInfo->name;
-            std::cout << ", Channels (input/output): (" << input_channels << "/" << output_channels << ")";
-            std::cout << " ) ... ";
-
-            PaStreamParameters inputParameters;
-            inputParameters.device                    = audio_input_device;
-            inputParameters.channelCount              = input_channels;
-            inputParameters.sampleFormat              = paFloat32;
-            inputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_input_device)->defaultLowInputLatency;
-            inputParameters.hostApiSpecificStreamInfo = nullptr;
-
-            PaStreamParameters outputParameters;
-            outputParameters.device                    = audio_output_device;
-            outputParameters.channelCount              = output_channels;
-            outputParameters.sampleFormat              = paFloat32;
-            outputParameters.suggestedLatency          = Pa_GetDeviceInfo(audio_output_device)->defaultLowOutputLatency;
-            outputParameters.hostApiSpecificStreamInfo = nullptr;
-
-            err = Pa_OpenStream(&stream,
-                                &inputParameters,
-                                &outputParameters,
-                                audio_sample_rate,
-                                audio_samples_per_frame,
-                                paClipOff,
-                                audioCallback,
-                                nullptr);
-            std::cout << "OK." << std::endl;
-        }
-        if (err != paNoError) {
-            std::cerr << "+++ error when opening stream: " << Pa_GetErrorText(err) << std::endl;
-            return;
-        }
-
-        err = Pa_StartStream(stream);
-        if (err != paNoError) {
-            std::cerr << "++ error when starting stream: " << Pa_GetErrorText(err) << std::endl;
-            return;
-        }
-    }
-
-#endif // UMGEBUNG_AUDIO_DRIVER
-
-#endif // DISABLE_AUDIO
-
-    // this callback is called in a seperate thread on resize events,
-    // because the default resize event blocks the render thread
-    static int handle_resize_event_in_thread(void* data, SDL_Event* event) {
-        if (event->type == SDL_WINDOWEVENT &&
-            event->window.event == SDL_WINDOWEVENT_RESIZED) {
-            if (SDL_Window* window = SDL_GetWindowFromID(event->window.windowID); window == static_cast<SDL_Window*>(data)) {
-                if (handle_window_resized(window)) {
-                    handle_draw(window);
-                }
-            }
-        }
-        return 0;
-    }
-
-    static int run_application(std::vector<std::string> args) {
-        // std::cout << "+++ current working directory: " << sketchPath() << std::endl;
-
-#if !defined(DISABLE_GRAPHICS) && !defined(DISABLE_AUDIO)
-#if (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_SDL_AUDIO)
-        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
-            std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
-            return 1;
-        }
-#elif (UMGEBUNG_AUDIO_DRIVER == UMGEBUNG_AUDIO_DRIVER_PORTAUDIO)
-        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-            std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
-            return 1;
-        }
-        PaError err;
-        err = Pa_Initialize();
-        if (err != paNoError) {
-            std::cerr << "Error message: " << Pa_GetErrorText(err) << std::endl;
-            return -1;
-        }
-#endif // UMGEBUNG_AUDIO_DRIVER
-#elif !defined(DISABLE_GRAPHICS)
-        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-            std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
-            return 1;
-        }
-#elif !defined(DISABLE_AUDIO)
-        if (SDL_Init(SDL_INIT_AUDIO) != 0) {
-            std::cerr << "error: unable to initialize SDL: " << SDL_GetError() << std::endl;
-            return 1;
-        }
-#endif
-
-        fApplet = instance();
-        if (fApplet == nullptr) {
-            std::cerr << "+++ error: no instance created make sure to include\n"
-                      << "\n"
-                      << "    PApplet *umgebung::instance() {\n"
-                      << "        return new ApplicationInstance()\n"
-                      << "    }\n"
-                      << "\n"
-                      << "+++ in application file,"
-                      << std::endl;
-            return -1;
-        }
-
-        set_graphics_context(fApplet);
-        fApplet->arguments(std::move(args));
-        fApplet->settings();
-
-#ifndef DISABLE_GRAPHICS
-        APP_WINDOW* window;
-        if (headless) {
-            window = nullptr;
-            std::cout << "+++ running headless application" << std::endl;
-        } else {
-            window = init_graphics(fApplet->width, fApplet->height, UMGEBUNG_WINDOW_TITLE); // @development
-            if (window == nullptr) {
-                return -1;
-            }
-        }
-#endif // DISABLE_GRAPHICS
-
-#ifndef DISABLE_AUDIO
-        if (no_audio) {
-            std::cout << "+++ running application with no audio" << std::endl;
-        } else {
-            init_audio(audio_input_channels, audio_output_channels);
-        }
-#endif // DISABLE_AUDIO
-
-#ifndef DISABLE_GRAPHICS
-        handle_setup(window);
-        fAppIsInitialized = true;
-
-        // enable modern trackpad events aka SDL_FINGERDOWN and SDL_FINGERUP
-        SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
-        if (!headless) {
-            SDL_AddEventWatch(handle_resize_event_in_thread, window);
-        }
-
-        /* loop */
-        std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
-        while (fAppIsRunning) {
-            SDL_Event e;
-            while (SDL_PollEvent(&e) != 0) {
-                handle_event(e, fAppIsRunning, fMouseIsPressed, fWindowIsResized);
-            }
-            if (fWindowIsResized) {
-                fWindowIsResized = false;
-                if (!headless) {
-                    handle_window_resized(window);
-                }
-            }
-            std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
-            auto                                           frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
-                currentTime - lastFrameTime);
-            double frameTime = frameDuration.count();
-            if (frameTime >= fTargetFrameTime) {
-                handle_draw(window);
-                lastFrameTime = currentTime;
-            }
-        }
-
-        fApplet->finish();
-        handle_shutdown(window);
-#else
-        fAppIsInitialized = true;
-        fApplet->setup();
-
-        /* loop */
-        std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
-        while (fAppIsRunning) {
-            std::chrono::high_resolution_clock::time_point currentTime   = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double>                  frameDuration = std::chrono::duration_cast<std::chrono::duration<double>>(
-                currentTime - lastFrameTime);
-            double frameTime = frameDuration.count();
-            if (frameTime >= fTargetFrameTime) {
-                handle_draw();
-                lastFrameTime = currentTime;
-            }
-        }
-
-        fApplet->finish();
-#endif // DISABLE_GRAPHICS
-
-#ifndef DISABLE_AUDIO
-        shutdown_audio();
-#endif // DISABLE_AUDIO
-
-#if defined(DISABLE_GRAPHICS) || defined(DISABLE_AUDIO)
-        SDL_Quit();
-#endif
-
-        return 0;
-    }
+    static high_resolution_clock::time_point lastFrameTime                       = {};
+    static bool                              initialized                         = false;
+    static double                            target_frame_duration               = 1.0 / frameRate;
+    static bool                              handle_subsystem_graphics_cleanup   = false;
+    static bool                              handle_subsystem_audio_cleanup      = false;
+    static bool                              handle_subsystem_libraries_cleanup  = false;
+    static bool                              handle_subsystem_hid_events_cleanup = false;
+    static bool                              _app_is_running                     = true;
+    static std::vector<SDL_Event>            event_cache;
 
     void exit() {
-        fAppIsRunning = false;
+        _app_is_running = false; // NOTE layzily implemented it here and not in `UmgebungFunctionsGraphics.cpp`
     }
 
+    bool is_initialized() {
+        return initialized;
+    }
+
+    std::string get_window_title() {
+        // TODO move this to subsystem and make it configurable
+        return UMGEBUNG_WINDOW_TITLE;
+    }
+
+    void set_window_title(std::string title) {
+        // TODO move this to subsystem
+    }
+
+    void set_frame_rate(const float fps) {
+        target_frame_duration = 1.0 / fps;
+    }
+
+    SDL_WindowFlags get_SDL_WindowFlags(SDL_WindowFlags& flags) {
+        /*
+         * SDL_WINDOW_FULLSCREEN           SDL_UINT64_C(0x0000000000000001)    //  window is in fullscreen mode
+         * SDL_WINDOW_OPENGL               SDL_UINT64_C(0x0000000000000002)    //  window usable with OpenGL context
+         * SDL_WINDOW_OCCLUDED             SDL_UINT64_C(0x0000000000000004)    //  window is occluded
+         * SDL_WINDOW_HIDDEN               SDL_UINT64_C(0x0000000000000008)    //  window is neither mapped onto the desktop nor shown in the taskbar/dock/window list; SDL_ShowWindow() is required for it to become visible
+         * SDL_WINDOW_BORDERLESS           SDL_UINT64_C(0x0000000000000010)    //  no window decoration
+         * SDL_WINDOW_RESIZABLE            SDL_UINT64_C(0x0000000000000020)    //  window can be resized
+         * SDL_WINDOW_MINIMIZED            SDL_UINT64_C(0x0000000000000040)    //  window is minimized
+         * SDL_WINDOW_MAXIMIZED            SDL_UINT64_C(0x0000000000000080)    //  window is maximized
+         * SDL_WINDOW_MOUSE_GRABBED        SDL_UINT64_C(0x0000000000000100)    //  window has grabbed mouse input
+         * SDL_WINDOW_INPUT_FOCUS          SDL_UINT64_C(0x0000000000000200)    //  window has input focus
+         * SDL_WINDOW_MOUSE_FOCUS          SDL_UINT64_C(0x0000000000000400)    //  window has mouse focus
+         * SDL_WINDOW_EXTERNAL             SDL_UINT64_C(0x0000000000000800)    //  window not created by SDL
+         * SDL_WINDOW_MODAL                SDL_UINT64_C(0x0000000000001000)    //  window is modal
+         * SDL_WINDOW_HIGH_PIXEL_DENSITY   SDL_UINT64_C(0x0000000000002000)    //  window uses high pixel density back buffer if possible
+         * SDL_WINDOW_MOUSE_CAPTURE        SDL_UINT64_C(0x0000000000004000)    //  window has mouse captured (unrelated to MOUSE_GRABBED)
+         * SDL_WINDOW_MOUSE_RELATIVE_MODE  SDL_UINT64_C(0x0000000000008000)    //  window has relative mode enabled
+         * SDL_WINDOW_ALWAYS_ON_TOP        SDL_UINT64_C(0x0000000000010000)    //  window should always be above others
+         * SDL_WINDOW_UTILITY              SDL_UINT64_C(0x0000000000020000)    //  window should be treated as a utility window, not showing in the task bar and window list
+         * SDL_WINDOW_TOOLTIP              SDL_UINT64_C(0x0000000000040000)    //  window should be treated as a tooltip and does not get mouse or keyboard focus, requires a parent window
+         * SDL_WINDOW_POPUP_MENU           SDL_UINT64_C(0x0000000000080000)    //  window should be treated as a popup menu, requires a parent window
+         * SDL_WINDOW_KEYBOARD_GRABBED     SDL_UINT64_C(0x0000000000100000)    //  window has grabbed keyboard input
+         * SDL_WINDOW_VULKAN               SDL_UINT64_C(0x0000000010000000)    //  window usable for Vulkan surface
+         * SDL_WINDOW_METAL                SDL_UINT64_C(0x0000000020000000)    //  window usable for Metal view
+         * SDL_WINDOW_TRANSPARENT          SDL_UINT64_C(0x0000000040000000)    //  window with transparent buffer
+         * SDL_WINDOW_NOT_FOCUSABLE        SDL_UINT64_C(0x0000000080000000)    //  window should not be focusable
+         */
+        flags |= SDL_WINDOW_HIDDEN; // NOTE always hide window
+        flags |= SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS;
+        flags |= fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
+        flags |= borderless ? SDL_WINDOW_BORDERLESS : 0;
+        flags |= resizable ? SDL_WINDOW_RESIZABLE : 0;
+        flags |= retina_support ? SDL_WINDOW_HIGH_PIXEL_DENSITY : 0;
+        flags |= always_on_top ? SDL_WINDOW_ALWAYS_ON_TOP : 0;
+        return flags;
+    }
 } // namespace umgebung
 
-#ifndef UMGEBUNG_OMIT_MAIN
-int main(int argc, char* argv[]) {
+static void handle_arguments(const int argc, char* argv[]) {
     std::vector<std::string> args;
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
             args.emplace_back(argv[i]);
         }
     }
-    return umgebung::run_application(args);
+    arguments(args);
 }
-#endif // UMGEBUNG_OMIT_MAIN
+
+static uint32_t compile_subsystems_flag() {
+    /* from `SDL.h`:
+     * - `SDL_INIT_TIMER`: timer subsystem
+     * - `SDL_INIT_AUDIO`: audio subsystem
+     * - `SDL_INIT_VIDEO`: video subsystem; automatically initializes the events
+     *   subsystem
+     * - `SDL_INIT_JOYSTICK`: joystick subsystem; automatically initializes the
+     *   events subsystem
+     * - `SDL_INIT_HAPTIC`: haptic (force feedback) subsystem
+     * - `SDL_INIT_GAMECONTROLLER`: controller subsystem; automatically
+     *   initializes the joystick subsystem
+     * - `SDL_INIT_EVENTS`: events subsystem
+     * - `SDL_INIT_EVERYTHING`: all of the above subsystems
+     * - `SDL_INIT_NOPARACHUTE`: compatibility; this flag is ignored
+     */
+    uint32_t subsystem_flags = 0;
+    // subsystem_flags |= SDL_INIT_EVENTS;
+    return subsystem_flags;
+}
+
+SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
+
+    /*
+     * 1. prepare umgebung application ( e.g args, settings )
+     * 2. initialize SDL
+     * 3. initialize graphics
+     * 4. initialize audio
+     * 5. setup application
+     */
+
+    /* 1. prepare umgebung application */
+
+    handle_arguments(argc, argv);
+    settings();
+
+    /* create/check graphics subsystem */
+    if (umgebung::enable_graphics) {
+        if (umgebung::subsystem_graphics == nullptr) {
+            if (umgebung::create_subsystem_graphics != nullptr) {
+                umgebung::console("+++ creating graphics subsystem with callback.");
+                umgebung::subsystem_graphics                = umgebung::create_subsystem_graphics();
+                umgebung::handle_subsystem_graphics_cleanup = true;
+            } else {
+                umgebung::console("+++ no graphics subsystem provided, using default.");
+                // umgebung::subsystem_graphics = umgebung_create_subsystem_graphics_sdl2d();
+                // umgebung::subsystem_graphics = umgebung_create_subsystem_graphics_openglv20();
+                umgebung::subsystem_graphics                = umgebung_create_subsystem_graphics_openglv33();
+                umgebung::handle_subsystem_graphics_cleanup = true;
+            }
+            if (umgebung::subsystem_graphics == nullptr) {
+                umgebung::console("+++ did not create graphics subsystem.");
+            }
+        } else {
+            umgebung::console("+++ client provided graphics subsystem.");
+        }
+        if (umgebung::subsystem_graphics != nullptr) {
+            umgebung::subsystems.push_back(umgebung::subsystem_graphics);
+            if (umgebung::subsystem_graphics->name != nullptr) {
+                umgebung::console("+++ created subsystem graphics  : ", umgebung::subsystem_graphics->name());
+            } else {
+                umgebung::console("+++ created subsystem graphics  : ( no name specified )");
+            }
+        }
+    } else {
+        umgebung::console("+++ graphics disabled.");
+    }
+
+    /* create/check audio subsystem */
+    if (umgebung::enable_audio) {
+        if (umgebung::subsystem_audio == nullptr) {
+            if (umgebung::create_subsystem_audio != nullptr) {
+                umgebung::console("+++ creating audio subsystem via callback.");
+                umgebung::subsystem_audio                = umgebung::create_subsystem_audio();
+                umgebung::handle_subsystem_audio_cleanup = true;
+            } else {
+                umgebung::console("+++ no audio subsystem provided, using default.");
+                umgebung::subsystem_audio                = umgebung_create_subsystem_audio_sdl();
+                umgebung::handle_subsystem_audio_cleanup = true;
+            }
+            if (umgebung::subsystem_audio == nullptr) {
+                umgebung::console("+++ did not create audio subsystem.");
+            }
+        } else {
+            umgebung::console("+++ client provided audio subsystem.");
+        }
+        umgebung::console("+++ adding audio subsystem.");
+        umgebung::subsystems.push_back(umgebung::subsystem_audio);
+        if (umgebung::subsystem_audio->name != nullptr) {
+            umgebung::console("+++ created subsystem audio     : ", umgebung::subsystem_audio->name());
+        } else {
+            umgebung::console("+++ created subsystem audio     : ( no name specified )");
+        }
+    } else {
+        umgebung::console("+++ audio disabled.");
+    }
+
+    /* create/check libraries subsystem */
+    if (umgebung::enable_libraries) {
+        if (umgebung::subsystem_libraries == nullptr) {
+            umgebung::subsystem_libraries                = umgebung_create_subsystem_libraries();
+            umgebung::handle_subsystem_libraries_cleanup = true;
+        } else {
+            umgebung::console("+++ client provided library subsystem.");
+        }
+        umgebung::console("+++ created subsystem libraries : ", umgebung::subsystem_libraries->name());
+        umgebung::subsystems.push_back(umgebung::subsystem_libraries);
+    } else {
+        umgebung::console("+++ libraries disabled.");
+    }
+
+    /* create/check events subsystem */
+    if (umgebung::enable_events) {
+        if (umgebung::subsystem_hid_events == nullptr) {
+            umgebung::subsystem_hid_events                = umgebung_create_subsystem_hid_events();
+            umgebung::handle_subsystem_hid_events_cleanup = true;
+        } else {
+            umgebung::console("+++ client provided HID events subsystem.");
+        }
+        umgebung::console("+++ created subsystem HID events: ", umgebung::subsystem_hid_events->name());
+        umgebung::subsystems.push_back(umgebung::subsystem_hid_events);
+    } else {
+        umgebung::console("+++ HID events disabled.");
+    }
+
+    /* 2. initialize SDL */
+
+    uint32_t subsystem_flags = compile_subsystems_flag();
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem != nullptr) {
+            if (subsystem->set_flags != nullptr) {
+                subsystem->set_flags(subsystem_flags);
+            }
+        }
+    }
+
+    if (!SDL_Init(subsystem_flags)) {
+        SDL_Log("couldn't initialize SDL: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+
+    // TODO make this configurable
+    SDL_SetAppMetadata("Umgebung Application", "1.0", "de.dennisppaul.umgebung.application");
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem != nullptr) {
+            if (subsystem->init != nullptr) {
+                if (!subsystem->init()) {
+                    umgebung::warning("Couldn't initialize subsystem.");
+                }
+            }
+        }
+    }
+
+    if (umgebung::enable_graphics) {
+        if (umgebung::subsystem_graphics != nullptr) {
+            if (umgebung::subsystem_graphics->create_graphics != nullptr) {
+                umgebung::g = umgebung::subsystem_graphics->create_graphics(umgebung::render_to_buffer);
+            }
+        }
+    }
+
+    if (umgebung::enable_audio) {
+        if (umgebung::subsystem_audio != nullptr) {
+            if (umgebung::subsystem_audio->create_audio != nullptr) {
+                // NOTE fill in the values from `Umgebung.h`
+                umgebung::AudioUnitInfo _audio_unit_info;
+                // _audio_unit_info.unique_id       = 0; // NOTE set by subsystem
+                _audio_unit_info.input_buffer       = nullptr;
+                _audio_unit_info.input_channels     = umgebung::input_channels;
+                _audio_unit_info.output_buffer      = nullptr;
+                _audio_unit_info.output_channels    = umgebung::output_channels;
+                _audio_unit_info.buffer_size        = umgebung::audio_buffer_size;
+                _audio_unit_info.sample_rate        = umgebung::sample_rate;
+                _audio_unit_info.input_device_id    = umgebung::audio_input_device_id;
+                _audio_unit_info.input_device_name  = umgebung::audio_input_device_name;
+                _audio_unit_info.output_device_id   = umgebung::audio_output_device_id;
+                _audio_unit_info.output_device_name = umgebung::audio_output_device_name;
+                umgebung::a                         = umgebung::subsystem_audio->create_audio(&_audio_unit_info);
+            }
+        }
+    }
+
+    umgebung::initialized = true;
+
+    /* - setup_pre */
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem != nullptr) {
+            if (subsystem->setup_pre != nullptr) {
+                subsystem->setup_pre();
+            }
+        }
+    }
+
+    // TODO feed back the values to the global variables
+    //      NEED TO find a good place to do this … also for audio
+    //      values should be updated before `setup()` is called:
+    if (umgebung::g != nullptr && umgebung::enable_graphics) {
+        umgebung::width  = umgebung::g->width;
+        umgebung::height = umgebung::g->height;
+        // TODO pixelDensity
+    }
+    if (umgebung::a != nullptr && umgebung::enable_audio) {
+        // NOTE copy values back to global variables after initialization … a bit hackish but well.
+        umgebung::audio_input_buffer       = umgebung::a->input_buffer;
+        umgebung::input_channels           = umgebung::a->input_channels;
+        umgebung::audio_output_buffer      = umgebung::a->output_buffer;
+        umgebung::output_channels          = umgebung::a->output_channels;
+        umgebung::audio_buffer_size        = umgebung::a->buffer_size;
+        umgebung::sample_rate              = umgebung::a->sample_rate;
+        umgebung::audio_input_device_id    = umgebung::a->input_device_id;
+        umgebung::audio_input_device_name  = umgebung::a->input_device_name;
+        umgebung::audio_output_device_id   = umgebung::a->output_device_id;
+        umgebung::audio_output_device_name = umgebung::a->output_device_name;
+    }
+
+    setup();
+
+    /* - setup_post */
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem != nullptr) {
+            if (subsystem->setup_post != nullptr) {
+                subsystem->setup_post();
+            }
+        }
+    }
+
+    umgebung::lastFrameTime = std::chrono::high_resolution_clock::now();
+
+    return SDL_APP_CONTINUE;
+}
+
+static void handle_event(const SDL_Event& event, bool& app_is_running) {
+    //     // imgui_processevent(event);
+    switch (event.type) {
+        case SDL_EVENT_WINDOW_RESIZED:
+            // // TODO implement window resize … how will the subsystems be updated?
+            // umgebung::warning("TODO window resized. subsystem needs to be update …");
+            windowResized(-1, -1);
+            break;
+        case SDL_EVENT_QUIT:
+            app_is_running = false;
+            break;
+        case SDL_EVENT_KEY_DOWN:
+            if (umgebung::use_esc_key_to_quit) {
+                umgebung::key = static_cast<int>(event.key.key);
+                if (event.key.scancode == SDL_SCANCODE_ESCAPE) {
+                    app_is_running = false;
+                }
+            }
+            break;
+        default: break;
+    }
+}
+
+SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
+    // TODO add option to cache events and handle them in loop
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem != nullptr) {
+            if (subsystem->event != nullptr) {
+                subsystem->event(event);
+            }
+        }
+    }
+
+    umgebung::event_cache.push_back(*event);
+
+    /* only quit events */
+    handle_event(*event, umgebung::_app_is_running);
+    if (!umgebung::_app_is_running) {
+        return SDL_APP_SUCCESS;
+    }
+    return SDL_APP_CONTINUE;
+}
+
+static void handle_draw() {
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem != nullptr) {
+            if (subsystem->draw_pre != nullptr) {
+                subsystem->draw_pre();
+            }
+        }
+    }
+
+    draw();
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem != nullptr) {
+            if (subsystem->draw_post != nullptr) {
+                subsystem->draw_post();
+            }
+        }
+    }
+
+    if (umgebung::subsystem_graphics != nullptr) {
+        if (umgebung::subsystem_graphics->post != nullptr) {
+            umgebung::subsystem_graphics->post();
+        }
+    }
+
+    post();
+}
+
+SDL_AppResult SDL_AppIterate(void* appstate) {
+    const high_resolution_clock::time_point currentFrameTime = high_resolution_clock::now();
+    const auto                              frameDuration    = duration_cast<duration<double>>(currentFrameTime - umgebung::lastFrameTime);
+    const double                            frame_duration   = frameDuration.count();
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem != nullptr) {
+            if (subsystem->event_loop != nullptr) {
+                for (auto e: umgebung::event_cache) {
+                    subsystem->event_loop(&e);
+                }
+            }
+        }
+    }
+    umgebung::event_cache.clear();
+
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem != nullptr) {
+            if (subsystem->loop != nullptr) {
+                subsystem->loop();
+            }
+        }
+    }
+
+    if (frame_duration >= umgebung::target_frame_duration) {
+        handle_draw();
+
+        if (frame_duration == 0) {
+            umgebung::frameRate = 1;
+        } else {
+            umgebung::frameRate = static_cast<float>(1.0 / frame_duration);
+        }
+
+        umgebung::frameCount++;
+        umgebung::lastFrameTime = currentFrameTime;
+    }
+
+    return SDL_APP_CONTINUE;
+}
+
+void SDL_AppQuit(void* appstate, SDL_AppResult result) {
+    // NOTE 1. call `void umgebung::shutdown()`(?)
+    //      2. clean up subsytems e.g audio, graphics, ...
+    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+        if (subsystem != nullptr) {
+            if (subsystem->shutdown != nullptr) {
+                subsystem->shutdown();
+            }
+            // NOTE custom subsystems must be cleaned by client: `delete subsystem;`
+        }
+    }
+
+    // NOTE clean up graphics + audio subsystem if created internally
+    if (umgebung::subsystem_graphics != nullptr) {
+        if (umgebung::handle_subsystem_graphics_cleanup) {
+            delete umgebung::subsystem_graphics;
+        }
+        umgebung::subsystem_graphics = nullptr;
+    }
+    if (umgebung::subsystem_audio != nullptr) {
+        if (umgebung::handle_subsystem_audio_cleanup) {
+            delete umgebung::subsystem_audio;
+        }
+        umgebung::subsystem_audio = nullptr;
+    }
+    if (umgebung::subsystem_libraries != nullptr) {
+        if (umgebung::handle_subsystem_libraries_cleanup) {
+            delete umgebung::subsystem_libraries;
+        }
+        umgebung::subsystem_libraries = nullptr;
+    }
+    if (umgebung::subsystem_hid_events != nullptr) {
+        if (umgebung::handle_subsystem_hid_events_cleanup) {
+            delete umgebung::subsystem_hid_events;
+        }
+        umgebung::subsystem_hid_events = nullptr;
+    }
+
+    umgebung::subsystems.clear();
+
+    shutdown();
+    SDL_Quit();
+}

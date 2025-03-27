@@ -34,7 +34,7 @@
  */
 class AudioFileWriter {
 public:
-    explicit AudioFileWriter(uint32_t sample_rate = DEFAULT_AUDIO_SAMPLE_RATE) : opened(false), wav() {
+    explicit AudioFileWriter(uint32_t sample_rate = DEFAULT_SAMPLE_RATE) : opened(false), wav() {
         format.container     = drwav_container_riff; // <-- drwav_container_riff = normal WAV files, drwav_container_w64 = Sony Wave64.
         format.format        = DR_WAVE_FORMAT_IEEE_FLOAT;
         format.channels      = 1;
