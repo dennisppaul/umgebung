@@ -37,6 +37,7 @@
 #include "harfbuzz/hb-ft.h"
 #include "ft2build.h"
 #include FT_FREETYPE_H
+#include FT_OUTLINE_H
 
 #include "UmgebungFunctionsAdditional.h"
 #include "PImage.h"
@@ -79,7 +80,7 @@ namespace umgebung {
 
             create_font_atlas(*font, character_atlas);
 
-            console("PFont / implement pixel density");
+            // TODO see if pixel density needs to or should be respected in the atlas
 
             // texture_id = create_font_texture(*font); // NOTE this is done in PGraphics
             width  = static_cast<float>(font->atlas_width);
@@ -88,10 +89,8 @@ namespace umgebung {
             pixels = new uint32_t[static_cast<int>(width * height)];
             copy_atlas_to_rgba(*font, reinterpret_cast<unsigned char*>(pixels));
 
-            console("PFont      :  created atlas");
+            console("PFont      : created atlas");
             console("atlas size : ", width, "×", height);
-            baseline_offset = static_cast<float>(font->face->size->metrics.ascender) / 64.0f;
-            console("font ascent: ", baseline_offset);
             textSize(font_size);
             textLeading(font_size * 1.2f);
 #ifdef PFONT_DEBUG_FONT
@@ -106,6 +105,7 @@ namespace umgebung {
 
         static PImage* create_image(const std::string& text) {
             error("PImage / implement `create_image`: ", text);
+            // TODO implement creation of PImage from text
             return nullptr;
         }
 
@@ -157,7 +157,7 @@ namespace umgebung {
             text_size = size;
         }
 
-        void textLeading(float leading) {
+        void textLeading(const float leading) {
             text_leading = leading;
         }
 
@@ -200,7 +200,6 @@ namespace umgebung {
         FT_Library                freetype{nullptr};
         float                     text_size{1};
         float                     text_leading{0};
-        float                     baseline_offset{0};
         int                       text_align_x{LEFT};
         int                       text_align_y{BASELINE};
 
@@ -413,8 +412,11 @@ namespace umgebung {
         }
 
     public:
-        void draw(PGraphics* g, const std::string& text, float x, float y, float z = 0) {
-            if (font == nullptr || g == nullptr || font_size == 0) {
+        void draw(PGraphics* g, const std::string& text, const float x, const float y, const float z = 0) {
+            if (font == nullptr) {
+                return;
+            }
+            if (g == nullptr || font_size == 0) {
                 return;
             }
 
@@ -424,7 +426,7 @@ namespace umgebung {
 
             const std::vector<std::string> lines = split_lines(text); // see helper below
 
-            float y_offset = -baseline_offset;
+            float y_offset = -ascent;
 
             // vertical alignment adjustment (now considers multiple lines)
             const float total_height = lines.size() * text_leading;
@@ -476,6 +478,126 @@ namespace umgebung {
 
             g->texture();
             g->popMatrix();
+        }
+
+    private:
+        struct OutlineContext {
+            std::vector<std::vector<glm::vec2>>& outlines;
+            glm::vec2                            current_point;
+            float                                scale;
+
+            OutlineContext(std::vector<std::vector<glm::vec2>>& out, const float scale)
+                : outlines(out), current_point(), scale(scale) {
+                outlines.emplace_back();
+            }
+
+            void move_to(const float x, const float y) {
+                outlines.emplace_back();
+                current_point = {x * scale, -y * scale}; // flip y and scale
+                outlines.back().push_back(current_point);
+            }
+
+            void line_to(const float x, const float y) {
+                current_point = {x * scale, -y * scale};
+                outlines.back().push_back(current_point);
+            }
+
+            void conic_to(float cx, float cy, const float x, const float y) {
+                // Approximate conic (quadratic Bézier) with straight line
+                // TODO: replace with curve tessellation if needed
+                current_point = {x * scale, -y * scale};
+                outlines.back().push_back(current_point);
+            }
+
+            void cubic_to(float cx1, float cy1, float cx2, float cy2, const float x, const float y) {
+                // Approximate cubic Bézier with straight line
+                // TODO: replace with curve tessellation if needed
+                current_point = {x * scale, -y * scale};
+                outlines.back().push_back(current_point);
+            }
+        };
+
+        static int move_to_callback(const FT_Vector* to, void* user) {
+            auto* ctx = static_cast<OutlineContext*>(user);
+            ctx->move_to(to->x / 64.0f, to->y / 64.0f);
+            return 0;
+        }
+
+        static int line_to_callback(const FT_Vector* to, void* user) {
+            auto* ctx = static_cast<OutlineContext*>(user);
+            ctx->line_to(to->x / 64.0f, to->y / 64.0f);
+            return 0;
+        }
+
+        static int conic_to_callback(const FT_Vector* control, const FT_Vector* to, void* user) {
+            auto* ctx = static_cast<OutlineContext*>(user);
+            ctx->conic_to(control->x / 64.0f, control->y / 64.0f, to->x / 64.0f, to->y / 64.0f);
+            return 0;
+        }
+
+        static int cubic_to_callback(const FT_Vector* c1, const FT_Vector* c2, const FT_Vector* to, void* user) {
+            auto* ctx = static_cast<OutlineContext*>(user);
+            ctx->cubic_to(
+                c1->x / 64.0f, c1->y / 64.0f,
+                c2->x / 64.0f, c2->y / 64.0f,
+                to->x / 64.0f, to->y / 64.0f);
+            return 0;
+        }
+
+    public:
+        void outline(const std::string& text, std::vector<std::vector<glm::vec2>>& outlines) const {
+            if (font == nullptr) {
+                return;
+            }
+
+            hb_buffer_clear_contents(font->buffer);
+            hb_buffer_add_utf8(font->buffer, text.c_str(), -1, 0, -1);
+            hb_buffer_guess_segment_properties(font->buffer);
+            hb_shape(font->hb_font, font->buffer, nullptr, 0);
+
+            unsigned int           glyph_count;
+            const hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(font->buffer, &glyph_count);
+
+            constexpr FT_Outline_Funcs funcs{
+                move_to_callback,
+                line_to_callback,
+                conic_to_callback,
+                cubic_to_callback,
+                0, 0};
+
+            float pen_x = 0;
+            float pen_y = 0;
+
+            const auto* pos = hb_buffer_get_glyph_positions(font->buffer, nullptr);
+
+            for (unsigned int i = 0; i < glyph_count; ++i) {
+                const FT_UInt glyph_index = glyph_info[i].codepoint;
+                FT_Load_Glyph(font->face, glyph_index, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING);
+                if (font->face->glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
+                    const float    text_scale = text_size / font_size;
+                    OutlineContext ctx(outlines, text_scale);
+
+                    // offset pen position before decomposition
+                    FT_Outline* outline = &font->face->glyph->outline;
+
+                    // move all outline points manually before decomposing
+                    for (int j = 0; j < outline->n_points; ++j) {
+                        outline->points[j].x += pen_x;
+                        outline->points[j].y += pen_y;
+                    }
+
+                    FT_Outline_Decompose(outline, &funcs, &ctx);
+
+                    // restore original outline (optional, in case reused)
+                    for (int j = 0; j < outline->n_points; ++j) {
+                        outline->points[j].x -= pen_x;
+                        outline->points[j].y -= pen_y;
+                    }
+                }
+
+                pen_x += pos[i].x_advance;
+                pen_y += pos[i].y_advance;
+            }
         }
 
 #ifdef PFONT_INCLUDE_OPENGL
