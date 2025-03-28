@@ -210,10 +210,14 @@ namespace umgebung {
     uint32_t color_i(uint32_t v1, uint32_t v2, uint32_t v3);
     uint32_t color_i(uint32_t v1, uint32_t v2, uint32_t v3, uint32_t alpha);
 
-    float red(uint32_t color);
-    float green(uint32_t color);
-    float blue(uint32_t color);
-    float alpha(uint32_t color);
+    float    red(uint32_t color);
+    float    green(uint32_t color);
+    float    blue(uint32_t color);
+    float    alpha(uint32_t color);
+    float    brightness(uint32_t color);
+    float    hue(uint32_t color);
+    float    saturation(uint32_t color);
+    uint32_t lerpColor(uint32_t c1, uint32_t c2, float amt);
 
     // ## Environment
 

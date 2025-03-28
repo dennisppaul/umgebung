@@ -123,6 +123,10 @@ namespace umgebung {
         virtual void     bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
         virtual void     bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
         virtual void     bezierDetail(int detail);
+        virtual void     curve(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
+        virtual void     curve(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
+        virtual void     curveDetail(int detail);
+        virtual void     curveTightness(float tightness);
         virtual void     ellipse(float x, float y, float width, float height);
         virtual void     ellipseMode(int mode);
         virtual void     ellipseDetail(int detail);
@@ -226,6 +230,8 @@ namespace umgebung {
         float                            point_size{1};
         float                            stroke_weight{1};
         int                              bezier_detail{20};
+        int                              curve_detail{20};
+        float                            curve_tightness{0.0f};
         uint8_t                          pixel_density{1};
         int                              texture_id_current{TEXTURE_NONE};
         bool                             shape_has_begun{false};

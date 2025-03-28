@@ -251,22 +251,22 @@
 - [ ] `bezierPoint()` :: Evaluates the Bezier at point t for points a, b, c, d
 - [ ] `bezierTangent()` :: Calculates the tangent of a point on a Bézier curve
 - [x] `bezier()` :: Draws a Bézier curve on the screen
-- [ ] `curveDetail()` :: Sets the resolution at which curves display
+- [x] `curveDetail()` :: Sets the resolution at which curves display
 - [ ] `curvePoint()` :: Evaluates the curve at point t for points a, b, c, d
 - [ ] `curveTangent()` :: Calculates the tangent of a point on a curve
-- [ ] `curveTightness()` :: Modifies the quality of forms created with*curve()*and*curveVertex()*
-- [ ] `curve()` :: Draws a curved line on the screen
+- [x] `curveTightness()` :: Modifies the quality of forms created with *curve()* and *curveVertex()*
+- [x] `curve()` :: Draws a curved line on the screen
 
 ### 3D Primitives
 
-- [x] `box()` :: A box is an extruded*rectangle*
+- [x] `box()` :: A box is an extruded *rectangle*
 - [ ] `sphereDetail()` :: Controls the detail used to render a sphere by adjusting the number of vertices of the sphere
   mesh
 - [x] `sphere()` :: A sphere is a hollow ball made from tessellated triangles
 
 ### Attributes
 
-- [x] `ellipseMode()` :: The origin of the ellipse is modified by the*ellipseMode()*function
+- [x] `ellipseMode()` :: The origin of the ellipse is modified by the *ellipseMode()* function
 - [x] `rectMode()` :: Modifies the location from which rectangles draw
 - [x] `strokeCap()` :: Sets the style for rendering line endings
 - [x] `strokeJoin()` :: Sets the style of the joints which connect line segments
@@ -303,11 +303,11 @@
 
 ### Trigonometry
 
-- [x] `acos()` :: The inverse of*cos()*, returns the arc cosine of a value
-- [x] `asin()` :: The inverse of*sin()*, returns the arc sine of a value
+- [x] `acos()` :: The inverse of *cos()*, returns the arc cosine of a value
+- [x] `asin()` :: The inverse of *sin()*, returns the arc sine of a value
 - [x] `atan2()` :: Calculates the angle (in radians) from a specified point to the coordinate origin as measured from
   the positive x-axis
-- [x] `atan()` :: The inverse of*tan()*, returns the arc tangent of a value
+- [x] `atan()` :: The inverse of *tan()*, returns the arc tangent of a value
 - [x] `cos()` :: Calculates the cosine of an angle
 - [x] `degrees()` :: Converts a radian measurement to its corresponding value in degrees
 - [x] `radians()` :: Converts a degree measurement to its corresponding value in radians
@@ -324,8 +324,8 @@
 - `++ (increment)` :: Increases the value of an integer variable by 1
 - `- (minus)` :: Subtracts one value from another and may also be used to negate a value
 - `% (modulo)` :: Calculates the remainder when one number is divided by another
-- ** (multiply)* :: Multiplies the values of the two parameters
-- **= (multiply assign)* :: Combines multiplication with assignment
+- `* (multiply)` :: Multiplies the values of the two parameters
+- `*= (multiply assign)` :: Combines multiplication with assignment
 - `-= (subtract assign)` :: Combines subtraction with assignment
 
 ### Bitwise Operators
@@ -338,10 +338,9 @@
 ### Random
 
 - [ ] `noiseDetail()` :: Adjusts the character and level of detail produced by the Perlin noise function
-- [ ] `noiseSeed()` :: Sets the seed value for*noise()*
+- [x] `noiseSeed()` :: Sets the seed value for*noise()*
 - [x] `noise()` :: Returns the Perlin noise value at specified coordinates
-- [x] `randomGaussian()` :: Returns a float from a random series of numbers having a mean of 0 and standard deviation of
-  1
+- [x] `randomGaussian()` :: Returns a float from a random series of numbers having a mean of 0 and standard deviation of 1
 - [x] `randomSeed()` :: Sets the seed value for*random()*
 - [x] `random()` :: Generates random numbers
 
@@ -350,10 +349,10 @@
 ### Files
 
 - [ ] `PrintWriter` :: Allows characters to print to a text-output stream
-- [ ] `beginRaw()` :: To create vectors from 3D data, use the*beginRaw()*and*endRaw()*commands
+- [ ] `beginRaw()` :: To create vectors from 3D data, use the *beginRaw()* and *endRaw()* commands
 - [ ] `beginRecord()` :: Opens a new file and all subsequent drawing functions are echoed to this file as well as the
   display window
-- [ ] `createOutput()` :: Similar to*createInput()*, this creates a Java*OutputStream*for a given filename or path
+- [ ] `createOutput()` :: Similar to *createInput()*, this creates a Java *OutputStream* for a given filename or path
 - [ ] `createWriter()` :: Creates a new file in the sketch folder, and a*PrintWriter*object to write to it
 - [ ] `endRaw()` :: Complement to*beginRaw()*; they must always be used together
 - [ ] `endRecord()` :: Stops the recording process started by*beginRecord()*and closes the file
@@ -383,13 +382,13 @@
 
 - [x] `alpha()` :: Extracts the alpha value from a color
 - [x] `blue()` :: Extracts the blue value from a color, scaled to match current*colorMode()*
-- [ ] `brightness()` :: Extracts the brightness value from a color
-- [x] `color()` :: Creates colors for storing in variables of the*color*datatype
+- [x] `brightness()` :: Extracts the brightness value from a color
+- [x] `color()` :: Creates colors for storing in variables of the *color* datatype ==@note(in Umgebung there is no datatype `color` but rather `uint32_t`)==
 - [x] `green()` :: Extracts the green value from a color, scaled to match current*colorMode()*
-- [ ] `hue()` :: Extracts the hue value from a color
-- [ ] `lerpColor()` :: Calculates a*color*or*colors*between two*colors*at a specific increment
+- [x] `hue()` :: Extracts the hue value from a color
+- [x] `lerpColor()` :: Calculates a*color*or*colors*between two*colors*at a specific increment
 - [x] `red()` :: Extracts the red value from a color, scaled to match current*colorMode()*
-- [ ] `saturation()` :: Extracts the saturation value from a color
+- [x] `saturation()` :: Extracts the saturation value from a color
 
 ### Setting
 

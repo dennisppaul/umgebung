@@ -105,6 +105,74 @@ namespace umgebung {
         return static_cast<float>((color & 0xFF000000) >> 24) / 255.0f;
     }
 
+    void rgb_to_hsb(const float r, const float g, const float b, float& h, float& s, float& v) {
+        const float max   = std::max(r, std::max(g, b));
+        const float min   = std::min(r, std::min(g, b));
+        const float delta = max - min;
+
+        v = max;
+        s = max == 0.0f ? 0.0f : delta / max;
+
+        if (delta == 0.0f) {
+            h = 0.0f; // undefined hue
+        } else {
+            if (max == r) {
+                h = fmodf((g - b) / delta, 6.0f);
+            } else if (max == g) {
+                h = (b - r) / delta + 2.0f;
+            } else {
+                h = (r - g) / delta + 4.0f;
+            }
+            h *= 60.0f;
+            if (h < 0.0f) {
+                h += 360.0f;
+            }
+        }
+    }
+
+    float brightness(const uint32_t color) {
+        const float r = red(color);
+        const float g = green(color);
+        const float b = blue(color);
+        float       h, s, v;
+        rgb_to_hsb(r, g, b, h, s, v);
+        return v;
+    }
+
+    float hue(const uint32_t color) {
+        const float r = red(color);
+        const float g = green(color);
+        const float b = blue(color);
+        float       h, s, v;
+        rgb_to_hsb(r, g, b, h, s, v);
+        return h;
+    }
+
+    float saturation(const uint32_t color) {
+        const float r = red(color);
+        const float g = green(color);
+        const float b = blue(color);
+        float       h, s, v;
+        rgb_to_hsb(r, g, b, h, s, v);
+        return s;
+    }
+
+    uint32_t lerpColor(const uint32_t c1, const uint32_t c2, float amt) {
+        amt = std::clamp(amt, 0.0f, 1.0f);
+
+        const float r = red(c1) * (1 - amt) + red(c2) * amt;
+        const float g = green(c1) * (1 - amt) + green(c2) * amt;
+        const float b = blue(c1) * (1 - amt) + blue(c2) * amt;
+        const float a = alpha(c1) * (1 - amt) + alpha(c2) * amt;
+
+        const uint32_t ri = static_cast<uint32_t>(r * 255.0f);
+        const uint32_t gi = static_cast<uint32_t>(g * 255.0f);
+        const uint32_t bi = static_cast<uint32_t>(b * 255.0f);
+        const uint32_t ai = static_cast<uint32_t>(a * 255.0f);
+
+        return ai << 24 | bi << 16 | gi << 8 | ri;
+    }
+
     float degrees(const float radians) {
         return static_cast<float>(radians * 180.0f / M_PI);
     }
@@ -254,16 +322,16 @@ namespace umgebung {
     static unsigned int fRandomSeed = static_cast<unsigned int>(std::time(nullptr));
     static std::mt19937 gen(fRandomSeed); // Create a Mersenne Twister pseudo-random number generator with the specified seed
 
-    void randomSeed(unsigned int seed) {
+    void randomSeed(const unsigned int seed) {
         fRandomSeed = seed; // Update seed
         gen.seed(seed);     // Re-seed the generator
     }
 
-    float random(float max) {
+    float random(const float max) {
         return random(0.0f, max);
     }
 
-    float random(float min, float max) {
+    float random(const float min, const float max) {
         std::uniform_real_distribution distribution(min, max);
         return distribution(gen);
     }
@@ -421,7 +489,7 @@ namespace umgebung {
             return "";
         }
         const size_t last = str.find_last_not_of(" \t\n\r\f\v");
-        return str.substr(first, (last - first + 1));
+        return str.substr(first, last - first + 1);
     }
 
     PGraphics* createGraphics() {
@@ -585,13 +653,13 @@ namespace umgebung {
 
         // save image
         if (ends_with(filename, ".png")) {
-            stbi_write_png((filename).c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data(), _width * 4);
+            stbi_write_png(filename.c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data(), _width * 4);
         } else if (ends_with(filename, ".jpg")) {
-            stbi_write_jpg((filename).c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data(), 100);
+            stbi_write_jpg(filename.c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data(), 100);
         } else if (ends_with(filename, ".bmp")) {
-            stbi_write_bmp((filename).c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data());
+            stbi_write_bmp(filename.c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data());
         } else if (ends_with(filename, ".tga")) {
-            stbi_write_tga((filename).c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data());
+            stbi_write_tga(filename.c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, flippedPixels.data());
             // } else if (ends_with(filename, ".hdr")) {
             //     stbi_write_hdr((filename).c_str(), _width, _height, DEFAULT_BYTES_PER_PIXELS, reinterpret_cast<float*>(flippedPixels.data()));
         } else {

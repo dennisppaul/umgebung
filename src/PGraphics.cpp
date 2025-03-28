@@ -326,6 +326,110 @@ void PGraphics::bezierDetail(const int detail) {
     bezier_detail = detail;
 }
 
+static glm::vec2 hermite(const float t, const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& m1, const glm::vec2& m2) {
+    const float t2 = t * t;
+    const float t3 = t2 * t;
+
+    return (2.0f * t3 - 3.0f * t2 + 1.0f) * p1 +
+           (t3 - 2.0f * t2 + t) * m1 +
+           (-2.0f * t3 + 3.0f * t2) * p2 +
+           (t3 - t2) * m2;
+}
+
+void PGraphics::curve(const float x1, const float y1,
+                      const float x2, const float y2,
+                      const float x3, const float y3,
+                      const float x4, const float y4) {
+    const glm::vec2 p1(x1, y1);
+    const glm::vec2 p2(x2, y2);
+    const glm::vec2 p3(x3, y3);
+    const glm::vec2 p4(x4, y4);
+
+    const glm::vec2 m1 = (1.0f - curve_tightness) * 0.5f * (p3 - p1);
+    const glm::vec2 m2 = (1.0f - curve_tightness) * 0.5f * (p4 - p2);
+
+    const int segments = curve_detail;
+    glm::vec2 prev     = p2;
+
+    for (int i = 1; i <= segments; ++i) {
+        const float     t  = i / static_cast<float>(segments);
+        const glm::vec2 pt = hermite(t, p2, p3, m1, m2);
+        line(prev.x, prev.y, pt.x, pt.y); // your existing line() function
+        prev = pt;
+    }
+}
+
+static glm::vec3 hermite(const float t, const glm::vec3& p1, const glm::vec3& p2,
+                         const glm::vec3& m1, const glm::vec3& m2) {
+    const float t2 = t * t;
+    const float t3 = t2 * t;
+
+    return (2.0f * t3 - 3.0f * t2 + 1.0f) * p1 +
+           (t3 - 2.0f * t2 + t) * m1 +
+           (-2.0f * t3 + 3.0f * t2) * p2 +
+           (t3 - t2) * m2;
+}
+
+void PGraphics::curve(const float x1, const float y1, const float z1,
+                      const float x2, const float y2, const float z2,
+                      const float x3, const float y3, const float z3,
+                      const float x4, const float y4, const float z4) {
+    const glm::vec3 p1(x1, y1, z1);
+    const glm::vec3 p2(x2, y2, z2);
+    const glm::vec3 p3(x3, y3, z3);
+    const glm::vec3 p4(x4, y4, z4);
+
+    const glm::vec3 m1 = (1.0f - curve_tightness) * 0.5f * (p3 - p1);
+    const glm::vec3 m2 = (1.0f - curve_tightness) * 0.5f * (p4 - p2);
+
+    const int segments = curve_detail;
+    glm::vec3 prev     = p2;
+
+    for (int i = 1; i <= segments; ++i) {
+        const float     t  = i / static_cast<float>(segments);
+        const glm::vec3 pt = hermite(t, p2, p3, m1, m2);
+        line(prev.x, prev.y, prev.z, pt.x, pt.y, pt.z); // 3D line function
+        prev = pt;
+    }
+}
+
+void PGraphics::curveDetail(const int detail) {
+    curve_detail = detail;
+}
+
+void PGraphics::curveTightness(const float tightness) {
+    curve_tightness = tightness;
+}
+
+// std::vector<glm::vec3> curve_vertices;
+// void PGraphics::beginShape() {
+//     curve_vertices.clear();
+//     // other shape setup
+// }
+// void PGraphics::curveVertex(float x, float y, float z) {
+//     curve_vertices.emplace_back(x, y, z);
+//
+//     if (curve_vertices.size() < 4) return;
+//
+//     const glm::vec3& p1 = curve_vertices[curve_vertices.size() - 4];
+//     const glm::vec3& p2 = curve_vertices[curve_vertices.size() - 3];
+//     const glm::vec3& p3 = curve_vertices[curve_vertices.size() - 2];
+//     const glm::vec3& p4 = curve_vertices[curve_vertices.size() - 1];
+//
+//     const glm::vec3 m1 = (1.0f - curve_tightness) * 0.5f * (p3 - p1);
+//     const glm::vec3 m2 = (1.0f - curve_tightness) * 0.5f * (p4 - p2);
+//
+//     const int segments = curve_detail;
+//     glm::vec3 prev     = p2;
+//
+//     for (int i = 1; i <= segments; ++i) {
+//         const float     t  = i / float(segments);
+//         const glm::vec3 pt = hermite(t, p2, p3, m1, m2);
+//         line(prev.x, prev.y, prev.z, pt.x, pt.y, pt.z);
+//         prev = pt;
+//     }
+// }
+
 void PGraphics::ellipse(const float x, const float y, const float width, const float height) {
     if (!color_fill.active && !color_stroke.active) {
         return;
@@ -442,7 +546,7 @@ float PGraphics::textDescent() {
     return current_font->textDescent();
 }
 
-void PGraphics::textLeading(float leading) {
+void PGraphics::textLeading(const float leading) {
     if (current_font == nullptr) {
         return;
     }
@@ -766,7 +870,7 @@ void PGraphics::triangulate_line_strip_vertex(const std::vector<Vertex>& line_st
     std::vector<glm::vec2> points(line_strip.size());
     std::vector<glm::vec2> triangles;
 
-    glm::mat4 mvp = projection_matrix * view_matrix * model_matrix;
+    const glm::mat4 mvp = projection_matrix * view_matrix * model_matrix;
     for (int i = 0; i < line_strip.size(); ++i) {
         // glm::vec3 _position = line_strip[i].position;
         // to_screen_space(_position);
