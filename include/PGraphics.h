@@ -144,6 +144,10 @@ namespace umgebung {
         virtual void     textSize(float size);
         virtual void     text(const char* value, float x, float y, float z = 0.0f);
         virtual float    textWidth(const std::string& text);
+        virtual void     textAlign(int alignX, int alignY = BASELINE);
+        virtual float    textAscent();
+        virtual float    textDescent();
+        virtual void     textLeading(float leading);
         virtual PFont*   loadFont(const std::string& file, float size);
         virtual void     box(float width, float height, float depth);
         virtual void     box(const float size) { box(size, size, size); }

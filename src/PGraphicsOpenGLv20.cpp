@@ -45,27 +45,48 @@ void PGraphicsOpenGLv20::strokeWeight(const float weight) {
 
 void PGraphicsOpenGLv20::rect(const float x, const float y, const float width, const float height) {
     if (render_mode == RENDER_MODE_IMMEDIATE) {
+        // compute rectangle corners using glm::vec2
+        glm::vec2 p1, p2;
+        switch (rect_mode) {
+            case CORNERS:
+                p1 = {x, y};
+                p2 = {width, height};
+                break;
+            case CENTER:
+                p1 = {x - width * 0.5f, y - height * 0.5f};
+                p2 = {x + width * 0.5f, y + height * 0.5f};
+                break;
+            case RADIUS:
+                p1 = {x - width, y - height};
+                p2 = {x + width, y + height};
+                break;
+            case CORNER:
+            default:
+                p1 = {x, y};
+                p2 = {x + width, y + height};
+                break;
+        }
         // add rectMode
         if (color_fill.active) {
             glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
             glBegin(GL_QUADS);
             glTexCoord2f(0, 0);
-            glVertex2f(x, y);
+            glVertex2f(p1.x, p1.y);
             glTexCoord2f(1, 0);
-            glVertex2f(x + width, y);
+            glVertex2f(p2.x, p1.y);
             glTexCoord2f(1, 1);
-            glVertex2f(x + width, y + height);
+            glVertex2f(p2.x, p2.y);
             glTexCoord2f(0, 1);
-            glVertex2f(x, y + height);
+            glVertex2f(p1.x, p2.y);
             glEnd();
         }
         if (color_stroke.active) {
             glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a);
             glBegin(GL_LINE_LOOP);
-            glVertex2f(x, y);
-            glVertex2f(x + width, y);
-            glVertex2f(x + width, y + height);
-            glVertex2f(x, y + height);
+            glVertex2f(p1.x, p1.y);
+            glVertex2f(p2.x, p1.y);
+            glVertex2f(p2.x, p2.y);
+            glVertex2f(p1.x, p2.y);
             glEnd();
         }
         return;
@@ -348,7 +369,6 @@ PImage* PGraphicsOpenGLv20::loadImage(const std::string& filename) {
 }
 
 void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, float w, float h) {
-#ifndef DISABLE_GRAPHICS
     if (!color_fill.active) {
         return;
     }
@@ -365,6 +385,28 @@ void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, float 
         h = img->height;
     }
 
+    // compute rectangle corners using glm::vec2
+    glm::vec2 p1, p2;
+    switch (rect_mode) {
+        case CORNERS:
+            p1 = {x, y};
+            p2 = {w, h};
+            break;
+        case CENTER:
+            p1 = {x - w * 0.5f, y - h * 0.5f};
+            p2 = {x + w * 0.5f, y + h * 0.5f};
+            break;
+        case RADIUS:
+            p1 = {x - w, y - h};
+            p2 = {x + w, y + h};
+            break;
+        case CORNER:
+        default:
+            p1 = {x, y};
+            p2 = {x + w, y + h};
+            break;
+    }
+
     // TODO move this to own method and share with `texture()`
     if (img->texture_id == TEXTURE_NOT_GENERATED) {
         OGL_generate_and_upload_image_as_texture(img, true);
@@ -379,21 +421,17 @@ void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, float 
     const uint8_t tmp_texture_id_current = texture_id_current; // TODO
 
     glEnable(GL_TEXTURE_2D);
-    glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
     glBindTexture(GL_TEXTURE_2D, img->texture_id);
-
+    glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0);
-    glVertex2f(x, y);
-
+    glVertex2f(p1.x, p1.y);
     glTexCoord2f(1, 0);
-    glVertex2f(x + w, y);
-
+    glVertex2f(p2.x, p1.y);
     glTexCoord2f(1, 1);
-    glVertex2f(x + w, y + h);
-
+    glVertex2f(p2.x, p2.y);
     glTexCoord2f(0, 1);
-    glVertex2f(x, y + h);
+    glVertex2f(p1.x, p2.y);
     glEnd();
     glDisable(GL_TEXTURE_2D);
 
@@ -401,8 +439,6 @@ void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y, float 
         glBindTexture(GL_TEXTURE_2D, tmp_texture_id_current);
     }
     rect_mode = tmp_rect_mode;
-
-#endif // DISABLE_GRAPHICS
 }
 
 void PGraphicsOpenGLv20::image(PImage* img, const float x, const float y) {

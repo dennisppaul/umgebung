@@ -155,16 +155,16 @@
 
 ### Attributes
 
-- [ ] `textAlign()` :: Sets the current alignment for drawing text
-- [ ] `textLeading()` :: Sets the spacing between lines of text in units of pixels
+- [x] `textAlign()` :: Sets the current alignment for drawing text
+- [x] `textLeading()` :: Sets the spacing between lines of text in units of pixels
 - [ ] `textMode()` :: Sets the way text draws to the screen
 - [x] `textSize()` :: Sets the current font size
 - [x] `textWidth()` :: Calculates and returns the width of any character or text string
 
 ### Metrics
 
-- [ ] `textAscent()` :: Returns ascent of the current font at its current size
-- [ ] `textDescent()` :: Returns descent of the current font at its current size
+- [x] `textAscent()` :: Returns ascent of the current font at its current size
+- [x] `textDescent()` :: Returns descent of the current font at its current size
 
 ## Rendering
 

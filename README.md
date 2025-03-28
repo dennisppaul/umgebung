@@ -167,18 +167,11 @@ make -C build ; ./build/umgebung-simple
 
 ## Known Differences
 
-Java and C++ are similar in some aspects, but are very different in many others. a lot of the syntactic differences
-between *Processing* and *Umgebung* stem from these differences, while a few others are more or less developer
-decisions.
+Java and C++ are similar in some aspects, but are very different in many others. a lot of the syntactic differences between *Processing* and *Umgebung* stem from these differences, while a few others are more or less developer decisions.
 
-- elements in `println()` must be concatenated with `,` rather than `+` e.g `println("hello ", 23, " world");` @reason(
-  strings cannot be concatenated with a `+` in C++ as they can be in Java)
-- the equivalent property to `mousePressed()` is renamed to `isMousePressed` @reason(in *Processing* the property
-  `mousePressed` and the callback method `mousePressed` carry the same name. in C++ it is not allowed to have a field or
-  property and a method with the same name)
-- `fill(float)` must be explicitly differentiated from `fill(uint32_t)` e.g `fill(1.0f)` or `fill(0xFF44FF88)` ( the
-  same is true for `stroke(...)` ) @reason(in a different way from Java, C++ finds two methods that only differ in their
-  parameter types i.e `float` and `uint32_t` ambiguous)
+- elements in `println()` must be concatenated with `,` rather than `+` e.g `println("hello ", 23, " world");` @reason(raw strings cannot be concatenated with a `+` in C++ as they can be in Java)
+- the properties `mousePressed` + `keyPressed` are renamed to `isMousePressed` and `isKeyPressed` @reason(in *Processing* the property `mousePressed` and the callback method `mousePressed` carry the same name. in C++ it is not allowed to have a field or property and a method with the same name)
+- `fill(float)` must be explicitly differentiated from `fill(uint32_t)` e.g `fill(1.0f)` or `fill(0xFF44FF88)` ( the same is true for `stroke(...)` ) @reason(in a different way from Java, C++ finds two methods that only differ in their parameter types i.e `float` and `uint32_t` ambiguous)
 
 ## Known Issues
 
@@ -190,21 +183,16 @@ decisions.
 
 ### Setting up Homebrew on macOS
 
-on some *clean* homebrew installations on macOS the environment variable `$LIBRARY_PATH` is not set or at least does not
-include the
-homebrew libraries. if so you may need to add the line `export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib` to your
-profile e.g in `~/.zshrc` in *zsh* shell. note, that other shell environments use other profile files and mechanisms e.g
-*bash* uses `~/.bashrc`. find out which shell you are using by typing `echo $0`.
+on some *clean* homebrew installations on macOS the environment variable `$LIBRARY_PATH` is not set or at least does not include the homebrew libraries. if so you may need to add the line `export LIBRARY_PATH=$LIBRARY_PATH:/usr/local/lib` to your profile e.g in `~/.zshrc` in *zsh* shell. note, that other shell environments use other profile files and mechanisms e.g *bash* uses `~/.bashrc`. find out which shell you are using by typing `echo $0`.
 
-if you have NO idea what this all means you might just try the following lines ( as always without the `$` ;) ) for
-*zsh*:
+if you have NO idea what this all means you might just try the following lines for *zsh*:
 
 ```sh
 { echo -e "\n# set library path\n"; [ -n "$LIBRARY_PATH" ] && echo "export LIBRARY_PATH=/usr/local/lib:\"\$LIBRARY_PATH\"" || echo "export LIBRARY_PATH=/usr/local/lib"; } >> "$HOME/.zshrc"
 source "$HOME/.zshrc"
 ```
 
-this will set the `$LIBRARY_PATH` in your *zsh* profile file.
+this will permanently set the `LIBRARY_PATH` environement variable in your *zsh* profile file.
 
 ## Resources
 

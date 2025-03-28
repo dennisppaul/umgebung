@@ -4,10 +4,10 @@ this is a VERY unsorted todo list and a note pad.
 
 ## graphics
 
+- [ ] @umgebung add exporters ( `saveImage()`, `savePDF()`, `saveOBJ()` )
 - [ ] separate transparent + non-transparent primitives
 - [ ] in `PGraphicsDefault2D` implement 3D by manually transforming points onto 2D 
-- [ ] @umgebung try additional PGraphics for offscreen rendering
-- [ ] @umgebung add exporters ( `saveImage()`, `savePDF()`, `saveOBJ()` )
+- [ ] @umgebung try PGraphics for offscreen rendering
 - [ ] @umgebung add camera ( see https://chatgpt.com/share/67dfbe72-855c-8004-8b37-28d10d5c7ab3 )
 - [x] @umgebung add to stroke rendering:
     - `generateTubeMesh`
@@ -59,6 +59,7 @@ this is a VERY unsorted todo list and a note pad.
     ```
 - [ ] @umgebung add function to `PFont` to generate a `PImage` with a static text as texture
 - [ ] @umgebung remove all references to graphics subsystem from PGraphics ( and derived classes )
+- [ ] @umgebung #warmup fix set window title ( default to `$PROJECT_NAME`from CMake )
 
 ## audio
 
@@ -238,7 +239,7 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung documentation :: differences in shader handling ( set_uniforms )
 - [ ] @umgebung make a point of not supporting `colorMode(mode)`
 - [ ] make a step-by-step guide of how to create a library ( send to leo )
-- [ ] @umgebung render pipeline idea
+- [x] @umgebung render pipeline idea
  ```
                      + -> emit_shape_stroke_line_strip -> triangulate, transform to world/screen space
  begin-end-shape ->  |
@@ -249,16 +250,17 @@ this is a VERY unsorted todo list and a note pad.
 
 - @umgebung example style:
     ```C
-    background(0.85f); // grey
-    fill(0.5f, 0.85f, 1.0f); // blue
+    background(0.85f);        // grey
+    fill(0.5f, 0.85f, 1.0f);  // blue
     fill(1.0f, 0.25f, 0.35f); // red
-    stroke(0.0f);
+    stroke(0.0f);             // black
     ```
 - [ ] @umgebung start a series of *educated* examples
 - [ ] @umgebung start dedicated font example
 - [ ] @umgebung try with font [Inter](https://rsms.me/inter/)
 - [ ] @umgebung @example add nice stroke example with rotierender box, square, open-closed-shape + linen im 0.5,0.85,1.0 style
 - [ ] @umgebung @example add example for library
+- [ ] @umgebung add example that moves around the application window @maybe
 
 ## community
 

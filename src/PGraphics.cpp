@@ -418,8 +418,35 @@ float PGraphics::textWidth(const std::string& text) {
     if (current_font == nullptr) {
         return 0;
     }
-
     return current_font->textWidth(text.c_str());
+}
+
+void PGraphics::textAlign(const int alignX, const int alignY) {
+    if (current_font == nullptr) {
+        return;
+    }
+    current_font->textAlign(alignX, alignY);
+}
+
+float PGraphics::textAscent() {
+    if (current_font == nullptr) {
+        return 0;
+    }
+    return current_font->textAscent();
+}
+
+float PGraphics::textDescent() {
+    if (current_font == nullptr) {
+        return 0;
+    }
+    return current_font->textDescent();
+}
+
+void PGraphics::textLeading(float leading) {
+    if (current_font == nullptr) {
+        return;
+    }
+    current_font->textLeading(leading);
 }
 
 void PGraphics::text_str(const std::string& text, const float x, const float y, const float z) {

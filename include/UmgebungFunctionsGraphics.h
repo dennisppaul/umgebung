@@ -76,6 +76,10 @@ namespace umgebung {
     void     text(const char* value, float x, float y, float z = 0.0f);
     float    textWidth(const std::string& text);
     float    textWidth(char c);
+    void     textAlign(int alignX, int alignY = BASELINE);
+    float    textAscent();
+    float    textDescent();
+    void     textLeading(float leading);
     void     popMatrix();
     void     pushMatrix();
     void     translate(float x, float y, float z = 0);

@@ -332,17 +332,44 @@ namespace umgebung {
         g->text(text, x, y, z);
     }
 
-    float textWidth(char c) {
+    float textWidth(const char c) {
         const auto text = std::string(1, c);
         return textWidth(text);
     }
-
 
     float textWidth(const std::string& text) {
         if (g == nullptr) {
             return 0.0f;
         }
         return g->textWidth(text);
+    }
+
+    void textAlign(const int alignX, const int alignY) {
+        if (g == nullptr) {
+            return;
+        }
+        g->textAlign(alignX, alignY);
+    }
+
+    float textAscent() {
+        if (g == nullptr) {
+            return 0.0f;
+        }
+        return g->textAscent();
+    }
+
+    float textDescent() {
+        if (g == nullptr) {
+            return 0.0f;
+        }
+        return g->textDescent();
+    }
+
+    void textLeading(float leading) {
+        if (g == nullptr) {
+            return;
+        }
+        g->textLeading(leading);
     }
 
     void popMatrix() {

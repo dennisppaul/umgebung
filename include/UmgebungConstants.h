@@ -51,11 +51,12 @@ namespace umgebung {
     static constexpr float QUARTER_PI                    = PI / 4;
     static constexpr float TWO_PI                        = PI * 2;
     static constexpr float TAU                           = TWO_PI;
-    static constexpr int  LEFT       = 1;
-    static constexpr int  RIGHT      = 2;
-    static constexpr int  MIDDLE     = 3;
-    static constexpr bool CLOSE      = true;
-    static constexpr bool NOT_CLOSED = false;
+    static constexpr int   LEFT                          = 0x01;
+    static constexpr int   RIGHT                         = 0x02;
+    static constexpr int   MIDDLE                        = 0x03;
+    static constexpr int   CENTER                        = 0x04;
+    static constexpr bool  CLOSE                         = true;
+    static constexpr bool  NOT_CLOSED                    = false;
     enum ShapeKind {
         TRIANGLES = 0x10,
         TRIANGLE_STRIP,
@@ -70,8 +71,17 @@ namespace umgebung {
     enum RectMode {
         CORNER = 0x20,
         CORNERS,
-        CENTER,
+        // CENTER,
         RADIUS
+    };
+    enum TextAlign {
+        // LEFT = 0xB0, // x
+        // CENTER,
+        // RIGHT,
+        TOP = 0xB0, // y
+        BOTTOM,
+        // CENTER,
+        BASELINE
     };
     enum StrokeJoin {
         BEVEL = 0x30,
@@ -130,6 +140,7 @@ namespace umgebung {
         ENABLE_DEPTH_TEST,
         DISABLE_DEPTH_TEST
     };
+
     const std::string SHADER_UNIFORM_MODEL_MATRIX      = "uModelMatrix";
     const std::string SHADER_UNIFORM_VIEW_MATRIX       = "uViewMatrix";
     const std::string SHADER_UNIFORM_PROJECTION_MATRIX = "uProjection";

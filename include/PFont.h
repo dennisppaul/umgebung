@@ -19,22 +19,6 @@
 
 #pragma once
 
-// TODO implement
-//    ## Loading & Displaying
-//    createFont() :: Dynamically converts a font to the format used by Processing
-//    loadFont() :: Loads a font into a variable of type PFont
-//    textFont() :: Sets the current font that will be drawn with the text() function
-//    text() :: Draws text to the screen
-//    ## Metrics
-//    textAscent() :: Returns ascent of the current font at its current size
-//    textDescent() :: Returns descent of the current font at its current size
-//    ## Attributes
-//    textAlign() :: Sets the current alignment for drawing text
-//    textLeading() :: Sets the spacing between lines of text in units of pixels
-//    textMode() :: Sets the way text draws to the screen
-//    //textSize() :: Sets the current font size
-//    //textWidth() :: Calculates and returns the width of any character or text string
-
 // #define PFONT_DEBUG_FONT
 // #define PFONT_INCLUDE_OPENGL
 
@@ -105,10 +89,11 @@ namespace umgebung {
             copy_atlas_to_rgba(*font, reinterpret_cast<unsigned char*>(pixels));
 
             console("PFont      :  created atlas");
-            console("size       : ", width, "×", height);
-            // console("texture id: ", texture_id == TEXTURE_NOT_GENERATED ? "(NOT YET GENERATED)" : to_string(texture_id));
+            console("atlas size : ", width, "×", height);
             baseline_offset = static_cast<float>(font->face->size->metrics.ascender) / 64.0f;
             console("font ascent: ", baseline_offset);
+            textSize(font_size);
+            textLeading(font_size * 1.2f);
 #ifdef PFONT_DEBUG_FONT
             DEBUG_save_font_atlas(*font, font_filepath + "--font_atlas.png");
             DEBUG_save_text(*font, "AVTAWaToVAWeYoyo Hamburgefonts", font_filepath + "--text.png");
@@ -124,42 +109,43 @@ namespace umgebung {
             return nullptr;
         }
 
-        void draw(PGraphics* g, const std::string& text, const float x, const float y, const float z = 0) {
-            if (font == nullptr) {
-                return;
-            }
-            if (g == nullptr) {
-                return;
-            }
-
-            generate_text_quads(*font, text, text_quads);
-
-            g->pushMatrix();
-            g->translate(x, y, z);
-            const float text_scale = text_size / font_size;
-            g->scale(text_scale, text_scale, 1);
-            g->translate(0, -baseline_offset, 0);
-            g->texture(this);
-            g->beginShape(TRIANGLES);
-            for (const auto q: text_quads) {
-                g->vertex(q.x0, q.y0, 0, q.u0, q.v0);
-                g->vertex(q.x1, q.y1, 0, q.u1, q.v1);
-                g->vertex(q.x2, q.y2, 0, q.u2, q.v2);
-
-                g->vertex(q.x3, q.y3, 0, q.u3, q.v3);
-                g->vertex(q.x0, q.y0, 0, q.u0, q.v0);
-                g->vertex(q.x2, q.y2, 0, q.u2, q.v2);
-            }
-            g->endShape(CLOSE);
-            g->texture();
-            g->popMatrix();
+        void textAlign(const int alignX) {
+            text_align_x = alignX;
         }
 
-        float textWidth(const std::string& str) const {
+        void textAlign(const int alignX, const int alignY) {
+            text_align_x = alignX;
+            text_align_y = alignY;
+        }
+
+        float textAscent() const {
             if (font == nullptr) {
                 return 0.0f;
             }
+            if (font_size == 0) {
+                return 0.0f;
+            }
+            return font->ascent * (text_size / font_size);
+        }
+
+        float textDescent() const {
+            if (font == nullptr) {
+                return 0.0f;
+            }
+            if (font_size == 0) {
+                return 0.0f;
+            }
+            return font->descent * (text_size / font_size);
+        }
+
+        float textWidth(const std::string& str) const {
             if (str.empty()) {
+                return 0.0f;
+            }
+            if (font == nullptr) {
+                return 0.0f;
+            }
+            if (font_size == 0) {
                 return 0.0f;
             }
 
@@ -169,6 +155,10 @@ namespace umgebung {
 
         void textSize(const float size) {
             text_size = size;
+        }
+
+        void textLeading(float leading) {
+            text_leading = leading;
         }
 
         ~PFont() override {
@@ -209,7 +199,10 @@ namespace umgebung {
         FontData*                 font{nullptr};
         FT_Library                freetype{nullptr};
         float                     text_size{1};
+        float                     text_leading{0};
         float                     baseline_offset{0};
+        int                       text_align_x{LEFT};
+        int                       text_align_y{BASELINE};
 
 #ifdef PFONT_DEBUG_FONT
         void DEBUG_save_font_atlas(const FontData& font, const std::string& output_path) const;
@@ -267,7 +260,7 @@ namespace umgebung {
 
                     // Ensure correct copying of bitmap buffer
                     if (glyph->bitmap.buffer) {
-                        g.bitmap.assign(glyph->bitmap.buffer, glyph->bitmap.buffer + (g.width * g.height));
+                        g.bitmap.assign(glyph->bitmap.buffer, glyph->bitmap.buffer + g.width * g.height);
                     } else {
                         g.bitmap.assign(g.width * g.height, 0);
                     }
@@ -318,58 +311,6 @@ namespace umgebung {
                 }
             }
         }
-
-#ifdef PFONT_INCLUDE_OPENGL
-        /**
-         * @deprecated this is handle by PGraphics
-         * @param font
-         * @return
-         */
-        GLuint create_font_texture(const FontData& font) const {
-            // TODO this does happen in OpenGL context ... as for PImage
-            std::vector<unsigned char> atlas_rgba(font.atlas_width * font.atlas_height * 4, 255);
-            for (int y = 0; y < font.atlas_height; y++) {
-                for (int x = 0; x < font.atlas_width; x++) {
-                    const unsigned char val = font.atlas[y * font.atlas_width + x];
-                    const int           idx = (y * font.atlas_width + x) * 4;
-                    // Store grayscale value into RGBA format (transparent text on white fond)
-                    atlas_rgba[idx + 0] = 255; // R
-                    atlas_rgba[idx + 1] = 255; // G
-                    atlas_rgba[idx + 2] = 255; // B
-                    atlas_rgba[idx + 3] = val; // A (fully opaque)
-                }
-            }
-
-            GLuint texture_id;
-            glGenTextures(1, &texture_id);
-            glBindTexture(GL_TEXTURE_2D, texture_id);
-
-            // Use linear filtering for smooth text rendering
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-            // Clamp to edges to avoid bleeding artifacts
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-            // Upload the atlas (single-channel grayscale)
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            glTexImage2D(GL_TEXTURE_2D,
-                         0,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                         font.atlas_width, font.atlas_height,
-                         0,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
-                         // font.atlas.data());
-                         atlas_rgba.data());
-
-            // Unbind for safety
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            return texture_id;
-        }
-#endif // PFONT_INCLUDE_OPENGL
 
         static float get_text_width(const FontData& font, const std::string& text) {
             hb_buffer_clear_contents(font.buffer);
@@ -460,5 +401,133 @@ namespace umgebung {
                 x += static_cast<float>(glyph_pos[i].x_advance >> 6); // Move forward
             }
         }
+
+        static std::vector<std::string> split_lines(const std::string& text) {
+            std::vector<std::string> lines;
+            std::istringstream       stream(text);
+            std::string              line;
+            while (std::getline(stream, line)) {
+                lines.push_back(line);
+            }
+            return lines;
+        }
+
+    public:
+        void draw(PGraphics* g, const std::string& text, float x, float y, float z = 0) {
+            if (font == nullptr || g == nullptr || font_size == 0) {
+                return;
+            }
+
+            const float text_scale = text_size / font_size;
+            const float ascent     = font->ascent;
+            const float descent    = font->descent;
+
+            const std::vector<std::string> lines = split_lines(text); // see helper below
+
+            float y_offset = -baseline_offset;
+
+            // vertical alignment adjustment (now considers multiple lines)
+            const float total_height = lines.size() * text_leading;
+            switch (text_align_y) {
+                case TOP: y_offset += ascent; break;
+                case CENTER: y_offset += ascent - total_height * 0.5f; break;
+                case BOTTOM: y_offset -= total_height - descent; break;
+                case BASELINE:
+                default:
+                    break;
+            }
+
+            g->pushMatrix();
+            g->translate(x, y, z);
+            g->scale(text_scale, text_scale, 1);
+            g->translate(0, y_offset, 0);
+            g->texture(this);
+
+            for (std::size_t i = 0; i < lines.size(); ++i) {
+                const std::string& line       = lines[i];
+                const float        line_width = get_text_width(*font, line);
+
+                float x_offset = 0;
+                switch (text_align_x) {
+                    case CENTER: x_offset -= line_width * 0.5f; break;
+                    case RIGHT: x_offset -= line_width; break;
+                    case LEFT:
+                    default:
+                        break;
+                }
+
+                generate_text_quads(*font, line, text_quads);
+
+                g->pushMatrix();
+                g->translate(x_offset, i * text_leading, 0); // baseline offset for current line
+                g->beginShape(TRIANGLES);
+                for (const auto& q: text_quads) {
+                    g->vertex(q.x0, q.y0, 0, q.u0, q.v0);
+                    g->vertex(q.x1, q.y1, 0, q.u1, q.v1);
+                    g->vertex(q.x2, q.y2, 0, q.u2, q.v2);
+
+                    g->vertex(q.x3, q.y3, 0, q.u3, q.v3);
+                    g->vertex(q.x0, q.y0, 0, q.u0, q.v0);
+                    g->vertex(q.x2, q.y2, 0, q.u2, q.v2);
+                }
+                g->endShape(CLOSE);
+                g->popMatrix();
+            }
+
+            g->texture();
+            g->popMatrix();
+        }
+
+#ifdef PFONT_INCLUDE_OPENGL
+        /**
+         * @deprecated this is handle by PGraphics
+         * @param font
+         * @return
+         */
+        GLuint create_font_texture(const FontData& font) const {
+            // TODO this does happen in OpenGL context ... as for PImage
+            std::vector<unsigned char> atlas_rgba(font.atlas_width * font.atlas_height * 4, 255);
+            for (int y = 0; y < font.atlas_height; y++) {
+                for (int x = 0; x < font.atlas_width; x++) {
+                    const unsigned char val = font.atlas[y * font.atlas_width + x];
+                    const int           idx = (y * font.atlas_width + x) * 4;
+                    // Store grayscale value into RGBA format (transparent text on white fond)
+                    atlas_rgba[idx + 0] = 255; // R
+                    atlas_rgba[idx + 1] = 255; // G
+                    atlas_rgba[idx + 2] = 255; // B
+                    atlas_rgba[idx + 3] = val; // A (fully opaque)
+                }
+            }
+
+            GLuint texture_id;
+            glGenTextures(1, &texture_id);
+            glBindTexture(GL_TEXTURE_2D, texture_id);
+
+            // Use linear filtering for smooth text rendering
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            // Clamp to edges to avoid bleeding artifacts
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+            // Upload the atlas (single-channel grayscale)
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glTexImage2D(GL_TEXTURE_2D,
+                         0,
+                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         font.atlas_width, font.atlas_height,
+                         0,
+                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                         // font.atlas.data());
+                         atlas_rgba.data());
+
+            // Unbind for safety
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            return texture_id;
+        }
+#endif // PFONT_INCLUDE_OPENGL
     };
 } // namespace umgebung

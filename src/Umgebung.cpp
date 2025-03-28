@@ -348,8 +348,17 @@ static void handle_event(const SDL_Event& event, bool& app_is_running) {
     switch (event.type) {
         case SDL_EVENT_WINDOW_RESIZED:
             // // TODO implement window resize … how will the subsystems be updated?
-            // umgebung::warning("TODO window resized. subsystem needs to be update …");
+            umgebung::warning("TODO window resized. subsystem needs to be update …");
             windowResized(-1, -1);
+            break;
+        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+            // // TODO implement
+            break;
+        case SDL_EVENT_WINDOW_SHOWN:
+        case SDL_EVENT_WINDOW_HIDDEN:
+        case SDL_EVENT_WINDOW_MINIMIZED:
+        case SDL_EVENT_WINDOW_MAXIMIZED:
+            // umgebung::warning("TODO window status has changed ( e.g minimized, maximaized, shown, hidden )");
             break;
         case SDL_EVENT_QUIT:
             app_is_running = false;
@@ -367,7 +376,6 @@ static void handle_event(const SDL_Event& event, bool& app_is_running) {
 }
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
-    // TODO add option to cache events and handle them in loop
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->event != nullptr) {
