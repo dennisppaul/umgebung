@@ -544,12 +544,21 @@ void PGraphicsOpenGLv20::scale(const float x, const float y, const float z) {
     glScalef(x, y, z);
 }
 
-void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int height, int format, bool generate_mipmap) {
+void PGraphicsOpenGLv20::init(uint32_t* pixels,
+                              const int width,
+                              const int height,
+                              int       format,
+                              bool      generate_mipmap) {
     this->width        = width;
     this->height       = height;
     framebuffer.width  = width;
     framebuffer.height = height;
+
     if (render_to_offscreen) {
+        console("creating offscreen buffer.");
+        console("framebuffer: ", framebuffer.width, "×", framebuffer.height);
+        console("graphics   : ", this->width, "×", this->height);
+
         glGenFramebuffers(1, &framebuffer.id);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
         glGenTextures(1, &framebuffer.texture_id);
@@ -567,7 +576,6 @@ void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int heigh
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.texture_id, 0);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            // Handle framebuffer incomplete error
             std::cerr << "ERROR Framebuffer is not complete!" << std::endl;
         }
         glViewport(0, 0, framebuffer.width, framebuffer.height);
@@ -576,6 +584,8 @@ void PGraphicsOpenGLv20::init(uint32_t* pixels, const int width, const int heigh
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
+
+        texture_id = framebuffer.texture_id; // TODO maybe get rid of one of the texture_id variables
     }
 }
 
@@ -697,6 +707,9 @@ void PGraphicsOpenGLv20::restore_mvp_matrices() {
 }
 
 void PGraphicsOpenGLv20::beginDraw() {
+    if (render_to_offscreen) {
+        store_fbo_state();
+    }
     PGraphicsOpenGL::beginDraw();
     if (!render_to_offscreen) {
         set_default_graphics_state();
@@ -717,7 +730,7 @@ void PGraphicsOpenGLv20::endDraw() {
     PGraphicsOpenGL::endDraw();
 }
 
-void PGraphicsOpenGLv20::setup_fbo() {
+void PGraphicsOpenGLv20::bind_fbo() {
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     glPushMatrix();
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);

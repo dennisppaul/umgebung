@@ -60,7 +60,7 @@ void PGraphics::hint(const uint16_t property) {}
 void PGraphics::pixelDensity(const int density) {
     static bool emitted_warning = false;
     if (!emitted_warning && init_properties_locked) {
-        warning("`pixelDensity()` should not be set after context is created. use `retina_support` in settings instead.");
+        warning("`pixelDensity()` should not be set after context is created. use `retina_support` in settings instead to control pixel density.");
         emitted_warning = true;
     }
     pixel_density = density;
@@ -807,7 +807,7 @@ void PGraphics::reset_mvp_matrices() {
     perspective(DEFAULT_CAMERA_FOV_RADIANS, width / height, 0.1f, depth_range);
     projection_matrix[1][1] *= -1.0f;
     /* view_matrix */
-    camera();
+    PGraphics::camera();
 
     // orthographic projection NOTE use framebuffer.width and framebuffer.height
     // projection_matrix_2D = glm::ortho(0.0f, static_cast<float>(framebuffer.width), static_cast<float>(framebuffer.height), 0.0f);

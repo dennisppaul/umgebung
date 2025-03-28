@@ -203,10 +203,6 @@ void PGraphicsOpenGLv33::debug_text(const std::string& text, const float x, cons
 
 /* --- UTILITIES --- */
 
-void PGraphicsOpenGLv33::setup_fbo() {
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
-}
-
 void PGraphicsOpenGLv33::beginDraw() {
     if (render_mode == RENDER_MODE_SHAPE) {
         static bool warning_once = true;
@@ -217,10 +213,13 @@ void PGraphicsOpenGLv33::beginDraw() {
             render_mode  = RENDER_MODE_IMMEDIATE;
         }
     }
+    if (render_to_offscreen) {
+        store_fbo_state();
+    }
+    resetShader();
     PGraphicsOpenGL::beginDraw();
     texture_id_current = TEXTURE_NONE;
     IMPL_bind_texture(texture_id_solid_color);
-    resetShader();
     default_shader->set_uniform(SHADER_UNIFORM_MODEL_MATRIX, model_matrix);
     default_shader->set_uniform(SHADER_UNIFORM_VIEW_MATRIX, view_matrix);
     default_shader->set_uniform(SHADER_UNIFORM_PROJECTION_MATRIX, projection_matrix);
@@ -432,34 +431,36 @@ void PGraphicsOpenGLv33::download_texture(PImage* img) {
 void PGraphicsOpenGLv33::init(uint32_t* pixels,
                               const int width,
                               const int height,
-                              int       format,
+                              const int format,
                               bool      generate_mipmap) {
-    this->width        = static_cast<float>(width);
-    this->height       = static_cast<float>(height);
-    framebuffer.width  = width;
-    framebuffer.height = height;
+    (void) format;                         // TODO should this always be ignored? NOTE main graphics are always RGBA
+    (void) generate_mipmap;                // TODO should this always be ignored?
+    const int msaa_samples = antialiasing; // TODO not cool to take this from Umgebung
 
-    const int msaa_samples = antialiasing;
-
+    // stroke_shader_program = OGL_build_shader(shader_source_color.vertex, shader_source_color.fragment);
+    // fill_shader_program   = OGL_build_shader(shader_source_color_texture.vertex, shader_source_color_texture.fragment);
     default_shader = loadShader(shader_source_color_texture.vertex, shader_source_color_texture.fragment);
-
     if (default_shader == nullptr) {
         error("Failed to load default shader.");
     }
 
-    // stroke_shader_program = OGL_build_shader(shader_source_color.vertex, shader_source_color.fragment);
-    // fill_shader_program   = OGL_build_shader(shader_source_color_texture.vertex, shader_source_color_texture.fragment);
+    this->width        = width;
+    this->height       = height;
+    framebuffer.width  = width;
+    framebuffer.height = height;
+    framebuffer.msaa   = render_to_offscreen && msaa_samples > 0;
 
     if (render_to_offscreen) {
-        console("setting up rendering to offscreen buffer:");
-        console("framebuffer: ", framebuffer.width, "x", framebuffer.height);
-        console("graphics   : ", this->width, "x", this->height);
+        console("creating offscreen buffer.");
+        console("framebuffer: ", framebuffer.width, "×", framebuffer.height);
+
         glGenFramebuffers(1, &framebuffer.id);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
         glGenTextures(1, &framebuffer.texture_id);
 
-        const bool use_msaa = msaa_samples > 0;
-        if (use_msaa) {
+        console("creating framebuffer texture: ", framebuffer.texture_id);
+
+        if (framebuffer.msaa) {
             console("using multisample anti-aliasing (MSAA)");
 
             GLint maxSamples;
@@ -468,7 +469,7 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
 
             GLuint    msaaDepthBuffer;
             const int samples = std::min(msaa_samples, maxSamples); // Number of MSAA samples
-            console("Number of used MSAA samples: ", samples);
+            console("number of used MSAA samples: ", samples);
             glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer.texture_id);
             checkOpenGLError("glBindTexture");
             glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE,
@@ -521,20 +522,22 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
         }
 
+
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            // Handle framebuffer incomplete error
             error("ERROR Framebuffer is not complete!");
         }
+
         glViewport(0, 0, framebuffer.width, framebuffer.height);
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        if (use_msaa) {
+        if (framebuffer.msaa) {
             glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0); // NOTE no need to use `IMPL_bind_texture()`
         } else {
             glBindTexture(GL_TEXTURE_2D, 0); // NOTE no need to use `IMPL_bind_texture()`
         }
+        texture_id = framebuffer.texture_id; // TODO maybe get rid of one of the texture_id variables
     }
 
     OGL3_create_solid_color_texture();
@@ -724,7 +727,7 @@ void PGraphicsOpenGLv33::resetShader() {
 
 bool PGraphicsOpenGLv33::read_framebuffer(std::vector<unsigned char>& pixels) {
     store_fbo_state();
-    if (render_to_offscreen && antialiasing > 0) {
+    if (framebuffer.msaa) {
         // NOTE this is a bit tricky. when the offscreen FBO is a multisample FBO ( MSAA ) we need to resolve it first
         //      i.e blit it into the color buffer of the default framebuffer. otherwise we can just read from the
         //      offscreen FBO.
@@ -743,13 +746,21 @@ bool PGraphicsOpenGLv33::read_framebuffer(std::vector<unsigned char>& pixels) {
 }
 
 void PGraphicsOpenGLv33::store_fbo_state() {
+    glGetIntegerv(GL_CURRENT_PROGRAM, &previous_shader);
+    glGetIntegerv(GL_VIEWPORT, previous_viewport);
     glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &previously_bound_read_FBO);
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previously_bound_draw_FBO);
+}
+
+void PGraphicsOpenGLv33::bind_fbo() {
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.id);
 }
 
 void PGraphicsOpenGLv33::restore_fbo_state() {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, previously_bound_read_FBO);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previously_bound_draw_FBO);
+    glViewport(previous_viewport[0], previous_viewport[1], previous_viewport[2], previous_viewport[3]);
+    glUseProgram(previous_shader);
 }
 
 void PGraphicsOpenGLv33::camera(const float eyeX, const float eyeY, const float eyeZ, const float centerX, const float centerY, const float centerZ, const float upX, const float upY, const float upZ) {

@@ -224,14 +224,14 @@ namespace umgebung {
 
         virtual void store_fbo_state()   = 0;
         virtual void restore_fbo_state() = 0;
-        virtual void setup_fbo()         = 0;
+        virtual void bind_fbo()         = 0;
         virtual void finish_fbo()        = 0;
 
         void beginDraw() override {
             PGraphics::beginDraw();
             if (render_to_offscreen) {
-                store_fbo_state();
-                setup_fbo();
+                // store_fbo_state(); // TODO moved to v33 + v20
+                bind_fbo();
             }
             glViewport(0, 0, framebuffer.width, framebuffer.height);
         }

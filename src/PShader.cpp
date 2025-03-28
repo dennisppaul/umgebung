@@ -82,9 +82,18 @@ void PShader::checkLinkErrors(const GLuint program) {
 }
 
 GLint PShader::getUniformLocation(const std::string& name) {
+#ifdef DEBUG_SHADER_PROGRAM_ID
+    GLint currentlyBoundProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &currentlyBoundProgram);
+    if (currentlyBoundProgram != programID) {
+        std::cout << "⚠️  set_uniform called while wrong program is bound!"
+                  << " expected " << programID << ", got " << currentlyBoundProgram << std::endl;
+    }
+#endif
     if (!programID) { return 0; }
     if (uniformLocations.find(name) == uniformLocations.end()) {
         uniformLocations[name] = glGetUniformLocation(programID, name.c_str());
+        // console("uniformLocations[name]: ", name, " = ", uniformLocations[name]);
         if (uniformLocations[name] < 0) {
             warning("Shader uniform '", name, "' was not found or is not used. this might be intentional or maybe the uniform name is misspelled.");
         }

@@ -140,6 +140,13 @@ namespace umgebung {
         ENABLE_DEPTH_TEST,
         DISABLE_DEPTH_TEST
     };
+    enum Renderer {
+        OPENGL_2_0 = 0xB0,
+        OPENGL_3_3,
+        OPENGL,
+        OPENGL_ES_3_0, // iOS
+        OPENGL_ES_3_1  // RPI4+5
+    };
 
     const std::string SHADER_UNIFORM_MODEL_MATRIX      = "uModelMatrix";
     const std::string SHADER_UNIFORM_VIEW_MATRIX       = "uViewMatrix";

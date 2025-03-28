@@ -68,7 +68,7 @@ static void set_flags(uint32_t& subsystem_flags) {
     subsystem_flags |= SDL_INIT_VIDEO;
 }
 
-static PGraphics* create_graphics(const bool render_to_offscreen) {
+static PGraphics* create_main_graphics(const bool render_to_offscreen) {
     (void) render_to_offscreen;
     return new PGraphicsDefault2D(renderer);
 }
@@ -83,6 +83,6 @@ umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_sdl2d() {
     graphics->draw_post       = umgebung::draw_post;
     graphics->shutdown        = umgebung::shutdown;
     graphics->set_flags       = umgebung::set_flags;
-    graphics->create_graphics = umgebung::create_graphics;
+    graphics->create_main_graphics = umgebung::create_main_graphics;
     return graphics;
 }

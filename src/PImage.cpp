@@ -81,7 +81,9 @@ PImage::PImage(const std::string& filename) : width(0),
 
 
 void PImage::init(uint32_t* pixels,
-                  const int width, const int height, const int format,
+                  const int width,
+                  const int height,
+                  const int format,
                   const bool generate_mipmap) {
     if (pixels == nullptr) {
         std::cerr << "unitialized pixel buffer" << std::endl;

@@ -39,7 +39,7 @@ namespace umgebung {
         bool read_framebuffer(std::vector<unsigned char>& pixels) override;
         void store_fbo_state() override;
         void restore_fbo_state() override;
-        void setup_fbo() override;
+        void bind_fbo() override;
         void finish_fbo() override;
 
         void upload_texture(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;

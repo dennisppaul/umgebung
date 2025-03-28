@@ -49,6 +49,7 @@ namespace umgebung {
             unsigned int texture_id{};
             int          width{};
             int          height{};
+            bool         msaa{false};
         };
 
         FrameBufferObject framebuffer{};
@@ -254,16 +255,16 @@ namespace umgebung {
         std::vector<Vertex>              shape_fill_vertex_buffer{VBO_BUFFER_CHUNK_SIZE};
         int                              last_bound_texture_id_cache{TEXTURE_NONE};
         bool                             model_matrix_dirty{false};
-        PShader*                         default_shader{nullptr};
-        PShader*                         current_shader{nullptr};
         glm::vec4                        current_normal{Vertex::DEFAULT_NORMAL};
         glm::mat4                        temp_view_matrix{};
         glm::mat4                        temp_projection_matrix{};
-        bool                             in_camera_block{false};
         int                              render_mode{RENDER_MODE_IMMEDIATE};
         UFont                            debug_font;
+        bool                             in_camera_block{false};
+        PShader*                         current_shader{nullptr};
 
     public:
+        PShader*               default_shader{nullptr};
         glm::mat4              model_matrix{};
         glm::mat4              view_matrix{};
         glm::mat4              projection_matrix{};

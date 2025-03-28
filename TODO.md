@@ -9,6 +9,9 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] in `PGraphicsDefault2D` implement 3D by manually transforming points onto 2D 
 - [ ] @umgebung try PGraphics for offscreen rendering
 - [ ] @umgebung add camera ( see https://chatgpt.com/share/67dfbe72-855c-8004-8b37-28d10d5c7ab3 )
+- [x] @umgebung add to stroke rendering:
+    - `generateTubeMesh`
+    - `extrudeLineStripToRibbon`
 - [ ] @umgebung add normals to sphere and box shapes
 - [ ] @umgebung OpenGL version for different plattforms ( from imgui example ):
     ```C
@@ -56,6 +59,7 @@ this is a VERY unsorted todo list and a note pad.
     ```
 - [ ] @umgebung add function to `PFont` to generate a `PImage` with a static text as texture
 - [ ] @umgebung remove all references to graphics subsystem from PGraphics ( and derived classes )
+- [ ] @umgebung #warmup fix set window title ( default to `$PROJECT_NAME`from CMake )
 
 ## audio
 
@@ -65,6 +69,103 @@ this is a VERY unsorted todo list and a note pad.
     - filter ( low, high, band )
     - envelope + adsr
     - trigger/beat
+- [ ] @umgebung ring buffer for audio
+    ```c
+    
+    #include <vector>
+    #include <iostream>
+    #include <algorithm>
+    
+    class ChunkedCircularBuffer {
+    public:
+        ChunkedCircularBuffer(size_t size) : buffer(size), max_size(size), head(0), count(0) {}
+    
+        void push(const std::vector<float>& chunk) {
+            size_t chunk_size = chunk.size();
+            if (chunk_size >= max_size) {
+                // If chunk is larger than buffer, only keep the last max_size elements
+                std::copy(chunk.end() - max_size, chunk.end(), buffer.begin());
+                head = 0;
+                count = max_size;
+                return;
+            }
+    
+            // If the chunk would overflow the buffer, adjust `count`
+            if (count + chunk_size > max_size) {
+                count = max_size;
+            } else {
+                count += chunk_size;
+            }
+    
+            // Insert chunk into buffer
+            for (size_t i = 0; i < chunk_size; ++i) {
+                buffer[head] = chunk[i];
+                head = (head + 1) % max_size;
+            }
+        }
+    
+        // Get the most recent `chunk_size` elements as a contiguous block into `latestChunk`
+        void getLatestChunk(size_t chunk_size, std::vector<float>& latestChunk) const {
+            if (chunk_size > count) {
+                chunk_size = count;  // Clamp to available data
+            }
+    
+            latestChunk.resize(chunk_size);  // Ensure the vector is the correct size
+            size_t start = (head + max_size - chunk_size) % max_size;
+    
+            // Check if the requested chunk wraps around
+            if (start + chunk_size <= max_size) {
+                // Contiguous case: Direct copy
+                std::copy(buffer.begin() + start, buffer.begin() + start + chunk_size, latestChunk.begin());
+            } else {
+                // Wrap-around case: Copy in two parts
+                size_t first_part = max_size - start;
+                std::copy(buffer.begin() + start, buffer.end(), latestChunk.begin());
+                std::copy(buffer.begin(), buffer.begin() + (chunk_size - first_part), latestChunk.begin() + first_part);
+            }
+        }
+    
+        void printBuffer() const {
+            for (size_t i = 0; i < count; ++i) {
+                size_t index = (head + max_size - count + i) % max_size;
+                std::cout << buffer[index] << " ";
+            }
+            std::cout << "\n";
+        }
+    
+    private:
+        std::vector<float> buffer;
+        size_t max_size;
+        size_t head;
+        size_t count;
+    };
+    
+    int main() {
+        ChunkedCircularBuffer cb(5);
+        std::vector<float> latestChunk;
+    
+        cb.push({1.0, 2.0, 3.0});
+        cb.printBuffer();  // Expected: 1.0 2.0 3.0
+    
+        cb.push({4.0, 5.0, 6.0});
+        cb.printBuffer();  // Expected: 2.0 3.0 4.0 5.0 6.0
+    
+        cb.getLatestChunk(3, latestChunk);
+        for (float f : latestChunk) {
+            std::cout << f << " ";  // Expected: 4.0 5.0 6.0
+        }
+        std::cout << "\n";
+    
+        cb.push({7.0, 8.0});
+        cb.getLatestChunk(4, latestChunk);
+        for (float f : latestChunk) {
+            std::cout << f << " ";  // Expected: 5.0 6.0 7.0 8.0
+        }
+        std::cout << "\n";
+    
+        return 0;
+    }
+    ```
 
 ## environment
 
@@ -75,6 +176,11 @@ this is a VERY unsorted todo list and a note pad.
 
 ## credits + licenses
 
+- [ ] @umgebung add `tinyfiledialogs` to credtis
+- [ ] @umgebung add `SimplexNoise` to credits
+- [ ] @umgebung add `glm`
+- [ ] @umgebung add `stb_image_write`
+- [ ] @umgebung add `FreeType2` + `Harfbuzz`
 
 ## building + platforms
 
@@ -132,6 +238,8 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung start coding style doc
 - [ ] @umgebung documentation :: differences in shader handling ( set_uniforms )
 - [ ] @umgebung make a point of not supporting `colorMode(mode)`
+- [ ] make a step-by-step guide of how to create a library ( send to leo )
+- [x] @umgebung render pipeline idea
  ```
                      + -> emit_shape_stroke_line_strip -> triangulate, transform to world/screen space
  begin-end-shape ->  |
@@ -140,20 +248,19 @@ this is a VERY unsorted todo list and a note pad.
 
 ## examples
 
+- @umgebung example style:
+    ```C
+    background(0.85f);        // grey
+    fill(0.5f, 0.85f, 1.0f);  // blue
+    fill(1.0f, 0.25f, 0.35f); // red
+    stroke(0.0f);             // black
+    ```
 - [ ] @umgebung start a series of *educated* examples
 - [ ] @umgebung start dedicated font example
 - [ ] @umgebung try with font [Inter](https://rsms.me/inter/)
 - [ ] @umgebung @example add nice stroke example with rotierender box, square, open-closed-shape + linen im 0.5,0.85,1.0 style
 - [ ] @umgebung @example add example for library
-
-### example style:
-
-```C
-background(0.85f);        // grey
-fill(0.5f, 0.85f, 1.0f);  // blue
-fill(1.0f, 0.25f, 0.35f); // red
-stroke(0.0f);             // black
-```
+- [ ] @umgebung add example that moves around the application window @maybe
 
 ## community
 
@@ -399,7 +506,3 @@ stroke(0.0f);             // black
 - [ ] @umgebung release end of the week ( need more examples until then )
 - [ ] @umgebung PVector vs glm::vec3 at least some functions to convert between the two
 - [ ] @umgebung byte the bullet and test offscreen rendering in `Advanced`
-
-## Archived
-
-- [x] make a step-by-step guide of how to create a library ( send to leo ) @archived(2025-03-28) @from(Umgebung / TODO + NOTES > documentation) @done(2025-03-28)

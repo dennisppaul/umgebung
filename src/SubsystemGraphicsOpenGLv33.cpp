@@ -68,12 +68,14 @@ namespace umgebung {
         subsystem_flags |= SDL_INIT_VIDEO;
     }
 
+    // ReSharper disable once CppParameterMayBeConstPtrOrRef
     static void event(SDL_Event* event) {
         if (event->type == SDL_EVENT_WINDOW_RESIZED) {
             warning("TODO implement resize in OGLv33");
         }
     }
 
+    // ReSharper disable once CppParameterMayBeConstPtrOrRef
     static void event_loop(SDL_Event* event) {
         if (event->type == SDL_EVENT_WINDOW_RESIZED) {
             warning("TODO implement resize in OGLv33");
@@ -84,23 +86,23 @@ namespace umgebung {
         return "OpenGL 3.3 core";
     }
 
-    static PGraphics* create_graphics(const bool render_to_offscreen) {
+    static PGraphics* create_main_graphics(const bool render_to_offscreen) {
         return new PGraphicsOpenGLv33(render_to_offscreen);
     }
 } // namespace umgebung
 
 umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv33() {
-    auto* graphics            = new umgebung::SubsystemGraphics{};
-    graphics->set_flags       = umgebung::set_flags;
-    graphics->init            = umgebung::init;
-    graphics->setup_pre       = umgebung::setup_pre;
-    graphics->setup_post      = umgebung::setup_post;
-    graphics->draw_pre        = umgebung::draw_pre;
-    graphics->draw_post       = umgebung::draw_post;
-    graphics->shutdown        = umgebung::shutdown;
-    graphics->event           = umgebung::event;
-    graphics->event_loop      = umgebung::event_loop;
-    graphics->name            = umgebung::name;
-    graphics->create_graphics = umgebung::create_graphics;
+    auto* graphics                 = new umgebung::SubsystemGraphics{};
+    graphics->set_flags            = umgebung::set_flags;
+    graphics->init                 = umgebung::init;
+    graphics->setup_pre            = umgebung::setup_pre;
+    graphics->setup_post           = umgebung::setup_post;
+    graphics->draw_pre             = umgebung::draw_pre;
+    graphics->draw_post            = umgebung::draw_post;
+    graphics->shutdown             = umgebung::shutdown;
+    graphics->event                = umgebung::event;
+    graphics->event_loop           = umgebung::event_loop;
+    graphics->name                 = umgebung::name;
+    graphics->create_main_graphics = umgebung::create_main_graphics;
     return graphics;
 }

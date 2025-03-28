@@ -38,6 +38,9 @@
 #include "UmgebungFunctions.h"
 #include "UmgebungFunctionsAdditional.h"
 
+#include "PGraphicsOpenGLv20.h"
+#include "PGraphicsOpenGLv33.h"
+
 namespace umgebung {
 
     using namespace std::chrono;
@@ -492,11 +495,29 @@ namespace umgebung {
         return str.substr(first, last - first + 1);
     }
 
-    PGraphics* createGraphics() {
+    PGraphics* createGraphics(const int width, const int height, int renderer = DEFAULT) {
         if (subsystem_graphics == nullptr) {
             return nullptr;
         }
-        return subsystem_graphics->create_graphics(true); // TODO make this an option?
+
+        if (renderer == DEFAULT) {
+            renderer = OPENGL; // TODO try to deduce renderer from (sub-)system or main graphics `g`
+        }
+
+        switch (renderer) {
+            case OPENGL_2_0: {
+                const auto graphics = new PGraphicsOpenGLv20(true);
+                graphics->init(nullptr, width, height, 0, false);
+                return graphics;
+            }
+            case OPENGL:
+            case OPENGL_3_3:
+            default: {
+                const auto graphics = new PGraphicsOpenGLv33(true);
+                graphics->init(nullptr, width, height, 0, false);
+                return graphics;
+            }
+        }
     }
 
     PAudio* createAudio(const AudioUnitInfo* device_info) {

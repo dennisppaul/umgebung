@@ -41,7 +41,7 @@ namespace umgebung {
     };
 
     struct SubsystemGraphics : Subsystem {
-        PGraphics* (*create_graphics)(bool render_to_offscreen);
+        PGraphics* (*create_main_graphics)(bool render_to_offscreen);
         void (*post)();
         void (*set_title)(const char* title);
     };

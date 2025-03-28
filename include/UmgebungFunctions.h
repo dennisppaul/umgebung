@@ -137,7 +137,7 @@ namespace umgebung {
 
     // ## Rendering
 
-    PGraphics* createGraphics(); // TODO add parameters?
+    PGraphics* createGraphics(int width, int height, int renderer);
 
     // ## Math
 
