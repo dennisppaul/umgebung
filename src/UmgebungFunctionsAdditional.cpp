@@ -163,6 +163,8 @@ namespace umgebung {
                const int buffer_size,
                const int input_device,
                const int output_device) {
+        // TODO maybe add option to choose driver e.g SDL, PORTAUDIO, …
+        //      similar to renderer parameter in `size()` with OPENGL_3_3, …
         if (is_initialized()) {
             warning("`audio()` must be called before or within `settings()`.");
             return;

@@ -9,8 +9,7 @@ umgebung-example-app
 └── umgebung-example-app.cpp
 ```
 
-the directory `umgebung-example-app` should contain all source, header and resources ( e.g images, fonts and moview )
-files.
+the directory `umgebung-example-app` should contain all source, header and resources ( e.g images, fonts and moview ) files.
 
 in this example `umgebung-example-app.cpp` is the main source file containing the *entry points* used by *Umgebung*:
 
@@ -25,8 +24,7 @@ void draw() {}
 
 ```
 
-in order to compile the application a CMake script `CMakeLists.txt` must be supplied. the following is a script that may
-be used to compile the above example:
+in order to compile the application a CMake script `CMakeLists.txt` must be supplied. the following is a script that may be used to compile the above example:
 
 ```cmake
 cmake_minimum_required(VERSION 3.12)
@@ -51,8 +49,7 @@ each application may have an individual name defined in `project(<name-of-applic
 
 it is required to set the variable `UMGEBUNG_PATH` ( e.g `set(UMGEBUNG_PATH "/Users/username/Documents/dev/umgebung/git/umgebung/")` ) which must contain the absolute path to the *Umgebung* library ( i.e the folder that contains e.g this document as well as the `include` and `src` folders of *Umgebung* ). note, that in the example CMake file above the CMake variable `${CMAKE_CURRENT_SOURCE_DIR}` is used to navigate relative to the location of the CMake file ( e.g helpful in the examples ).
 
-the command `link_directories("/usr/local/lib")` can be used to fix a linker error on macOS ( e.g
-`ld: library 'glfw' not found` ). this error indicates that the global library is not set or not set properly ( i.e `echo $LIBRARY_PATH` returns an empty response or points to a folder that does not contain `libglfw.dylib` in this example ).
+the command `link_directories("/usr/local/lib")` can be used to fix a linker error on macOS ( e.g `ld: library 'glfw' not found` ). this error indicates that the global library is not set or not set properly ( i.e `echo $LIBRARY_PATH` returns an empty response or points to a folder that does not contain `libglfw.dylib` in this example ).
 
 the section `# add umgebung` must be last in the CMake file and includes *Umgebung* as a library.
 

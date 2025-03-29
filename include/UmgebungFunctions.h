@@ -221,7 +221,7 @@ namespace umgebung {
 
     // ## Environment
 
-    void size(int width, int height);
+    void size(int width, int height, int renderer = DEFAULT);
     void cursor();
     void noCursor();
 

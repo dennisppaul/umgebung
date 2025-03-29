@@ -35,16 +35,12 @@
 
 - [x] `binary()` :: Converts an*int*,*byte*,*char*, or*color*to a*String* containing the equivalent binary notation
 - [ ] `boolean()` :: Converts an*int*or*String*to its boolean representation
-- [ ] `byte()` :: Converts any value of a primitive data type (*boolean*,*byte*,*char*,*color*,*double*,*float*,*int*,
-  or *long*) to its byte representation
-- [ ] `char()` :: Converts any value of a primitive data type (*boolean*,*byte*,*char*,*color*,*double*,*float*,*int*,
-  or *long*) to its numeric character representation
+- [ ] `byte()` :: Converts any value of a primitive data type (*boolean*,*byte*,*char*,*color*,*double*,*float*,*int*, or *long*) to its byte representation
+- [ ] `char()` :: Converts any value of a primitive data type (*boolean*,*byte*,*char*,*color*,*double*,*float*,*int*, or *long*) to its numeric character representation
 - [ ] `float()` :: Converts an *int* or *String* to its floating point representation
 - [x] `hex()` :: Converts a *byte*, *char*, *int*, or *color* to a *String* containing the equivalent hexadecimal notation
-- [ ] `int()` :: Converts any value of a primitive data type (*boolean*,*byte*,*char*,*color*,*float*,*int*, or*long*)
-  or String to its integer representation
-- [x] `str()` :: Converts a value of a primitive data type (*boolean*,*byte*,*char*,*int*, or*float*) to its*String*
-  representation
+- [ ] `int()` :: Converts any value of a primitive data type (*boolean*,*byte*,*char*,*color*,*float*,*int*, or*long*) or String to its integer representation
+- [x] `str()` :: Converts a value of a primitive data type (*boolean*,*byte*,*char*,*int*, or*float*) to its*String* representation
 - [x] `unbinary()` :: Converts a*String*representation of a binary number to its equivalent*integer*value
 - [x] `unhex()` :: Converts a*String*representation of a hexadecimal number to its equivalent integer value
 
@@ -61,14 +57,11 @@
 
 ### String Functions
 
-- [x] *join()* :: Combines an array of*Strings*into one*String*, each separated by the character(s) used for the
-  *separator* parameter
+- [x] *join()* :: Combines an array of*Strings*into one*String*, each separated by the character(s) used for the *separator* parameter
 - [x] *matchAll()* :: This function is used to apply a regular expression to a piece of text
-- [x] *match()* :: The function is used to apply a regular expression to a piece of text, and return matching groups (
-  elements found inside parentheses) as a*String*array
+- [x] *match()* :: The function is used to apply a regular expression to a piece of text, and return matching groups ( elements found inside parentheses) as a*String*array
 - [x] *nf()* :: Utility function for formatting numbers into strings
-- [x] *nfc()* :: Utility function for formatting numbers into strings and placing appropriate commas to mark units of
-  1000
+- [x] *nfc()* :: Utility function for formatting numbers into strings and placing appropriate commas to mark units of 1000
 - [x] *nfp()* :: Utility function for formatting numbers into strings
 - [x] *nfs()* :: Utility function for formatting numbers into strings
 - [x] *splitTokens()* :: The*splitTokens()*function splits a*String*at one or many character "tokens"
@@ -81,8 +74,7 @@
 
 - [ ] `BufferedReader` :: A*BufferedReader*object is used to read files line-by-line as individual*String*objects
 - [ ] `createInput()` :: This is a function for advanced programmers to open a Java*InputStream*
-- [ ] `createReader()` :: Creates a*BufferedReader*object that can be used to read files line-by-line as individual
-  *String*objects
+- [ ] `createReader()` :: Creates a*BufferedReader*object that can be used to read files line-by-line as individual *String*objects
 - [ ] `launch()` :: Attempts to open an application or file using your platform's launcher
 - [x] *loadBytes()* :: Reads the contents of a file or url and places it in a byte array
 - [ ] `loadJSONArray()` :: Takes a*String*, parses its contents, and returns a*JSONArray*
@@ -108,11 +100,9 @@
 
 ### Keyboard
 
-- [x] `key` :: The system variable that always contains the value of the most recent key on the keyboard that was used (
-  either pressed or released)
+- [x] `key` :: The system variable that always contains the value of the most recent key on the keyboard that was used ( either pressed or released)
 - [ ] `keyCode` :: Used to detect special keys such as the UP, DOWN, LEFT, RIGHT arrow keys and ALT, CONTROL, SHIFT
-- [x] `keyPressed` :: The boolean system variable that is*true*if any key is pressed and*false*if no keys are pressed
-  ==@note(renamed to `isKeyPressed`)==
+- [x] `keyPressed` :: The boolean system variable that is*true*if any key is pressed and*false*if no keys are pressed ==@note(renamed to `isKeyPressed`)==
 - [x] `keyReleased()` :: Called once every time a key is released
 - [x] `keyPressed()` :: Called once every time a key is pressed
 - [ ] `keyTyped()` :: Called once every time a key is pressed, but action keys such as Ctrl, Shift, and Alt are ignored
@@ -129,10 +119,8 @@
 - [x] `mouseWheel()` :: The code within the*mouseWheel()*event function is run when the mouse wheel is moved
 - [x] `mouseX` :: The system variable that always contains the current horizontal coordinate of the mouse
 - [x] `mouseY` :: The system variable that always contains the current vertical coordinate of the mouse
-- [x] `pmouseX` :: The system variable that always contains the horizontal position of the mouse in the frame previous
-  to the current frame
-- [x] `pmouseY` :: The system variable that always contains the vertical position of the mouse in the frame previous to
-  the current frame
+- [x] `pmouseX` :: The system variable that always contains the horizontal position of the mouse in the frame previous to the current frame
+- [x] `pmouseY` :: The system variable that always contains the vertical position of the mouse in the frame previous to the current frame
 
 ## Constants
 
@@ -204,10 +192,8 @@
 - [ ] `imageMode()` :: Modifies the location from which images draw
 - [x] `image()` :: Displays images to the screen
 - [x] `loadImage()` :: Loads an image into a variable of type*PImage*
-- [ ] `noTint()` :: Removes the current fill value for displaying images and reverts to displaying images with their
-  original hues
-- [ ] `requestImage()` :: Loads images on a separate thread so that your sketch does not freeze while images load during
-  *setup()*
+- [ ] `noTint()` :: Removes the current fill value for displaying images and reverts to displaying images with their original hues
+- [ ] `requestImage()` :: Loads images on a separate thread so that your sketch does not freeze while images load during *setup()*
 - [ ] `tint()` :: Sets the fill value for displaying images
 
 ### Textures
@@ -260,8 +246,7 @@
 ### 3D Primitives
 
 - [x] `box()` :: A box is an extruded *rectangle*
-- [ ] `sphereDetail()` :: Controls the detail used to render a sphere by adjusting the number of vertices of the sphere
-  mesh
+- [ ] `sphereDetail()` :: Controls the detail used to render a sphere by adjusting the number of vertices of the sphere mesh
 - [x] `sphere()` :: A sphere is a hollow ball made from tessellated triangles
 
 ### Attributes
@@ -305,8 +290,7 @@
 
 - [x] `acos()` :: The inverse of *cos()*, returns the arc cosine of a value
 - [x] `asin()` :: The inverse of *sin()*, returns the arc sine of a value
-- [x] `atan2()` :: Calculates the angle (in radians) from a specified point to the coordinate origin as measured from
-  the positive x-axis
+- [x] `atan2()` :: Calculates the angle (in radians) from a specified point to the coordinate origin as measured from the positive x-axis
 - [x] `atan()` :: The inverse of *tan()*, returns the arc tangent of a value
 - [x] `cos()` :: Calculates the cosine of an angle
 - [x] `degrees()` :: Converts a radian measurement to its corresponding value in degrees
@@ -350,8 +334,7 @@
 
 - [ ] `PrintWriter` :: Allows characters to print to a text-output stream
 - [ ] `beginRaw()` :: To create vectors from 3D data, use the *beginRaw()* and *endRaw()* commands
-- [ ] `beginRecord()` :: Opens a new file and all subsequent drawing functions are echoed to this file as well as the
-  display window
+- [ ] `beginRecord()` :: Opens a new file and all subsequent drawing functions are echoed to this file as well as the display window
 - [ ] `createOutput()` :: Similar to *createInput()*, this creates a Java *OutputStream* for a given filename or path
 - [ ] `createWriter()` :: Creates a new file in the sketch folder, and a*PrintWriter*object to write to it
 - [ ] `endRaw()` :: Complement to*beginRaw()*; they must always be used together
@@ -419,8 +402,7 @@
 - [ ] `ambient()` :: Sets the ambient reflectance for shapes drawn to the screen
 - [ ] `emissive()` :: Sets the emissive color of the material used for drawing shapes drawn to the screen
 - [ ] `shininess()` :: Sets the amount of gloss in the surface of shapes
-- [ ] `specular()` :: Sets the specular color of the materials used for shapes drawn to the screen, which sets the color
-  of highlights
+- [ ] `specular()` :: Sets the specular color of the materials used for shapes drawn to the screen, which sets the color of highlights
 
 ### Camera
 
@@ -429,8 +411,7 @@
 - [x] `endCamera()` :: The*beginCamera()*and*endCamera()*functions enable advanced customization of the camera space
 - [x] `frustum()` :: Sets a perspective matrix defined through the parameters
 - [x] `ortho()` :: Sets an orthographic projection and defines a parallel clipping volume
-- [x] `perspective()` :: Sets a perspective projection applying foreshortening, making distant objects appear smaller
-  than closer ones
+- [x] `perspective()` :: Sets a perspective projection applying foreshortening, making distant objects appear smaller than closer ones
 - [x] `printCamera()` :: Prints the current camera matrix to the Console (the text window at the bottom of Processing)
 - [x] `printProjection()` :: Prints the current projection matrix to the Console
 
@@ -439,12 +420,9 @@
 - [ ] `modelX()` :: Returns the three-dimensional X, Y, Z position in model space
 - [ ] `modelY()` :: Returns the three-dimensional X, Y, Z position in model space
 - [ ] `modelZ()` :: Returns the three-dimensional X, Y, Z position in model space
-- [ ] `screenX()` :: Takes a three-dimensional X, Y, Z position and returns the X value for where it will appear on a (
-  two-dimensional) screen
-- [ ] `screenZ()` :: Takes a three-dimensional X, Y, Z position and returns the Z value for where it will appear on a (
-  two-dimensional) screen
-- [ ] `screenY()` :: Takes a three-dimensional X, Y, Z position and returns the Y value for where it will appear on a (
-  two-dimensional) screen
+- [ ] `screenX()` :: Takes a three-dimensional X, Y, Z position and returns the X value for where it will appear on a ( two-dimensional) screen
+- [ ] `screenZ()` :: Takes a three-dimensional X, Y, Z position and returns the Z value for where it will appear on a ( two-dimensional) screen
+- [ ] `screenY()` :: Takes a three-dimensional X, Y, Z position and returns the Y value for where it will appear on a ( two-dimensional) screen
 
 ## Transform
 
@@ -467,19 +445,15 @@
 - `[] (array access)` :: The array access operator is used to specify a location within an array
 - `= (assign)` :: Assigns a value to a variable
 - `catch` :: The*catch*keyword is used with*try*to handle exceptions
-- `class` :: Keyword used to indicate the declaration of a class ==@note(C++ requires a `;` after the last curly bracket
-  `};`)==
+- `class` :: Keyword used to indicate the declaration of a class ==@note(C++ requires a `;` after the last curly bracket `};`)==
 - `, (comma)` :: Separates parameters in function calls and elements during assignment
 - `// (comment)` :: Explanatory notes embedded within the code
-- `{} (curly braces)` :: Define the beginning and end of functions blocks and statement blocks such as the*for*and*if*
-  structures
+- `{} (curly braces)` :: Define the beginning and end of functions blocks and statement blocks such as the*for*and*if* structures
 - `/** */ (doc comment)` :: Explanatory notes embedded within the code
 - `. (dot)` :: Provides access to an object's methods and data
-- [x] `draw()` :: Called directly after*setup()*and continuously executes the lines of code contained inside its block
-  until the program is stopped or*noLoop()*is called
+- [x] `draw()` :: Called directly after*setup()*and continuously executes the lines of code contained inside its block until the program is stopped or*noLoop()*is called
 - [x] `exit()` :: Quits/stops/exits the program
-- ~~`extends` :: Allows a new class to_inherit_the methods and data fields (variables and constants) from an existing
-  class~~
+- ~~`extends` :: Allows a new class to_inherit_the methods and data fields (variables and constants) from an existing class~~
 - `false` :: Reserved word representing the logical value "false"
 - `final` :: Keyword used to state that a value, class, or method can't be changed
 - `import` :: The keyword*import*is used to load a library into a Processing sketch ==@note(replace with `#include`)==
@@ -491,18 +465,15 @@
 - `null` :: Special value used to signify the target is not a valid data element ==@note(replace with `nullptr`)==
 - [ ] `() (parentheses)` :: Grouping and containing expressions and parameters
 - [x] `popStyle()` :: Saves the current style settings and*popStyle()*restores the prior settings
-- [ ] `pop()` :: The*pop()*function restores the previous drawing style settings and transformations after*push()*has
-  changed them
+- [ ] `pop()` :: The*pop()*function restores the previous drawing style settings and transformations after*push()*has changed them
 - `private` :: This keyword is used to disallow other classes access to the fields and methods within a class
 - `public` :: Keyword used to provide other classes access the fields and methods within a class
 - [x] `pushStyle()` :: Saves the current style settings and*popStyle()*restores the prior settings
-- [ ] `push()` :: The *push()* function saves the current drawing style settings and transformations, while *pop()* restores
-  these settings
+- [ ] `push()` :: The *push()* function saves the current drawing style settings and transformations, while *pop()* restores these settings
 - [ ] `redraw()` :: Executes the code within*draw()*one time
 - `return` :: Keyword used to indicate the value to return from a function
 - `; (semicolon)` :: A statement terminator which separates elements of the program
-- [ ] `setLocation()` :: The*setLocation()*function defines the position of the Processing sketch in relation to the
-  upper-left corner of the computer screen
+- [ ] `setLocation()` :: The*setLocation()*function defines the position of the Processing sketch in relation to the upper-left corner of the computer screen
 - [ ] `setResizable()` :: By default, Processing sketches can't be resized
 - [ ] `setTitle()` :: The*setTitle()*function defines the title to appear at the top of the sketch window
 - [x] `setup()` :: The*setup()*function is called once when the program starts
@@ -525,19 +496,16 @@
 - `default` :: Keyword for defining the default condition of a*switch*
 - `else` :: Extends the*if*structure allowing the program to choose between two or more blocks of code
 - `if` :: Allows the program to make a decision about which code to execute
-- `switch` :: Works like an*if else*structure, but*switch*is more convenient when you need to select between three or
-  more alternatives
+- `switch` :: Works like an*if else*structure, but*switch*is more convenient when you need to select between three or more alternatives
 
 ### Relational Operators
 
 - `== (equality)` :: Determines if two values are equivalent
 - `> (greater than)` :: Tests if the value on the left is larger than the value on the right
-- `>= (greater than or equal to)` :: Tests if the value on the left is larger than the value on the right or if the
-  values are equivalent
+- `>= (greater than or equal to)` :: Tests if the value on the left is larger than the value on the right or if the values are equivalent
 - `!= (inequality)` :: Determines if one expression is not equivalent to another
 - `< (less than)` :: Tests if the value on the left is smaller than the value on the right
-- `<= (less than or equal to)` :: Tests if the value on the left is less than the value on the right or if the values
-  are equivalent
+- `<= (less than or equal to)` :: Tests if the value on the left is less than the value on the right or if the values are equivalent
 
 ### Iteration
 
@@ -564,18 +532,15 @@
 - [ ] `fullScreen()` :: Opens a sketch using the full size of the computer's display
 - [x] `height` :: System variable which stores the height of the display window
 - [x] `noCursor()` :: Hides the cursor from view
-- [ ] `noSmooth()` :: Draws all geometry and fonts with jagged (aliased) edges and images with hard edges between the
-  pixels when enlarged rather than interpolating pixels
+- [ ] `noSmooth()` :: Draws all geometry and fonts with jagged (aliased) edges and images with hard edges between the pixels when enlarged rather than interpolating pixels
 - [ ] `pixelDensity()` :: It makes it possible for Processing to render using all the pixels on high resolutions screens
 - [ ] `pixelHeight` :: The actual pixel height when using high resolution display
 - [ ] `pixelWidth` :: The actual pixel width when using high resolution display
 - [x] `settings()` :: Used when absolutely necessary to define the parameters to*size()*with a variable
-- [x] `size()` :: Defines the dimension of the display window in units of pixels ==@note(can only be used in
-  `settings()`)==
+- [x] `size()` :: Defines the dimension of the display window in units of pixels ==@note(can only be used in `settings()`)==
 - [ ] `smooth()` :: Draws all geometry with smooth (anti-aliased) edges
 - [x] `width` :: System variable which stores the width of the display window
-- [ ] `windowMove()` :: The*windowMove()*function defines the position of the Processing sketch in relation to the
-  upper-left corner of the computer screen
+- [ ] `windowMove()` :: The*windowMove()*function defines the position of the Processing sketch in relation to the upper-left corner of the computer screen
 - [ ] `windowMoved()` :: Called every time the sketch window is moved
 - [ ] `windowRatio()` :: Scale the sketch as if it fit a specific width and height
 - [ ] `windowResizable()` :: Define whether the sketch window can be resized while it's running

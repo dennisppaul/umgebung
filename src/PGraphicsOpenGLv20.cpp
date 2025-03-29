@@ -123,21 +123,57 @@ static void draw_ellipse(const GLenum shape,
     glEnd();
 }
 
-void PGraphicsOpenGLv20::ellipse(const float x, const float y, const float width, const float height) {
+void PGraphicsOpenGLv20::ellipse(const float x, const float y, const float w, const float h) {
     if (render_mode == RENDER_MODE_IMMEDIATE) {
+        float cx, cy, width, height;
+
+        switch (ellipse_mode) {
+            case CENTER:
+                cx     = x;
+                cy     = y;
+                width  = w;
+                height = h;
+                break;
+            case RADIUS:
+                cx     = x;
+                cy     = y;
+                width  = w * 2.0f;
+                height = h * 2.0f;
+                break;
+            case CORNER:
+                cx     = x + w * 0.5f;
+                cy     = y + h * 0.5f;
+                width  = w;
+                height = h;
+                break;
+            case CORNERS:
+                cx     = (x + w) * 0.5f;
+                cy     = (y + h) * 0.5f;
+                width  = std::abs(w - x);
+                height = std::abs(h - y);
+                break;
+            default:
+                cx     = x;
+                cy     = y;
+                width  = w;
+                height = h;
+                break;
+        }
+
         if (color_fill.active) {
             glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-            draw_ellipse(GL_TRIANGLE_FAN, ellipse_detail, x, y, width, height);
+            draw_ellipse(GL_TRIANGLE_FAN, ellipse_detail, cx, cy, width, height);
         }
 
         if (color_stroke.active) {
-            glColor4f(color_fill.r, color_fill.g, color_fill.b, color_fill.a);
-            draw_ellipse(GL_LINE_LOOP, ellipse_detail, x, y, width, height);
+            glColor4f(color_stroke.r, color_stroke.g, color_stroke.b, color_stroke.a); // fix: use stroke color!
+            draw_ellipse(GL_LINE_LOOP, ellipse_detail, cx, cy, width, height);
         }
         return;
     }
+
     if (render_mode == RENDER_MODE_SHAPE) {
-        PGraphics::ellipse(x, y, width, height);
+        PGraphics::ellipse(x, y, w, h); // uses the other version with full shape mode
         return;
     }
 }

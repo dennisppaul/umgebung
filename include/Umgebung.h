@@ -22,6 +22,7 @@
 #include <vector>
 #include <string>
 
+// ReSharper disable once CppUnusedIncludeDirective
 #include "UmgebungDefines.h"
 #include "UmgebungConstants.h"
 #include "UmgebungCallbacks.h"
@@ -83,6 +84,7 @@ namespace umgebung {
     inline float      mouseY         = 0;
     inline float      pmouseX        = 0;
     inline float      pmouseY        = 0;
+    inline int        renderer       = DEFAULT;
 
     /* public variables *mainly for internal use* */
 

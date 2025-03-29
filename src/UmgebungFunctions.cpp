@@ -344,7 +344,7 @@ namespace umgebung {
         return distribution(gen);
     }
 
-    void size(const int width, const int height) {
+    void size(const int width, const int height, const int renderer) {
         if (is_initialized()) {
             warning("`size()` must be called before or within `settings()`.");
             return;
@@ -352,6 +352,7 @@ namespace umgebung {
         umgebung::enable_graphics = true;
         umgebung::width           = width;
         umgebung::height          = height;
+        umgebung::renderer        = renderer;
     }
 
     void add_audio_device(int id, int sample_rate) {

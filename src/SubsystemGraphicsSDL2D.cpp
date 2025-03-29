@@ -26,11 +26,11 @@ namespace umgebung {
 // TODO Ref https://github.com/libsdl-org/SDL/blob/main/docs/hello.c
 
 static SDL_Window*   window   = nullptr;
-static SDL_Renderer* renderer = nullptr;
+static SDL_Renderer* sdl_renderer = nullptr;
 
 static void setup_pre() {
     int w = 0, h = 0;
-    SDL_GetRenderOutputSize(renderer, &w, &h);
+    SDL_GetRenderOutputSize(sdl_renderer, &w, &h);
     umgebung::g->init(nullptr, w, h, 4, false);
 }
 
@@ -45,23 +45,23 @@ static bool init() {
                                      static_cast<int>(umgebung::height),
                                      get_SDL_WindowFlags(flags),
                                      &window,
-                                     &renderer)) {
+                                     &sdl_renderer)) {
         return false;
     }
 
-    std::cout << "Renderer Name    : " << SDL_GetRendererName(renderer) << std::endl;
-    std::cout << "Renderer Property: " << SDL_GetRendererProperties(renderer) << std::endl;
+    std::cout << "Renderer Name    : " << SDL_GetRendererName(sdl_renderer) << std::endl;
+    std::cout << "Renderer Property: " << SDL_GetRendererProperties(sdl_renderer) << std::endl;
 
     SDL_ShowWindow(window);
     return true;
 }
 
 static void draw_pre() {
-    SDL_SetRenderScale(renderer, 1, 1);
+    SDL_SetRenderScale(sdl_renderer, 1, 1);
 }
 
 static void draw_post() {
-    SDL_RenderPresent(renderer);
+    SDL_RenderPresent(sdl_renderer);
 }
 
 static void set_flags(uint32_t& subsystem_flags) {
@@ -70,7 +70,7 @@ static void set_flags(uint32_t& subsystem_flags) {
 
 static PGraphics* create_main_graphics(const bool render_to_offscreen) {
     (void) render_to_offscreen;
-    return new PGraphicsDefault2D(renderer);
+    return new PGraphicsDefault2D(sdl_renderer);
 }
 } // umgebung
 
