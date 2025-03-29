@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <GL/glew.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv20.h"

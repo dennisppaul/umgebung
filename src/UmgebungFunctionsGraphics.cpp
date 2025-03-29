@@ -88,6 +88,13 @@ namespace umgebung {
         g->pointSize(point_size);
     }
 
+    void arc(const float x, const float y, const float width, const float height, const float start, const float stop, const int mode) {
+        if (g == nullptr) {
+            return;
+        }
+        g->arc(x, y, width, height, start, stop, mode);
+    }
+
     void circle(const float x, const float y, const float diameter) {
         if (g == nullptr) {
             return;

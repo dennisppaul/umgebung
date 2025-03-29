@@ -430,31 +430,163 @@ void PGraphics::curveTightness(const float tightness) {
 //     }
 // }
 
-void PGraphics::ellipse(const float x, const float y, const float width, const float height) {
+void PGraphics::pushStyle() {
+    style_stack.push(StyleState{
+        color_stroke,
+        color_fill,
+        stroke_weight // assuming you have this
+    });
+}
+
+void PGraphics::popStyle() {
+    if (style_stack.empty()) {
+        return;
+    }
+
+    const StyleState s = style_stack.top();
+    style_stack.pop();
+
+    color_stroke  = s.stroke;
+    color_fill    = s.fill;
+    stroke_weight = s.strokeWeight;
+}
+
+// TODO implement LUT similar to ellipse_points_LUT
+void PGraphics::arc(const float x, const float y,
+                    const float w, const float h,
+                    const float start, const float stop,
+                    const int mode) {
+    const int   segments  = arc_detail;
+    const float angleStep = (stop - start) / static_cast<float>(segments);
+
+    std::vector<glm::vec2> arcPoints;
+    for (int i = 0; i <= segments; i++) {
+        const float angle = start + i * angleStep;
+        const float vx    = x + (w / 2.0f) * cos(angle);
+        const float vy    = y + (h / 2.0f) * sin(angle);
+        arcPoints.emplace_back(vx, vy);
+    }
+
+    // === fill pass ===
+    if (color_fill.active) {
+        pushStyle();
+        color_stroke.active = false; // disable stroke for fill
+
+        if (mode == PIE) {
+            beginShape(TRIANGLE_FAN);
+            vertex(x, y); // center
+            for (const auto& pt: arcPoints) {
+                vertex(pt.x, pt.y);
+            }
+            endShape(true);
+        } else if (mode == OPEN || mode == CHORD) {
+            beginShape();
+            for (const auto& pt: arcPoints) {
+                vertex(pt.x, pt.y);
+            }
+            if (mode == CHORD) {
+                vertex(arcPoints.front().x, arcPoints.front().y);
+            }
+            endShape(true);
+        }
+
+        popStyle();
+    }
+
+    // === stroke pass ===
+    if (color_stroke.active) {
+        pushStyle();
+        color_fill.active = false; // disable fill for stroke
+
+        bool end_shape_closed = false;
+        beginShape();
+        if (mode == PIE) {
+            vertex(arcPoints.front().x, arcPoints.front().y);
+            for (const auto& pt: arcPoints) {
+                vertex(pt.x, pt.y);
+            }
+            vertex(arcPoints.back().x, arcPoints.back().y);
+            vertex(x, y); // close back to center
+            end_shape_closed = true;
+        } else if (mode == CHORD) {
+            for (const auto& pt: arcPoints) {
+                vertex(pt.x, pt.y);
+            }
+            vertex(arcPoints.front().x, arcPoints.front().y); // chord edge
+        } else if (mode == OPEN) {
+            for (const auto& pt: arcPoints) {
+                vertex(pt.x, pt.y);
+            }
+        }
+        endShape(end_shape_closed);
+
+        popStyle();
+    }
+}
+
+void PGraphics::arcDetail(const int detail) {
+    arc_detail = detail;
+}
+
+void PGraphics::ellipse(const float a, const float b, const float c, const float d) {
     if (!color_fill.active && !color_stroke.active) {
         return;
     }
 
-    // TODO: Implement `ellipseMode()`
+    float cx, cy, width, height;
+
+    switch (ellipse_mode) {
+        case CENTER:
+            cx     = a;
+            cy     = b;
+            width  = c;
+            height = d;
+            break;
+        case RADIUS:
+            cx     = a;
+            cy     = b;
+            width  = c * 2.0f;
+            height = d * 2.0f;
+            break;
+        case CORNER:
+            cx     = a + c * 0.5f;
+            cy     = b + d * 0.5f;
+            width  = c;
+            height = d;
+            break;
+        case CORNERS:
+            cx     = (a + c) * 0.5f;
+            cy     = (b + d) * 0.5f;
+            width  = std::abs(c - a);
+            height = std::abs(d - b);
+            break;
+        default:
+            // fallback to CENTER mode if unknown
+            cx     = a;
+            cy     = b;
+            width  = c;
+            height = d;
+            break;
+    }
+
     const float radiusX = width * 0.5f;
     const float radiusY = height * 0.5f;
 
     std::vector<glm::vec3> points;
     points.reserve(ellipse_detail + 1);
 
-    // TODO create and recompute LUT for when `ellipse_detail` changes
+    // TODO: recompute LUT if ellipse_detail changes
     float i_f = 0.0f;
     for (int i = 0; i <= ellipse_detail; ++i, i_f += 1.0f) {
-        points.emplace_back(x + radiusX * ellipse_points_LUT[i].x,
-                            y + radiusY * ellipse_points_LUT[i].y,
+        points.emplace_back(cx + radiusX * ellipse_points_LUT[i].x,
+                            cy + radiusY * ellipse_points_LUT[i].y,
                             0.0f);
     }
 
     beginShape(POLYGON);
-    points.pop_back();
+    points.pop_back(); // remove duplicate point if LUT loops
     for (const auto& p: points) {
-        // TODO maybe add texcoords
-        vertex(p.x, p.y, 0.0f);
+        vertex(p.x, p.y, p.z);
     }
     endShape(CLOSE);
 }

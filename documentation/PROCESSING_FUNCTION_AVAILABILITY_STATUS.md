@@ -224,7 +224,7 @@
 
 ### 2d Primitives
 
-- [ ] `arc()` :: Draws an arc in the display window
+- [x] `arc()` :: Draws an arc in the display window
 - [x] `circle()` :: Draws a circle to the screen
 - [x] `ellipse()` :: Draws an ellipse (oval) in the display window
 - [x] `line()` :: Draws a line (a direct path between two points) to the screen
@@ -490,13 +490,13 @@
 - [ ] `noLoop()` :: Stops Processing from continuously executing the code within*draw()*
 - `null` :: Special value used to signify the target is not a valid data element ==@note(replace with `nullptr`)==
 - [ ] `() (parentheses)` :: Grouping and containing expressions and parameters
-- [ ] `popStyle()` :: Saves the current style settings and*popStyle()*restores the prior settings
+- [x] `popStyle()` :: Saves the current style settings and*popStyle()*restores the prior settings
 - [ ] `pop()` :: The*pop()*function restores the previous drawing style settings and transformations after*push()*has
   changed them
 - `private` :: This keyword is used to disallow other classes access to the fields and methods within a class
 - `public` :: Keyword used to provide other classes access the fields and methods within a class
-- [ ] `pushStyle()` :: Saves the current style settings and*popStyle()*restores the prior settings
-- [ ] `push()` :: The*push()*function saves the current drawing style settings and transformations, while*pop()*restores
+- [x] `pushStyle()` :: Saves the current style settings and*popStyle()*restores the prior settings
+- [ ] `push()` :: The *push()* function saves the current drawing style settings and transformations, while *pop()* restores
   these settings
 - [ ] `redraw()` :: Executes the code within*draw()*one time
 - `return` :: Keyword used to indicate the value to return from a function

@@ -19,23 +19,15 @@
 
 #pragma once
 
-// TODO implement primitives
-//     arc() Draws an arc in the display window
-//     square() Draws a square to the screen
-//     sphereDetail() Controls the detail used to render a sphere by adjusting the number of vertices of the sphere mesh
-
 #include <sstream>
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "UmgebungConstants.h"
-#include "PGraphicsOpenGLConstants.h"
+#include "UmgebungFunctionsAdditional.h"
 #include "PImage.h"
 #include "Vertex.h"
 #include "Triangulator.h"
 #include "UFont.h"
-
-#include <UmgebungFunctionsAdditional.h>
 
 namespace umgebung {
     class PFont;
@@ -121,6 +113,34 @@ namespace umgebung {
         virtual void strokeJoin(int join);
         virtual void strokeCap(int cap);
 
+        // ## Shape
+
+        // ### 2d Primitives
+
+        virtual void arc(float x, float y, float w, float h, float start, float stop, int mode = OPEN);
+        virtual void circle(float x, float y, float diameter);
+        virtual void ellipse(float a, float b, float c, float d);
+        virtual void line(float x1, float y1, float z1, float x2, float y2, float z2);
+        virtual void line(float x1, float y1, float x2, float y2);
+        virtual void point(float x, float y, float z = 0.0f);
+        virtual void quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
+        virtual void rect(float x, float y, float width, float height);
+        virtual void square(const float x, const float y, const float extent) { rect(x, y, extent, extent); }
+        virtual void triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
+
+        // ### Vertex
+
+        virtual void beginShape(int shape = POLYGON);
+        virtual void endShape(bool close_shape = false);
+        virtual void vertex(float x, float y, float z = 0.0f);
+        virtual void vertex(float x, float y, float z, float u, float v);
+
+        // ## Structure
+
+        virtual void pushStyle();
+        virtual void popStyle();
+
+
         virtual void     bezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
         virtual void     bezier(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
         virtual void     bezierDetail(int detail);
@@ -128,23 +148,15 @@ namespace umgebung {
         virtual void     curve(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
         virtual void     curveDetail(int detail);
         virtual void     curveTightness(float tightness);
-        virtual void     ellipse(float x, float y, float width, float height);
+        virtual void     arcDetail(int detail);
         virtual void     ellipseMode(int mode);
         virtual void     ellipseDetail(int detail);
-        virtual void     circle(float x, float y, float diameter);
         virtual void     image(PImage* img, float x, float y, float w, float h);
         virtual void     image(PImage* img, float x, float y);
         virtual void     texture(PImage* img = nullptr);
         virtual PImage*  loadImage(const std::string& filename);
-        virtual void     line(float x1, float y1, float z1, float x2, float y2, float z2);
-        virtual void     line(float x1, float y1, float x2, float y2);
-        virtual void     point(float x, float y, float z = 0.0f);
         virtual void     pointSize(float size);
-        virtual void     quad(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4);
-        virtual void     rect(float x, float y, float width, float height);
         virtual void     rectMode(int mode);
-        virtual void     square(const float x, const float y, const float extent) { rect(x, y, extent, extent); }
-        virtual void     triangle(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
         virtual void     textFont(PFont* font);
         virtual void     textSize(float size);
         virtual void     text(const char* value, float x, float y, float z = 0.0f);
@@ -158,12 +170,8 @@ namespace umgebung {
         virtual void     box(const float size) { box(size, size, size); }
         virtual void     sphere(float width, float height, float depth);
         virtual void     sphere(const float size) { sphere(size, size, size); }
-        virtual void     vertex(float x, float y, float z, float u, float v);
-        virtual void     vertex(float x, float y, float z = 0.0f);
-        virtual void     beginShape(int shape = POLYGON);
         void             process_collected_fill_vertices();
         void             process_collected_stroke_vertices(bool close_shape);
-        virtual void     endShape(bool close_shape = false);
         virtual void     shader(PShader* shader) {} // TODO maybe not implement them like this
         virtual PShader* loadShader(const std::string& vertex_code, const std::string& fragment_code, const std::string& geometry_code = "") { return nullptr; };
         virtual void     resetShader() {}
@@ -217,16 +225,26 @@ namespace umgebung {
             bool active = false;
         };
 
+        struct StyleState {
+            ColorState stroke;
+            ColorState fill;
+            float      strokeWeight;
+            // TODO add style values like tint, blend mode, etc.
+        };
+
         // const float                      DEFAULT_FOV            = 2.0f * atan(0.5f); // = 53.1301f; // P5 :: tan(PI*30.0 / 180.0);
         static constexpr uint16_t        ELLIPSE_DETAIL_MIN     = 3;
         static constexpr uint16_t        ELLIPSE_DETAIL_DEFAULT = 36;
+        static constexpr uint16_t        ARC_DETAIL_DEFAULT     = 36;
+        std::stack<StyleState>           style_stack;
         bool                             init_properties_locked{false};
         PFont*                           current_font{nullptr};
         ColorState                       color_stroke{};
         ColorState                       color_fill{};
-        uint8_t                          rect_mode{CORNER};
-        uint8_t                          ellipse_mode{CENTER};
+        int                              rect_mode{CORNER};
+        int                              ellipse_mode{CENTER};
         int                              ellipse_detail{0};
+        int                              arc_detail{ARC_DETAIL_DEFAULT};
         std::vector<glm::vec2>           ellipse_points_LUT{};
         float                            point_size{1};
         float                            stroke_weight{1};

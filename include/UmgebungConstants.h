@@ -51,12 +51,12 @@ namespace umgebung {
     static constexpr float QUARTER_PI                    = PI / 4;
     static constexpr float TWO_PI                        = PI * 2;
     static constexpr float TAU                           = TWO_PI;
-    static constexpr int   LEFT                          = 0x01;
+    static constexpr bool  CLOSE                         = true;
+    static constexpr bool  NOT_CLOSED                    = false;
+    static constexpr int   LEFT                          = 0x01; // shared constants
     static constexpr int   RIGHT                         = 0x02;
     static constexpr int   MIDDLE                        = 0x03;
     static constexpr int   CENTER                        = 0x04;
-    static constexpr bool  CLOSE                         = true;
-    static constexpr bool  NOT_CLOSED                    = false;
     enum ShapeKind {
         TRIANGLES = 0x10,
         TRIANGLE_STRIP,
@@ -68,7 +68,12 @@ namespace umgebung {
         LINES,
         LINE_STRIP
     };
-    enum RectMode {
+    enum ArcMode {
+        OPEN = 0x19,
+        CHORD,
+        PIE
+    };
+    enum RectEllipseMode {
         CORNER = 0x20,
         CORNERS,
         // CENTER,
@@ -147,7 +152,6 @@ namespace umgebung {
         OPENGL_ES_3_0, // iOS
         OPENGL_ES_3_1  // RPI4+5
     };
-
     const std::string SHADER_UNIFORM_MODEL_MATRIX      = "uModelMatrix";
     const std::string SHADER_UNIFORM_VIEW_MATRIX       = "uViewMatrix";
     const std::string SHADER_UNIFORM_PROJECTION_MATRIX = "uProjection";
