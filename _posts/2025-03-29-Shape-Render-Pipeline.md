@@ -4,10 +4,6 @@ title:  "Shape Render Pipeline"
 date:   2025-03-29 10:00:00 +0100
 ---
 
-```
-
-```
-
 the main concept of the *Umgebung* graphic render is centered around the idea of shapes as used in *Processing*:
 
 ```c
