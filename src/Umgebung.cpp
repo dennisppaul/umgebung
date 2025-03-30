@@ -359,7 +359,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 }
 
 static void handle_event(const SDL_Event& event, bool& app_is_running) {
-    //     // imgui_processevent(event);
     switch (event.type) {
         case SDL_EVENT_WINDOW_RESIZED:
             // // TODO implement window resize … how will the subsystems be updated?

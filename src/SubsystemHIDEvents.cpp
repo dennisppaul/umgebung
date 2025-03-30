@@ -32,42 +32,32 @@ namespace umgebung {
     }
 
     static void handle_hid_event(const SDL_Event& event) {
-        // imgui_processevent(event);
-
-        // generic sdl event handler
-        // TODO maybe cache this and handle it in loop
         sdl_event(event);
 
         switch (event.type) {
             case SDL_EVENT_KEY_DOWN:
                 umgebung::key = static_cast<int>(event.key.key);
-                // if (!imgui_is_keyboard_captured()) {
                 keyPressed();
-                // }
                 umgebung::isKeyPressed = true;
                 break;
             case SDL_EVENT_KEY_UP:
-                // if (imgui_is_keyboard_captured()) { break; }
                 umgebung::key          = static_cast<int>(event.key.key);
                 umgebung::isKeyPressed = false;
                 keyReleased();
                 break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                // if (imgui_is_mouse_captured()) { break; }
                 umgebung::mouseButton = event.button.button; // TODO not sure how consistent these are across platforms
                 _mouse_is_pressed     = true;
                 mousePressed();
                 umgebung::isMousePressed = true;
                 break;
             case SDL_EVENT_MOUSE_BUTTON_UP:
-                // if (imgui_is_mouse_captured()) { break; }
                 _mouse_is_pressed     = false;
                 umgebung::mouseButton = -1;
                 mouseReleased();
                 umgebung::isMousePressed = false;
                 break;
             case SDL_EVENT_MOUSE_MOTION:
-                // if (imgui_is_mouse_captured()) { break; }
                 umgebung::pmouseX = umgebung::mouseX;
                 umgebung::pmouseY = umgebung::mouseY;
                 umgebung::mouseX  = static_cast<float>(event.motion.x);
@@ -81,7 +71,6 @@ namespace umgebung {
                 break;
                 // case SDL_MULTIGESTURE:
             case SDL_EVENT_MOUSE_WHEEL:
-                // if (imgui_is_mouse_captured()) { break; }
                 mouseWheel(event.wheel.mouse_x, event.wheel.mouse_y);
                 break;
             case SDL_EVENT_DROP_FILE: {
