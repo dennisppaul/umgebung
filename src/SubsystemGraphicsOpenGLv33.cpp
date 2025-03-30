@@ -18,17 +18,15 @@
  */
 
 #include "SubsystemGraphicsOpenGL.h"
-#include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv33.h"
 
 namespace umgebung {
-    static void draw_pre();
-    static void draw_post();
-
     static SDL_Window*   window                                  = nullptr;
     static SDL_GLContext gl_context                              = nullptr;
-    static bool          blit_framebuffer_object_to_screenbuffer = true;
-    // NOTE FBO is BLITted directly into the color buffer instead of rendered with a textured quad
+    static bool          blit_framebuffer_object_to_screenbuffer = true; // NOTE FBO is BLITted directly into the color buffer instead of rendered with a textured quad
+
+    static void draw_pre();
+    static void draw_post();
 
     static bool init() {
         return OGL_init(window, gl_context, 3, 3, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -82,12 +80,24 @@ namespace umgebung {
         }
     }
 
-    static const char* name() {
-        return "OpenGL 3.3 core";
-    }
-
     static PGraphics* create_main_graphics(const bool render_to_offscreen) {
         return new PGraphicsOpenGLv33(render_to_offscreen);
+    }
+
+    static SDL_Window* get_sdl_window() {
+        return window;
+    }
+
+    static void* get_renderer() {
+        return gl_context;
+    }
+
+    static int get_renderer_type() {
+        return OPENGL_3_3;
+    }
+
+    static const char* name() {
+        return "OpenGL 3.3 core";
     }
 } // namespace umgebung
 
@@ -102,7 +112,10 @@ umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv33() {
     graphics->shutdown             = umgebung::shutdown;
     graphics->event                = umgebung::event;
     graphics->event_loop           = umgebung::event_loop;
-    graphics->name                 = umgebung::name;
     graphics->create_main_graphics = umgebung::create_main_graphics;
+    graphics->get_sdl_window       = umgebung::get_sdl_window;
+    graphics->get_renderer         = umgebung::get_renderer;
+    graphics->get_renderer_type    = umgebung::get_renderer_type;
+    graphics->name                 = umgebung::name;
     return graphics;
 }

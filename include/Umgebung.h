@@ -94,4 +94,25 @@ namespace umgebung {
     inline SubsystemAudio*         subsystem_audio      = nullptr;
     inline Subsystem*              subsystem_libraries  = nullptr;
     inline Subsystem*              subsystem_hid_events = nullptr;
+
+    inline SDL_Window* get_window() {
+        if (subsystem_graphics != nullptr && subsystem_graphics->get_sdl_window != nullptr) {
+            return subsystem_graphics->get_sdl_window();
+        }
+        return nullptr;
+    }
+
+    inline void* get_native_renderer() {
+        if (subsystem_graphics != nullptr && subsystem_graphics->get_renderer != nullptr) {
+            return subsystem_graphics->get_renderer();
+        }
+        return nullptr;
+    }
+
+    inline int get_native_renderer_type() {
+        if (subsystem_graphics != nullptr && subsystem_graphics->get_renderer_type != nullptr) {
+            return subsystem_graphics->get_renderer_type();
+        }
+        return DEFAULT;
+    }
 } // namespace umgebung

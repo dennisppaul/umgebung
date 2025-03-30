@@ -9,43 +9,7 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] in `PGraphicsDefault2D` implement 3D by manually transforming points onto 2D 
 - [ ] @umgebung try PGraphics for offscreen rendering
 - [ ] @umgebung add camera ( see https://chatgpt.com/share/67dfbe72-855c-8004-8b37-28d10d5c7ab3 )
-- [x] @umgebung add to stroke rendering:
-    - `generateTubeMesh`
-    - `extrudeLineStripToRibbon`
 - [ ] @umgebung add normals to sphere and box shapes
-- [ ] @umgebung OpenGL version for different plattforms ( from imgui example ):
-    ```C
-    // Decide GL+GLSL versions
-    #if defined(IMGUI_IMPL_OPENGL_ES2)
-        // GL ES 2.0 + GLSL 100 (WebGL 1.0)
-        const char* glsl_version = "#version 100";
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    #elif defined(IMGUI_IMPL_OPENGL_ES3)
-        // GL ES 3.0 + GLSL 300 es (WebGL 2.0)
-        const char* glsl_version = "#version 300 es";
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    #elif defined(__APPLE__)
-        // GL 3.2 Core + GLSL 150
-        const char* glsl_version = "#version 150";
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    #else
-        // GL 3.0 + GLSL 130
-        const char* glsl_version = "#version 130";
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    #endif
-    ```
 - [ ] `GL_POINTS` might need some shader love ( i.e `gl_PointSize` + `gl_PointCoord` for point sprites ) @later
 - [ ] @umgebung add `PShape`-based fonts
 - [ ] @umgebung implement extra buffer for transparent primitives
@@ -239,7 +203,6 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung documentation :: differences in shader handling ( set_uniforms )
 - [ ] @umgebung make a point of not supporting `colorMode(mode)`
 - [ ] make a step-by-step guide of how to create a library ( send to leo )
-- [x] @umgebung render pipeline idea
  ```
                      + -> emit_shape_stroke_line_strip -> triangulate, transform to world/screen space
  begin-end-shape ->  |
@@ -506,3 +469,43 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung release end of the week ( need more examples until then )
 - [ ] @umgebung PVector vs glm::vec3 at least some functions to convert between the two
 - [ ] @umgebung byte the bullet and test offscreen rendering in `Advanced`
+
+## Archived
+
+- [x] @umgebung render pipeline idea @archived(2025-03-30) @from(Umgebung / TODO + NOTES > documentation) @done(2025-03-30)
+- [x] @umgebung OpenGL version for different plattforms ( from imgui example ): @archived(2025-03-30) @from(Umgebung / TODO + NOTES > graphics) @done(2025-03-30)
+    ```C
+    // Decide GL+GLSL versions
+    #if defined(IMGUI_IMPL_OPENGL_ES2)
+        // GL ES 2.0 + GLSL 100 (WebGL 1.0)
+        const char* glsl_version = "#version 100";
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    #elif defined(IMGUI_IMPL_OPENGL_ES3)
+        // GL ES 3.0 + GLSL 300 es (WebGL 2.0)
+        const char* glsl_version = "#version 300 es";
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    #elif defined(__APPLE__)
+        // GL 3.2 Core + GLSL 150
+        const char* glsl_version = "#version 150";
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+    #else
+        // GL 3.0 + GLSL 130
+        const char* glsl_version = "#version 130";
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    #endif
+    ```
+- [x] @umgebung add to stroke rendering: @archived(2025-03-30) @from(Umgebung / TODO + NOTES > graphics) @done(2025-03-30)
+    - `generateTubeMesh`
+    - `extrudeLineStripToRibbon`

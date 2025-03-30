@@ -150,7 +150,8 @@ namespace umgebung {
         OPENGL_3_3,
         OPENGL,
         OPENGL_ES_3_0, // iOS
-        OPENGL_ES_3_1  // RPI4+5
+        OPENGL_ES_3_1,  // RPI4+5
+        SDL_2D,
     };
     const std::string SHADER_UNIFORM_MODEL_MATRIX      = "uModelMatrix";
     const std::string SHADER_UNIFORM_VIEW_MATRIX       = "uViewMatrix";

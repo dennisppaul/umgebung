@@ -44,6 +44,9 @@ namespace umgebung {
         PGraphics* (*create_main_graphics)(bool render_to_offscreen);
         void (*post)();
         void (*set_title)(const char* title);
+        SDL_Window* (*get_sdl_window)();
+        void* (*get_renderer)();
+        int (*get_renderer_type)();
     };
 
     struct SubsystemAudio : Subsystem {

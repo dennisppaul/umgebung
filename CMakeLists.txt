@@ -130,7 +130,10 @@ else ()
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/osc/*.cpp
     )
 endif ()
-add_library(umgebung-lib ${UMGEBUNG_SOURCE_FILES})
+
+if (NOT TARGET umgebung-lib)
+    add_library(umgebung-lib ${UMGEBUNG_SOURCE_FILES})
+endif ()
 #target_compile_features(umgebung-lib PUBLIC cxx_std_17)
 #target_compile_options(umgebung-lib PUBLIC -std=c++17)
 
@@ -148,8 +151,9 @@ target_include_directories(umgebung-lib PUBLIC
 ##########################################################################################################
 ### EN/DISABLE LIBRARIES                                                                               ###
 ##########################################################################################################
-
+if (NOT TARGET umgebung-lib-interface)
 add_library(umgebung-lib-interface INTERFACE) # this enables `glm::aligned_vec*` types
+endif ()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GLM_ENABLE_EXPERIMENTAL)
 
@@ -182,32 +186,6 @@ if (ENABLE_PORTAUDIO)
     target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_PORTAUDIO)
     message(STATUS "ENABLING      : Portaudio Driver")
 endif (ENABLE_PORTAUDIO)
-
-if (ENABLE_IMGUI)
-    if (NOT DEFINED IMGUI_PATH)
-        message(FATAL_ERROR "IMGUI_PATH must be set in CMakeLists.txt")
-    elseif (NOT EXISTS ${IMGUI_PATH})
-        message(FATAL_ERROR "IMGUI_PATH does not point to valid directory")
-    endif ()
-
-    target_compile_definitions(umgebung-lib-interface INTERFACE ENABLE_IMGUI)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_IMGUI)
-    # Compile as static library
-    file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)
-    file(GLOB IMGUI_SOURCE_FILES
-            ${IMGUI_PATH}/*.cpp
-            ${IMGUI_PATH}/*.h
-            ${IMGUI_PATH}/backends/imgui_impl_opengl2.h
-            ${IMGUI_PATH}/backends/imgui_impl_opengl2.cpp
-            ${IMGUI_PATH}/backends/imgui_impl_sdl2.cpp
-            ${IMGUI_PATH}/backends/imgui_impl_sdl2.h)
-    add_library("ImGui" STATIC ${IMGUI_SOURCE_FILES})
-    target_include_directories("ImGui" PUBLIC ${IMGUI_PATH})
-    target_include_directories("ImGui" PUBLIC ${IMGUI_PATH}/backends)
-    message(STATUS "ENABLING      : IMGui")
-
-endif (ENABLE_IMGUI)
-
 
 if (ENABLE_CAPTURE)
     target_compile_definitions(umgebung-lib-interface INTERFACE ENABLE_CAPTURE)
@@ -379,37 +357,29 @@ if (NOT DISABLE_AUDIO)
 endif (NOT DISABLE_AUDIO)
 
 if (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
-    target_link_libraries(${PROJECT_NAME} ${HARFBUZZ_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${HARFBUZZ_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${HARFBUZZ_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} ${FREETYPE_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${FREETYPE_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${FREETYPE_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} SDL3_ttf::SDL3_ttf) # NOTE not sure about these explicit lib names
-    target_link_libraries(${PROJECT_NAME} SDL3::SDL3) # NOTE not sure about these explicit lib names
+    target_link_libraries(${PROJECT_NAME} PUBLIC SDL3_ttf::SDL3_ttf) # NOTE not sure about these explicit lib names
+    target_link_libraries(${PROJECT_NAME} PUBLIC SDL3::SDL3) # NOTE not sure about these explicit lib names
     target_include_directories(${PROJECT_NAME} PUBLIC ${SDL3_INCLUDE_DIRS})
-
-    # IMGUI
-    if (ENABLE_IMGUI)
-        target_link_libraries(ImGui PRIVATE ${SDL3_LIBRARIES})
-        target_link_libraries(${PROJECT_NAME} ImGui)
-        target_include_directories(${PROJECT_NAME} PUBLIC ImGui)
-    endif (ENABLE_IMGUI)
-
 endif (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
 
 if (NOT DISABLE_GRAPHICS)
     # OpenGL + FTGL + GLEW + GLM
-    target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${OPENGL_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} ${FTGL_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${FTGL_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${FTGL_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} ${GLEW_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${GLEW_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${GLEW_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} ${GLM_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${GLM_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${GLM_INCLUDE_DIRS})
 
     # FFMPEG
     if (NOT DISABLE_VIDEO)
-        target_link_libraries(${PROJECT_NAME}
+        target_link_libraries(${PROJECT_NAME} PUBLIC
                 ${AVCODEC_LIBRARIES}
                 ${AVFORMAT_LIBRARIES}
                 ${AVUTIL_LIBRARIES}
@@ -419,7 +389,7 @@ if (NOT DISABLE_GRAPHICS)
         )
         target_include_directories(${PROJECT_NAME} PUBLIC ${AVCODEC_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVUTIL_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS})
         if (APPLE)
-            target_link_libraries(${PROJECT_NAME}
+            target_link_libraries(${PROJECT_NAME} PUBLIC
                     "-framework AVFoundation"
                     "-framework Foundation"
                     "-framework CoreMedia"
@@ -435,7 +405,7 @@ endif (NOT DISABLE_GRAPHICS)
 
 # MIDI
 if (NOT DISABLE_MIDI)
-    target_link_libraries(${PROJECT_NAME} ${RTMIDI_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${RTMIDI_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${RTMIDI_INCLUDE_DIRS})
     add_definitions(${RTMIDI_CFLAGS_OTHER})
     #    target_compile_definitions(${PROJECT_NAME} PUBLIC ${RTMIDI_CFLAGS_OTHER})
