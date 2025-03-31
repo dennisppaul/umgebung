@@ -40,12 +40,6 @@ namespace umgebung {
     //      maybe drop it at some point ...
     // static bool _audio_device_callback_mode = false;
 
-    static void setup_pre() {}
-    static void setup_post() {}
-    static void draw_pre() {}
-    static void draw_post() {}
-    static void event(SDL_Event* event) {}
-
     static const char* name() {
         return "SDL Audio";
     }
@@ -118,7 +112,7 @@ namespace umgebung {
                                    const bool                     is_input_device) {
         if (_audio_device_ids != nullptr) {
             for (int i = 0; i < _num_playback_devices; i++) {
-                const int   id    = _audio_device_ids[i];
+                const int   id    = static_cast<int>(_audio_device_ids[i]);
                 const char* _name = SDL_GetAudioDeviceName(id);
                 if (_name == nullptr) {
                     console(i, "\tID: ", _audio_device_ids[i], "\tname: ", _name);
@@ -130,7 +124,7 @@ namespace umgebung {
                     continue;
                 }
                 AudioUnitInfoSDL _device;
-                _device.logical_device_id = _audio_device_ids[i];
+                _device.logical_device_id = static_cast<int>(_audio_device_ids[i]);
                 _device.input_buffer      = nullptr;
                 _device.input_channels    = 0;
                 _device.output_buffer     = nullptr;
@@ -223,7 +217,7 @@ namespace umgebung {
         separator_subheadline();
         std::vector<AudioUnitInfoSDL> _devices_found;
         find_audio_input_devices(_devices_found);
-        for (auto d: _devices_found) {
+        for (const auto& d: _devices_found) {
             print_device_info(d);
         }
 
@@ -231,7 +225,7 @@ namespace umgebung {
         console("AUDIO OUTPUT DEVICES");
         _devices_found.clear();
         find_audio_output_devices(_devices_found);
-        for (auto d: _devices_found) {
+        for (const auto& d: _devices_found) {
             print_device_info(d);
         }
         separator_headline();
@@ -264,9 +258,9 @@ namespace umgebung {
     // }
 
     static PAudioSDL* get_paudio_sdl_from_paudio(const PAudio* device) {
-        for (int i = 0; i < _audio_devices.size(); i++) {
-            if (_audio_devices[i]->audio_device == device) {
-                return _audio_devices[i];
+        for (const auto& _audio_device: _audio_devices) {
+            if (_audio_device->audio_device == device) {
+                return _audio_device;
             }
         }
         return nullptr;
@@ -336,7 +330,7 @@ namespace umgebung {
         }
     }
 
-    static void loop() {
+    static void update_loop() {
         // NOTE consult https://wiki.libsdl.org/SDL3/Tutorials/AudioStream
         for (const auto _device: _audio_devices) {
             if (_device != nullptr &&
@@ -351,7 +345,7 @@ namespace umgebung {
                         SDL_AudioStream* _stream = _device->sdl_input_stream;
                         if (!SDL_AudioStreamDevicePaused(_stream)) {
                             const int input_bytes_available = SDL_GetAudioStreamAvailable(_stream);
-                            const int num_required_bytes    = _num_sample_frames * _device->audio_device->input_channels * sizeof(float);
+                            const int num_required_bytes    = static_cast<int>(_num_sample_frames) * _device->audio_device->input_channels * sizeof(float);
                             if (input_bytes_available >= num_required_bytes) {
                                 float* buffer = _device->audio_device->input_buffer;
                                 if (buffer != nullptr) {
@@ -382,7 +376,7 @@ namespace umgebung {
                                 // NOTE for all registered audio devices ( including main audio device )
                                 audioEvent(*_device->audio_device);
 
-                                const int    num_processed_bytes = _num_sample_frames * _device->audio_device->output_channels * sizeof(float);
+                                const int    num_processed_bytes = static_cast<int>(_num_sample_frames) * _device->audio_device->output_channels * sizeof(float);
                                 const float* buffer              = _device->audio_device->output_buffer;
                                 if (buffer != nullptr) {
                                     if (!SDL_PutAudioStreamData(_stream, buffer, num_processed_bytes)) {
@@ -425,6 +419,7 @@ namespace umgebung {
     // }
 
     static void register_audio_devices(PAudio* device) {
+        // ReSharper disable once CppDFAConstantConditions
         if (device == nullptr) {
             // ReSharper disable once CppDFAUnreachableCode
             return; // NOTE this should never happen …
@@ -489,7 +484,7 @@ namespace umgebung {
             stream_specs.format              = SDL_AUDIO_F32; // NOTE currently only F32 is supported
             stream_specs.freq                = device->sample_rate;
             stream_specs.channels            = device->input_channels;
-            _device->logical_input_device_id = SDL_OpenAudioDevice(_device->logical_input_device_id, nullptr);
+            _device->logical_input_device_id = static_cast<int>(SDL_OpenAudioDevice(_device->logical_input_device_id, nullptr));
             _device->sdl_input_stream        = SDL_CreateAudioStream(nullptr, &stream_specs);
             if (_device->sdl_input_stream != nullptr && _device->logical_input_device_id > 0) {
                 console("created audio input: ", _device->logical_input_device_id);
@@ -524,7 +519,7 @@ namespace umgebung {
             stream_specs.format               = SDL_AUDIO_F32; // NOTE currently only F32 is supported
             stream_specs.freq                 = device->sample_rate;
             stream_specs.channels             = device->output_channels;
-            _device->logical_output_device_id = SDL_OpenAudioDevice(_device->logical_output_device_id, nullptr);
+            _device->logical_output_device_id = static_cast<int>(SDL_OpenAudioDevice(_device->logical_output_device_id, nullptr));
             _device->sdl_output_stream        = SDL_CreateAudioStream(&stream_specs, nullptr);
             if (_device->sdl_output_stream != nullptr && _device->logical_output_device_id > 0) {
                 console("created audio output: ", _device->logical_output_device_id);
@@ -585,13 +580,8 @@ umgebung::SubsystemAudio* umgebung_create_subsystem_audio_sdl() {
     auto* audio         = new umgebung::SubsystemAudio{};
     audio->set_flags    = umgebung::set_flags;
     audio->init         = umgebung::init;
-    audio->setup_pre    = umgebung::setup_pre;
-    audio->setup_post   = umgebung::setup_post;
-    audio->loop         = umgebung::loop;
-    audio->draw_pre     = umgebung::draw_pre;
-    audio->draw_post    = umgebung::draw_post;
+    audio->update_loop  = umgebung::update_loop;
     audio->shutdown     = umgebung::shutdown;
-    audio->event        = umgebung::event;
     audio->name         = umgebung::name;
     audio->start        = umgebung::start;
     audio->stop         = umgebung::stop;

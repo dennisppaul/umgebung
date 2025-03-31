@@ -34,7 +34,7 @@ namespace umgebung {
 
     static void setup_post() { printf("Setup Post\n"); }
 
-    static void shutdown() { printf("Shutdown\n"); }
+    static void shutdown() { printf("Shutdown / TODO clean up window and renderer\n"); }
 
     static bool init() {
         SDL_WindowFlags flags = 0;
@@ -74,7 +74,7 @@ namespace umgebung {
     }
 
     // ReSharper disable once CppParameterMayBeConstPtrOrRef
-    static void event_loop(SDL_Event* event) {
+    static void event_in_update_loop(SDL_Event* event) {
         if (event->type == SDL_EVENT_WINDOW_RESIZED) {
             warning("TODO implement resize in SDL_2D");
         }
@@ -111,7 +111,7 @@ umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_sdl2d() {
     graphics->draw_pre   = umgebung::draw_pre;
     graphics->draw_post  = umgebung::draw_post;
     // graphics->event                = umgebung::event;
-    // graphics->event_loop           = umgebung::event_loop;
+    // graphics->event_in_update_loop           = umgebung::event_in_update_loop;
     graphics->shutdown             = umgebung::shutdown;
     graphics->create_main_graphics = umgebung::create_main_graphics;
     graphics->get_sdl_window       = umgebung::get_sdl_window;

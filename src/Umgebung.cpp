@@ -443,9 +443,9 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
-            if (subsystem->event_loop != nullptr) {
+            if (subsystem->event_in_update_loop != nullptr) {
                 for (auto e: umgebung::event_cache) {
-                    subsystem->event_loop(&e);
+                    subsystem->event_in_update_loop(&e);
                 }
             }
         }
@@ -454,8 +454,8 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
     for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
         if (subsystem != nullptr) {
-            if (subsystem->loop != nullptr) {
-                subsystem->loop();
+            if (subsystem->update_loop != nullptr) {
+                subsystem->update_loop();
             }
         }
     }

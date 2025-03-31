@@ -73,7 +73,7 @@ namespace umgebung {
     }
 
     // ReSharper disable once CppParameterMayBeConstPtrOrRef
-    static void event_loop(SDL_Event* event) {
+    static void event_in_update_loop(SDL_Event* event) {
         if (event->type == SDL_EVENT_WINDOW_RESIZED) {
             warning("TODO implement resize in OGLv20");
         }
@@ -110,7 +110,7 @@ umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv20() {
     graphics->draw_post            = umgebung::draw_post;
     graphics->shutdown             = umgebung::shutdown;
     graphics->event                = umgebung::event;
-    graphics->event_loop           = umgebung::event_loop;
+    graphics->event_in_update_loop = umgebung::event_in_update_loop;
     graphics->create_main_graphics = umgebung::create_main_graphics;
     graphics->get_sdl_window       = umgebung::get_sdl_window;
     graphics->get_renderer         = umgebung::get_renderer;

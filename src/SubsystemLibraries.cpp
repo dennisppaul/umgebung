@@ -91,10 +91,10 @@ namespace umgebung {
         }
     }
 
-    static void event_loop(SDL_Event* event) {
+    static void event_in_update_loop(SDL_Event* event) {
         for (const auto l: _listeners) {
             if (l != nullptr) {
-                l->event_loop(event);
+                l->event_in_update_loop(event);
             }
         }
     }
@@ -105,15 +105,15 @@ namespace umgebung {
 } // namespace umgebung
 
 umgebung::Subsystem* umgebung_create_subsystem_libraries() {
-    auto* libraries       = new umgebung::Subsystem{};
-    libraries->shutdown   = umgebung::shutdown;
-    libraries->set_flags  = umgebung::set_flags;
-    libraries->setup_pre  = umgebung::setup_pre;
-    libraries->setup_post = umgebung::setup_post;
-    libraries->draw_pre   = umgebung::draw_pre;
-    libraries->draw_post  = umgebung::draw_post;
-    libraries->event      = umgebung::event;
-    libraries->event_loop = umgebung::event_loop;
-    libraries->name       = umgebung::name;
+    auto* libraries                 = new umgebung::Subsystem{};
+    libraries->shutdown             = umgebung::shutdown;
+    libraries->set_flags            = umgebung::set_flags;
+    libraries->setup_pre            = umgebung::setup_pre;
+    libraries->setup_post           = umgebung::setup_post;
+    libraries->draw_pre             = umgebung::draw_pre;
+    libraries->draw_post            = umgebung::draw_post;
+    libraries->event                = umgebung::event;
+    libraries->event_in_update_loop = umgebung::event_in_update_loop;
+    libraries->name                 = umgebung::name;
     return libraries;
 }

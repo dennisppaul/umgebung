@@ -110,7 +110,7 @@ namespace umgebung {
     }
 
     // ReSharper disable once CppParameterMayBeConstPtrOrRef
-    static void event_loop(SDL_Event* event) {
+    static void event_in_update_loop(SDL_Event* event) {
         if (is_hid_event(event)) {
             if (_handle_events_in_loop) {
                 handle_hid_event(*event);
@@ -124,11 +124,11 @@ namespace umgebung {
 } // namespace umgebung
 
 umgebung::Subsystem* umgebung_create_subsystem_hid_events() {
-    auto* libraries       = new umgebung::Subsystem{};
-    libraries->shutdown   = umgebung::shutdown;
-    libraries->set_flags  = umgebung::set_flags;
-    libraries->event      = umgebung::event;
-    libraries->event_loop = umgebung::event_loop;
-    libraries->name       = umgebung::name;
+    auto* libraries                 = new umgebung::Subsystem{};
+    libraries->shutdown             = umgebung::shutdown;
+    libraries->set_flags            = umgebung::set_flags;
+    libraries->event                = umgebung::event;
+    libraries->event_in_update_loop = umgebung::event_in_update_loop;
+    libraries->name                 = umgebung::name;
     return libraries;
 }

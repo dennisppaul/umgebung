@@ -31,12 +31,12 @@ namespace umgebung {
         bool (*init)();
         void (*setup_pre)();
         void (*setup_post)();
-        void (*loop)(); /* higher frequency loop but on same thread as draw, called before each draw */
+        void (*update_loop)(); /* higher frequency update loop but on same thread as draw, called before each draw */
         void (*draw_pre)();
         void (*draw_post)();
         void (*shutdown)();
         void (*event)(SDL_Event* event);
-        void (*event_loop)(SDL_Event* event);
+        void (*event_in_update_loop)(SDL_Event* event);
         const char* (*name)();
     };
 
@@ -82,13 +82,14 @@ namespace umgebung {
     public:
         virtual ~LibraryListener() = default;
         // TODO maybe add `loop()` aka `update()`
-        virtual void setup_pre()                  = 0;
-        virtual void setup_post()                 = 0;
-        virtual void draw_pre()                   = 0;
-        virtual void draw_post()                  = 0;
-        virtual void event(SDL_Event* event)      = 0; // NOTE events maybe handled in own thread
-        virtual void event_loop(SDL_Event* event) = 0; // NOTE events are handled in the main loop
-        virtual void shutdown()                   = 0;
+        virtual void setup_pre()                            = 0;
+        virtual void setup_post()                           = 0;
+        virtual void update_loop()                          = 0;
+        virtual void draw_pre()                             = 0;
+        virtual void draw_post()                            = 0;
+        virtual void event(SDL_Event* event)                = 0; // NOTE events maybe handled in own thread
+        virtual void event_in_update_loop(SDL_Event* event) = 0; // NOTE events are handled in the main loop
+        virtual void shutdown()                             = 0;
     };
 } // namespace umgebung
 
