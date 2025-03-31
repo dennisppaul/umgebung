@@ -200,8 +200,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
                 umgebung::subsystem_audio                = umgebung::create_subsystem_audio();
                 umgebung::handle_subsystem_audio_cleanup = true;
             } else {
-                umgebung::console("+++ no audio subsystem provided, using default.");
-                umgebung::subsystem_audio                = umgebung_create_subsystem_audio_sdl();
+                umgebung::console("+++ no audio subsystem provided, using default ( PortAudio ).");
+                // umgebung::subsystem_audio                = umgebung_create_subsystem_audio_sdl();
+                umgebung::subsystem_audio                = umgebung_create_subsystem_audio_portaudio();
                 umgebung::handle_subsystem_audio_cleanup = true;
             }
             if (umgebung::subsystem_audio == nullptr) {

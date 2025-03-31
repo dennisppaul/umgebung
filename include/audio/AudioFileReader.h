@@ -56,7 +56,7 @@ private:
 
     public:
         bool open(const std::string& filepath) override {
-            bool mInitState = drmp3_init_file(&mp3, filepath.c_str(), nullptr);
+            const bool mInitState = drmp3_init_file(&mp3, filepath.c_str(), nullptr);
             if (mInitState) {
                 frame_size = drmp3_get_pcm_frame_count(&mp3);
             }
@@ -180,6 +180,14 @@ public:
         return fReader->eof();
     }
 
+    /**
+     * load an entire audio file into memory. file can be either WAV or MP3.
+     * @param filepath
+     * @param channels
+     * @param sample_rate
+     * @param length
+     * @return buffer containing the audio data
+     */
     static float* load(const std::string& filepath,
                        unsigned int&      channels,
                        unsigned int&      sample_rate,
@@ -219,7 +227,7 @@ public:
             return false;
         }
 
-        FileType mFileType = determineFileType(filepath);
+        const FileType mFileType = determineFileType(filepath);
         if (mFileType == FileType::WAV) {
             fFileType = FileType::WAV;
             fReader   = new WAVReader();
@@ -339,13 +347,13 @@ private:
     }
 
     static FileType determineFileType(const std::string& filepath) {
-        size_t dotPos = filepath.find_last_of('.');
+        const size_t dotPos = filepath.find_last_of('.');
 
         if (dotPos == std::string::npos || dotPos == filepath.length() - 1) {
             return FileType::UNKNOWN;
         }
 
-        std::string extension = toLower(filepath.substr(dotPos + 1));
+        const std::string extension = toLower(filepath.substr(dotPos + 1));
 
         if (extension == "wav") {
             return FileType::WAV;

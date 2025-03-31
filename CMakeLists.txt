@@ -7,6 +7,8 @@ project(umgebung-lib)
 message(STATUS "----------------------------------------")
 message(STATUS "UMGEBUNG_APP  : ${PROJECT_NAME}")
 
+option(ENABLE_PORTAUDIO "Enable PortAudio output" ON)
+
 #if (NOT DEFINED UMGEBUNG_APP OR "${UMGEBUNG_APP}" STREQUAL "")
 #    message(STATUS "CHARACTER     : using umgebung standalone ( UMGEBUNG_APP not set )")
 #    set(BUILD_STANDALONE ON)
@@ -152,7 +154,7 @@ target_include_directories(umgebung-lib PUBLIC
 ### EN/DISABLE LIBRARIES                                                                               ###
 ##########################################################################################################
 if (NOT TARGET umgebung-lib-interface)
-add_library(umgebung-lib-interface INTERFACE) # this enables `glm::aligned_vec*` types
+    add_library(umgebung-lib-interface INTERFACE) # this enables `glm::aligned_vec*` types
 endif ()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GLM_ENABLE_EXPERIMENTAL)
@@ -351,7 +353,7 @@ endif ()
 # GRAPHICS + VIDEO + AUDIO
 if (NOT DISABLE_AUDIO)
     # TODO always add portaudio?!?
-    target_link_libraries(${PROJECT_NAME} ${PORTAUDIO_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${PORTAUDIO_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${PORTAUDIO_INCLUDE_DIRS})
 endif (NOT DISABLE_AUDIO)
 

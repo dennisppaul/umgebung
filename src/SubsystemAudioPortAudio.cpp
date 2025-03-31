@@ -349,7 +349,7 @@ namespace umgebung {
         return true;
     }
 
-    static void loop() {
+    static void update_loop() {
         for (const auto device: audio_devices) {
             if (device != nullptr) {
                 device->loop();
@@ -468,7 +468,7 @@ umgebung::SubsystemAudio* umgebung_create_subsystem_audio_portaudio() {
     audio->init         = umgebung::init;
     audio->setup_pre    = umgebung::setup_pre;
     audio->setup_post   = umgebung::setup_post;
-    audio->loop         = umgebung::loop;
+    audio->update_loop  = umgebung::update_loop;
     audio->draw_pre     = umgebung::draw_pre;
     audio->draw_post    = umgebung::draw_post;
     audio->shutdown     = umgebung::shutdown;
