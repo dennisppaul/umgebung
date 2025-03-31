@@ -37,6 +37,9 @@ namespace umgebung {
     struct AudioUnitInfo;
     class LibraryListener;
     struct Vertex;
+    template<typename T>
+    class SamplerT;
+    using Sampler = SamplerT<float>;
 
     bool                     begins_with(const std::string& str, const std::string& prefix);
     bool                     ends_with(const std::string& str, const std::string& suffix);
@@ -72,6 +75,7 @@ namespace umgebung {
     void                     unregister_library(const LibraryListener* listener); /* implemented in subsystems */
     void                     handle_events_in_loop(bool events_in_loop);          /* implemented in subsystems */
     std::vector<Vertex>      loadOBJ(const std::string& filename);
+    Sampler*                 loadSample(const std::string& filename);
 
     /* --- templated functions --- */
 

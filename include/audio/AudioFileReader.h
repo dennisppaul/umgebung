@@ -20,12 +20,9 @@
 #pragma once
 
 #include <string>
-#include <stdbool.h>
 #include <iostream>
 
-#define DR_WAV_IMPLEMENTATION
 #include "dr_wav.h"
-#define DR_MP3_IMPLEMENTATION
 #include "dr_mp3.h"
 
 /**
@@ -36,7 +33,7 @@ class AudioFileReader {
 private:
     class Reader {
     public:
-        virtual ~Reader() {}
+        virtual ~Reader() = default;
         virtual bool open(const std::string& filepath)       = 0;
         virtual bool open(const char* data, size_t size)     = 0;
         virtual void close()                                 = 0;

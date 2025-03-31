@@ -817,7 +817,6 @@ void PGraphics::resize_ellipse_points_LUT() {
     ellipse_points_LUT.clear();
     ellipse_points_LUT.resize(ellipse_detail + 1); // Resize instead of reserve
 
-    constexpr float PI         = 3.14159265358979323846f;
     const float     deltaTheta = (2.0f * PI) / static_cast<float>(ellipse_detail);
 
     for (int i = 0; i <= ellipse_detail; ++i) {

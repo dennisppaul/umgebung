@@ -53,14 +53,14 @@
 namespace umgebung {
     class Wavetable {
     public:
-        Wavetable(const uint32_t wavetable_size, const uint32_t sampling_rate) : Wavetable(new float[wavetable_size], wavetable_size, sampling_rate) {
+        Wavetable(const uint32_t wavetable_size, const float sample_rate) : Wavetable(new float[wavetable_size], wavetable_size, sample_rate) {
             fDeleteWavetable = true;
         }
 
-        Wavetable(float* wavetable, const uint32_t wavetable_size, const uint32_t sampling_rate) : mWavetableSize(wavetable_size),
-                                                                                                   mSamplingRate(sampling_rate),
-                                                                                                   mFrequency(0),
-                                                                                                   fInterpolationType(AudioUtilities::WAVESHAPE_INTERPOLATE_NONE) {
+        Wavetable(float* wavetable, const uint32_t wavetable_size, const float sample_rate) : mWavetableSize(wavetable_size),
+                                                                                              sample_rate(sample_rate),
+                                                                                              mFrequency(0),
+                                                                                              fInterpolationType(AudioUtilities::WAVESHAPE_INTERPOLATE_NONE) {
             mWavetable                = wavetable;
             fDeleteWavetable          = false;
             mArrayPtr                 = 0;
@@ -332,7 +332,7 @@ namespace umgebung {
         static constexpr float M_DEFAULT_FREQUENCY = 220.0f;
         float*                 mWavetable;
         const uint32_t         mWavetableSize;
-        const uint32_t         mSamplingRate;
+        const float            sample_rate;
         bool                   fDeleteWavetable;
         float                  mAmplitude;
         float                  mArrayPtr;
@@ -363,7 +363,7 @@ namespace umgebung {
         }
 
         float computeStepSize() const {
-            return mFrequency * (static_cast<float>(mWavetableSize) / static_cast<float>(mSamplingRate));
+            return mFrequency * (static_cast<float>(mWavetableSize) / static_cast<float>(sample_rate));
         }
 
         float next_sample() {

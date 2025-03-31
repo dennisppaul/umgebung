@@ -126,9 +126,9 @@ namespace umgebung {
                 AudioUnitInfoSDL _device;
                 _device.logical_device_id = static_cast<int>(_audio_device_ids[i]);
                 _device.input_buffer      = nullptr;
-                _device.input_channels    = 0;
+                _device.input_channels    = is_input_device ? spec.channels : 0;
                 _device.output_buffer     = nullptr;
-                _device.output_channels   = spec.channels;
+                _device.output_channels   = is_input_device ? 0 : spec.channels;
                 _device.buffer_size       = BUFFER_SIZE_UNDEFINED;
                 _device.sample_rate       = spec.freq;
                 if (is_input_device) {
@@ -190,7 +190,7 @@ namespace umgebung {
     }
 
     static void print_device_info(const AudioUnitInfoSDL& device) {
-        // TODO there is an incosistency here: AudioUnitInfoSDL only stores one logical device id although a unit is made up of two logical devices
+        // TODO there is an inconsistency here: AudioUnitInfoSDL only stores one logical device id although a unit is made up of two logical devices
         console(format_label("- [" + to_string(device.logical_device_id) + "]" + (device.logical_device_id > 9 ? " " : "") + device.input_device_name + "/" + device.output_device_name, format_width),
                 "in: ", device.input_channels, ", ",
                 "out: ", device.output_channels, ", ",
@@ -223,6 +223,7 @@ namespace umgebung {
 
         separator_subheadline();
         console("AUDIO OUTPUT DEVICES");
+        separator_subheadline();
         _devices_found.clear();
         find_audio_output_devices(_devices_found);
         for (const auto& d: _devices_found) {

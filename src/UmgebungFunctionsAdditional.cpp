@@ -28,6 +28,8 @@
 #include "tiny_obj_loader.h"
 
 #include "Umgebung.h"
+#include "audio/AudioFileReader.h"
+#include "audio/Sampler.h"
 
 namespace umgebung {
 
@@ -344,11 +346,34 @@ namespace umgebung {
                 const tinyobj::real_t green = attrib.colors[3 * index.vertex_index + 1];
                 const tinyobj::real_t blue  = attrib.colors[3 * index.vertex_index + 2];
 
-                vertices.emplace_back(Vertex(glm::vec3(vx, vy, vz),
-                                             glm::vec4(red, green, blue, 1.0f),
-                                             glm::vec2(tx, ty)));
+                vertices.emplace_back(glm::vec3(vx, vy, vz),
+                                      glm::vec4(red, green, blue, 1.0f),
+                                      glm::vec2(tx, ty));
             }
         }
         return vertices;
+    }
+
+    Sampler* loadSample(const std::string& filename) {
+        unsigned int channels;
+        unsigned int sample_rate;
+        drwav_uint64 length;
+        float*       sample_buffer = AudioFileReader::load(filename, channels, sample_rate, length);
+        console("loading sample: ");
+        console("channels   : ", channels);
+        console("sample_rate: ", sample_rate);
+        console("length     : ", length);
+        console("size       : ", channels * length);
+        if (channels > 1) {
+            warning("only mono samples are supported for sampler. using first channel only.");
+            const auto single_buffer = new float[length];
+            for (int i = 0; i < length; i++) {
+                single_buffer[i] = sample_buffer[i * channels];
+            }
+            delete[] sample_buffer;
+            sample_buffer = single_buffer;
+        }
+        const auto sampler = new Sampler(sample_buffer, length, sample_rate);
+        return sampler;
     }
 } // namespace umgebung

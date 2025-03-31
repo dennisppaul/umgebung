@@ -46,24 +46,24 @@ namespace umgebung {
          * Original author(s) : Victor Lazzarini, John ffitch (fast tanh), Bob Moog
          */
 
-        const uint32_t fSampleRate;
-        float          fCutoffFrequency;
-        float          fDelay[6]{};
-        float          fOldAcr;
-        float          fOldFreq;
-        float          fOldRes;
-        float          fOldTune;
-        float          fResonance;
-        float          fTanhstg[3]{};
-        float          amplification;
+        const float fSampleRate;
+        float       fCutoffFrequency;
+        float       fDelay[6]{};
+        float       fOldAcr;
+        float       fOldFreq;
+        float       fOldRes;
+        float       fOldTune;
+        float       fResonance;
+        float       fTanhstg[3]{};
+        float       amplification;
 
     public:
-        explicit LowPassFilter(const uint32_t sample_rate) : fSampleRate(sample_rate),
-                                                             fCutoffFrequency(1000.0f),
-                                                             fOldAcr(0),
-                                                             fOldTune(0),
-                                                             fResonance(0.4f),
-                                                             amplification(8.0f) {
+        explicit LowPassFilter(const float sample_rate) : fSampleRate(sample_rate),
+                                                          fCutoffFrequency(1000.0f),
+                                                          fOldAcr(0),
+                                                          fOldTune(0),
+                                                          fResonance(0.4f),
+                                                          amplification(8.0f) {
             for (uint8_t i = 0; i < 6; i++) {
                 fDelay[i]       = 0.0f;
                 fTanhstg[i % 3] = 0.0f;

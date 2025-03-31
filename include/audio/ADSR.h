@@ -52,7 +52,7 @@ namespace umgebung {
          *
          */
     public:
-        explicit ADSR(const uint32_t sample_rate) : fSampleRate(sample_rate), FADE_TO_ZERO_RATE_SEC(0.01f), USE_FADE_TO_ZERO_STATE(false) {
+        explicit ADSR(const float sample_rate) : fSampleRate(sample_rate), FADE_TO_ZERO_RATE_SEC(0.01f), USE_FADE_TO_ZERO_STATE(false) {
             fAmp     = 0.0f;
             fAttack  = AudioUtilities::DEFAULT_ATTACK;
             fDecay   = AudioUtilities::DEFAULT_DECAY;
@@ -156,7 +156,7 @@ namespace umgebung {
             RELEASE,
             PRE_ATTACK_FADE_TO_ZERO
         };
-        const uint32_t fSampleRate;
+        const float    fSampleRate;
         const float    FADE_TO_ZERO_RATE_SEC;
         const bool     USE_FADE_TO_ZERO_STATE;
         float          fAmp;

@@ -20,20 +20,22 @@
 #pragma once
 
 #include <cmath>
-#include <math.h>
-#include <stdint.h>
+#include <cstdint>
 #include <limits>
+#include "miniaudio.h"
+#include <vector>
+#include <iostream>
 
 #ifndef PI
-#define PI M_PI
+#define PI (float) M_PI
 #endif
 
 #ifndef TWO_PI
-#define TWO_PI (M_PI * 2)
+#define TWO_PI (M_PI * 2.0f)
 #endif
 
 #ifndef HALF_PI
-#define HALF_PI (M_PI / 2)
+#define HALF_PI (M_PI * 0.5f)
 #endif
 
 #ifndef KLANGWELLEN_WAVETABLE_INTERPOLATE_SAMPLES
@@ -153,11 +155,11 @@ namespace umgebung {
             return 20.0f * log10(volume);
         }
 
-        static constexpr float   MIDI_NOTE_CONVERSION_BASE_FREQUENCY = 440.0;
+        static constexpr float   MIDI_NOTE_CONVERSION_BASE_FREQUENCY = 440.0f;
         static constexpr uint8_t NOTE_OFFSET                         = 69;
 
         static float midi_note_to_frequency(const uint8_t midi_note) {
-            return MIDI_NOTE_CONVERSION_BASE_FREQUENCY * pow(2, (midi_note - NOTE_OFFSET) / 12.0);
+            return MIDI_NOTE_CONVERSION_BASE_FREQUENCY * pow(2, (float) (midi_note - NOTE_OFFSET) / 12.0f);
         }
 
         static void normalize(float* buffer, const uint32_t numSamples) {
@@ -584,6 +586,60 @@ namespace umgebung {
             for (uint32_t i = 0; i < length; i++) {
                 buffer_a[i] /= scalar;
             }
+        }
+
+
+        /**
+         * usage:
+         * std::vector<float> input;
+         * std::vector<float> output;
+         * resample_buffer(input.data(), input.size() / 2, 44100, 48000, 2, output); // stereo
+         *
+         * @param input
+         * @param input_frame_count
+         * @param in_sample_rate
+         * @param out_sample_rate
+         * @param channels
+         * @param output
+         */
+        static void resample_buffer(const float*        input,
+                                    const size_t        input_frame_count,
+                                    const uint32_t      in_sample_rate,
+                                    const uint32_t      out_sample_rate,
+                                    const uint32_t      channels,
+                                    std::vector<float>& output) {
+            // configure the resampler
+            const ma_resampler_config config = ma_resampler_config_init(ma_format_f32, channels,
+                                                                        in_sample_rate, out_sample_rate,
+                                                                        ma_resample_algorithm_linear);
+
+            ma_resampler resampler;
+            if (ma_resampler_init(&config, nullptr, &resampler) != MA_SUCCESS) {
+                std::cerr << "Failed to init resampler\n";
+                return;
+            }
+
+            // calculate output buffer size
+            ma_uint64 estimated_output_frame_count;
+            ma_resampler_get_expected_output_frame_count(&resampler, input_frame_count, &estimated_output_frame_count);
+            output.resize(estimated_output_frame_count * channels);
+
+            ma_uint64 input_frames_read     = input_frame_count;
+            ma_uint64 output_frames_written = estimated_output_frame_count;
+
+            const ma_result result = ma_resampler_process_pcm_frames(&resampler,
+                                                                     input,
+                                                                     &input_frames_read,
+                                                                     output.data(),
+                                                                     &output_frames_written);
+
+            if (result != MA_SUCCESS) {
+                std::cerr << "Resampling failed\n";
+                output.clear();
+            } else {
+                output.resize(output_frames_written * channels); // trim to actual size
+            }
+            ma_resampler_uninit(&resampler, nullptr);
         }
     };
 } // namespace umgebung

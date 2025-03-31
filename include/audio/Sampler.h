@@ -57,16 +57,16 @@ namespace umgebung {
 
         explicit SamplerT(int32_t  buffer_length,
                           uint32_t sample_rate) : SamplerT(new BUFFER_TYPE[buffer_length], buffer_length, sample_rate) {
-            fAllocatedBuffer = true;
+            fOwnsBuffer = true;
         }
 
-        SamplerT(BUFFER_TYPE*   buffer,
-                 const int32_t  buffer_length,
-                 const uint32_t sample_rate) : fSampleRate(sample_rate),
-                                               fDirectionForward(true),
-                                               fInPoint(0),
-                                               fOutPoint(0),
-                                               fSpeed(0) {
+        SamplerT(BUFFER_TYPE*  buffer,
+                 const int32_t buffer_length,
+                 const float   sample_rate) : fSampleRate(sample_rate),
+                                            fDirectionForward(true),
+                                            fInPoint(0),
+                                            fOutPoint(0),
+                                            fSpeed(0) {
             set_buffer(buffer, buffer_length);
             fBufferIndex        = 0;
             fInterpolateSamples = false;
@@ -77,18 +77,22 @@ namespace umgebung {
             fFrequencyScale = 1.0f;
             set_speed(1.0f);
             set_amplitude(1.0f);
-            fIsRecording     = false;
-            fAllocatedBuffer = false;
+            fIsRecording = false;
+            fOwnsBuffer  = false;
         }
 
         ~SamplerT() {
-            if (fAllocatedBuffer) {
+            if (fOwnsBuffer) {
                 delete[] fBuffer;
             }
         }
 
         float get_sample_rate() const {
             return fSampleRate;
+        }
+
+        void set_sample_rate(float sample_rate) {
+            fSampleRate = sample_rate;
         }
 
         void add_listener(SamplerListener* sampler_listener) {
@@ -121,7 +125,8 @@ namespace umgebung {
         }
 
         void set_out(const int32_t out_point) {
-            fOutPoint = out_point > last_index() ? last_index() : (out_point < fInPoint ? fInPoint : out_point);
+            fOutPoint = out_point > last_index() ? last_index() : out_point < fInPoint ? fInPoint
+                                                                                       : out_point;
         }
 
         float get_speed() const {
@@ -159,10 +164,22 @@ namespace umgebung {
             return fBufferLength;
         }
 
-        void set_buffer(BUFFER_TYPE* buffer, const int32_t buffer_length) {
-            fAllocatedBuffer = false; // TODO huuui, this is not nice and might cause some trouble somewhere
-            fBuffer          = buffer;
-            fBufferLength    = buffer_length;
+        void resample(const uint32_t in_sample_rate, const uint32_t out_sample_rate) {
+            float*             raw        = fBuffer;
+            const size_t       numSamples = fBufferLength;
+            const std::vector  input(raw, raw + numSamples);
+            std::vector<float> output;
+            AudioUtilities::resample_buffer(input.data(), input.size(), in_sample_rate, out_sample_rate, 1, output);
+            const auto resampled = new float[output.size()];
+            std::copy(output.begin(), output.end(), resampled);
+            delete[] raw;
+            set_buffer(resampled, static_cast<int32_t>(output.size()), true);
+        }
+
+        void set_buffer(BUFFER_TYPE* buffer, const int32_t buffer_length, const bool sampler_owns_buffer = false) {
+            fOwnsBuffer   = sampler_owns_buffer;
+            fBuffer       = buffer;
+            fBufferLength = buffer_length;
             rewind();
             set_speed(fSpeed);
             set_in(0);
@@ -215,7 +232,7 @@ namespace umgebung {
             const int32_t mCurrentIndex = wrapIndex(mRoundedIndex);
             fBufferIndex                = mCurrentIndex + mFrac;
 
-            if (fDirectionForward ? (mCurrentIndex >= fOutPoint) : (mCurrentIndex <= fInPoint)) {
+            if (fDirectionForward ? mCurrentIndex >= fOutPoint : mCurrentIndex <= fInPoint) {
                 notifyListeners(); // "reached end"
                 return 0.0f;
             } else {
@@ -282,7 +299,7 @@ namespace umgebung {
         void set_looping() {
             fEvaluateLoop = true;
             fLoopIn       = 0;
-            fLoopOut      = fBufferLength > 0 ? (fBufferLength - 1) : 0;
+            fLoopOut      = fBufferLength > 0 ? fBufferLength - 1 : 0;
         }
 
         void play() {
@@ -341,11 +358,11 @@ namespace umgebung {
                 mBuffer[i] = fRecording[i];
             }
             fRecording.clear();
-            if (fAllocatedBuffer) {
+            if (fOwnsBuffer) {
                 delete[] fBuffer;
             }
             set_buffer(mBuffer, mBufferLength);
-            fAllocatedBuffer = true;
+            fOwnsBuffer = true;
             return mBufferLength;
         }
 
@@ -418,7 +435,7 @@ namespace umgebung {
             if (fBufferLength == 0 || seconds == 0.0f) {
                 return;
             }
-            const float mNormDurationSec = (static_cast<float>(fBufferLength) / static_cast<float>(fSampleRate));
+            const float mNormDurationSec = static_cast<float>(fBufferLength) / fSampleRate;
             const float mSpeed           = mNormDurationSec / seconds;
             set_speed(mSpeed);
         }
@@ -427,14 +444,14 @@ namespace umgebung {
             if (fBufferLength == 0 || fSpeed == 0.0f) {
                 return 0;
             }
-            const float mNormDurationSec = (static_cast<float>(fBufferLength) / static_cast<float>(fSampleRate));
+            const float mNormDurationSec = static_cast<float>(fBufferLength) / fSampleRate;
             return mNormDurationSec / fSpeed;
         }
 
     private:
         std::vector<SamplerListener*> fSamplerListeners;
         std::vector<BUFFER_TYPE>      fRecording;
-        const float                   fSampleRate;
+        float                         fSampleRate;
         float                         fAmplitude;
         BUFFER_TYPE*                  fBuffer;
         int32_t                       fBufferLength;
@@ -454,7 +471,7 @@ namespace umgebung {
         float                         fStepSize;
         bool                          fIsFlaggedDone;
         bool                          fIsRecording;
-        bool                          fAllocatedBuffer;
+        bool                          fOwnsBuffer;
 
         int32_t last_index() const {
             return fBufferLength - 1;
