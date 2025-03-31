@@ -274,9 +274,8 @@ endif ()
 
 # GRAPHICS + VIDEO
 if (NOT DISABLE_GRAPHICS)
-    # OpenGL + GLEW + FTGL
+    # OpenGL + GLEW
     pkg_search_module(GLEW REQUIRED glew)
-    pkg_search_module(FTGL REQUIRED ftgl) # NOTE @deprecated may be removed in the future
     pkg_search_module(GLM REQUIRED glm) # TODO add to brew file
     find_package(OpenGL REQUIRED)
     find_package(SDL3 CONFIG REQUIRED)
@@ -367,11 +366,9 @@ if (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
 endif (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
 
 if (NOT DISABLE_GRAPHICS)
-    # OpenGL + FTGL + GLEW + GLM
+    # OpenGL + GLEW + GLM
     target_link_libraries(${PROJECT_NAME} PUBLIC ${OPENGL_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${OPENGL_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} PUBLIC ${FTGL_LIBRARIES})
-    target_include_directories(${PROJECT_NAME} PUBLIC ${FTGL_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} PUBLIC ${GLEW_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${GLEW_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} PUBLIC ${GLM_LIBRARIES})
