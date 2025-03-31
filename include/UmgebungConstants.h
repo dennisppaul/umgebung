@@ -26,6 +26,7 @@
 
 namespace umgebung {
     static constexpr int   DEFAULT                       = -1;
+    static constexpr int   NOT_INITIALIZED               = -1;
     static constexpr int   DEFAULT_WINDOW_WIDTH          = 1024;
     static constexpr int   DEFAULT_WINDOW_HEIGHT         = 768;
     static constexpr int   DEFAULT_FRAME_RATE            = 60;
@@ -150,7 +151,7 @@ namespace umgebung {
         OPENGL_3_3,
         OPENGL,
         OPENGL_ES_3_0, // iOS
-        OPENGL_ES_3_1,  // RPI4+5
+        OPENGL_ES_3_1, // RPI4+5
         SDL_2D,
     };
     const std::string SHADER_UNIFORM_MODEL_MATRIX      = "uModelMatrix";

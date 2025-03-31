@@ -81,7 +81,7 @@ namespace umgebung {
     class LibraryListener {
     public:
         virtual ~LibraryListener() = default;
-        // TODO what are they listening to?
+        // TODO maybe add `loop()` aka `update()`
         virtual void setup_pre()                  = 0;
         virtual void setup_post()                 = 0;
         virtual void draw_pre()                   = 0;

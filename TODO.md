@@ -7,7 +7,7 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung add exporters ( `saveImage()`, `savePDF()`, `saveOBJ()` )
 - [ ] separate transparent + non-transparent primitives
 - [ ] in `PGraphicsDefault2D` implement 3D by manually transforming points onto 2D 
-- [ ] @umgebung try PGraphics for offscreen rendering
+- [x] @umgebung try PGraphics for offscreen rendering
 - [ ] @umgebung add camera ( see https://chatgpt.com/share/67dfbe72-855c-8004-8b37-28d10d5c7ab3 )
 - [ ] @umgebung add normals to sphere and box shapes
 - [ ] `GL_POINTS` might need some shader love ( i.e `gl_PointSize` + `gl_PointCoord` for point sprites ) @later
@@ -211,13 +211,15 @@ this is a VERY unsorted todo list and a note pad.
 
 ## examples
 
-- @umgebung example style:
-    ```C
-    background(0.85f);        // grey
-    fill(0.5f, 0.85f, 1.0f);  // blue
-    fill(1.0f, 0.25f, 0.35f); // red
-    stroke(0.0f);             // black
-    ```
+style:
+
+```C
+background(0.85f);        // grey
+fill(0.5f, 0.85f, 1.0f);  // blue
+fill(1.0f, 0.25f, 0.35f); // red
+stroke(0.0f);             // black
+```
+
 - [ ] @umgebung start a series of *educated* examples
 - [ ] @umgebung start dedicated font example
 - [ ] @umgebung try with font [Inter](https://rsms.me/inter/)
@@ -369,6 +371,6 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung maybe add an option to return the generated triangles with endShape()
 - [ ] @umgebung design neon font ![](IMG_3102.jpeg)
 - [ ] @umgebung add lighting ( see processing shaders `$HOME/Documents/dev/processing/git/processing4/core/src/processing/opengl/shaders` )
-- [ ] @umgebung release end of the week ( need more examples until then )
+- [x] @umgebung release end of the week ( need more examples until then )
 - [ ] @umgebung PVector vs glm::vec3 at least some functions to convert between the two
-- [ ] @umgebung byte the bullet and test offscreen rendering in `Advanced`
+- [x] @umgebung byte the bullet and test offscreen rendering in `Advanced`
