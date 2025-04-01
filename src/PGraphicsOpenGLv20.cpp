@@ -637,6 +637,13 @@ void PGraphicsOpenGLv20::hint(const uint16_t property) {
             glDisable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
             break;
+        case ENABLE_DEPTH_TEST:
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_LESS);
+            break;
+        case DISABLE_DEPTH_TEST:
+            glDisable(GL_DEPTH_TEST);
+            break;
         default:
             break;
     }

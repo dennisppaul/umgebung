@@ -289,8 +289,6 @@ namespace umgebung {
         std::vector<glm::mat4> model_matrix_stack{};
 
     protected:
-        // TODO clean this up:
-
         bool texture_id_pushed{false};
         void push_texture_id() {
             if (!texture_id_pushed) {

@@ -403,7 +403,5 @@ namespace umgebung {
             IMPL_bind_texture(tmp_bound_texture);
             return true;
         }
-
-
     }; // class PGraphicsOpenGL
 } // namespace umgebung

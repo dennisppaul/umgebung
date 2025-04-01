@@ -7,7 +7,6 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung add exporters ( `saveImage()`, `savePDF()`, `saveOBJ()` )
 - [ ] separate transparent + non-transparent primitives
 - [ ] in `PGraphicsDefault2D` implement 3D by manually transforming points onto 2D 
-- [x] @umgebung try PGraphics for offscreen rendering
 - [ ] @umgebung add camera ( see https://chatgpt.com/share/67dfbe72-855c-8004-8b37-28d10d5c7ab3 )
 - [ ] @umgebung add normals to sphere and box shapes
 - [ ] `GL_POINTS` might need some shader love ( i.e `gl_PointSize` + `gl_PointCoord` for point sprites ) @later
@@ -15,7 +14,6 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung implement extra buffer for transparent primitives
     - [ ] WB OIT https://learnopengl.com/Guest-Articles/2020/OIT/Weighted-Blended
     - [ ] https://www.khronos.org/opengl/wiki/Transparency_Sorting
-- [ ] @umgebung add `curve` ( see chatgpt )
 - [ ] @umgebung add to OpenGL2.0
     ```C
     void upload_image(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
@@ -23,7 +21,7 @@ this is a VERY unsorted todo list and a note pad.
     ```
 - [ ] @umgebung add function to `PFont` to generate a `PImage` with a static text as texture
 - [ ] @umgebung remove all references to graphics subsystem from PGraphics ( and derived classes )
-- [ ] @umgebung #warmup fix set window title ( default to `$PROJECT_NAME`from CMake )
+- [ ] @umgebung fix set window title ( default to `$PROJECT_NAME`from CMake )
 
 ## audio
 
@@ -371,6 +369,11 @@ stroke(0.0f);             // black
 - [ ] @umgebung maybe add an option to return the generated triangles with endShape()
 - [ ] @umgebung design neon font ![](IMG_3102.jpeg)
 - [ ] @umgebung add lighting ( see processing shaders `$HOME/Documents/dev/processing/git/processing4/core/src/processing/opengl/shaders` )
-- [x] @umgebung release end of the week ( need more examples until then )
 - [ ] @umgebung PVector vs glm::vec3 at least some functions to convert between the two
-- [x] @umgebung byte the bullet and test offscreen rendering in `Advanced`
+
+## Archived
+
+- [x] @umgebung byte the bullet and test offscreen rendering in `Advanced` @archived(2025-04-01) @from(Umgebung / TODO + NOTES > unsorted) @done(2025-04-01)
+- [x] @umgebung release end of the week ( need more examples until then ) @archived(2025-04-01) @from(Umgebung / TODO + NOTES > unsorted) @done(2025-04-01)
+- [x] @umgebung add `curve` @archived(2025-04-01) @from(Umgebung / TODO + NOTES > graphics) @done(2025-04-01)
+- [x] @umgebung try PGraphics for offscreen rendering @archived(2025-04-01) @from(Umgebung / TODO + NOTES > graphics) @done(2025-04-01)

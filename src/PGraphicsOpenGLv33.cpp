@@ -313,7 +313,7 @@ void PGraphicsOpenGLv33::render_framebuffer_to_screen(const bool use_blit) {
                           GL_COLOR_BUFFER_BIT, GL_LINEAR); // TODO maybe GL_NEAREST is enough
         glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     } else {
-        warning("`render_framebuffer_to_screen` need to implement this ... may re-use existing shader");
+        warning("TODO only blitting supported atm … `render_framebuffer_to_screen` needs to implement this ... may re-use existing shader");
         // glBindFramebuffer(GL_FRAMEBUFFER, 0);
         // glDisable(GL_DEPTH_TEST);
         // glDisable(GL_BLEND);
@@ -370,7 +370,7 @@ void PGraphicsOpenGLv33::upload_texture(PImage*         img,
     }
 
     if (img->texture_id < TEXTURE_VALID_ID) {
-        OGL_generate_and_upload_image_as_texture(img, mipmapped);
+        OGL_generate_and_upload_image_as_texture(img, mipmapped); // NOTE texture binding and unbinding is handled here properly
         console("PGraphics / `upload_texture` texture has not been initialized yet … trying to initialize");
         if (img->texture_id < TEXTURE_VALID_ID) {
             error("PGraphics / `upload_texture` failed to create texture");
@@ -428,11 +428,11 @@ void PGraphicsOpenGLv33::download_texture(PImage* img) {
     IMPL_bind_texture(tmp_bound_texture);
 }
 
-void PGraphicsOpenGLv33::init(uint32_t* pixels,
-                              const int width,
-                              const int height,
-                              const int format,
-                              bool      generate_mipmap) {
+void PGraphicsOpenGLv33::init(uint32_t*  pixels,
+                              const int  width,
+                              const int  height,
+                              const int  format,
+                              const bool generate_mipmap) {
     (void) format;                         // TODO should this always be ignored? NOTE main graphics are always RGBA
     (void) generate_mipmap;                // TODO should this always be ignored?
     const int msaa_samples = antialiasing; // TODO not cool to take this from Umgebung
@@ -521,7 +521,6 @@ void PGraphicsOpenGLv33::init(uint32_t* pixels,
             glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, framebuffer.width, framebuffer.height);
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
         }
-
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             error("ERROR Framebuffer is not complete!");
