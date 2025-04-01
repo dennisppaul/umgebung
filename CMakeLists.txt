@@ -281,7 +281,6 @@ if (NOT DISABLE_GRAPHICS)
     pkg_search_module(GLM REQUIRED glm) # TODO add to brew file
     find_package(OpenGL REQUIRED)
     find_package(SDL3 CONFIG REQUIRED)
-    find_package(SDL3_ttf CONFIG REQUIRED)
     pkg_search_module(HARFBUZZ REQUIRED harfbuzz)
     pkg_check_modules(FREETYPE REQUIRED freetype2)
 
@@ -343,10 +342,10 @@ if (HOMEBREW_LIB_PATH)
 endif ()
 
 if (WIN32)
-    target_link_libraries(${PROJECT_NAME} wsock32 ws2_32 winmm)
+    target_link_libraries(${PROJECT_NAME} PUBLIC wsock32 ws2_32 winmm)
 elseif (APPLE)
 elseif (UNIX)
-    target_link_libraries(${PROJECT_NAME} Threads::Threads)
+    target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 else ()
 endif ()
 
@@ -362,7 +361,6 @@ if (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
     target_include_directories(${PROJECT_NAME} PUBLIC ${HARFBUZZ_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} PUBLIC ${FREETYPE_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${FREETYPE_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} PUBLIC SDL3_ttf::SDL3_ttf) # NOTE not sure about these explicit lib names
     target_link_libraries(${PROJECT_NAME} PUBLIC SDL3::SDL3) # NOTE not sure about these explicit lib names
     target_include_directories(${PROJECT_NAME} PUBLIC ${SDL3_INCLUDE_DIRS})
 endif (NOT DISABLE_GRAPHICS OR NOT DISABLE_AUDIO)
@@ -406,8 +404,16 @@ endif (NOT DISABLE_GRAPHICS)
 if (NOT DISABLE_MIDI)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${RTMIDI_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${RTMIDI_INCLUDE_DIRS})
-    add_definitions(${RTMIDI_CFLAGS_OTHER})
-    #    target_compile_definitions(${PROJECT_NAME} PUBLIC ${RTMIDI_CFLAGS_OTHER})
+    # add_definitions(${RTMIDI_CFLAGS_OTHER})
+    # message(STATUS "RTMIDI_CFLAGS_OTHER: ${RTMIDI_CFLAGS_OTHER}")
+    foreach(flag ${RTMIDI_CFLAGS_OTHER})
+        if (flag MATCHES "^-D[^=]+(=.+)?$")  # only pass valid -D macros
+            target_compile_definitions(${PROJECT_NAME} PUBLIC "${flag}")
+        elseif (flag STREQUAL "-pthread")
+            target_compile_options(${PROJECT_NAME} PUBLIC "${flag}")
+        endif ()
+    endforeach ()
+    # target_compile_definitions(${PROJECT_NAME} PUBLIC ${RTMIDI_CFLAGS_OTHER})
 endif (NOT DISABLE_MIDI)
 
 ##########################################################################################################

@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <stack>
 #include <sstream>
 #include <glm/glm.hpp>
 

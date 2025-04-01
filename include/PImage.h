@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <cstring>
 #include <cstdint>
 #include <SDL3/SDL.h>
 

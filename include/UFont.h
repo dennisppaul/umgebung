@@ -30,18 +30,18 @@ namespace umgebung {
 
     class UFont {
         // NOTE used for debug text ;)
-        static constexpr int CHAR_WIDTH        = 8;
-        static constexpr int CHAR_HEIGHT       = 12;
+        static constexpr int _CHAR_WIDTH        = 8;
+        static constexpr int _CHAR_HEIGHT       = 12;
         static constexpr int ATLAS_COLS        = 16;
         static constexpr int ATLAS_ROWS        = 8;
-        static constexpr int FONT_ATLAS_WIDTH  = CHAR_WIDTH * ATLAS_COLS;
-        static constexpr int FONT_ATLAS_HEIGHT = CHAR_HEIGHT * ATLAS_ROWS;
+        static constexpr int FONT_ATLAS_WIDTH  = _CHAR_WIDTH * ATLAS_COLS;
+        static constexpr int FONT_ATLAS_HEIGHT = _CHAR_HEIGHT * ATLAS_ROWS;
 
         void generateFontAtlas() {
             uint8_t pixelData[FONT_ATLAS_HEIGHT][FONT_ATLAS_WIDTH][4] = {};
             for (uint32_t ascii_char = 32; ascii_char < 128; ++ascii_char) {
-                const int charX = ((ascii_char - 32) % ATLAS_COLS) * CHAR_WIDTH;
-                const int charY = ((ascii_char - 32) / ATLAS_COLS) * CHAR_HEIGHT;
+                const int charX = ((ascii_char - 32) % ATLAS_COLS) * _CHAR_WIDTH;
+                const int charY = ((ascii_char - 32) / ATLAS_COLS) * _CHAR_HEIGHT;
                 for (uint32_t i = 0; i < Font_7x10.height; i++) {
                     const uint16_t b = Font_7x10.data[(ascii_char - 32) * Font_7x10.height + i];
                     for (uint32_t j = 0; j < Font_7x10.width; j++) {
@@ -89,14 +89,14 @@ namespace umgebung {
                 constexpr float vSize = 1.0f / ATLAS_ROWS;
 
                 vertices.emplace_back(x, y, 0, color.r, color.g, color.b, color.a, u, v);
-                vertices.emplace_back(x + CHAR_WIDTH, y, 0, color.r, color.g, color.b, color.a, u + uSize, v);
-                vertices.emplace_back(x + CHAR_WIDTH, y + CHAR_HEIGHT, 0, color.r, color.g, color.b, color.a, u + uSize, v + vSize);
+                vertices.emplace_back(x + _CHAR_WIDTH, y, 0, color.r, color.g, color.b, color.a, u + uSize, v);
+                vertices.emplace_back(x + _CHAR_WIDTH, y + _CHAR_HEIGHT, 0, color.r, color.g, color.b, color.a, u + uSize, v + vSize);
 
                 vertices.emplace_back(x, y, 0, color.r, color.g, color.b, color.a, u, v);
-                vertices.emplace_back(x + CHAR_WIDTH, y + CHAR_HEIGHT, 0, color.r, color.g, color.b, color.a, u + uSize, v + vSize);
-                vertices.emplace_back(x, y + CHAR_HEIGHT, 0, color.r, color.g, color.b, color.a, u, v + vSize);
+                vertices.emplace_back(x + _CHAR_WIDTH, y + _CHAR_HEIGHT, 0, color.r, color.g, color.b, color.a, u + uSize, v + vSize);
+                vertices.emplace_back(x, y + _CHAR_HEIGHT, 0, color.r, color.g, color.b, color.a, u, v + vSize);
 
-                x += CHAR_WIDTH;
+                x += _CHAR_WIDTH;
             }
             return vertices;
         }
