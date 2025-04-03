@@ -4,9 +4,11 @@ title:  "Umgebung on Raspberry Pi"
 date:   2025-04-03 10:00:00 +0100
 ---
 
-so this is exciting! 
+![2025-04-03-Umgebung-on-Raspberry-Pi.gif](/assets/2025-04-03-Umgebung-on-Raspberry-Pi.gif)
 
----
+so this is exciting! Umgebung can run on a Raspberry Pi 4 Model B or Raspberry Pi 5.
+
+next stop: get *Kernel Mode Setting with Direct Rendering Manager* (KMSDRM) up and runnning! i have already compiled and ran a minimal demo with ImGui … nice!
 
 the following step-by-step guid is also published and will be updated in the repository at [Umgebung on Raspberry Pi](https://github.com/dennisppaul/umgebung/blob/main/documentation/Umgebung-on-RPI.md):
 
@@ -36,9 +38,9 @@ the image has been tested on *Raspberry Pi 4 Model B* with Raspberry Pi OS (64-b
 
 the credentials are:
 
-- name : `umgebung.local` 
-- user: `umgebung` 
-- password: `umgebung123`
+- name ....... : `umgebung.local` 
+- user ....... : `umgebung` 
+- password ... : `umgebung123`
 
 ## Preparing the Build Environment
 
