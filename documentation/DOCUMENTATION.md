@@ -50,7 +50,7 @@ it is required to set the variable `UMGEBUNG_PATH` ( e.g `set(UMGEBUNG_PATH "/Us
 
 the command `link_directories("/usr/local/lib")` can be used to fix a linker error on macOS ( e.g `ld: library 'glfw' not found` ). this error indicates that the global library is not set or not set properly ( i.e `echo $LIBRARY_PATH` returns an empty response or points to a folder that does not contain `libglfw.dylib` in this example ).
 
-the section `# add umgebung` must be last in the CMake file and includes *Umgebung* as a library.
+the section `# add umgebung` must be placed last in the CMake file and includes *Umgebung* as a library.
 
 ## Build Example Application
 

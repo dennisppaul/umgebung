@@ -1,15 +1,40 @@
-# Umgebung on Raspberry Pi
+# Umgebung on Raspberry Pi (RPI)
+
+RPI currently uses X11 as the rendering system when in desktop environment. however, there is also an allegedly much faster KMS ( or KMSDRM ) rendering system which can start fullscreen windows without(!) a GUI i.e from the command-line ( and even from a remote machine via SSH ). i have tested this already, it does work but requires some extra development. stay tuned.
+
+*Umgebung* was tested on *Raspberry Pi 4 Model B* with Raspberry Pi OS (64-bit), *Debian Bookworm* ( Released: 2024-11-19 ).
+
+however, it has not been tested carefully. there might be glitches …
+
+PS: RPI does not support antialiasing i.e make sure to set the value to `0` in `settings`:
+
+```cpp
+void settings(){
+    antialiasing = 0;
+}
+```
 
 this step by step guide has been tested on a *Raspberry Pi 4 Model B* with Raspberry Pi OS (64-bit), *Debian Bookworm* ( Released: 2024-11-19 ) installed.
 
-## preparing the build environment
+## Quick Start
+
+for a quick start an image with *Umgebung* and all dependencies can be download from: http://dm-hb.de/umgebung-rpi
+
+the image has been tested on *Raspberry Pi 4 Model B* with Raspberry Pi OS (64-bit), *Debian Bookworm* ( Released: 2024-11-19 ).
+
+the credentials are:
+
+- name : `umgebung.local` 
+- user: `umgebung` 
+- password: `umgebung123`
+
+## Preparing the Build Environment
 
 install all packages:
 
 ```sh
 sudo apt-get update -y
 sudo apt-get upgrade -y
-#sudo apt-get install clang mesa-utils # optional -y
 sudo apt-get install cmake libglew-dev libharfbuzz-dev libfreetype6-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev libglm-dev portaudio19-dev -y
 #sudo apt-get install libsdl3-dev # currently (2025-04-01) not available
 ```
@@ -22,7 +47,7 @@ note, the following packagae are also required but come pre-installed with the O
 
 since SDL3 is currently not available via `apt` ( i.e `apt-get install libsdl3-dev` ) we need to build SDL3 from source and install it.
 
-### build SDL from source
+### Build SDL3 from Source
 
 ```sh
 sudo apt-get update -y ; sudo apt-get upgrade -y
@@ -38,7 +63,7 @@ sudo cmake --install build --prefix /usr/local
 
 now SDL3 is properly installed and can be used for build ( i.e `pkg-config --libs --cflags sdl3` provides all compile flags ).
 
-## setting up umgebung
+## Setting up Umgebung
 
 first clone [umgebung](https://github.com/dennisppaul/umgebung) and the [umgebung-examples](https://github.com/dennisppaul/umgebung-examples) repositories with submodules from GitHub:
 
@@ -58,7 +83,7 @@ cmake --build build # --parallel
 
 note, the first time might take a bit on a small machine. note, examples can not be run from `ssh` sessions ( without *X11 forwarding* ).
 
-## X11 forwarding
+## X11 Forwarding
 
 to run GUI applications from another machine via `ssh` the following steps must be taken:
 

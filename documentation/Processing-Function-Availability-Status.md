@@ -1,3 +1,5 @@
+below is a list of all Processing functions from the official [Processing Reference](https://processing.org/reference). if a line starts with `- [ ]` it means the function is not (yet) implemented, if it starts with `- [x]` it means the function is implemented. if a line start with just `- ` it means the item is part of the environment ( i.e the C/C++ language ) already ( e.g `- for :: Controls a sequence of repetitions` ). also look for notes that highlight differences `@note()` to the original Processing behavior.
+
 ## Data
 
 ### Composite
@@ -12,7 +14,7 @@
 - [ ] `JSONArray` :: A JSONArray is an ordered sequence of values
 - [ ] `JSONObject` :: A *JSONObject* is an unordered collection of name/value pairs
 - [ ] `Object` :: Objects are instances of classes
-- [ ] `String` :: A string is a sequence of characters ==@note(replaced by `std::string`)==
+- [ ] `String` :: A string is a sequence of characters @note(replaced by `std::string`)
 - [ ] `StringDict` :: A simple class to use a *String* as a lookup for an*String*value
 - [ ] `StringList` :: Helper class for a list of Strings
 - [ ] `Table` :: Generic class for handling tabular data, typically from a CSV, TSV, or other sort of spreadsheet file
@@ -102,7 +104,7 @@
 
 - [x] `key` :: The system variable that always contains the value of the most recent key on the keyboard that was used ( either pressed or released)
 - [ ] `keyCode` :: Used to detect special keys such as the UP, DOWN, LEFT, RIGHT arrow keys and ALT, CONTROL, SHIFT
-- [x] `keyPressed` :: The boolean system variable that is*true*if any key is pressed and*false*if no keys are pressed ==@note(renamed to `isKeyPressed`)==
+- [x] `keyPressed` :: The boolean system variable that is*true*if any key is pressed and*false*if no keys are pressed @note(renamed to `isKeyPressed`)
 - [x] `keyReleased()` :: Called once every time a key is released
 - [x] `keyPressed()` :: Called once every time a key is pressed
 - [ ] `keyTyped()` :: Called once every time a key is pressed, but action keys such as Ctrl, Shift, and Alt are ignored
@@ -113,7 +115,7 @@
 - [x] `mouseDragged()` :: Called once every time the mouse moves and a mouse button is pressed
 - [ ] `mouseClicked()` :: Called once after a mouse button has been pressed and then released
 - [x] `mouseMoved()` :: Called every time the mouse moves and a mouse button is not pressed
-- [x] `mousePressed` :: Variable storing if a mouse button is pressed ==@note(renamed to `isMousePressed`)==
+- [x] `mousePressed` :: Variable storing if a mouse button is pressed @note(renamed to `isMousePressed`)
 - [x] `mousePressed()` :: Called once after every time a mouse button is pressed
 - [x] `mouseReleased()` :: Called every time a mouse button is released
 - [x] `mouseWheel()` :: The code within the*mouseWheel()*event function is run when the mouse wheel is moved
@@ -366,7 +368,7 @@
 - [x] `alpha()` :: Extracts the alpha value from a color
 - [x] `blue()` :: Extracts the blue value from a color, scaled to match current*colorMode()*
 - [x] `brightness()` :: Extracts the brightness value from a color
-- [x] `color()` :: Creates colors for storing in variables of the *color* datatype ==@note(in Umgebung there is no datatype `color` but rather `uint32_t`)==
+- [x] `color()` :: Creates colors for storing in variables of the *color* datatype @note(in Umgebung there is no datatype `color` but rather `uint32_t`)
 - [x] `green()` :: Extracts the green value from a color, scaled to match current*colorMode()*
 - [x] `hue()` :: Extracts the hue value from a color
 - [x] `lerpColor()` :: Calculates a*color*or*colors*between two*colors*at a specific increment
@@ -445,7 +447,7 @@
 - `[] (array access)` :: The array access operator is used to specify a location within an array
 - `= (assign)` :: Assigns a value to a variable
 - `catch` :: The*catch*keyword is used with*try*to handle exceptions
-- `class` :: Keyword used to indicate the declaration of a class ==@note(C++ requires a `;` after the last curly bracket `};`)==
+- `class` :: Keyword used to indicate the declaration of a class @note(C++ requires a `;` after the last curly bracket `};`)
 - `, (comma)` :: Separates parameters in function calls and elements during assignment
 - `// (comment)` :: Explanatory notes embedded within the code
 - `{} (curly braces)` :: Define the beginning and end of functions blocks and statement blocks such as the*for*and*if* structures
@@ -456,13 +458,13 @@
 - ~~`extends` :: Allows a new class to_inherit_the methods and data fields (variables and constants) from an existing class~~
 - `false` :: Reserved word representing the logical value "false"
 - `final` :: Keyword used to state that a value, class, or method can't be changed
-- `import` :: The keyword*import*is used to load a library into a Processing sketch ==@note(replace with `#include`)==
+- `import` :: The keyword*import*is used to load a library into a Processing sketch @note(replace with `#include`)
 - ~~`implements` :: Implements an_interface_or group of_interfaces_~~
 - [ ] `loop()` :: Causes Processing to continuously execute the code within*draw()*
 - `/* */ (multiline comment)` :: Explanatory notes embedded within the code
 - `new` :: Creates a "new" object
 - [ ] `noLoop()` :: Stops Processing from continuously executing the code within*draw()*
-- `null` :: Special value used to signify the target is not a valid data element ==@note(replace with `nullptr`)==
+- `null` :: Special value used to signify the target is not a valid data element @note(replace with `nullptr`)
 - [ ] `() (parentheses)` :: Grouping and containing expressions and parameters
 - [x] `popStyle()` :: Saves the current style settings and*popStyle()*restores the prior settings
 - [ ] `pop()` :: The*pop()*function restores the previous drawing style settings and transformations after*push()*has changed them
@@ -537,7 +539,7 @@
 - [ ] `pixelHeight` :: The actual pixel height when using high resolution display
 - [ ] `pixelWidth` :: The actual pixel width when using high resolution display
 - [x] `settings()` :: Used when absolutely necessary to define the parameters to*size()*with a variable
-- [x] `size()` :: Defines the dimension of the display window in units of pixels ==@note(can only be used in `settings()`)==
+- [x] `size()` :: Defines the dimension of the display window in units of pixels @note(can only be used in `settings()`)
 - [ ] `smooth()` :: Draws all geometry with smooth (anti-aliased) edges
 - [x] `width` :: System variable which stores the width of the display window
 - [ ] `windowMove()` :: The*windowMove()*function defines the position of the Processing sketch in relation to the upper-left corner of the computer screen
