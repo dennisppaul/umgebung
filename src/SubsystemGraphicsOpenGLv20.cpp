@@ -79,7 +79,7 @@ namespace umgebung {
         }
     }
 
-    static PGraphics* create_main_graphics(const bool render_to_offscreen) {
+    static PGraphics* create_native_graphics(const bool render_to_offscreen) {
         return new PGraphicsOpenGLv20(render_to_offscreen);
     }
 
@@ -101,21 +101,21 @@ namespace umgebung {
 } // namespace umgebung
 
 umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv20() {
-    auto* graphics                 = new umgebung::SubsystemGraphics{};
-    graphics->set_flags            = umgebung::set_flags;
-    graphics->init                 = umgebung::init;
-    graphics->setup_pre            = umgebung::setup_pre;
-    graphics->setup_post           = umgebung::setup_post;
-    graphics->draw_pre             = umgebung::draw_pre;
-    graphics->draw_post            = umgebung::draw_post;
-    graphics->shutdown             = umgebung::shutdown;
-    graphics->event                = umgebung::event;
-    graphics->event_in_update_loop = umgebung::event_in_update_loop;
-    graphics->create_main_graphics = umgebung::create_main_graphics;
-    graphics->get_sdl_window       = umgebung::get_sdl_window;
-    graphics->get_renderer         = umgebung::get_renderer;
-    graphics->get_renderer_type    = umgebung::get_renderer_type;
-    graphics->name                 = umgebung::name;
+    auto* graphics                   = new umgebung::SubsystemGraphics{};
+    graphics->set_flags              = umgebung::set_flags;
+    graphics->init                   = umgebung::init;
+    graphics->setup_pre              = umgebung::setup_pre;
+    graphics->setup_post             = umgebung::setup_post;
+    graphics->draw_pre               = umgebung::draw_pre;
+    graphics->draw_post              = umgebung::draw_post;
+    graphics->shutdown               = umgebung::shutdown;
+    graphics->event                  = umgebung::event;
+    graphics->event_in_update_loop   = umgebung::event_in_update_loop;
+    graphics->create_native_graphics = umgebung::create_native_graphics;
+    graphics->get_sdl_window         = umgebung::get_sdl_window;
+    graphics->get_renderer           = umgebung::get_renderer;
+    graphics->get_renderer_type      = umgebung::get_renderer_type;
+    graphics->name                   = umgebung::name;
     return graphics;
 }
 

@@ -29,6 +29,7 @@ namespace umgebung {
     static constexpr int   NOT_INITIALIZED               = -1;
     static constexpr int   DEFAULT_WINDOW_WIDTH          = 1024;
     static constexpr int   DEFAULT_WINDOW_HEIGHT         = 768;
+    static constexpr int   DEFAULT_PIXEL_FORMAT_RGBA     = 0;
     static constexpr int   DEFAULT_FRAME_RATE            = 60;
     static constexpr float DEFAULT_CAMERA_FOV_RADIANS    = 1.04719755f; // glm::radians(60.f));
     static constexpr int   DEFAULT_AUDIO_DEVICE          = -1;
@@ -147,11 +148,10 @@ namespace umgebung {
         DISABLE_DEPTH_TEST
     };
     enum Renderer {
-        OPENGL_2_0 = 0xB0,
-        OPENGL_3_3,
-        OPENGL,
-        OPENGL_ES_3_0, // iOS
-        OPENGL_ES_3_1, // RPI4+5
+        OPENGL_3_3 = 0xB0,       // core profile
+        OPENGL     = OPENGL_3_3, // defaults to OPENGL_3_3
+        OPENGL_2_0,              // fixed-function pipeline
+        OPENGL_ES_3_0,           // iOS + Android + RPI4b+5
         SDL_2D,
     };
     const std::string SHADER_UNIFORM_MODEL_MATRIX      = "uModelMatrix";

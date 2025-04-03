@@ -153,11 +153,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
                     umgebung::subsystem_graphics = umgebung_create_subsystem_graphics_openglv20();
                     break;
                 case umgebung::OPENGL_ES_3_0:
-                case umgebung::OPENGL_ES_3_1:
-                    umgebung::warning("+++ OpenGL ES 3.0/3.1 not supported yet.");
+                    umgebung::warning("+++ OpenGL ES 3.0 not supported yet.");
                     break;
                 default:
-                case umgebung::OPENGL:
                 case umgebung::OPENGL_3_3:
                     umgebung::subsystem_graphics = umgebung_create_subsystem_graphics_openglv33();
             }
@@ -282,8 +280,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     if (umgebung::enable_graphics) {
         if (umgebung::subsystem_graphics != nullptr) {
-            if (umgebung::subsystem_graphics->create_main_graphics != nullptr) {
-                umgebung::g = umgebung::subsystem_graphics->create_main_graphics(umgebung::render_to_buffer);
+            if (umgebung::subsystem_graphics->create_native_graphics != nullptr) {
+                umgebung::g = umgebung::subsystem_graphics->create_native_graphics(umgebung::render_to_buffer);
             }
         }
     }

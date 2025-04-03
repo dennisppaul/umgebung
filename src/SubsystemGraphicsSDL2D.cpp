@@ -80,7 +80,7 @@ namespace umgebung {
         }
     }
 
-    static PGraphics* create_main_graphics(const bool render_to_offscreen) {
+    static PGraphics* create_native_graphics(const bool render_to_offscreen) {
         (void) render_to_offscreen;
         return new PGraphicsDefault2D(sdl_renderer);
     }
@@ -112,11 +112,11 @@ umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_sdl2d() {
     graphics->draw_post  = umgebung::draw_post;
     // graphics->event                = umgebung::event;
     // graphics->event_in_update_loop           = umgebung::event_in_update_loop;
-    graphics->shutdown             = umgebung::shutdown;
-    graphics->create_main_graphics = umgebung::create_main_graphics;
-    graphics->get_sdl_window       = umgebung::get_sdl_window;
-    graphics->get_renderer         = umgebung::get_renderer;
-    graphics->get_renderer_type    = umgebung::get_renderer_type;
-    graphics->name                 = umgebung::name;
+    graphics->shutdown               = umgebung::shutdown;
+    graphics->create_native_graphics = umgebung::create_native_graphics;
+    graphics->get_sdl_window         = umgebung::get_sdl_window;
+    graphics->get_renderer           = umgebung::get_renderer;
+    graphics->get_renderer_type      = umgebung::get_renderer_type;
+    graphics->name                   = umgebung::name;
     return graphics;
 }
