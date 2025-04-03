@@ -14,6 +14,7 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung implement extra buffer for transparent primitives
     - [ ] WB OIT https://learnopengl.com/Guest-Articles/2020/OIT/Weighted-Blended
     - [ ] https://www.khronos.org/opengl/wiki/Transparency_Sorting
+- [ ] @umgebung add `curve` ( see chatgpt )
 - [ ] @umgebung add to OpenGL2.0
     ```C
     void upload_image(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
@@ -227,7 +228,6 @@ stroke(0.0f);             // black
 
 ## community
 
-- [ ] @umgebung post on dev blog
 - [ ] @umgebung on discord https://d3-is.de/umgebung ( https://discord.gg/hrckzRaW7g )
 - [ ] @umgebung ask people for support and feature request etcetera … on github ( + discord )
 
@@ -375,5 +375,5 @@ stroke(0.0f);             // black
 
 - [x] @umgebung byte the bullet and test offscreen rendering in `Advanced` @archived(2025-04-01) @from(Umgebung / TODO + NOTES > unsorted) @done(2025-04-01)
 - [x] @umgebung release end of the week ( need more examples until then ) @archived(2025-04-01) @from(Umgebung / TODO + NOTES > unsorted) @done(2025-04-01)
-- [x] @umgebung add `curve` @archived(2025-04-01) @from(Umgebung / TODO + NOTES > graphics) @done(2025-04-01)
+- [x] @umgebung post on dev blog @archived(2025-04-01) @from(Umgebung / TODO + NOTES > community) @done(2025-04-01)
 - [x] @umgebung try PGraphics for offscreen rendering @archived(2025-04-01) @from(Umgebung / TODO + NOTES > graphics) @done(2025-04-01)

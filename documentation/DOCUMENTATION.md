@@ -13,7 +13,7 @@ the directory `umgebung-example-app` should contain all source, header and resou
 
 in this example `umgebung-example-app.cpp` is the main source file containing the *entry points* used by *Umgebung*:
 
-```
+```c
 #include "Umgebung.h"
 
 void settings() {}
@@ -21,7 +21,6 @@ void settings() {}
 void setup() {}
 
 void draw() {}
-
 ```
 
 in order to compile the application a CMake script `CMakeLists.txt` must be supplied. the following is a script that may be used to compile the above example:
