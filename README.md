@@ -23,7 +23,7 @@ git clone --recurse-submodules https://github.com/dennisppaul/umgebung
 git clone --recurse-submodules https://github.com/dennisppaul/umgebung-examples
 cd umgebung
 ./install-macOS.sh # or ./install-linux-apt.sh
-cd ../umgebung-examples/Basics/minimal
+cd ../umgebuncdg-examples/Basics/minimal
 cmake -B build ; cmake --build build ; ./build/minimal
 ```
 
@@ -83,5 +83,6 @@ this project relies on the following packages:
 - [earcut.hpp](https://github.com/mapbox/earcut.hpp) ( included as source files )
 - [libtess2](https://github.com/memononen/libtess2) ( included as source files )
 
-( `@version(macOS, X.X.X)` states the platform and version number of the library with which *Umgebung* has been tested on macOS. other
-versions might work as well but are not guaranteed to. )
+( `@version(macOS, X.X.X)` states the platform and version number of the library with which *Umgebung* has been tested on macOS. other versions might work as well but are not guaranteed to. )
+
+and as mentioned before of course [Processing.org](https://processing.org)

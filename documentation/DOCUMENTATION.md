@@ -40,6 +40,7 @@ sudo apt-get update -y
 sudo apt-get upgrade -y
 sudo apt-get install git clang mesa-utils -y
 sudo apt-get install cmake libglew-dev libharfbuzz-dev libfreetype6-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev libglm-dev portaudio19-dev -y
+sudo apt install libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxinerama-dev libwayland-dev libxkbcommon-dev wayland-protocols -y # need e.g for ubuntu
 # sudo apt-get install libsdl3-dev # SDL3 is currently not available
 ```
 
@@ -112,7 +113,7 @@ Java and C++ are similar in some aspects, but are very different in many others.
 
 - a LOT of functions + methods + strategies are not yet implemented (the goal is to implement these on demand).
 - color system is fixed to range from `0.0 ... 1.0` and only works with RGB(A) and uses RGBA internally always
-- only tested on macOS + Raspberry Pi OS + Windows 11 + Ubuntu. although theoretically the external libraries as well as the build system should be cross-platform ( i.e macOS, Windows and any UNIX-like system ) it may, however, require
+- only tested on macOS + Raspberry Pi OS + (Windows 11) + Ubuntu. although theoretically the external libraries as well as the build system should be cross-platform ( i.e macOS, Windows and any UNIX-like system ) it may, however, require
   some tweaking.
 
 ### Setting up Homebrew on macOS

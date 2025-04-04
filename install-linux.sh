@@ -39,6 +39,17 @@ sudo apt-get install -y \
   libavdevice-dev \
   librtmidi-dev \
   portaudio19-dev
+# instal x11 developer packages need e.g for ubuntu
+sudo apt-get install -y \
+  libx11-dev \
+  libxext-dev \
+  libxrandr-dev \
+  libxcursor-dev \
+  libxi-dev \
+  libxinerama-dev \
+  libwayland-dev \
+  libxkbcommon-dev \
+  wayland-protocols
 
 # install SDL3 from source into system
 echo "--- installing SDL3 from source... ---"
