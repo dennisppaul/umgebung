@@ -2,7 +2,7 @@
 
 *Umgebung* is a lightweight C++ environment for small audio and graphics based applications. it is inspired by [Processing.org](https://processing.org) and similar environments.
 
-⚠️ *Umgebung* is a *Work in Progress* (WIP) please always keep this in mind. if you find a bug, an issues, something missing, or have an idea for improvements or a feature request, please use GitHub’s [Issue Tracking System](https://github.com/dennisppaul/umgebung/issues).
+⚠️ *Umgebung* is a *Work in Progress* (WIP) please always keep this in mind. if you find a bug, an issue, something missing, have an idea for improvements or a feature request, please use GitHub’s [Issue Tracking System](https://github.com/dennisppaul/umgebung/issues).
 
 ## Features
 
