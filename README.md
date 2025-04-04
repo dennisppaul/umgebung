@@ -1,6 +1,6 @@
 # Umgebung
 
-![umgebung-logotype-512.png](umgebung-logotype-512.png)
+![umgebung-logotype-256](umgebung-logotype-256.png)
 
 *Umgebung* is a lightweight C++ environment for small audio and graphics based applications. it is inspired by [Processing.org](https://processing.org) and similar environments.
 
