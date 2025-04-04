@@ -61,6 +61,15 @@ versions might work as well but are not guaranteed to. )
 
 ## Installing Umgebung
 
+clone the *Umgebung* repository ( with submodules ) and optionally some other *Umgebung* repositories from GitHub into the desired folder ( e.g `~/Documents/dev` ):
+
+```sh
+git clone --recurse-submodules https://github.com/dennisppaul/umgebung
+git clone --recurse-submodules https://github.com/dennisppaul/umgebung-libraries
+git clone --recurse-submodules https://github.com/dennisppaul/umgebung-examples
+cd umgebung
+```
+
 ### macOS
 
 in order to compile and run applications install the following packages with [Homebrew](https://brew.sh):
@@ -68,14 +77,22 @@ in order to compile and run applications install the following packages with [Ho
 either manually with:
 
 ```sh
-brew install cmake pkgconfig sdl3 glew harfbuzz freetype ffmpeg rtmidi
+brew install cmake pkgconfig sdl3 glew harfbuzz freetype ffmpeg rtmidi dylibbundler portaudio
 ```
 
 or run installer script `./install-macOS.sh` ( i.e checking for Homebrew and running the bundler with `brew bundle` ).
 
 ### Linux
 
-on linux install the required packages with [APT](https://en.wikipedia.org/wiki/APT_(software)) ( for Raspberry Pi OS, see detailed instructions below ):
+on linux install the required packages with [APT](https://en.wikipedia.org/wiki/APT_(software)) ( for Raspberry Pi OS, see detailed instructions below ).
+
+either run the install script:
+
+```sh
+./install-linux-apt.sh
+```
+
+or install manually step by step:
 
 ```sh
 sudo apt-get update -y
@@ -85,7 +102,7 @@ sudo apt-get install cmake libglew-dev libharfbuzz-dev libfreetype6-dev ffmpeg l
 # sudo apt-get install libsdl3-dev # SDL3 is currently not available
 ```
 
-alternatively, run installer script `./install-linux.sh` to install packages with [Linuxbrew](https://docs.brew.sh/Homebrew-on-Linux) ( linux version of Homebrew, currently not supported on Raspberry Pi OS ).
+alternatively, run the homebrew installer script `./install-linux.sh` to install packages with [Linuxbrew](https://docs.brew.sh/Homebrew-on-Linux) ( linux version of Homebrew, currently not supported on Raspberry Pi OS and a bit more experimental than `apt` ).
 
 #### Raspberry Pi OS (RPI)
 
