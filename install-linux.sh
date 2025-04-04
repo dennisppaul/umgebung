@@ -60,8 +60,8 @@ cd "$TMP_DIR"
 git clone --depth=1 https://github.com/libsdl-org/SDL.git
 cd SDL
 
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DSDL_WAYLAND=ON -DSDL_X11=ON
+cmake --build build -j
 sudo cmake --install build
 
 # clean up
