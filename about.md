@@ -8,15 +8,11 @@ permalink: /about/
 
 well, *Umgebung* is actually imitating [Processing.org](https://processing.org) quite bluntly ;)
 
-well, *Umgebung* is actually imitating [Processing.org](https://processing.org) quite bluntly ;)
-
 this project aims to supply a framework that allows writing applications that more or less look like original [Processing.org](https://processing.org) sketches. note the character of this project is that features will be added as they are needed. it might partly replicate but not fully emulate the original [Processing.org](https://processing.org) environment.
 
 *Umgebung* may also function as a statement on what is good and valuable about the [Processing.org](https://processing.org) *idiom* while at the same time suggesting disconnecting it from one specific group, application or project … maybe a bit like markdown in that sense.
 
 see [DOCUMENTATION](https://github.com/dennisppaul/umgebung/blob/main/documentation/DOCUMENTATION.md) for usage information and [examples](https://github.com/dennisppaul/umgebung-examples) for applications.
-
-## Why *Umgebung*?
 
 ## Why *Umgebung*?
 
