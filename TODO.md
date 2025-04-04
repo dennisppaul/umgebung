@@ -139,11 +139,6 @@ this is a VERY unsorted todo list and a note pad.
 
 ## credits + licenses
 
-- [ ] @umgebung add `tinyfiledialogs` to credtis
-- [ ] @umgebung add `SimplexNoise` to credits
-- [ ] @umgebung add `glm`
-- [ ] @umgebung add `stb_image_write`
-- [ ] @umgebung add `FreeType2` + `Harfbuzz`
 
 ## building + platforms
 
@@ -190,11 +185,6 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung what’s with ANGLE?
     - @research test OpenGL ES emulation ANGLE with SDL https://gist.github.com/SasLuca/307a523d2c6f2900af5823f0792a8a93
 
-## weekend Projects
-
-- [ ] Density Particle dingdong ( as shader and as normal )
-- [ ] Radiance Cascades lighting shader 
-
 ## documentation
 
 - [ ] @umgebung what’s new in umgebung? audio, `loadOBJ` mesh
@@ -213,10 +203,10 @@ this is a VERY unsorted todo list and a note pad.
 style:
 
 ```C
-background(0.85f);        // grey
-fill(0.5f, 0.85f, 1.0f);  // blue
-fill(1.0f, 0.25f, 0.35f); // red
-stroke(0.0f);             // black
+background(0.85f);        // grey  (0xD8D8D8)
+fill(0.5f, 0.85f, 1.0f);  // blue  (0x7FD8FF)
+fill(1.0f, 0.25f, 0.35f); // red   (0xFF3F59)
+stroke(0.0f);             // black (0x000000)
 ```
 
 - [ ] @umgebung start a series of *educated* examples
@@ -370,10 +360,3 @@ stroke(0.0f);             // black
 - [ ] @umgebung design neon font ![](IMG_3102.jpeg)
 - [ ] @umgebung add lighting ( see processing shaders `$HOME/Documents/dev/processing/git/processing4/core/src/processing/opengl/shaders` )
 - [ ] @umgebung PVector vs glm::vec3 at least some functions to convert between the two
-
-## Archived
-
-- [x] @umgebung byte the bullet and test offscreen rendering in `Advanced` @archived(2025-04-01) @from(Umgebung / TODO + NOTES > unsorted) @done(2025-04-01)
-- [x] @umgebung release end of the week ( need more examples until then ) @archived(2025-04-01) @from(Umgebung / TODO + NOTES > unsorted) @done(2025-04-01)
-- [x] @umgebung post on dev blog @archived(2025-04-01) @from(Umgebung / TODO + NOTES > community) @done(2025-04-01)
-- [x] @umgebung try PGraphics for offscreen rendering @archived(2025-04-01) @from(Umgebung / TODO + NOTES > graphics) @done(2025-04-01)

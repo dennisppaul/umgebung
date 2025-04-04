@@ -8,6 +8,13 @@ this project aims to supply a framework that allows writing applications that mo
 
 see [DOCUMENTATION](documentation/DOCUMENTATION.md) for usage information and [examples](https://github.com/dennisppaul/umgebung-examples) for applications.
 
+some relevant *Umgebung* repositories are:
+
+- [Umgebung](https://github.com/dennisppaul/umgebung) :: this repository, containing the *Umgebung* library
+- [Umgebung Example](https://github.com/dennisppaul/umgebung-examples) :: a repository containing all the examples
+- [Umgebung Libraries](https://github.com/dennisppaul/umgebung-libraries) :: a repository containing some libraries ( e.g Dear ImGui ) to extend *Umgebung*
+- [Umgebung Arduino](https://github.com/dennisppaul/umgebung-arduino) :: an ( experimental ) *board definition* to run *Umgebung* applications from Arduino IDE or `arduino-cli`
+
 ## Why *Umgebung*?
 
 *Umgebung* is yet another programming environment for designers, makers, and artists. so why does it exist? and why not use [Processing.org](https://processing.org), [OpenFrameworks](https://openframeworks.cc), [Cinder](https://libcinder.org) or any of the other frameworks out there?
@@ -24,7 +31,7 @@ furthermore, *Umgebung* uses CMake as a build system. CMake is very well-designe
 
 and finally, although C and especially C++ is known for its horrific errors, confusing error messages, and volatile behavior at times, with the advent of LLM-based programming assistants, the entry threshold can be greatly reduced. trust the process. PS ( if *vibe coding* is even a thing this should be easy ;) )
 
-## Prerequisite
+## Credits
 
 this project relies on the following packages:
 
@@ -52,6 +59,8 @@ this project relies on the following packages:
 ( `@version(macOS, X.X.X)` states the platform and version number of the library with which *Umgebung* has been tested on macOS. other
 versions might work as well but are not guaranteed to. )
 
+## Installing Umgebung
+
 ### macOS
 
 in order to compile and run applications install the following packages with [Homebrew](https://brew.sh):
@@ -66,22 +75,32 @@ or run installer script `./install-macOS.sh` ( i.e checking for Homebrew and run
 
 ### Linux
 
-on linux ( including Raspberry Pi OS ) install the required packages with [APT](https://en.wikipedia.org/wiki/APT_(software)):
-
-@TODO(not tested with new libraries)
+on linux ( including Raspberry Pi OS, see detailed instructions below ) install the required packages with [APT](https://en.wikipedia.org/wiki/APT_(software)):
 
 ```sh
 sudo apt-get update -y
 sudo apt-get upgrade -y
 sudo apt-get install git clang mesa-utils -y
 sudo apt-get install cmake libglew-dev libharfbuzz-dev libfreetype6-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev librtmidi-dev libglm-dev portaudio19-dev -y
+# sudo apt-get install libsdl3-dev # SDL3 is currently not available
 ```
 
 alternatively, run installer script `./install-linux.sh` to install packages with [Linuxbrew](https://docs.brew.sh/Homebrew-on-Linux) ( linux version of Homebrew, currently not supported on Raspberry Pi OS ).
 
 #### Raspberry Pi OS (RPI)
 
-*Umgebung* can run on Raspberry Pis ( e.g RPI 4 Model B and RPI 5 ). see [Umgebung-on-RPI](documentation/Umgebung-on-RPI.md) for detailed information.
+*Umgebung* can run on Raspberry Pi ( e.g RPI 4 Model B and RPI 5 ). see [Umgebung-on-RPI](documentation/Umgebung-on-RPI.md) for detailed information.
+
+#### Build SDL from source
+
+note, currently SDL3 is not available via `apt` and needs to be build from source. the following steps should work without modification:
+
+```sh
+git clone https://github.com/libsdl-org/SDL.git
+cd SDL
+cmake -S . -B build
+cmake --build build
+```
 
 ### Windows
 

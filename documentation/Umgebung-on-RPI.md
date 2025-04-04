@@ -54,9 +54,7 @@ sudo apt-get update -y ; sudo apt-get upgrade -y
 sudo apt-get install cmake
 git clone https://github.com/libsdl-org/SDL.git
 cd SDL
-# cmake -S . -B build -DSDL_ALSA=ON -DSDL_PULSEAUDIO=ON -DSDL_PIPEWIRE=ON -DSDL_JACK=ON -DCMAKE_BUILD_TYPE=Release
-# cmake -S . -B build -DVIDEO_KMSDRM=ON -DVIDEO_X11=ON -DVIDEO_WAYLAND=ON -DRENDER_OPENGL=ON -DRENDER_OPENGLES=ON -DCMAKE_BUILD_TYPE=Release
-cmake -S . -B build -DVIDEO_KMSDRM=ON -DVIDEO_X11=ON -DVIDEO_WAYLAND=ON -DRENDER_OPENGL=ON -DRENDER_OPENGLES=ON -DSDL_ALSA=ON -DSDL_PULSEAUDIO=ON -DSDL_PIPEWIRE=ON -DSDL_JACK=ON -DCMAKE_BUILD_TYPE=Release ## TODO check if all build flags are correct and needed
+cmake -S . -B build -DSDL_ALSA=ON -DSDL_PULSEAUDIO=ON -DSDL_PIPEWIRE=ON -DSDL_JACK=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build build # `--parallel` is optional for building with multiple cores but currently kills the RPI
 sudo cmake --install build --prefix /usr/local
 ```

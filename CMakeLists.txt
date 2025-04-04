@@ -293,12 +293,14 @@ if (NOT DISABLE_GRAPHICS)
 
     # FFMPEG
     if (NOT DISABLE_VIDEO)
-        pkg_search_module(AVCODEC REQUIRED libavcodec)
-        pkg_search_module(AVFORMAT REQUIRED libavformat)
-        pkg_search_module(AVUTIL REQUIRED libavutil)
-        pkg_search_module(SWSCALE REQUIRED libswscale)
-        pkg_check_modules(SWRESAMPLE REQUIRED libswresample)
-        pkg_check_modules(AVDEVICE REQUIRED libavdevice)
+        pkg_check_modules(FFMPEG REQUIRED
+                libavcodec
+                libavformat
+                libavutil
+                libswscale
+                libswresample
+                libavdevice
+        )
         if (APPLE)
         elseif (UNIX)
         elseif (WIN32)
@@ -376,15 +378,8 @@ if (NOT DISABLE_GRAPHICS)
 
     # FFMPEG
     if (NOT DISABLE_VIDEO)
-        target_link_libraries(${PROJECT_NAME} PUBLIC
-                ${AVCODEC_LIBRARIES}
-                ${AVFORMAT_LIBRARIES}
-                ${AVUTIL_LIBRARIES}
-                ${SWSCALE_LIBRARIES}
-                ${AVDEVICE_LIBRARIES}
-                ${SWRESAMPLE_LIBRARIES}
-        )
-        target_include_directories(${PROJECT_NAME} PUBLIC ${AVCODEC_INCLUDE_DIRS} ${AVFORMAT_INCLUDE_DIRS} ${AVUTIL_INCLUDE_DIRS} ${SWSCALE_INCLUDE_DIRS})
+        target_include_directories(${PROJECT_NAME} PUBLIC ${FFMPEG_INCLUDE_DIRS})
+        target_link_libraries(${PROJECT_NAME} PUBLIC ${FFMPEG_LIBRARIES})
         if (APPLE)
             target_link_libraries(${PROJECT_NAME} PUBLIC
                     "-framework AVFoundation"

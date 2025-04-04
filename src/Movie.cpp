@@ -28,6 +28,7 @@
 using namespace umgebung;
 
 #if !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
+#if LIBAVUTIL_VERSION_MAJOR >= 57 // TODO add
 
 #include "Umgebung.h"
 
@@ -465,9 +466,8 @@ void Movie::loop() {
 void Movie::noLoop() {
     isLooping = false;
 }
-
+#endif // LIBAVUTIL_VERSION_MAJOR
 #else
-
 Movie::Movie(const std::string& filename, int _channels) : PImage() {
     error("Movie - ERROR: video is disabled");
 }
