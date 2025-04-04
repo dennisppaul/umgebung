@@ -75,7 +75,7 @@ or run installer script `./install-macOS.sh` ( i.e checking for Homebrew and run
 
 ### Linux
 
-on linux ( including Raspberry Pi OS, see detailed instructions below ) install the required packages with [APT](https://en.wikipedia.org/wiki/APT_(software)):
+on linux install the required packages with [APT](https://en.wikipedia.org/wiki/APT_(software)) ( for Raspberry Pi OS, see detailed instructions below ):
 
 ```sh
 sudo apt-get update -y

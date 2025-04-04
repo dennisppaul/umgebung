@@ -28,7 +28,6 @@
 using namespace umgebung;
 
 #if !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
-#if LIBAVUTIL_VERSION_MAJOR >= 57 // TODO add
 
 #include "Umgebung.h"
 
@@ -265,18 +264,16 @@ bool Movie::available() {
             avcodec_send_packet(audioCodecContext, packet);
             while (avcodec_receive_frame(audioCodecContext, frame) == 0) {
                 if (!swrCtx) {
+#if LIBAVUTIL_VERSION_MAJOR >= 57
                     AVChannelLayout in_ch_layout, out_ch_layout;
 
-                    // Copy input channel layout
                     if (av_channel_layout_copy(&in_ch_layout, &audioCodecContext->ch_layout) < 0) {
                         fprintf(stderr, "Failed to copy input channel layout\n");
                         break;
                     }
 
-                    // Set default output channel layout with same number of channels
                     av_channel_layout_default(&out_ch_layout, audioCodecContext->ch_layout.nb_channels);
 
-                    // Allocate and configure SwrContext
                     if (swr_alloc_set_opts2(
                             &swrCtx,
                             &out_ch_layout, AV_SAMPLE_FMT_FLT, audioCodecContext->sample_rate,
@@ -297,6 +294,21 @@ bool Movie::available() {
 
                     av_channel_layout_uninit(&in_ch_layout);
                     av_channel_layout_uninit(&out_ch_layout);
+#else
+                    uint64_t in_ch_layout  = audioCodecContext->channel_layout;
+                    uint64_t out_ch_layout = av_get_default_channel_layout(audioCodecContext->channels);
+
+                    swrCtx = swr_alloc_set_opts(
+                        NULL,
+                        out_ch_layout, AV_SAMPLE_FMT_FLT, audioCodecContext->sample_rate,
+                        in_ch_layout, (AVSampleFormat) frame->format, frame->sample_rate,
+                        0, NULL);
+
+                    if (!swrCtx || swr_init(swrCtx) < 0) {
+                        fprintf(stderr, "Failed to initialize SwrContext\n");
+                        break;
+                    }
+#endif
                 }
 
                 int channels    = audioCodecContext->ch_layout.nb_channels;
@@ -466,7 +478,6 @@ void Movie::loop() {
 void Movie::noLoop() {
     isLooping = false;
 }
-#endif // LIBAVUTIL_VERSION_MAJOR
 #else
 Movie::Movie(const std::string& filename, int _channels) : PImage() {
     error("Movie - ERROR: video is disabled");
