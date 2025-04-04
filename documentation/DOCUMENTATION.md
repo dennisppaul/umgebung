@@ -89,16 +89,16 @@ example applications can be found in the dedicated repository [umgebung-examples
 to run example `umgebung-simple` do the following:
 
 ```sh
-cd ./umgebung-examples/examples/umgebung-simple/
+cd ./umgebung-examples/Basics/minimal/
 cmake -B build .         # prepare build system
 cmake --build build      # build application
-./build/umgebung-simple  # run application 
+./build/minimal          # run application 
 ```
 
-if changes are made to `umgebung-simple.cpp` ( or any other file in that folder ) it is enough to just run:
+if changes are made to `minimal.cpp` ( or any other file in that folder ) it is enough to just run:
 
 ```sh
-cmake --build build ; ./build/umgebung-simple
+cmake --build build ; ./build/minimal
 ```
 
 ## Known Differences

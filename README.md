@@ -30,20 +30,11 @@ cmake -B build ; cmake --build build ; ./build/minimal
 
 ## Why *Umgebung*?
 
-well, *Umgebung* is actually imitating [Processing.org](https://processing.org) quite bluntly ;)
+well, *Umgebung* is actually imitating [Processing.org](https://processing.org) quite bluntly ;) or a compliment to the original [Processing.org](https://processing.org) project, or a token of respect.
 
-this project aims to supply a framework that allows writing applications that more or less look like original [Processing.org](https://processing.org) sketches. note the character of this project is that features will be added as they are needed. it might partly replicate but not fully emulate the original [Processing.org](https://processing.org) environment.
+this project aims to supply a framework that allows writing applications that more or less look like original [Processing.org](https://processing.org) sketches.
 
 *Umgebung* may also function as a statement on what is good and valuable about the [Processing.org](https://processing.org) *idiom* while at the same time suggesting disconnecting it from one specific group, application or project … maybe a bit like markdown in that sense.
-
-see [DOCUMENTATION](documentation/DOCUMENTATION.md) for usage information and [examples](https://github.com/dennisppaul/umgebung-examples) for applications.
-
-some relevant *Umgebung* repositories are:
-
-- [Umgebung](https://github.com/dennisppaul/umgebung) :: this repository, containing the *Umgebung* library
-- [Umgebung Example](https://github.com/dennisppaul/umgebung-examples) :: a repository containing all the examples
-- [Umgebung Libraries](https://github.com/dennisppaul/umgebung-libraries) :: a repository containing some libraries ( e.g Dear ImGui ) to extend *Umgebung*
-- [Umgebung Arduino](https://github.com/dennisppaul/umgebung-arduino) :: an ( experimental ) *board definition* to run *Umgebung* applications from Arduino IDE or `arduino-cli`
 
 *Umgebung* is yet another programming environment for designers, makers, and artists. so why does it exist? and why not use [Processing.org](https://processing.org), [OpenFrameworks](https://openframeworks.cc), [Cinder](https://libcinder.org) or any of the other frameworks out there?
 
@@ -58,6 +49,17 @@ in addition to this, due to the nature of C/C++ and the way *Umgebung* is implem
 furthermore, *Umgebung* uses CMake as a build system. CMake is very well-designed and more or less easy to learn and extend. this also means that *Umgebung* applications and sketches can be developed in more or less any text editor or IDE ( e.g Visual Studio Code, Zed, CLion, Vim ). it does not require proprietary build systems like Xcode.
 
 and finally, although C and especially C++ is known for its horrific errors, confusing error messages, and volatile behavior at times, with the advent of LLM-based programming assistants, the entry threshold can be greatly reduced. trust the process. PS ( if *vibe coding* is even a thing this should be easy ;) )
+
+PS note the character of this project is that features will be added as they are needed. it might partly replicate but not fully emulate the original [Processing.org](https://processing.org) environment.
+
+see [DOCUMENTATION](documentation/DOCUMENTATION.md) for usage information and [examples](https://github.com/dennisppaul/umgebung-examples) for applications.
+
+some relevant *Umgebung* repositories are:
+
+- [Umgebung](https://github.com/dennisppaul/umgebung) :: this repository, containing the *Umgebung* library
+- [Umgebung Example](https://github.com/dennisppaul/umgebung-examples) :: a repository containing all the examples
+- [Umgebung Libraries](https://github.com/dennisppaul/umgebung-libraries) :: a repository containing some libraries ( e.g Dear ImGui ) to extend *Umgebung*
+- [Umgebung Arduino](https://github.com/dennisppaul/umgebung-arduino) :: an ( experimental ) *board definition* to run *Umgebung* applications from Arduino IDE or `arduino-cli`
 
 ## Credits
 

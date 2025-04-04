@@ -98,10 +98,16 @@ namespace umgebung {
             }
         }
 
+        static void noise(float* wavetable, const int length) {
+            for (int i = 0; i < length; ++i) {
+                wavetable[i] = static_cast<float>(rand()) / RAND_MAX * 2.0f - 1.0f;
+            }
+        }
+
         static void pulse(float* wavetable, const uint32_t wavetable_size, const float pulse_width) {
-            const auto mThreshold = static_cast<uint32_t>(static_cast<float>(wavetable_size) * pulse_width);
+            const auto threshold = static_cast<uint32_t>(static_cast<float>(wavetable_size) * pulse_width);
             for (uint32_t i = 0; i < wavetable_size; i++) {
-                if (i < mThreshold) {
+                if (i < threshold) {
                     wavetable[i] = 1.0f;
                 } else {
                     wavetable[i] = -1.0f;
@@ -116,16 +122,38 @@ namespace umgebung {
             }
         }
 
+        static void sawtooth(float* wavetable, const int length, const int harmonics) {
+            std::fill_n(wavetable, length, 0.0f);
+            const auto amps = new float[harmonics];
+            for (int i = 0; i < harmonics; ++i) {
+                amps[i] = 1.f / (i + 1);
+            }
+            fourier_table(wavetable, length, harmonics, amps, -0.25f);
+            delete[] amps;
+        }
+
         static void sine(float* wavetable, const uint32_t wavetable_size) {
             for (uint32_t i = 0; i < wavetable_size; i++) {
                 wavetable[i] = sin(2.0f * PIf * (static_cast<float>(i) / static_cast<float>(wavetable_size)));
             }
         }
 
-        static void square(float* wavetable, const uint32_t wavetable_size) {
-            for (uint32_t i = 0; i < wavetable_size / 2; i++) {
-                wavetable[i]                      = 1.0f;
-                wavetable[i + wavetable_size / 2] = -1.0f;
+
+        static void square(float* wavetable, const int length, const int harmonics) {
+            std::fill_n(wavetable, length, 0.0f);
+            const auto amps = new float[harmonics]();
+            for (int i = 0; i < harmonics; i += 2) {
+                amps[i] = 1.f / (i + 1);
+            }
+            fourier_table(wavetable, length, harmonics, amps, -0.25f);
+            delete[] amps;
+        }
+
+        static void square(float* wavetable, const int length) {
+            const int half = length / 2;
+            for (int i = 0; i < half; ++i) {
+                wavetable[i]        = 1.0f;
+                wavetable[i + half] = -1.0f;
             }
         }
 
@@ -142,6 +170,40 @@ namespace umgebung {
                 }
                 wavetable[i] = value;
             }
+        }
+
+        static void triangle(float* wavetable, const int length, const int harmonics) {
+            std::fill_n(wavetable, length, 0.0f);
+            const auto amps = new float[harmonics]();
+            for (int i = 0; i < harmonics; i += 2) {
+                amps[i] = 1.f / ((i + 1) * (i + 1));
+            }
+            fourier_table(wavetable, length, harmonics, amps, 0.0f);
+            delete[] amps;
+        }
+
+        static void normalise_table(float* wavetable, const int length) {
+            float max_val = 0.f;
+            for (int i = 0; i < length; ++i) {
+                max_val = std::max(std::abs(wavetable[i]), max_val);
+            }
+            if (max_val > 0.f) {
+                for (int i = 0; i < length; ++i) {
+                    wavetable[i] /= max_val;
+                }
+            }
+        }
+
+        static void fourier_table(float* wavetable, const int length, const int harmonics, const float* amps, float phase) {
+            phase *= 2.0f * PI;
+            for (int i = 0; i < harmonics; ++i) {
+                const float a = (amps != nullptr) ? amps[i] : 1.f;
+                for (int n = 0; n < length; ++n) {
+                    const double w = (i + 1) * (n * 2.0 * PI / length);
+                    wavetable[n] += static_cast<float>(a * std::cos(w + phase));
+                }
+            }
+            normalise_table(wavetable, length);
         }
 
         void set_waveform(const uint8_t waveform) const {

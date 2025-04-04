@@ -2,7 +2,17 @@
 
 this is a VERY unsorted todo list and a note pad.
 
-## graphics
+- [x] add list of machines that have been actually tested
+    ```
+    | HARDWARE           | OS                                             | STATUS | COMMENT              |
+    | ------------------ | ---------------------------------------------- | ------ | -------------------- |
+    | MacBook Pro M3     | macOS 15.3                                     | 💚     |                      |
+    | Mac Mini ( intel ) | macOS 15.3                                     | 💚     |                      |
+    | Raspberry Pi 4b    | Raspberry Pi OS (64-bit) Bookworm (2024-11-19) | 💛     | audio is crackling   |
+    | /                  | Windows 10 + 11                                | ❌     | not tested with SDL3 |
+    ```
+
+## Graphics
 
 - [ ] @umgebung add exporters ( `saveImage()`, `savePDF()`, `saveOBJ()` )
 - [ ] separate transparent + non-transparent primitives
@@ -24,7 +34,7 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung remove all references to graphics subsystem from PGraphics ( and derived classes )
 - [ ] @umgebung fix set window title ( default to `$PROJECT_NAME`from CMake )
 
-## audio
+## Audio
 
 - [ ] @umgebung basic audio classes 
     - oscillator ( wavetable )
@@ -32,115 +42,18 @@ this is a VERY unsorted todo list and a note pad.
     - filter ( low, high, band )
     - envelope + adsr
     - trigger/beat
-- [ ] @umgebung ring buffer for audio
-    ```c
-    
-    #include <vector>
-    #include <iostream>
-    #include <algorithm>
-    
-    class ChunkedCircularBuffer {
-    public:
-        ChunkedCircularBuffer(size_t size) : buffer(size), max_size(size), head(0), count(0) {}
-    
-        void push(const std::vector<float>& chunk) {
-            size_t chunk_size = chunk.size();
-            if (chunk_size >= max_size) {
-                // If chunk is larger than buffer, only keep the last max_size elements
-                std::copy(chunk.end() - max_size, chunk.end(), buffer.begin());
-                head = 0;
-                count = max_size;
-                return;
-            }
-    
-            // If the chunk would overflow the buffer, adjust `count`
-            if (count + chunk_size > max_size) {
-                count = max_size;
-            } else {
-                count += chunk_size;
-            }
-    
-            // Insert chunk into buffer
-            for (size_t i = 0; i < chunk_size; ++i) {
-                buffer[head] = chunk[i];
-                head = (head + 1) % max_size;
-            }
-        }
-    
-        // Get the most recent `chunk_size` elements as a contiguous block into `latestChunk`
-        void getLatestChunk(size_t chunk_size, std::vector<float>& latestChunk) const {
-            if (chunk_size > count) {
-                chunk_size = count;  // Clamp to available data
-            }
-    
-            latestChunk.resize(chunk_size);  // Ensure the vector is the correct size
-            size_t start = (head + max_size - chunk_size) % max_size;
-    
-            // Check if the requested chunk wraps around
-            if (start + chunk_size <= max_size) {
-                // Contiguous case: Direct copy
-                std::copy(buffer.begin() + start, buffer.begin() + start + chunk_size, latestChunk.begin());
-            } else {
-                // Wrap-around case: Copy in two parts
-                size_t first_part = max_size - start;
-                std::copy(buffer.begin() + start, buffer.end(), latestChunk.begin());
-                std::copy(buffer.begin(), buffer.begin() + (chunk_size - first_part), latestChunk.begin() + first_part);
-            }
-        }
-    
-        void printBuffer() const {
-            for (size_t i = 0; i < count; ++i) {
-                size_t index = (head + max_size - count + i) % max_size;
-                std::cout << buffer[index] << " ";
-            }
-            std::cout << "\n";
-        }
-    
-    private:
-        std::vector<float> buffer;
-        size_t max_size;
-        size_t head;
-        size_t count;
-    };
-    
-    int main() {
-        ChunkedCircularBuffer cb(5);
-        std::vector<float> latestChunk;
-    
-        cb.push({1.0, 2.0, 3.0});
-        cb.printBuffer();  // Expected: 1.0 2.0 3.0
-    
-        cb.push({4.0, 5.0, 6.0});
-        cb.printBuffer();  // Expected: 2.0 3.0 4.0 5.0 6.0
-    
-        cb.getLatestChunk(3, latestChunk);
-        for (float f : latestChunk) {
-            std::cout << f << " ";  // Expected: 4.0 5.0 6.0
-        }
-        std::cout << "\n";
-    
-        cb.push({7.0, 8.0});
-        cb.getLatestChunk(4, latestChunk);
-        for (float f : latestChunk) {
-            std::cout << f << " ";  // Expected: 5.0 6.0 7.0 8.0
-        }
-        std::cout << "\n";
-    
-        return 0;
-    }
-    ```
 
-## environment
+## Environment
 
 - [ ] @umgebung ==rename `loop` to `update` to comply with processing naming ( of `loop()` `noLoop()` )==
 - [ ] @umgebung ==add option to run audio in own thread== ( see https://chatgpt.com/share/67dfc699-1d34-8004-a9a9-40716713ba2f )
 - [ ] @umgebung add `set_window_title` with `SDL_SetWindowTitle(window, “TITLE”);` in subsystem
 - [ ] @umgebung @maybe iterate in reverse order through subsytems so that graphics is last to be exectued in `draw_post` … same for `setup_post`
 
-## credits + licenses
+## Credits + Licenses
 
 
-## building + platforms
+## Building + Platforms
 
 - [ ] add `brew install sdl3_ttf`
 - [ ] add `brew install glm`
@@ -185,7 +98,7 @@ this is a VERY unsorted todo list and a note pad.
 - [ ] @umgebung what’s with ANGLE?
     - @research test OpenGL ES emulation ANGLE with SDL https://gist.github.com/SasLuca/307a523d2c6f2900af5823f0792a8a93
 
-## documentation
+## Documentation
 
 - [ ] @umgebung what’s new in umgebung? audio, `loadOBJ` mesh
 - [ ] @umgebung start coding style doc
@@ -198,7 +111,7 @@ this is a VERY unsorted todo list and a note pad.
                      + -> emit_shape_fill_triangles -> buffer, transform to world/screen space
  ```
 
-## examples
+## Examples
 
 style:
 
@@ -216,12 +129,12 @@ stroke(0.0f);             // black (0x000000)
 - [ ] @umgebung @example add example for library
 - [ ] @umgebung add example that moves around the application window @maybe
 
-## community
+## Community
 
 - [ ] @umgebung on discord https://d3-is.de/umgebung ( https://discord.gg/hrckzRaW7g )
 - [ ] @umgebung ask people for support and feature request etcetera … on github ( + discord )
 
-## libraries
+## Libraries
 
 - [ ] gamepad ( e.g XBox controller as library or subsytem )
 
