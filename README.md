@@ -2,7 +2,7 @@
 
 *Umgebung* is a lightweight C++ environment for small audio and graphics based applications. it is inspired by [Processing.org](https://processing.org) and similar environments.
 
-⚠️ *Umgebung* is a *Work in Progress* (WIP) please always keep this in mind. if you find a bug, an issue, something missing, have an idea for improvements or a feature request, please use GitHub’s [Issue Tracking System](https://github.com/dennisppaul/umgebung/issues).
+⚠️ *Umgebung* is a *Work in Progress* (WIP) ⚠️ please always keep this in mind. if you find a bug, an issue, something missing, have an idea for improvements or a feature request, please use GitHub’s [Issue Tracking System](https://github.com/dennisppaul/umgebung/issues).
 
 ## Features
 
@@ -11,7 +11,6 @@
 - shape-based drawing (e.g `line()`, `ellipse()`, `beginShape()`…)
 - cross-platform ( macOS, Linux, Raspberry Pi, Windows and potentially iOS, Android, WebGL etcetera )
 - simple application structure `.cpp` file + `CMakeLists.txt`
-- 
 - based on CMake build system
 - native access to *real* APIs e.g OpenGL, FFmpeg, PortAudio, and others
 - small, portable builds
@@ -26,6 +25,8 @@ cd umgebung
 cd ../umgebuncdg-examples/Basics/minimal
 cmake -B build ; cmake --build build ; ./build/minimal
 ```
+
+( on some linux systems you might need to installed `git` first with `sudo apt install -y git` )
 
 ## Why *Umgebung*?
 
