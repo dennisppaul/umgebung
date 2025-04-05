@@ -6,7 +6,7 @@ date:   2025-04-04 22:00:00 +0100
 
 ![2025-04-04-Umgebung--A-C-C++Variant-of-Processing.png](/assets/2025-04-04-Umgebung--A-C-C++Variant-of-Processing.png)
 
-( this is a message i shared with the [DM community](https://digitalmedia-bremen.de) at [HfK](https://www.hfk-bremen.de) about the release of *Umgebung* … i thought it also fits somehow into this developer blog )
+( this is a message i shared with the [Digital Media program (DM) community](https://digitalmedia-bremen.de) at [HfK](https://www.hfk-bremen.de) about the release of *Umgebung* … i thought it also fits somehow into this developer blog )
 
 hej community,
 
