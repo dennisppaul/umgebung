@@ -118,6 +118,7 @@ namespace umgebung {
                     sawtooth(wavetable, wavetable_size, value);
                     break;
                 default:
+                    sine(wavetable, wavetable_size);
             }
         }
 

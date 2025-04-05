@@ -186,7 +186,7 @@ endif (DISABLE_VIDEO)
 if (ENABLE_PORTAUDIO)
     target_compile_definitions(umgebung-lib-interface INTERFACE ENABLE_PORTAUDIO)
     target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_PORTAUDIO)
-    message(STATUS "ENABLING      : Portaudio Driver")
+    message(STATUS "ENABLING      : PortAudio Driver")
 endif (ENABLE_PORTAUDIO)
 
 if (ENABLE_CAPTURE)

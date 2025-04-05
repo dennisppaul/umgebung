@@ -17,6 +17,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Umgebung.h"
+#include "Subsystems.h"
+
+#ifndef DISABLE_AUDIO
 #ifdef ENABLE_PORTAUDIO
 
 #include <iostream>
@@ -24,8 +28,6 @@
 #include <chrono>
 #include <thread>
 
-#include "Umgebung.h"
-#include "Subsystems.h"
 #include "UmgebungFunctionsAdditional.h"
 #include "PAudio.h"
 
@@ -481,3 +483,9 @@ umgebung::SubsystemAudio* umgebung_create_subsystem_audio_portaudio() {
 }
 
 #endif // ENABLE_PORTAUDIO
+#else
+
+umgebung::SubsystemAudio* umgebung_create_subsystem_audio_portaudio() {
+    return nullptr;
+}
+#endif // DISABLE_AUDIO
