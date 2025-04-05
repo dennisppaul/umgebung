@@ -6,6 +6,8 @@ date:   2025-04-04 22:00:00 +0100
 
 ![2025-04-04-Umgebung--A-C-C++Variant-of-Processing.png](/assets/2025-04-04-Umgebung--A-C-C++Variant-of-Processing.png)
 
+( this is a message i shared with the HfK community about the release of *Umgebung* … i thought it also fits somehow into this developer blog )
+
 hej community,
 
 i have been (very) busy the last weeks making a point: ever since i started using [Processing](https://processing.org) as an environment or paradigm for _designing with code_, i wanted to make a C/C++ variant of it. finally, i did:
@@ -46,12 +48,8 @@ apart from me being excited to share this with you, i also want to ask for your 
 
 this is not _my_ project — it never was ( i obviously ripped the whole idiom from [Processing](https://processing.org) ;) ) — and the sooner others contribute to make it a communal effort, the happier i am ;)
 
-furthermore, i plan to introduce this environment to the bachelor students in an upcoming class. this is DEFINITELY an experiment that could go multiple ways. so, the more this thing has been tested and used … the better, i guess.
-
-so again, take a look at it, let me know what you think ( including critical and non-confirming points ), and if this project doesn’t get you excited, your :heart: might need a firmware update!
+so again, take a look at it, let me know what you think ( including critical and non-confirming points ), and if this project doesn’t get you excited, your ❤️ might need a firmware update!
 
 PS { just to give you a bit of a frame of reference for what can already be done with _Umgebung_: Leo Puhl @leonat wrote his excellent bachelor thesis with it … try multi-channel sound processing like _that_ in java- or web-based processing ;) }
 
 PPS { and since you’re obviously still reading, you might also find this interview as interesting as i did, in regards to _attitude_: https://open.spotify.com/episode/2qfg3lPaetR4mp580btkOW?si=7b22c2812a94465c — but this is a bit OT }
-
-PPPS { i am also trying to occasionally write a developer blog at https://umgebung.dennisppaul.de }
