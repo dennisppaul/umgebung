@@ -93,8 +93,31 @@ namespace umgebung {
                 case WAVEFORM_SAWTOOTH:
                     sawtooth(wavetable, wavetable_size, false);
                     break;
+                case WAVEFORM_NOISE:
+                    noise(wavetable, wavetable_size);
+                    break;
                 default:
                     sine(wavetable, wavetable_size);
+            }
+        }
+        static void fill(float* wavetable, const uint32_t wavetable_size, const uint8_t waveform, const int value) {
+            switch (waveform) {
+                case WAVEFORM_SAWTOOTH:
+                    sawtooth(wavetable, wavetable_size, value != 0);
+                    break;
+                case WAVEFORM_PULSE:
+                    pulse(wavetable, wavetable_size, static_cast<float>(value) / 100.0f);
+                    break;
+                case WAVEFORM_TRIANGLE_HARMONICS:
+                    triangle(wavetable, wavetable_size, value);
+                    break;
+                case WAVEFORM_SQUARE_HARMONICS:
+                    square(wavetable, wavetable_size, value);
+                    break;
+                case WAVEFORM_SAWTOOTH_HARMONICS:
+                    sawtooth(wavetable, wavetable_size, value);
+                    break;
+                default:
             }
         }
 
@@ -115,14 +138,14 @@ namespace umgebung {
             }
         }
 
-        static void sawtooth(float* wavetable, const uint32_t wavetable_size, const bool is_ramp_up = true) {
+        static void sawtooth(float* wavetable, const uint32_t length, const bool is_ramp_up = true) {
             const float mSign = is_ramp_up ? -1.0f : 1.0f;
-            for (uint32_t i = 0; i < wavetable_size; i++) {
-                wavetable[i] = mSign * (2.0f * (static_cast<float>(i) / static_cast<float>(wavetable_size - 1)) - 1.0f);
+            for (uint32_t i = 0; i < length; i++) {
+                wavetable[i] = mSign * (2.0f * (static_cast<float>(i) / static_cast<float>(length - 1)) - 1.0f);
             }
         }
 
-        static void sawtooth(float* wavetable, const int length, const int harmonics) {
+        static void sawtooth(float* wavetable, const uint32_t length, const int harmonics) {
             std::fill_n(wavetable, length, 0.0f);
             const auto amps = new float[harmonics];
             for (int i = 0; i < harmonics; ++i) {
@@ -139,7 +162,7 @@ namespace umgebung {
         }
 
 
-        static void square(float* wavetable, const int length, const int harmonics) {
+        static void square(float* wavetable, const uint32_t length, const int harmonics) {
             std::fill_n(wavetable, length, 0.0f);
             const auto amps = new float[harmonics]();
             for (int i = 0; i < harmonics; i += 2) {
@@ -149,7 +172,7 @@ namespace umgebung {
             delete[] amps;
         }
 
-        static void square(float* wavetable, const int length) {
+        static void square(float* wavetable, const uint32_t length) {
             const int half = length / 2;
             for (int i = 0; i < half; ++i) {
                 wavetable[i]        = 1.0f;
@@ -157,9 +180,9 @@ namespace umgebung {
             }
         }
 
-        static void triangle(float* wavetable, const uint32_t wavetable_size) {
-            for (uint32_t i = 0; i < wavetable_size; ++i) {
-                const float phase = static_cast<float>(i) / wavetable_size; // 0.0 to <1.0
+        static void triangle(float* wavetable, const uint32_t length) {
+            for (uint32_t i = 0; i < length; ++i) {
+                const float phase = static_cast<float>(i) / length; // 0.0 to <1.0
                 float       value = 0.0f;
                 if (phase < 0.25f) {
                     value = 4.0f * phase;
@@ -207,6 +230,10 @@ namespace umgebung {
         }
 
         void set_waveform(const uint8_t waveform) const {
+            fill(mWavetable, mWavetableSize, waveform);
+        }
+
+        void set_waveform(const uint8_t waveform, int harmonics) const {
             fill(mWavetable, mWavetableSize, waveform);
         }
 

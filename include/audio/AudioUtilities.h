@@ -46,8 +46,11 @@ namespace umgebung {
     enum Waveform {
         WAVEFORM_SINE,
         WAVEFORM_TRIANGLE,
-        WAVEFORM_SAWTOOTH,
         WAVEFORM_SQUARE,
+        WAVEFORM_SAWTOOTH,
+        WAVEFORM_TRIANGLE_HARMONICS,
+        WAVEFORM_SQUARE_HARMONICS,
+        WAVEFORM_SAWTOOTH_HARMONICS,
         WAVEFORM_NOISE,
         WAVEFORM_PULSE,
     };
