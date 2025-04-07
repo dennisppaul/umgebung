@@ -67,7 +67,7 @@ namespace umgebung {
     //         audioEvent(*_device->audio_device);
     //
     //         const float* buffer      = _device->audio_device->output_buffer;
-    //         const int    buffer_size = _device->audio_device->buffer_size * _device->audio_device->output_channels;
+    //         const int    buffer_size = _device->audio_device->buffer_size * _device->audio_device->audio_output_channels;
     //         SDL_PutAudioStreamData(_device->sdl_stream, buffer, buffer_size * sizeof(float));
     //     }
     //     return false;
@@ -161,11 +161,11 @@ namespace umgebung {
         //                 AudioUnitInfoSDL _device;
         //                 _device.logical_device_id = _audio_device_ids[i];
         //                 _device.input_buffer      = nullptr;
-        //                 _device.input_channels    = spec.channels;
+        //                 _device.audio_input_channels    = spec.channels;
         //                 _device.output_buffer     = nullptr;
-        //                 _device.output_channels   = 0;
+        //                 _device.audio_output_channels   = 0;
         //                 _device.buffer_size       = BUFFER_SIZE_UNDEFINED;
-        //                 _device.sample_rate       = spec.freq;
+        //                 _device.audio_sample_rate       = spec.freq;
         //                 _device.name              = _name;
         //                 devices.push_back(_device);
         //             }
@@ -426,20 +426,20 @@ namespace umgebung {
             return; // NOTE this should never happen …
         }
 
-        // if (device->input_channels > 0 && device->output_channels > 0) {
+        // if (device->audio_input_channels > 0 && device->audio_output_channels > 0) {
         //     warning("NOT IMPLEMENTED: trying to create device with input and output. ",
         //             "currently only either out or input works. ",
         //             "defaulting to just output device.");
-        //     device->input_channels = 0;
+        //     device->audio_input_channels = 0;
         // }
 
         // if (device->id == DEFAULT_AUDIO_DEVICE) {
         //     console("trying to create default audio device");
-        //     if (device->input_channels > 0) {
+        //     if (device->audio_input_channels > 0) {
         //         device->id = SDL_AUDIO_DEVICE_DEFAULT_RECORDING;
-        //     } else if (device->output_channels > 0) {
+        //     } else if (device->audio_output_channels > 0) {
         //         device->id = SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK;
-        //     } else if (device->output_channels <= 0 && device->input_channels <= 0) {
+        //     } else if (device->audio_output_channels <= 0 && device->audio_input_channels <= 0) {
         //         error("no audio channels specified. not creating audio device: ", device->id);
         //     } else {
         //         error("this should not happen");

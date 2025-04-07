@@ -100,6 +100,7 @@ namespace umgebung {
                     sine(wavetable, wavetable_size);
             }
         }
+
         static void fill(float* wavetable, const uint32_t wavetable_size, const uint8_t waveform, const int value) {
             switch (waveform) {
                 case WAVEFORM_SAWTOOTH:
@@ -234,8 +235,8 @@ namespace umgebung {
             fill(mWavetable, mWavetableSize, waveform);
         }
 
-        void set_waveform(const uint8_t waveform, int harmonics) const {
-            fill(mWavetable, mWavetableSize, waveform);
+        void set_waveform(const uint8_t waveform, const int harmonics) const {
+            fill(mWavetable, mWavetableSize, waveform, harmonics);
         }
 
         float get_frequency() const {

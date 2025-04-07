@@ -45,7 +45,7 @@ void umgebung::split_interleaved_stereo(float* left, float* right, const float* 
 PAudio::PAudio(const AudioUnitInfo* device_info) : AudioUnitInfo(*device_info) {}
 
 void PAudio::copy_input_buffer_to_output_buffer() const {
-    if (umgebung::output_channels == umgebung::input_channels) {
+    if (umgebung::audio_output_channels == umgebung::audio_input_channels) {
         std::memcpy(output_buffer,                                 // destination
                     input_buffer,                                  // source
                     input_channels * buffer_size * sizeof(float)); // size

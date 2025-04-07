@@ -58,17 +58,27 @@ namespace umgebung {
     /* public variables ( updated by system ) */
 
     /* --- audio  --- */
-    inline PAudio*     a                        = nullptr;
+    inline PAudio*     a                        = nullptr; // TODO consider renaming `a` to `audio` … which would however conflict with the `audio` function
     inline float*      audio_input_buffer       = nullptr;
-    inline int         input_channels           = DEFAULT_INPUT_CHANNELS;
+    inline int         audio_input_channels     = DEFAULT_INPUT_CHANNELS;
     inline float*      audio_output_buffer      = nullptr;
-    inline int         output_channels          = DEFAULT_OUTPUT_CHANNELS;
+    inline int         audio_output_channels    = DEFAULT_OUTPUT_CHANNELS;
+    inline int         audio_sample_rate        = 0;
     inline int         audio_buffer_size        = 0;
-    inline int         sample_rate              = 0;
     inline int         audio_input_device_id    = DEFAULT_AUDIO_DEVICE;
     inline std::string audio_input_device_name  = DEFAULT_AUDIO_DEVICE_NAME;
     inline int         audio_output_device_id   = DEFAULT_AUDIO_DEVICE;
     inline std::string audio_output_device_name = DEFAULT_AUDIO_DEVICE_NAME;
+
+    // TODO consider renaming `a` to `audio` … which would however conflict with the `audio` function
+    // [[deprecated("use audio instead")]]
+    // inline PAudio*&     a                        = audio;
+    [[deprecated("use audio_input_channels instead")]]
+    inline int& input_channels = audio_input_channels;
+    [[deprecated("use audio_output_channels instead")]]
+    inline int& output_channels = audio_output_channels;
+    [[deprecated("use audio_sample_rate instead")]]
+    inline int& sample_rate = audio_sample_rate;
 
     /* --- graphics --- */
     inline PGraphics* g              = nullptr;

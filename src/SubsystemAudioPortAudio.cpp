@@ -289,8 +289,8 @@ namespace umgebung {
             );
 
             if (err != paNoError) {
-                error("audio->input_channels : ", audio->input_channels);
-                error("audio->output_channels: ", audio->output_channels);
+                error("audio->audio_input_channels : ", audio->input_channels);
+                error("audio->audio_output_channels: ", audio->output_channels);
                 error("Failed to open stream: ", Pa_GetErrorText(err), "");
                 return false;
             }
@@ -454,8 +454,8 @@ namespace umgebung {
         _audio->stop();
         audio_devices.push_back(_audio);
         // NOTE newing the arrays happens in class … need to check and align with SDL implementation
-        // audio_device->input_buffer  = new float[audio_device->input_channels * audio_device->buffer_size]{};
-        // audio_device->output_buffer = new float[audio_device->output_channels * audio_device->buffer_size]{};
+        // audio_device->input_buffer  = new float[audio_device->audio_input_channels * audio_device->buffer_size]{};
+        // audio_device->output_buffer = new float[audio_device->audio_output_channels * audio_device->buffer_size]{};
         return _device;
     }
 

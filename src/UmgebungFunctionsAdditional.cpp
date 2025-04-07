@@ -172,9 +172,9 @@ namespace umgebung {
             return;
         }
         umgebung::enable_audio           = true;
-        umgebung::input_channels         = input_channels;
-        umgebung::output_channels        = output_channels;
-        umgebung::sample_rate            = sample_rate;
+        umgebung::audio_input_channels         = input_channels;
+        umgebung::audio_output_channels        = output_channels;
+        umgebung::audio_sample_rate            = sample_rate;
         umgebung::audio_buffer_size      = buffer_size;
         umgebung::audio_input_device_id  = input_device;
         umgebung::audio_output_device_id = output_device;
@@ -191,9 +191,9 @@ namespace umgebung {
             return;
         }
         umgebung::enable_audio             = true;
-        umgebung::input_channels           = input_channels;
-        umgebung::output_channels          = output_channels;
-        umgebung::sample_rate              = sample_rate;
+        umgebung::audio_input_channels           = input_channels;
+        umgebung::audio_output_channels          = output_channels;
+        umgebung::audio_sample_rate              = sample_rate;
         umgebung::audio_buffer_size        = buffer_size;
         umgebung::audio_input_device_id    = AUDIO_DEVICE_FIND_BY_NAME;
         umgebung::audio_output_device_id   = AUDIO_DEVICE_FIND_BY_NAME;
@@ -208,12 +208,12 @@ namespace umgebung {
         umgebung::enable_audio             = true;
         umgebung::audio_input_device_id    = info.input_device_id;
         umgebung::audio_input_device_name  = info.input_device_name;
-        umgebung::input_channels           = info.input_channels;
+        umgebung::audio_input_channels           = info.input_channels;
         umgebung::audio_output_device_id   = info.output_device_id;
         umgebung::audio_output_device_name = info.output_device_name;
-        umgebung::output_channels          = info.output_channels;
+        umgebung::audio_output_channels          = info.output_channels;
         umgebung::audio_buffer_size        = info.buffer_size;
-        umgebung::sample_rate              = info.sample_rate;
+        umgebung::audio_sample_rate              = info.sample_rate;
     }
 
     void audio_start(PAudio* device) {
@@ -361,7 +361,7 @@ namespace umgebung {
         float*       sample_buffer = AudioFileReader::load(filename, channels, sample_rate, length);
         console("loading sample: ");
         console("channels   : ", channels);
-        console("sample_rate: ", sample_rate);
+        console("audio_sample_rate: ", sample_rate);
         console("length     : ", length);
         console("size       : ", channels * length);
         if (channels > 1) {
