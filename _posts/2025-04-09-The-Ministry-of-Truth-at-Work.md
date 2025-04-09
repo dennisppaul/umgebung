@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "The-Ministry-of-Truth-at-Work"
-date:   2025-04-09 22:00:00 +0100
+date:   2025-04-09 10:00:00 +0100
 ---
 
 ![2025-04-09-The-Ministry-of-Truth-at-Work.png](/assets/2025-04-09-The-Ministry-of-Truth-at-Work.png)
