@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -33,12 +33,12 @@
 #include "stb_image_write.h"
 #include "tinyfiledialogs.h"
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 #include "SimplexNoise.h"
-#include "UmgebungFunctions.h"
-#include "UmgebungFunctionsAdditional.h"
+#include "UmfeldFunctions.h"
+#include "UmfeldFunctionsAdditional.h"
 
-namespace umgebung {
+namespace umfeld {
 
     using namespace std::chrono;
 
@@ -346,10 +346,10 @@ namespace umgebung {
             warning("`size()` must be called before or within `settings()`.");
             return;
         }
-        umgebung::enable_graphics = true;
-        umgebung::width           = width;
-        umgebung::height          = height;
-        umgebung::renderer        = renderer;
+        umfeld::enable_graphics = true;
+        umfeld::width           = width;
+        umfeld::height          = height;
+        umfeld::renderer        = renderer;
     }
 
     void add_audio_device(int id, int sample_rate) {
@@ -445,7 +445,7 @@ namespace umgebung {
 
 #endif
 
-#ifndef UMGEBUNG_USE_NATIVE_SKETCH_PATH
+#ifndef UMFELD_USE_NATIVE_SKETCH_PATH
 #define USE_SDL_SKETCH_PATH
 #endif
     std::string sketchPath() {
@@ -722,4 +722,4 @@ namespace umgebung {
 
         return "";
     }
-} // namespace umgebung
+} // namespace umfeld

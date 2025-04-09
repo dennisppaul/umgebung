@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 #include "Subsystems.h"
 
 #ifndef DISABLE_AUDIO
@@ -28,10 +28,10 @@
 #include <chrono>
 #include <thread>
 
-#include "UmgebungFunctionsAdditional.h"
+#include "UmfeldFunctionsAdditional.h"
 #include "PAudio.h"
 
-namespace umgebung {
+namespace umfeld {
 
     struct AudioDevice {
         std::string name;
@@ -117,7 +117,7 @@ namespace umgebung {
                 // call audioevent resepcting non-present audio devices and available frames
                 if ((availableInputFrames >= audio->buffer_size || audio->input_channels == 0) &&
                     (availableOutputFrames >= audio->buffer_size || audio->output_channels == 0)) {
-                    if (a != nullptr && audio == umgebung::a) {
+                    if (a != nullptr && audio == umfeld::a) {
                         audioEvent();
                     }
                     audioEvent(*audio);
@@ -462,30 +462,30 @@ namespace umgebung {
     static const char* name() {
         return "PortAudio";
     }
-} // namespace umgebung
+} // namespace umfeld
 
-umgebung::SubsystemAudio* umgebung_create_subsystem_audio_portaudio() {
-    auto* audio         = new umgebung::SubsystemAudio{};
-    audio->set_flags    = umgebung::set_flags;
-    audio->init         = umgebung::init;
-    audio->setup_pre    = umgebung::setup_pre;
-    audio->setup_post   = umgebung::setup_post;
-    audio->update_loop  = umgebung::update_loop;
-    audio->draw_pre     = umgebung::draw_pre;
-    audio->draw_post    = umgebung::draw_post;
-    audio->shutdown     = umgebung::shutdown;
-    audio->event        = umgebung::event;
-    audio->name         = umgebung::name;
-    audio->start        = umgebung::start;
-    audio->stop         = umgebung::stop;
-    audio->create_audio = umgebung::create_audio;
+umfeld::SubsystemAudio* umfeld_create_subsystem_audio_portaudio() {
+    auto* audio         = new umfeld::SubsystemAudio{};
+    audio->set_flags    = umfeld::set_flags;
+    audio->init         = umfeld::init;
+    audio->setup_pre    = umfeld::setup_pre;
+    audio->setup_post   = umfeld::setup_post;
+    audio->update_loop  = umfeld::update_loop;
+    audio->draw_pre     = umfeld::draw_pre;
+    audio->draw_post    = umfeld::draw_post;
+    audio->shutdown     = umfeld::shutdown;
+    audio->event        = umfeld::event;
+    audio->name         = umfeld::name;
+    audio->start        = umfeld::start;
+    audio->stop         = umfeld::stop;
+    audio->create_audio = umfeld::create_audio;
     return audio;
 }
 
 #endif // ENABLE_PORTAUDIO
 #else
 
-umgebung::SubsystemAudio* umgebung_create_subsystem_audio_portaudio() {
+umfeld::SubsystemAudio* umfeld_create_subsystem_audio_portaudio() {
     return nullptr;
 }
 #endif // DISABLE_AUDIO

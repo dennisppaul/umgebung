@@ -1,4 +1,4 @@
-# umgebung C/C++ Code style
+# umfeld C/C++ Code style
 BasedOnStyle: LLVM
 AccessModifierOffset: -4
 AlignAfterOpenBracket: Align

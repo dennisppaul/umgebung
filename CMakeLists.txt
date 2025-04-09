@@ -1,16 +1,16 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(umgebung-lib)
+project(umfeld-lib)
 
 #option(SET_COMPILER_FLAGS "Set Compiler Flags to C++17" OFF)
 
 message(STATUS "----------------------------------------")
-message(STATUS "UMGEBUNG_APP  : ${PROJECT_NAME}")
+message(STATUS "UMFELD_APP    : ${PROJECT_NAME}")
 
 option(ENABLE_PORTAUDIO "Enable PortAudio output" ON)
 
-#if (NOT DEFINED UMGEBUNG_APP OR "${UMGEBUNG_APP}" STREQUAL "")
-#    message(STATUS "CHARACTER     : using umgebung standalone ( UMGEBUNG_APP not set )")
+#if (NOT DEFINED UMFELD_APP OR "${UMFELD_APP}" STREQUAL "")
+#    message(STATUS "CHARACTER     : using umfeld standalone ( UMFELD_APP not set )")
 #    set(BUILD_STANDALONE ON)
 #else ()
 #    set(BUILD_STANDALONE OFF)
@@ -19,7 +19,7 @@ option(ENABLE_PORTAUDIO "Enable PortAudio output" ON)
 ##########################################################################################################
 ### COMPILER FLAGS                                                                                     ###
 ##########################################################################################################
-#function(set_umgebung_compiler_flags)
+#function(set_umfeld_compiler_flags)
 #    set(CMAKE_CXX_STANDARD 17 PARENT_SCOPE)
 #    set(CMAKE_CXX_STANDARD_REQUIRED ON PARENT_SCOPE)
 ##    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGL_SILENCE_DEPRECATION" PARENT_SCOPE)
@@ -28,7 +28,7 @@ option(ENABLE_PORTAUDIO "Enable PortAudio output" ON)
 
 # TODO somehow this does not work?!?
 ## NOTE can and should be set in root cmake script
-#function(set_umgebung_compiler_flags)
+#function(set_umfeld_compiler_flags)
 #    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 #    set(CMAKE_CXX_STANDARD 17)
 #    set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -39,15 +39,15 @@ option(ENABLE_PORTAUDIO "Enable PortAudio output" ON)
 #endfunction()
 
 #if (SET_COMPILER_FLAGS)
-#    message(STATUS "COMPILER_FLAGS: Umgebung is setting compiler flags")
+#    message(STATUS "COMPILER_FLAGS: Umfeld is setting compiler flags")
 #    # TODO check if this is necessary or if they can be inherited from the parent project
 #    # TODO does not work if called via function … investigate
-##    set_umgebung_compiler_flags()
+##    set_umfeld_compiler_flags()
 #    set(CMAKE_CXX_STANDARD 17)
 #    set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X")
 #else (SET_COMPILER_FLAGS)
-#    message(STATUS "COMPILER_FLAGS: Umgebung is expecting compiler flags to be set by root script")
+#    message(STATUS "COMPILER_FLAGS: Umfeld is expecting compiler flags to be set by root script")
 #endif (SET_COMPILER_FLAGS)
 
 ##########################################################################################################
@@ -87,7 +87,7 @@ endif (APPLE)
 
 # Add library target
 if (APPLE)
-    file(GLOB UMGEBUNG_SOURCE_FILES
+    file(GLOB UMFELD_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.mm
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.cpp
@@ -99,7 +99,7 @@ if (APPLE)
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/osc/*.cpp
     )
 elseif (UNIX)
-    file(GLOB UMGEBUNG_SOURCE_FILES
+    file(GLOB UMFELD_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.c
@@ -110,7 +110,7 @@ elseif (UNIX)
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/osc/*.cpp
     )
 elseif (WIN32)
-    file(GLOB UMGEBUNG_SOURCE_FILES
+    file(GLOB UMFELD_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.c
@@ -121,7 +121,7 @@ elseif (WIN32)
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/osc/*.cpp
     )
 else ()
-    file(GLOB UMGEBUNG_SOURCE_FILES
+    file(GLOB UMFELD_SOURCE_FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/src/libraries/*.c
@@ -133,14 +133,14 @@ else ()
     )
 endif ()
 
-if (NOT TARGET umgebung-lib)
-    add_library(umgebung-lib ${UMGEBUNG_SOURCE_FILES})
+if (NOT TARGET umfeld-lib)
+    add_library(umfeld-lib ${UMFELD_SOURCE_FILES})
 endif ()
-#target_compile_features(umgebung-lib PUBLIC cxx_std_17)
-#target_compile_options(umgebung-lib PUBLIC -std=c++17)
+#target_compile_features(umfeld-lib PUBLIC cxx_std_17)
+#target_compile_options(umfeld-lib PUBLIC -std=c++17)
 
 # Specify include directories for the library
-target_include_directories(umgebung-lib PUBLIC
+target_include_directories(umfeld-lib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/include/shaders
         ${CMAKE_CURRENT_SOURCE_DIR}/include/libraries
@@ -153,8 +153,8 @@ target_include_directories(umgebung-lib PUBLIC
 ##########################################################################################################
 ### EN/DISABLE LIBRARIES                                                                               ###
 ##########################################################################################################
-if (NOT TARGET umgebung-lib-interface)
-    add_library(umgebung-lib-interface INTERFACE) # this enables `glm::aligned_vec*` types
+if (NOT TARGET umfeld-lib-interface)
+    add_library(umfeld-lib-interface INTERFACE) # this enables `glm::aligned_vec*` types
 endif ()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GLM_ENABLE_EXPERIMENTAL)
@@ -166,31 +166,31 @@ else ()
 endif (NOT DISABLE_MAIN)
 
 if (DISABLE_GRAPHICS)
-    target_compile_definitions(umgebung-lib-interface INTERFACE DISABLE_GRAPHICS)
+    target_compile_definitions(umfeld-lib-interface INTERFACE DISABLE_GRAPHICS)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DISABLE_GRAPHICS)
     message(STATUS "DISABLING     : graphics")
 endif (DISABLE_GRAPHICS)
 
 if (DISABLE_AUDIO)
-    target_compile_definitions(umgebung-lib-interface INTERFACE DISABLE_AUDIO)
+    target_compile_definitions(umfeld-lib-interface INTERFACE DISABLE_AUDIO)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DISABLE_AUDIO)
     message(STATUS "DISABLING     : audio")
 endif (DISABLE_AUDIO)
 
 if (DISABLE_VIDEO)
-    target_compile_definitions(umgebung-lib-interface INTERFACE DISABLE_VIDEO)
+    target_compile_definitions(umfeld-lib-interface INTERFACE DISABLE_VIDEO)
     target_compile_definitions(${PROJECT_NAME} PUBLIC DISABLE_VIDEO)
     message(STATUS "DISABLING     : video")
 endif (DISABLE_VIDEO)
 
 if (ENABLE_PORTAUDIO)
-    target_compile_definitions(umgebung-lib-interface INTERFACE ENABLE_PORTAUDIO)
+    target_compile_definitions(umfeld-lib-interface INTERFACE ENABLE_PORTAUDIO)
     target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_PORTAUDIO)
     message(STATUS "ENABLING      : PortAudio Driver")
 endif (ENABLE_PORTAUDIO)
 
 if (ENABLE_CAPTURE)
-    target_compile_definitions(umgebung-lib-interface INTERFACE ENABLE_CAPTURE)
+    target_compile_definitions(umfeld-lib-interface INTERFACE ENABLE_CAPTURE)
     target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_CAPTURE)
     message(STATUS "ENABLING      : Capture")
 endif (ENABLE_CAPTURE)
@@ -200,12 +200,12 @@ endif (ENABLE_CAPTURE)
 ##########################################################################################################
 
 #if (BUILD_STANDALONE)
-#    add_executable(${PROJECT_NAME} ${UMGEBUNG_SOURCE_FILES})
-#    target_compile_definitions(${PROJECT_NAME} PUBLIC UMGEBUNG_STANDALONE)
+#    add_executable(${PROJECT_NAME} ${UMFELD_SOURCE_FILES})
+#    target_compile_definitions(${PROJECT_NAME} PUBLIC UMFELD_STANDALONE)
 #else (BUILD_STANDALONE)
 target_sources(${PROJECT_NAME}
         PUBLIC
-        ${UMGEBUNG_SOURCE_FILES}
+        ${UMFELD_SOURCE_FILES}
 )
 #endif (BUILD_STANDALONE)
 
@@ -215,26 +215,26 @@ target_sources(${PROJECT_NAME}
 
 if (APPLE)
     message(STATUS "SYSTEM        : macOS")
-    target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_MACOS)
+    target_compile_definitions(umfeld-lib-interface INTERFACE SYSTEM_MACOS)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_MACOS)
 elseif (UNIX)
     message(STATUS "SYSTEM        : UNIX ( including RPI )")
-    target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_UNIX)
+    target_compile_definitions(umfeld-lib-interface INTERFACE SYSTEM_UNIX)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_UNIX)
 elseif (WIN32)
     message(STATUS "SYSTEM        : Windows")
-    target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_WIN32)
+    target_compile_definitions(umfeld-lib-interface INTERFACE SYSTEM_WIN32)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_WIN32)
 else ()
     message(STATUS "SYSTEM        : Undefined, Good Luck!")
-    target_compile_definitions(umgebung-lib-interface INTERFACE SYSTEM_UNDEFINED)
+    target_compile_definitions(umfeld-lib-interface INTERFACE SYSTEM_UNDEFINED)
     target_compile_definitions(${PROJECT_NAME} PUBLIC SYSTEM_UNDEFINED)
 endif ()
 
 # NOTE removed specific system check for now ( because it fails with ninja build system ). it may not be necessary to have such a specific check for RPI.
 #try_run(RUN_RESULT_VAR COMPILE_RESULT_VAR
-#        ${UMGEBUNG_PATH}/tools/system_check
-#        ${UMGEBUNG_PATH}/tools/system_check.cpp
+#        ${UMFELD_PATH}/tools/system_check
+#        ${UMFELD_PATH}/tools/system_check.cpp
 #        RUN_OUTPUT_VARIABLE SYSTEM_CHECK_OUTPUT)
 #
 #if(RUN_RESULT_VAR EQUAL 1)
@@ -414,21 +414,21 @@ endif (NOT DISABLE_MIDI)
 ##########################################################################################################
 ### COMPILER FLAGS                                                                                     ###
 ##########################################################################################################
-function(add_umgebung_libs)
-    # Check if umgebung-lib-interface target already exists
-    if (NOT TARGET umgebung-lib-interface)
-        message(FATAL_ERROR "umgebung-lib-interface target not found. Make sure it is defined before calling add_umgebung_libs.")
+function(add_umfeld_libs)
+    # Check if umfeld-lib-interface target already exists
+    if (NOT TARGET umfeld-lib-interface)
+        message(FATAL_ERROR "umfeld-lib-interface target not found. Make sure it is defined before calling add_umfeld_libs.")
     endif ()
 
-    # Check if umgebung-lib target already exists
-    if (NOT TARGET umgebung-lib)
-        message(FATAL_ERROR "umgebung-lib target not found. Make sure it is defined before calling add_umgebung_libs.")
+    # Check if umfeld-lib target already exists
+    if (NOT TARGET umfeld-lib)
+        message(FATAL_ERROR "umfeld-lib target not found. Make sure it is defined before calling add_umfeld_libs.")
     endif ()
 
     # Link the libraries if they exist
     set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib-interface)
-    target_link_libraries(${PROJECT_NAME} PRIVATE umgebung-lib)
+    target_link_libraries(${PROJECT_NAME} PRIVATE umfeld-lib-interface)
+    target_link_libraries(${PROJECT_NAME} PRIVATE umfeld-lib)
 endfunction()
 
 
@@ -452,8 +452,8 @@ endfunction()
 ##########################################################################################################
 
 # use these in projects:
-# - prepare umgebung ( before `add_executable` ): `include(${UMGEBUNG_PATH}/cmake/default-pre.cmake)`
-# - prepare umgebung ( after `add_executable` ): `include(${UMGEBUNG_PATH}/cmake/default-post.cmake)`
+# - prepare umfeld ( before `add_executable` ): `include(${UMFELD_PATH}/cmake/default-pre.cmake)`
+# - prepare umfeld ( after `add_executable` ): `include(${UMFELD_PATH}/cmake/default-post.cmake)`
 
 ##########################################################################################################
 ### TEST                                                                                               ###
@@ -470,10 +470,10 @@ if (BUILD_TESTING)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
     set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X")
 
-    add_executable(umgebung-tests test/umgebung_test.cpp)
-    target_link_libraries(umgebung-tests umgebung-lib umgebung-lib-interface)
+    add_executable(umfeld-tests test/umfeld_test.cpp)
+    target_link_libraries(umfeld-tests umfeld-lib umfeld-lib-interface)
 
-    add_test(NAME UmgebungTest COMMAND umgebung-tests)
+    add_test(NAME UmfeldTest COMMAND umfeld-tests)
 else ()
 endif ()
 

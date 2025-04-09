@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 #include "PGraphics.h"
 #include "PAudio.h"
 
-namespace umgebung {
+namespace umfeld {
 
     struct Subsystem {
         void (*set_flags)(uint32_t& subsystem_flags);
@@ -61,13 +61,13 @@ namespace umgebung {
     * it can be used e.g like this:
     *
     *     create_subsystem_audio = []() -> SubsystemAudio* {
-    *         return umgebung_subsystem_audio_create_sdl();
+    *         return umfeld_subsystem_audio_create_sdl();
     *     };
     *
     * or like this:
     *
     *     SubsystemAudio* create_sdl_audio() {
-    *         return umgebung_subsystem_audio_create_sdl(); // <<< example implementation
+    *         return umfeld_subsystem_audio_create_sdl(); // <<< example implementation
     *     }
     *
     *     void settings() {
@@ -91,14 +91,14 @@ namespace umgebung {
         virtual void event_in_update_loop(SDL_Event* event) = 0; // NOTE events are handled in the main loop
         virtual void shutdown()                             = 0;
     };
-} // namespace umgebung
+} // namespace umfeld
 
 /* implemented subsystems */
 
-umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_sdl2d();
-umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv20();
-umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv33();
-umgebung::SubsystemAudio*    umgebung_create_subsystem_audio_sdl();
-umgebung::SubsystemAudio*    umgebung_create_subsystem_audio_portaudio();
-umgebung::Subsystem*         umgebung_create_subsystem_hid_events();
-umgebung::Subsystem*         umgebung_create_subsystem_libraries();
+umfeld::SubsystemGraphics* umfeld_create_subsystem_graphics_sdl2d();
+umfeld::SubsystemGraphics* umfeld_create_subsystem_graphics_openglv20();
+umfeld::SubsystemGraphics* umfeld_create_subsystem_graphics_openglv33();
+umfeld::SubsystemAudio*    umfeld_create_subsystem_audio_sdl();
+umfeld::SubsystemAudio*    umfeld_create_subsystem_audio_portaudio();
+umfeld::Subsystem*         umfeld_create_subsystem_hid_events();
+umfeld::Subsystem*         umfeld_create_subsystem_libraries();

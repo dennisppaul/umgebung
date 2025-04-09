@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 #include <iostream>
 #include "PShape.h"
 
-using namespace umgebung;
+using namespace umfeld;
 
 #ifndef DISABLE_GRAPHICS
 

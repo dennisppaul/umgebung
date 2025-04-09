@@ -36,7 +36,7 @@
 /**
  * low-pass filter implementing the <em>Moog Ladder</em>.
  */
-namespace umgebung {
+namespace umfeld {
     class LowPassFilter {
         /*
          * Low Pass Filter ( Moog Ladder )
@@ -169,4 +169,4 @@ namespace umgebung {
             return sign * tanh(x);
         }
     };
-} // namespace umgebung
+} // namespace umfeld

@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -17,10 +17,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 #include "PGraphicsDefault2D.h"
 
-namespace umgebung {
+namespace umfeld {
     // TODO Ref https://github.com/libsdl-org/SDL/blob/main/docs/hello.c
 
     static SDL_Window*   window       = nullptr;
@@ -29,7 +29,7 @@ namespace umgebung {
     static void setup_pre() {
         int w = 0, h = 0;
         SDL_GetRenderOutputSize(sdl_renderer, &w, &h);
-        umgebung::g->init(nullptr, w, h, 4, false);
+        umfeld::g->init(nullptr, w, h, 4, false);
     }
 
     static void setup_post() { printf("Setup Post\n"); }
@@ -39,8 +39,8 @@ namespace umgebung {
     static bool init() {
         SDL_WindowFlags flags = 0;
         if (!SDL_CreateWindowAndRenderer(get_window_title().c_str(),
-                                         static_cast<int>(umgebung::width),
-                                         static_cast<int>(umgebung::height),
+                                         static_cast<int>(umfeld::width),
+                                         static_cast<int>(umfeld::height),
                                          get_SDL_WindowFlags(flags),
                                          &window,
                                          &sdl_renderer)) {
@@ -100,23 +100,23 @@ namespace umgebung {
     static const char* name() {
         return "SDL 2D";
     }
-} // namespace umgebung
+} // namespace umfeld
 
-umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_sdl2d() {
-    auto* graphics       = new umgebung::SubsystemGraphics{};
-    graphics->set_flags  = umgebung::set_flags;
-    graphics->init       = umgebung::init;
-    graphics->setup_pre  = umgebung::setup_pre;
-    graphics->setup_post = umgebung::setup_post;
-    graphics->draw_pre   = umgebung::draw_pre;
-    graphics->draw_post  = umgebung::draw_post;
-    // graphics->event                = umgebung::event;
-    // graphics->event_in_update_loop           = umgebung::event_in_update_loop;
-    graphics->shutdown               = umgebung::shutdown;
-    graphics->create_native_graphics = umgebung::create_native_graphics;
-    graphics->get_sdl_window         = umgebung::get_sdl_window;
-    graphics->get_renderer           = umgebung::get_renderer;
-    graphics->get_renderer_type      = umgebung::get_renderer_type;
-    graphics->name                   = umgebung::name;
+umfeld::SubsystemGraphics* umfeld_create_subsystem_graphics_sdl2d() {
+    auto* graphics       = new umfeld::SubsystemGraphics{};
+    graphics->set_flags  = umfeld::set_flags;
+    graphics->init       = umfeld::init;
+    graphics->setup_pre  = umfeld::setup_pre;
+    graphics->setup_post = umfeld::setup_post;
+    graphics->draw_pre   = umfeld::draw_pre;
+    graphics->draw_post  = umfeld::draw_post;
+    // graphics->event                = umfeld::event;
+    // graphics->event_in_update_loop           = umfeld::event_in_update_loop;
+    graphics->shutdown               = umfeld::shutdown;
+    graphics->create_native_graphics = umfeld::create_native_graphics;
+    graphics->get_sdl_window         = umfeld::get_sdl_window;
+    graphics->get_renderer           = umfeld::get_renderer;
+    graphics->get_renderer_type      = umfeld::get_renderer_type;
+    graphics->name                   = umfeld::name;
     return graphics;
 }

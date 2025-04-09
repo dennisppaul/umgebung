@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -23,14 +23,14 @@
 #include <string>
 
 // ReSharper disable once CppUnusedIncludeDirective
-#include "UmgebungDefines.h"
-#include "UmgebungConstants.h"
-#include "UmgebungCallbacks.h"
-#include "UmgebungFunctions.h"
-#include "UmgebungFunctionsGraphics.h"
+#include "UmfeldDefines.h"
+#include "UmfeldConstants.h"
+#include "UmfeldCallbacks.h"
+#include "UmfeldFunctions.h"
+#include "UmfeldFunctionsGraphics.h"
 #include "Subsystems.h"
 
-namespace umgebung {
+namespace umfeld {
 
     /* public variables *for initialization only*  */
 
@@ -125,4 +125,4 @@ namespace umgebung {
         }
         return DEFAULT;
     }
-} // namespace umgebung
+} // namespace umfeld

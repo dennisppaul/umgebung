@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/type_aligned.hpp>
 
-namespace umgebung {
+namespace umfeld {
     struct Vertex {
         static constexpr auto DEFAULT_POSITION  = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
         static constexpr auto DEFAULT_NORMAL    = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -59,4 +59,4 @@ namespace umgebung {
         Vertex()
             : Vertex(glm::vec3(DEFAULT_POSITION)) {}
     };
-} // namespace umgebung
+} // namespace umfeld

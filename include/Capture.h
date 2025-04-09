@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -51,7 +51,7 @@ struct DeviceCapability {
 
 std::vector<DeviceCapability> getDeviceCapabilities();
 
-namespace umgebung {
+namespace umfeld {
     class Capture;
 
     class CaptureListener {
@@ -67,7 +67,7 @@ namespace umgebung {
     public:
         Capture();
 
-        // TODO check if this conflicts with init in PImage `warning: 'umgebung::Capture::init' hides overloaded virtual function [-Woverloaded-virtual]`
+        // TODO check if this conflicts with init in PImage `warning: 'umfeld::Capture::init' hides overloaded virtual function [-Woverloaded-virtual]`
         bool        init(const char* device_name,
                          const char* resolution,
                          const char* frame_rate,
@@ -127,4 +127,4 @@ namespace umgebung {
         static void              register_all_devices();
         static void              custom_log_callback(void* ptr, int level, const char* fmt, va_list vargs);
     };
-} // namespace umgebung
+} // namespace umfeld

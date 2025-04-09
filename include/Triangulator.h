@@ -6,7 +6,7 @@
 #include "libtess2/tesselator.h"
 #include "Vertex.h"
 
-namespace umgebung {
+namespace umfeld {
     class Triangulator {
     public:
         enum Winding {
@@ -129,4 +129,4 @@ namespace umgebung {
 
         return outputTriangles;
     }
-} // namespace umgebung
+} // namespace umfeld

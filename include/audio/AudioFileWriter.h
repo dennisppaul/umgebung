@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@
 
 #include "dr_wav.h"
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 
 /**
  * @brief write audio files in WAV format, mono 32-bit float

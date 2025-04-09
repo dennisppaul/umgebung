@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 #include "SubsystemGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv33.h"
 
-namespace umgebung {
+namespace umfeld {
     static SDL_Window*   window                                  = nullptr;
     static SDL_GLContext gl_context                              = nullptr;
     static bool          blit_framebuffer_object_to_screenbuffer = true; // NOTE FBO is BLITted directly into the color buffer instead of rendered with a textured quad
@@ -99,23 +99,23 @@ namespace umgebung {
     static const char* name() {
         return "OpenGL 3.3 core";
     }
-} // namespace umgebung
+} // namespace umfeld
 
-umgebung::SubsystemGraphics* umgebung_create_subsystem_graphics_openglv33() {
-    auto* graphics                   = new umgebung::SubsystemGraphics{};
-    graphics->set_flags              = umgebung::set_flags;
-    graphics->init                   = umgebung::init;
-    graphics->setup_pre              = umgebung::setup_pre;
-    graphics->setup_post             = umgebung::setup_post;
-    graphics->draw_pre               = umgebung::draw_pre;
-    graphics->draw_post              = umgebung::draw_post;
-    graphics->shutdown               = umgebung::shutdown;
-    graphics->event                  = umgebung::event;
-    graphics->event_in_update_loop   = umgebung::event_in_update_loop;
-    graphics->create_native_graphics = umgebung::create_native_graphics;
-    graphics->get_sdl_window         = umgebung::get_sdl_window;
-    graphics->get_renderer           = umgebung::get_renderer;
-    graphics->get_renderer_type      = umgebung::get_renderer_type;
-    graphics->name                   = umgebung::name;
+umfeld::SubsystemGraphics* umfeld_create_subsystem_graphics_openglv33() {
+    auto* graphics                   = new umfeld::SubsystemGraphics{};
+    graphics->set_flags              = umfeld::set_flags;
+    graphics->init                   = umfeld::init;
+    graphics->setup_pre              = umfeld::setup_pre;
+    graphics->setup_post             = umfeld::setup_post;
+    graphics->draw_pre               = umfeld::draw_pre;
+    graphics->draw_post              = umfeld::draw_post;
+    graphics->shutdown               = umfeld::shutdown;
+    graphics->event                  = umfeld::event;
+    graphics->event_in_update_loop   = umfeld::event_in_update_loop;
+    graphics->create_native_graphics = umfeld::create_native_graphics;
+    graphics->get_sdl_window         = umfeld::get_sdl_window;
+    graphics->get_renderer           = umfeld::get_renderer;
+    graphics->get_renderer_type      = umfeld::get_renderer_type;
+    graphics->name                   = umfeld::name;
     return graphics;
 }

@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -45,7 +45,7 @@ extern "C" {
 #include <sstream>
 #include <thread>
 
-namespace umgebung {
+namespace umfeld {
 #if defined(ENABLE_CAPTURE) && !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
     static const char* get_platform_inputformat() {
 #ifdef _WIN32
@@ -349,7 +349,7 @@ namespace umgebung {
         } else {
             char err_buf[AV_ERROR_MAX_STRING_SIZE];
             av_strerror(ret, err_buf, AV_ERROR_MAX_STRING_SIZE);
-#ifdef UMGEBUNG_CAPTURE_PRINT_ERRORS
+#ifdef UMFELD_CAPTURE_PRINT_ERRORS
             printf("Error occurred: %s\n", err_buf);
 #endif
         }
@@ -618,4 +618,4 @@ namespace umgebung {
         return devices;
     }
 #endif // ENABLE_CAPTURE && !DISABLE_GRAPHICS && !DISABLE_VIDEO
-} // namespace umgebung
+} // namespace umfeld

@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -27,9 +27,9 @@
 
 #endif
 
-#include "UmgebungConstants.h"
+#include "UmfeldConstants.h"
 
-namespace umgebung {
+namespace umfeld {
 
     class PShape {
     public:
@@ -77,4 +77,4 @@ namespace umgebung {
 
     PShape* createShape();
 
-} // namespace umgebung
+} // namespace umfeld

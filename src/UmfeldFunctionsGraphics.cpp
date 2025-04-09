@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -20,11 +20,11 @@
 #include <string>
 #include <sstream>
 
-#include "Umgebung.h"
-#include "UmgebungFunctionsGraphics.h"
+#include "Umfeld.h"
+#include "UmfeldFunctionsGraphics.h"
 #include "ShaderSource.h"
 
-namespace umgebung {
+namespace umfeld {
     void background(const float a) {
         if (g == nullptr) {
             return;
@@ -117,10 +117,10 @@ namespace umgebung {
     }
 
     void fill(const float r, const float g, const float b, const float a) {
-        if (umgebung::g == nullptr) {
+        if (umfeld::g == nullptr) {
             return;
         }
-        umgebung::g->fill(r, g, b, a);
+        umfeld::g->fill(r, g, b, a);
     }
 
     void fill(const float brightness, const float a) {
@@ -229,10 +229,10 @@ namespace umgebung {
     }
 
     void stroke(const float r, const float g, const float b, const float a) {
-        if (umgebung::g == nullptr) {
+        if (umfeld::g == nullptr) {
             return;
         }
-        umgebung::g->stroke(r, g, b, a);
+        umfeld::g->stroke(r, g, b, a);
     }
 
     void stroke(const float brightness, const float a) {
@@ -624,4 +624,4 @@ namespace umgebung {
         }
         g->debug_text(text, x, y);
     }
-} // namespace umgebung
+} // namespace umfeld

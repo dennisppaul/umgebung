@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -50,7 +50,7 @@
  * plays back a chunk of samples ( i.e arbitrary, single-cycle waveform like sine, triangle, saw or square waves ) at
  * different frequencies and amplitudes.
  */
-namespace umgebung {
+namespace umfeld {
     class Wavetable {
     public:
         Wavetable(const uint32_t wavetable_size, const float sample_rate) : Wavetable(new float[wavetable_size], wavetable_size, sample_rate) {
@@ -495,4 +495,4 @@ namespace umgebung {
             return mOutput;
         }
     };
-} // namespace umgebung
+} // namespace umfeld

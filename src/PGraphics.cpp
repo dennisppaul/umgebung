@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -29,14 +29,14 @@
 #include "polypartition.h"
 #include "clipper2/clipper.h"
 
-#include "Umgebung.h"
-#include "UmgebungFunctionsGraphics.h"
-#include "UmgebungFunctionsAdditional.h"
+#include "Umfeld.h"
+#include "UmfeldFunctionsGraphics.h"
+#include "UmfeldFunctionsAdditional.h"
 #include "PGraphics.h"
 #include "Vertex.h"
 #include "Geometry.h"
 
-using namespace umgebung;
+using namespace umfeld;
 
 PGraphics::PGraphics() : PImage(0, 0, 0) {
     PGraphics::fill(1.0f);

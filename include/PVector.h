@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 #include <random>
 #include <chrono>
 
-namespace umgebung {
+namespace umfeld {
 
     /*
       PVector operator+(const PVector &other) const {
@@ -254,6 +254,6 @@ namespace umgebung {
             return arr;
         }
     };
-} // namespace umgebung
+} // namespace umfeld
 
 #endif // PVECTOR_H

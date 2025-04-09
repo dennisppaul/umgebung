@@ -19,7 +19,7 @@ install_brew() {
     fi
 }
 
-echo "+++ setting up umgebung   +++"
+echo "+++ setting up umfeld   +++"
 
 echo "+++ checking for homebrew +++"
 check_brew

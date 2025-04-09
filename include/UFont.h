@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@
 #include "PGraphicsOpenGLConstants.h"
 #include "UFontPixels.h"
 
-namespace umgebung {
+namespace umfeld {
 
     class UFont {
         // NOTE used for debug text ;)
@@ -61,11 +61,11 @@ namespace umgebung {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glTexImage2D(GL_TEXTURE_2D,
                          0,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
                          FONT_ATLAS_WIDTH,
                          FONT_ATLAS_HEIGHT, 0,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                         UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMFELD_DEFAULT_TEXTURE_PIXEL_TYPE,
                          pixelData);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -101,4 +101,4 @@ namespace umgebung {
             return vertices;
         }
     };
-} // namespace umgebung
+} // namespace umfeld

@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -19,11 +19,11 @@
 
 #include <SDL3/SDL.h> // TODO remove this at some point
 
-#include "UmgebungCallbacks.h"
+#include "UmfeldCallbacks.h"
 
-#define ENABLE_UMGEBUNG_CALLBACK_LOGGING 0
+#define ENABLE_UMFELD_CALLBACK_LOGGING 0
 
-#if ENABLE_UMGEBUNG_CALLBACK_LOGGING
+#if ENABLE_UMFELD_CALLBACK_LOGGING
 #define LOG_MSG(msg) SDL_Log(msg)
 #else
 #define LOG_MSG(msg) ((void) 0) // Does nothing when logging is disabled
@@ -47,5 +47,5 @@ WEAK void mouseWheel(const float x, const float y) { LOG_MSG("default mouseWheel
 WEAK void dropped(const char* dropped_filedir) { LOG_MSG("default dropped"); }
 WEAK bool sdl_event(const SDL_Event& event) { LOG_MSG("sdl event"); return false; }
 WEAK void windowResized(int width, int height) {}
-WEAK void audioEvent(const umgebung::PAudio& device) {}
+WEAK void audioEvent(const umfeld::PAudio& device) {}
 WEAK void audioEvent() { /* NOTE same as above but for default audio device */ }

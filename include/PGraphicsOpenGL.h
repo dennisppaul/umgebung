@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 
 #include <GL/glew.h>
 
-#include "UmgebungFunctionsAdditional.h"
+#include "UmfeldFunctionsAdditional.h"
 #include "PGraphics.h"
 
 #ifndef PGRAPHICS_OPENGL_DO_NOT_CHECK_ERRORS
@@ -32,7 +32,7 @@
 #define GL_CALL(func) func;
 #endif
 
-namespace umgebung {
+namespace umfeld {
 
     // TODO @maybe move the functions below into the class above
 
@@ -332,8 +332,8 @@ namespace umgebung {
             pixels.resize(_width * _height * DEFAULT_BYTES_PER_PIXELS);
             glPixelStorei(GL_PACK_ALIGNMENT, 4);
             glReadPixels(0, 0, _width, _height,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                         UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMFELD_DEFAULT_TEXTURE_PIXEL_TYPE,
                          pixels.data());
             return true;
         }
@@ -378,12 +378,12 @@ namespace umgebung {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
             glTexImage2D(GL_TEXTURE_2D,
                          0,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
                          static_cast<GLint>(image->width),
                          static_cast<GLint>(image->height),
                          0,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                         UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMFELD_DEFAULT_TEXTURE_PIXEL_TYPE,
                          image->pixels);
 
             // TODO this does not work … need to test differently for OpenGL 2.0
@@ -404,4 +404,4 @@ namespace umgebung {
             return true;
         }
     }; // class PGraphicsOpenGL
-} // namespace umgebung
+} // namespace umfeld

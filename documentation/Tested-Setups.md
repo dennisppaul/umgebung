@@ -1,4 +1,4 @@
-# Umgebung / Tested Setups
+# Umfeld / Tested Setups
 
 | HARDWARE           | OS                                             | STATUS | COMMENT              |
 | ------------------ | ---------------------------------------------- | ------ | -------------------- |

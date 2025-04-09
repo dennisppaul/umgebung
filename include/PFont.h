@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -39,10 +39,10 @@
 #include FT_FREETYPE_H
 #include FT_OUTLINE_H
 
-#include "UmgebungFunctionsAdditional.h"
+#include "UmfeldFunctionsAdditional.h"
 #include "PImage.h"
 
-namespace umgebung {
+namespace umfeld {
     struct TexturedQuad {
         float x0, y0, u0, v0; // Top-left
         float x1, y1, u1, v1; // Top-right
@@ -637,11 +637,11 @@ namespace umgebung {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glTexImage2D(GL_TEXTURE_2D,
                          0,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
                          font.atlas_width, font.atlas_height,
                          0,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                         UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMFELD_DEFAULT_TEXTURE_PIXEL_TYPE,
                          // font.atlas.data());
                          atlas_rgba.data());
 
@@ -652,4 +652,4 @@ namespace umgebung {
         }
 #endif // PFONT_INCLUDE_OPENGL
     };
-} // namespace umgebung
+} // namespace umfeld

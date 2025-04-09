@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 #include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv33.h"
 #include "Vertex.h"
@@ -33,7 +33,7 @@
 #include "PShader.h"
 #include "ShaderSourceColorTexture.h"
 
-using namespace umgebung;
+using namespace umfeld;
 
 PGraphicsOpenGLv33::PGraphicsOpenGLv33(const bool render_to_offscreen) : PImage(0, 0, 0) {
     this->render_to_offscreen = render_to_offscreen;
@@ -401,8 +401,8 @@ void PGraphicsOpenGLv33::upload_texture(PImage*         img,
     glTexSubImage2D(GL_TEXTURE_2D,
                     0, offset_x, offset_y,
                     width, height,
-                    UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                    UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                    UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                    UMFELD_DEFAULT_TEXTURE_PIXEL_TYPE,
                     pixel_data);
 
     IMPL_bind_texture(tmp_bound_texture);
@@ -422,8 +422,8 @@ void PGraphicsOpenGLv33::download_texture(PImage* img) {
     const int tmp_bound_texture = texture_id_current;
     IMPL_bind_texture(img->texture_id);
     glGetTexImage(GL_TEXTURE_2D, 0,
-                  UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                  UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                  UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                  UMFELD_DEFAULT_TEXTURE_PIXEL_TYPE,
                   img->pixels);
     IMPL_bind_texture(tmp_bound_texture);
 }
@@ -435,7 +435,7 @@ void PGraphicsOpenGLv33::init(uint32_t*  pixels,
                               const bool generate_mipmap) {
     (void) format;                         // TODO should this always be ignored? NOTE main graphics are always RGBA
     (void) generate_mipmap;                // TODO should this always be ignored?
-    const int msaa_samples = antialiasing; // TODO not cool to take this from Umgebung
+    const int msaa_samples = antialiasing; // TODO not cool to take this from Umfeld
 
     // stroke_shader_program = OGL_build_shader(shader_source_color.vertex, shader_source_color.fragment);
     // fill_shader_program   = OGL_build_shader(shader_source_color_texture.vertex, shader_source_color_texture.fragment);
@@ -474,7 +474,7 @@ void PGraphicsOpenGLv33::init(uint32_t*  pixels,
             checkOpenGLError("glBindTexture");
             glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE,
                                     samples,
-                                    UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                                    UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
                                     framebuffer.width,
                                     framebuffer.height,
                                     GL_TRUE);
@@ -501,12 +501,12 @@ void PGraphicsOpenGLv33::init(uint32_t*  pixels,
             glBindTexture(GL_TEXTURE_2D, framebuffer.texture_id); // NOTE no need to use `IMPL_bind_texture()`
             glTexImage2D(GL_TEXTURE_2D,
                          0,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
                          framebuffer.width,
                          framebuffer.height,
                          0,
-                         UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
-                         UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE,
+                         UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                         UMFELD_DEFAULT_TEXTURE_PIXEL_TYPE,
                          nullptr);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -554,10 +554,10 @@ void PGraphicsOpenGLv33::OGL3_create_solid_color_texture() {
     constexpr unsigned char whitePixel[4] = {255, 255, 255, 255}; // RGBA: White
     glTexImage2D(GL_TEXTURE_2D,
                  0,
-                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                 UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
                  1, 1,
                  0,
-                 UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT,
+                 UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT,
                  GL_UNSIGNED_BYTE,
                  whitePixel);
 

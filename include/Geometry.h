@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/geometric.hpp>
 
-#include "UmgebungConstants.h"
+#include "UmfeldConstants.h"
 
 // #define GEOMETRY_DRAW_DEBUG
 
@@ -37,7 +37,7 @@
 // std::vector<Vertex>        convertTriangleFanToTriangles(const std::vector<Vertex>& fan) const;
 // std::vector<Vertex>        convertTriangleStripToTriangles(const std::vector<Vertex>& strip) const;
 
-namespace umgebung {
+namespace umfeld {
 
     struct Segment {
         glm::vec2 position;
@@ -969,4 +969,4 @@ namespace umgebung {
         }
         return tubeVertices;
     }
-} // namespace umgebung
+} // namespace umfeld

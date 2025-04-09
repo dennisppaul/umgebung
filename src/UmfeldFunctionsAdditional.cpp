@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -27,11 +27,11 @@
 
 #include "tiny_obj_loader.h"
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 #include "audio/AudioFileReader.h"
 #include "audio/Sampler.h"
 
-namespace umgebung {
+namespace umfeld {
 
     bool begins_with(const std::string& str, const std::string& prefix) {
         if (prefix.size() > str.size()) {
@@ -171,13 +171,13 @@ namespace umgebung {
             warning("`audio()` must be called before or within `settings()`.");
             return;
         }
-        umgebung::enable_audio           = true;
-        umgebung::audio_input_channels         = input_channels;
-        umgebung::audio_output_channels        = output_channels;
-        umgebung::audio_sample_rate            = sample_rate;
-        umgebung::audio_buffer_size      = buffer_size;
-        umgebung::audio_input_device_id  = input_device;
-        umgebung::audio_output_device_id = output_device;
+        umfeld::enable_audio           = true;
+        umfeld::audio_input_channels         = input_channels;
+        umfeld::audio_output_channels        = output_channels;
+        umfeld::audio_sample_rate            = sample_rate;
+        umfeld::audio_buffer_size      = buffer_size;
+        umfeld::audio_input_device_id  = input_device;
+        umfeld::audio_output_device_id = output_device;
     }
 
     void audio(const int          input_channels,
@@ -190,30 +190,30 @@ namespace umgebung {
             warning("`audio()` must be called before or within `settings()`.");
             return;
         }
-        umgebung::enable_audio             = true;
-        umgebung::audio_input_channels           = input_channels;
-        umgebung::audio_output_channels          = output_channels;
-        umgebung::audio_sample_rate              = sample_rate;
-        umgebung::audio_buffer_size        = buffer_size;
-        umgebung::audio_input_device_id    = AUDIO_DEVICE_FIND_BY_NAME;
-        umgebung::audio_output_device_id   = AUDIO_DEVICE_FIND_BY_NAME;
-        umgebung::audio_input_device_name  = input_device_name;
-        umgebung::audio_output_device_name = output_device_name;
+        umfeld::enable_audio             = true;
+        umfeld::audio_input_channels           = input_channels;
+        umfeld::audio_output_channels          = output_channels;
+        umfeld::audio_sample_rate              = sample_rate;
+        umfeld::audio_buffer_size        = buffer_size;
+        umfeld::audio_input_device_id    = AUDIO_DEVICE_FIND_BY_NAME;
+        umfeld::audio_output_device_id   = AUDIO_DEVICE_FIND_BY_NAME;
+        umfeld::audio_input_device_name  = input_device_name;
+        umfeld::audio_output_device_name = output_device_name;
     }
     void audio(const AudioUnitInfo& info) {
         if (is_initialized()) {
             warning("`audio()` must be called before or within `settings()`.");
             return;
         }
-        umgebung::enable_audio             = true;
-        umgebung::audio_input_device_id    = info.input_device_id;
-        umgebung::audio_input_device_name  = info.input_device_name;
-        umgebung::audio_input_channels           = info.input_channels;
-        umgebung::audio_output_device_id   = info.output_device_id;
-        umgebung::audio_output_device_name = info.output_device_name;
-        umgebung::audio_output_channels          = info.output_channels;
-        umgebung::audio_buffer_size        = info.buffer_size;
-        umgebung::audio_sample_rate              = info.sample_rate;
+        umfeld::enable_audio             = true;
+        umfeld::audio_input_device_id    = info.input_device_id;
+        umfeld::audio_input_device_name  = info.input_device_name;
+        umfeld::audio_input_channels           = info.input_channels;
+        umfeld::audio_output_device_id   = info.output_device_id;
+        umfeld::audio_output_device_name = info.output_device_name;
+        umfeld::audio_output_channels          = info.output_channels;
+        umfeld::audio_buffer_size        = info.buffer_size;
+        umfeld::audio_sample_rate              = info.sample_rate;
     }
 
     void audio_start(PAudio* device) {
@@ -376,4 +376,4 @@ namespace umgebung {
         const auto sampler = new Sampler(sample_buffer, length, sample_rate);
         return sampler;
     }
-} // namespace umgebung
+} // namespace umfeld

@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@
 
 #include "AudioUtilities.h"
 
-namespace umgebung {
+namespace umfeld {
     class SamplerListener {
     public:
         virtual ~SamplerListener() = default;
@@ -579,4 +579,4 @@ namespace umgebung {
     using SamplerI16  = SamplerT<int16_t>;
     using SamplerF32  = SamplerT<float>;
     using Sampler     = SamplerT<float>;
-} // namespace umgebung
+} // namespace umfeld

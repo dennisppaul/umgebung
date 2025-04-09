@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -17,10 +17,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 #include "PFont.h"
 
-using namespace umgebung;
+using namespace umfeld;
 
 #ifdef PFONT_DEBUG_FONT
 #define STB_IMAGE_WRITE_IMPLEMENTATION // TODO why does this cause a duplicate symbol error?

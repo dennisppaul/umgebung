@@ -368,7 +368,7 @@ below is a list of all Processing functions from the official [Processing Refere
 - [x] `alpha()` :: Extracts the alpha value from a color
 - [x] `blue()` :: Extracts the blue value from a color, scaled to match current*colorMode()*
 - [x] `brightness()` :: Extracts the brightness value from a color
-- [x] `color()` :: Creates colors for storing in variables of the *color* datatype @note(in Umgebung there is no datatype `color` but rather `uint32_t`)
+- [x] `color()` :: Creates colors for storing in variables of the *color* datatype @note(in Umfeld there is no datatype `color` but rather `uint32_t`)
 - [x] `green()` :: Extracts the green value from a color, scaled to match current*colorMode()*
 - [x] `hue()` :: Extracts the hue value from a color
 - [x] `lerpColor()` :: Calculates a*color*or*colors*between two*colors*at a specific increment

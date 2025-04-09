@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -21,8 +21,8 @@
 
 #include <GL/glew.h>
 
-namespace umgebung {
-    static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_BYTE;
-    // static constexpr GLint UMGEBUNG_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
-    static constexpr GLint UMGEBUNG_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
-} // namespace umgebung
+namespace umfeld {
+    static constexpr GLint UMFELD_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_BYTE;
+    // static constexpr GLint UMFELD_DEFAULT_TEXTURE_PIXEL_TYPE    = GL_UNSIGNED_INT_8_8_8_8_REV;
+    static constexpr GLint UMFELD_DEFAULT_INTERNAL_PIXEL_FORMAT = GL_RGBA;
+} // namespace umfeld

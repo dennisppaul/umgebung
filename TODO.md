@@ -1,32 +1,32 @@
-# Umgebung / TODO + NOTES
+# umfeld / TODO + NOTES
 
 this is a VERY unsorted todo list and a note pad.
 
 ## Graphics
 
-- [ ] @umgebung add exporters ( `saveImage()`, `savePDF()`, `saveOBJ()` )
+- [ ] @umfeld add exporters ( `saveImage()`, `savePDF()`, `saveOBJ()` )
 - [ ] in `PGraphicsDefault2D` implement 3D by manually transforming points onto 2D 
-- [ ] @umgebung add camera ( see https://chatgpt.com/share/67dfbe72-855c-8004-8b37-28d10d5c7ab3 )
-- [ ] @umgebung add normals to sphere and box shapes
+- [ ] @umfeld add camera ( see https://chatgpt.com/share/67dfbe72-855c-8004-8b37-28d10d5c7ab3 )
+- [ ] @umfeld add normals to sphere and box shapes
 - [ ] `GL_POINTS` might need some shader love ( i.e `gl_PointSize` + `gl_PointCoord` for point sprites ) @later
-- [ ] @umgebung add `PShape`-based fonts
+- [ ] @umfeld add `PShape`-based fonts
 - [ ] separate transparent + non-transparent primitives
-    - [ ] @umgebung implement extra buffer for transparent primitives
+    - [ ] @umfeld implement extra buffer for transparent primitives
     - [ ] WB OIT https://learnopengl.com/Guest-Articles/2020/OIT/Weighted-Blended
     - [ ] https://www.khronos.org/opengl/wiki/Transparency_Sorting
-- [ ] @umgebung add to OpenGL2.0
+- [ ] @umfeld add to OpenGL2.0
     ```C
     void upload_image(PImage* img, const uint32_t* pixel_data, int width, int height, int offset_x, int offset_y, bool mipmapped) override;
     void download_image(PImage* img, bool restore_texture = true) override;
     ```
-- [ ] @umgebung add function to `PFont` to generate a `PImage` with a static text as texture
-- [ ] @umgebung remove all references to graphics subsystem from PGraphics ( and derived classes )
-- [ ] @umgebung maybe add an option to return the generated triangles with endShape()
-- [ ] @umgebung add lighting ( see processing shaders `$HOME/Documents/dev/processing/git/processing4/core/src/processing/opengl/shaders` )
+- [ ] @umfeld add function to `PFont` to generate a `PImage` with a static text as texture
+- [ ] @umfeld remove all references to graphics subsystem from PGraphics ( and derived classes )
+- [ ] @umfeld maybe add an option to return the generated triangles with endShape()
+- [ ] @umfeld add lighting ( see processing shaders `$HOME/Documents/dev/processing/git/processing4/core/src/processing/opengl/shaders` )
 
 ## Audio
 
-- [ ] @umgebung basic audio classes 
+- [ ] @umfeld basic audio classes 
     - [x] oscillator ( wavetable )
     - [x] sampler
     - [x] filter ( low, high, band )
@@ -35,10 +35,10 @@ this is a VERY unsorted todo list and a note pad.
 
 ## Environment
 
-- [ ] @umgebung ==add option to run audio in own thread== ( see https://chatgpt.com/share/67dfc699-1d34-8004-a9a9-40716713ba2f )
-- [ ] @umgebung add `set_window_title` with `SDL_SetWindowTitle(window, “TITLE”);` in subsystem
-    - [ ] @umgebung fix set window title ( default to `$PROJECT_NAME`from CMake )
-- [ ] @umgebung @maybe iterate in reverse order through subsytems so that graphics is last to be exectued in `draw_post` … same for `setup_post`
+- [ ] @umfeld ==add option to run audio in own thread== ( see https://chatgpt.com/share/67dfc699-1d34-8004-a9a9-40716713ba2f )
+- [ ] @umfeld add `set_window_title` with `SDL_SetWindowTitle(window, “TITLE”);` in subsystem
+    - [ ] @umfeld fix set window title ( default to `$PROJECT_NAME`from CMake )
+- [ ] @umfeld @maybe iterate in reverse order through subsytems so that graphics is last to be exectued in `draw_post` … same for `setup_post`
 
 ## Building + Platforms
 
@@ -74,21 +74,21 @@ this is a VERY unsorted todo list and a note pad.
         )
     endif()
     ```
-- [ ] @umgebung this is the gold standard for multi platform building https://github.com/ravbug/sdl3-sample
+- [ ] @umfeld this is the gold standard for multi platform building https://github.com/ravbug/sdl3-sample
     - iOS manual https://wiki.libsdl.org/SDL3/README/ios
 
 ### OpenGL ES
 
-- [ ] @umgebung try to run this with OpenGL ES window https://github.com/ravbug/sdl3-sample
-- [ ] @umgebung what’s with ANGLE?
+- [ ] @umfeld try to run this with OpenGL ES window https://github.com/ravbug/sdl3-sample
+- [ ] @umfeld what’s with ANGLE?
     - @research test OpenGL ES emulation ANGLE with SDL https://gist.github.com/SasLuca/307a523d2c6f2900af5823f0792a8a93
 
 ## Documentation
 
-- [ ] @umgebung what’s new in umgebung? audio, `loadOBJ` mesh
-- [ ] @umgebung start coding style doc
-- [ ] @umgebung documentation :: differences in shader handling ( set_uniforms )
-- [ ] @umgebung make a point of not supporting `colorMode(mode)`
+- [ ] @umfeld what’s new in umfeld? audio, `loadOBJ` mesh
+- [ ] @umfeld start coding style doc
+- [ ] @umfeld documentation :: differences in shader handling ( set_uniforms )
+- [ ] @umfeld make a point of not supporting `colorMode(mode)`
 - [ ] make a step-by-step guide of how to create a library ( send to leo )
  ```
                      + -> emit_shape_stroke_line_strip -> triangulate, transform to world/screen space
@@ -107,17 +107,17 @@ fill(1.0f, 0.25f, 0.35f); // red   (0xFF3F59)
 stroke(0.0f);             // black (0x000000)
 ```
 
-- [ ] @umgebung start a series of *educated* examples
-- [ ] @umgebung start dedicated font example
-- [ ] @umgebung try with font [Inter](https://rsms.me/inter/)
-- [ ] @umgebung @example add nice stroke example with rotierender box, square, open-closed-shape + line 0.5,0.85,1.0 style
-- [ ] @umgebung @example add example for library
-- [ ] @umgebung add example that moves around the application window @maybe
+- [ ] @umfeld start a series of *educated* examples
+- [ ] @umfeld start dedicated font example
+- [ ] @umfeld try with font [Inter](https://rsms.me/inter/)
+- [ ] @umfeld @example add nice stroke example with rotierender box, square, open-closed-shape + line 0.5,0.85,1.0 style
+- [ ] @umfeld @example add example for library
+- [ ] @umfeld add example that moves around the application window @maybe
 
 ## Community
 
-- [ ] @umgebung on discord https://d3-is.de/umgebung ( https://discord.gg/hrckzRaW7g )
-- [ ] @umgebung ask people for support and feature request etcetera … on github ( + discord )
+- [ ] @umfeld on discord https://d3-is.de/umfeld ( https://discord.gg/hrckzRaW7g )
+- [ ] @umfeld ask people for support and feature request etcetera … on github ( + discord )
 
 ## Libraries
 
@@ -125,8 +125,8 @@ stroke(0.0f);             // black (0x000000)
 
 ### CameraSDL Library
 
-- [ ] @umgebung @research test SDL_camera
-- [ ] @umgebung test SDL camera with PImage ( https://chatgpt.com/share/67da6661-ce48-8004-97e5-e3ed384011c8 ):
+- [ ] @umfeld @research test SDL_camera
+- [ ] @umfeld test SDL camera with PImage ( https://chatgpt.com/share/67da6661-ce48-8004-97e5-e3ed384011c8 ):
     ```c
     // create camera
     
@@ -201,5 +201,5 @@ stroke(0.0f);             // black (0x000000)
 
 ## unsorted
 
-- [ ] @umgebung rename PFont, PImage, PVector etcetera to UFont, UImage, UVector
-- [ ] @umgebung PVector vs glm::vec3 at least some functions to convert between the two
+- [ ] @umfeld rename PFont, PImage, PVector etcetera to UFont, UImage, UVector
+- [ ] @umfeld PVector vs glm::vec3 at least some functions to convert between the two

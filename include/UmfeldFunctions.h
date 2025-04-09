@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -27,10 +27,10 @@
 #include <regex>
 #include <iomanip>
 
-#include "UmgebungFunctionsAdditional.h"
+#include "UmfeldFunctionsAdditional.h"
 #include "PAudio.h"
 
-namespace umgebung {
+namespace umfeld {
 
 #define FLUSH_PRINT
 
@@ -295,4 +295,4 @@ namespace umgebung {
 
     void exit();
 
-} // namespace umgebung
+} // namespace umfeld

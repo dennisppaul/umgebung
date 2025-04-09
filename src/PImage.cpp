@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -20,11 +20,11 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 #include "PImage.h"
 #include "PGraphics.h"
 
-using namespace umgebung;
+using namespace umfeld;
 
 PImage::PImage() : width(0),
                    height(0),

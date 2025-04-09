@@ -1,14 +1,14 @@
-# Umgebung / Documentation
+# Umfeld / Documentation
 
-## Installing Umgebung
+## Installing Umfeld
 
-clone the *Umgebung* repository ( with submodules ) and optionally some other *Umgebung* repositories from GitHub into the desired folder ( e.g `~/Documents/dev` ):
+clone the *Umfeld* repository ( with submodules ) and optionally some other *Umfeld* repositories from GitHub into the desired folder ( e.g `~/Documents/dev` ):
 
 ```sh
-git clone --recurse-submodules https://github.com/dennisppaul/umgebung
-git clone --recurse-submodules https://github.com/dennisppaul/umgebung-libraries
-git clone --recurse-submodules https://github.com/dennisppaul/umgebung-examples
-cd umgebung
+git clone --recurse-submodules https://github.com/dennisppaul/umfeld
+git clone --recurse-submodules https://github.com/dennisppaul/umfeld-libraries
+git clone --recurse-submodules https://github.com/dennisppaul/umfeld-examples
+cd umfeld
 ```
 
 ### macOS
@@ -48,7 +48,7 @@ alternatively, run the homebrew installer script `./install-linux.sh` to install
 
 #### Raspberry Pi OS (RPI)
 
-*Umgebung* can run on Raspberry Pi ( e.g RPI 4 Model B and RPI 5 ). see [Umgebung-on-RPI](documentation/Umgebung-on-RPI.md) for detailed information.
+*Umfeld* can run on Raspberry Pi ( e.g RPI 4 Model B and RPI 5 ). see [Umfeld-on-RPI](documentation/Umfeld-on-RPI.md) for detailed information.
 
 #### Build SDL from source
 
@@ -76,20 +76,20 @@ pacman -S --noconfirm mingw-w64-ucrt-x86_64-glew mingw-w64-ucrt-x86_64-mesa ming
 
 the setup is exclusively for the `MSYS2 UCRT64` branch ( and not for `MSYS2 MINGW64` etcetera ). also it uses `ninja` as a build system instead of `make` ( which is the default on linux + macOS ).
 
-## Building Applications with *Umgebung*
+## Building Applications with *Umfeld*
 
-example applications can be found in the dedicated repository [umgebung-examples](https://github.com/dennisppaul/umgebung-examples). first, make sure that both repositories are cloned into the same location, next to each other ( the examples assume umgebung library to be next to the examples folder. this can be changed in the `CMakeLists.txt` of each example )
+example applications can be found in the dedicated repository [umfeld-examples](https://github.com/dennisppaul/umfeld-examples). first, make sure that both repositories are cloned into the same location, next to each other ( the examples assume umfeld library to be next to the examples folder. this can be changed in the `CMakeLists.txt` of each example )
 
 ```
 .
-├── umgebung
-└── umgebung-examples
+├── umfeld
+└── umfeld-examples
 ```
 
-to run example `umgebung-simple` do the following:
+to run example `umfeld-simple` do the following:
 
 ```sh
-cd ./umgebung-examples/Basics/minimal/
+cd ./umfeld-examples/Basics/minimal/
 cmake -B build .         # prepare build system
 cmake --build build      # build application
 ./build/minimal          # run application 
@@ -103,7 +103,7 @@ cmake --build build ; ./build/minimal
 
 ## Known Differences
 
-Java and C++ are similar in some aspects, but are very different in many others. a lot of the syntactic differences between *Processing* and *Umgebung* stem from these differences, while a few others are more or less developer decisions.
+Java and C++ are similar in some aspects, but are very different in many others. a lot of the syntactic differences between *Processing* and *Umfeld* stem from these differences, while a few others are more or less developer decisions.
 
 - elements in `println()` must be concatenated with `,` rather than `+` e.g `println("hello ", 23, " world");` @reason(raw strings cannot be concatenated with a `+` in C++ as they can be in Java)
 - the properties `mousePressed` + `keyPressed` are renamed to `isMousePressed` and `isKeyPressed` @reason(in *Processing* the property `mousePressed` and the callback method `mousePressed` carry the same name. in C++ it is not allowed to have a field or property and a method with the same name)
@@ -131,33 +131,33 @@ this will permanently set the `LIBRARY_PATH` environement variable in your *zsh*
 
 ## Resources
 
-- Umgebung [examples](https://github.com/dennisppaul/umgebung-examples)
-- Additional [libraries](https://github.com/dennisppaul/umgebung-libraries)
+- Umfeld [examples](https://github.com/dennisppaul/umfeld-examples)
+- Additional [libraries](https://github.com/dennisppaul/umfeld-libraries)
 
 examples and library examples assume that all repositories are located on the same level:
 
 ```
 .
-├── umgebung
-├── umgebung-examples
-└── umgebung-libraries
+├── umfeld
+├── umfeld-examples
+└── umfeld-libraries
 ```
 
 ## Default Application Structure
 
 ```
-umgebung-example-app
+umfeld-example-app
 ├── CMakeLists.txt
 ├── image.png
-└── umgebung-example-app.cpp
+└── umfeld-example-app.cpp
 ```
 
-the directory `umgebung-example-app` should contain all source, header and resources ( e.g images, fonts and moview ) files.
+the directory `umfeld-example-app` should contain all source, header and resources ( e.g images, fonts and moview ) files.
 
-in this example `umgebung-example-app.cpp` is the main source file containing the *entry points* used by *Umgebung*:
+in this example `umfeld-example-app.cpp` is the main source file containing the *entry points* used by *Umfeld*:
 
 ```c
-#include "Umgebung.h"
+#include "Umfeld.h"
 
 void settings() {}
 
@@ -171,8 +171,8 @@ in order to compile the application a CMake script `CMakeLists.txt` must be supp
 ```cmake
 cmake_minimum_required(VERSION 3.12)
 
-project(umgebung-example-app)                                      # set application name
-set(UMGEBUNG_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../umgebung") # set path to umgebung library
+project(umfeld-example-app)                                      # set application name
+set(UMFELD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../umfeld") # set path to umfeld library
 
 # --------- no need to change anything below this line ------------
 
@@ -183,17 +183,17 @@ include_directories(".")                                           # add all `.h
 file(GLOB SOURCE_FILES "*.cpp")                                    # collect all `.cpp` source files from this directory
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})                    # add source files to application
 
-add_subdirectory(${UMGEBUNG_PATH} ${CMAKE_BINARY_DIR}/umgebung-lib-${PROJECT_NAME}) # add umgebung location
-add_umgebung_libs()                                                # add umgebung library
+add_subdirectory(${UMFELD_PATH} ${CMAKE_BINARY_DIR}/umfeld-lib-${PROJECT_NAME}) # add umfeld location
+add_umfeld_libs()                                                # add umfeld library
 ```
 
 each application may have an individual name defined in `project(<name-of-application>)`.
 
-it is required to set the variable `UMGEBUNG_PATH` ( e.g `set(UMGEBUNG_PATH "/Users/username/Documents/dev/umgebung/git/umgebung/")` ) which must contain the absolute path to the *Umgebung* library ( i.e the folder that contains e.g this document as well as the `include` and `src` folders of *Umgebung* ). note, that in the example CMake file above the CMake variable `${CMAKE_CURRENT_SOURCE_DIR}` is used to navigate relative to the location of the CMake file ( e.g helpful in the examples ).
+it is required to set the variable `UMFELD_PATH` ( e.g `set(UMFELD_PATH "/Users/username/Documents/dev/umfeld/git/umfeld/")` ) which must contain the absolute path to the *Umfeld* library ( i.e the folder that contains e.g this document as well as the `include` and `src` folders of *Umfeld* ). note, that in the example CMake file above the CMake variable `${CMAKE_CURRENT_SOURCE_DIR}` is used to navigate relative to the location of the CMake file ( e.g helpful in the examples ).
 
 the command `link_directories("/usr/local/lib")` can be used to fix a linker error on macOS ( e.g `ld: library 'glfw' not found` ). this error indicates that the global library is not set or not set properly ( i.e `echo $LIBRARY_PATH` returns an empty response or points to a folder that does not contain `libglfw.dylib` in this example ).
 
-the section `# add umgebung` must be placed last in the CMake file and includes *Umgebung* as a library.
+the section `# add umfeld` must be placed last in the CMake file and includes *Umfeld* as a library.
 
 ## Build Example Application
 
@@ -217,7 +217,7 @@ to start a *clean* build simply delete the build directory:
 $ rm -rf build
 ```
 
-if changes are made to `umgebung-example-app.cpp` ( or any other source or header file in that folder ) it is enough to just run:
+if changes are made to `umfeld-example-app.cpp` ( or any other source or header file in that folder ) it is enough to just run:
 
 ```
 $ cmake --build build

@@ -24,7 +24,7 @@ sudo apt-get install -y \
   cmake \
   mesa-utils
 
-# install umgebung dependencies
+# install umfeld dependencies
 echo "--- installing dependencies        ---"
 sudo apt-get install -y \
   libglew-dev \

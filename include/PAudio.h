@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 
 #include <string>
 
-namespace umgebung {
+namespace umfeld {
 
     void merge_interleaved_stereo(float* left, float* right, float* interleaved, size_t frames);
     void split_interleaved_stereo(float* left, float* right, const float* interleaved, size_t frames);
@@ -64,4 +64,4 @@ namespace umgebung {
         explicit PAudio(const AudioUnitInfo* device_info);
         void copy_input_buffer_to_output_buffer() const;
     };
-} // namespace umgebung
+} // namespace umfeld

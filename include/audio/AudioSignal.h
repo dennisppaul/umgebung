@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 
 #pragma once
 
-namespace umgebung {
+namespace umfeld {
     class AudioSignal {
     public:
         float left; /* aka MONO */
@@ -39,4 +39,4 @@ namespace umgebung {
             right = signal_right;
         }
     };
-} // namespace umgebung
+} // namespace umfeld

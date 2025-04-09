@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -32,22 +32,22 @@
 
 /* --- DEFAULTS --- */
 
-#define DEFAULT_WINDOW_TITLE "Umgebung"
+#define DEFAULT_WINDOW_TITLE "Umfeld"
 
-/* --- UMGEBUNG_WINDOW_TITLE --- */
+/* --- UMFELD_WINDOW_TITLE --- */
 
-#ifndef UMGEBUNG_WINDOW_TITLE // can be set in `CMakeLists.txt` // TODO consider moving this to settings?
-#define UMGEBUNG_WINDOW_TITLE DEFAULT_WINDOW_TITLE
+#ifndef UMFELD_WINDOW_TITLE // can be set in `CMakeLists.txt` // TODO consider moving this to settings?
+#define UMFELD_WINDOW_TITLE DEFAULT_WINDOW_TITLE
 #endif
 
-#ifndef UMGEBUNG_PRINT_ERRORS
-#define UMGEBUNG_PRINT_ERRORS TRUE
+#ifndef UMFELD_PRINT_ERRORS
+#define UMFELD_PRINT_ERRORS TRUE
 #endif
-#ifndef UMGEBUNG_PRINT_WARNINGS
-#define UMGEBUNG_PRINT_WARNINGS TRUE
+#ifndef UMFELD_PRINT_WARNINGS
+#define UMFELD_PRINT_WARNINGS TRUE
 #endif
-#ifndef UMGEBUNG_PRINT_CONSOLE
-#define UMGEBUNG_PRINT_CONSOLE TRUE
+#ifndef UMFELD_PRINT_CONSOLE
+#define UMFELD_PRINT_CONSOLE TRUE
 #endif
 
 /* --- TOOLS --- */

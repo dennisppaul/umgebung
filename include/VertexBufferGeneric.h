@@ -1,7 +1,7 @@
 /*
-* Umgebung
+* Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@
 #include <vector>
 #include <cstddef>
 
-using umgebung::Vertex;
+using umfeld::Vertex;
 
 // Helper: Get OpenGL type from C++ type
 template<typename T>

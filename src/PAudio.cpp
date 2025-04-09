@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -17,12 +17,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 #include "PAudio.h"
 
-using namespace umgebung;
+using namespace umfeld;
 
-void umgebung::merge_interleaved_stereo(float* left, float* right, float* interleaved, size_t frames) {
+void umfeld::merge_interleaved_stereo(float* left, float* right, float* interleaved, size_t frames) {
     if (left == nullptr || right == nullptr || interleaved == nullptr) {
         return;
     }
@@ -32,7 +32,7 @@ void umgebung::merge_interleaved_stereo(float* left, float* right, float* interl
     }
 }
 
-void umgebung::split_interleaved_stereo(float* left, float* right, const float* interleaved, const size_t frames) {
+void umfeld::split_interleaved_stereo(float* left, float* right, const float* interleaved, const size_t frames) {
     if (left == nullptr || right == nullptr || interleaved == nullptr) {
         return;
     }
@@ -45,7 +45,7 @@ void umgebung::split_interleaved_stereo(float* left, float* right, const float* 
 PAudio::PAudio(const AudioUnitInfo* device_info) : AudioUnitInfo(*device_info) {}
 
 void PAudio::copy_input_buffer_to_output_buffer() const {
-    if (umgebung::audio_output_channels == umgebung::audio_input_channels) {
+    if (umfeld::audio_output_channels == umfeld::audio_input_channels) {
         std::memcpy(output_buffer,                                 // destination
                     input_buffer,                                  // source
                     input_channels * buffer_size * sizeof(float)); // size

@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -21,10 +21,10 @@
 
 #include <GL/glew.h>
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 #include "PGraphicsOpenGL.h"
 
-namespace umgebung {
+namespace umfeld {
 
     void OGL_draw_pre();
 
@@ -72,8 +72,8 @@ namespace umgebung {
 
         SDL_WindowFlags flags = SDL_WINDOW_OPENGL;
         window                = SDL_CreateWindow(get_window_title().c_str(),
-                                                 static_cast<int>(umgebung::width),
-                                                 static_cast<int>(umgebung::height),
+                                                 static_cast<int>(umfeld::width),
+                                                 static_cast<int>(umfeld::height),
                                                  get_SDL_WindowFlags(flags));
         if (window == nullptr) {
             error("Couldn't create window: ", SDL_GetError());
@@ -174,4 +174,4 @@ namespace umgebung {
         SDL_GL_SwapWindow(window);
     }
 
-} // namespace umgebung
+} // namespace umfeld

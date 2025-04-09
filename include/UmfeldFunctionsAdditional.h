@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -28,10 +28,10 @@
 #include <string>
 #include <functional>
 
-#include "UmgebungDefines.h"
-#include "UmgebungConstants.h"
+#include "UmfeldDefines.h"
+#include "UmfeldConstants.h"
 
-namespace umgebung {
+namespace umfeld {
 
     class PAudio;
     struct AudioUnitInfo;
@@ -97,7 +97,7 @@ namespace umgebung {
 
     template<typename... Args>
     void error(const Args&... args) {
-#if (UMGEBUNG_PRINT_ERRORS)
+#if (UMFELD_PRINT_ERRORS)
         std::ostringstream os;
         ((os << to_printable(args)), ...);
         std::cerr
@@ -111,7 +111,7 @@ namespace umgebung {
 
     template<typename... Args>
     void warning(const Args&... args) {
-#if (UMGEBUNG_PRINT_WARNINGS)
+#if (UMFELD_PRINT_WARNINGS)
         std::ostringstream os;
         ((os << to_printable(args)), ...);
         std::cerr
@@ -125,7 +125,7 @@ namespace umgebung {
 
     template<typename... Args>
     void console(const Args&... args) {
-#if (UMGEBUNG_PRINT_CONSOLE)
+#if (UMFELD_PRINT_CONSOLE)
         std::ostringstream os;
         ((os << to_printable(args)), ...);
         std::cout
@@ -161,4 +161,4 @@ namespace umgebung {
         const duration<double, std::milli> elapsed = end - start;
         return elapsed.count(); // in milliseconds
     }
-} // namespace umgebung
+} // namespace umfeld

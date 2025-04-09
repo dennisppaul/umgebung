@@ -30,7 +30,7 @@ install_brew() {
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 }
 
-echo "+++ setting up umgebung   +++"
+echo "+++ setting up umfeld   +++"
 
 echo "+++ checking for homebrew +++"
 check_brew

@@ -2,10 +2,10 @@
 #include <sstream>
 #include <iostream>
 
-#include "UmgebungFunctionsAdditional.h"
+#include "UmfeldFunctionsAdditional.h"
 #include "PShader.h"
 
-using namespace umgebung;
+using namespace umfeld;
 
 PShader::PShader() : programID(0) {}
 

@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 
 #include "PGraphicsOpenGL.h"
 
-namespace umgebung {
+namespace umfeld {
     class PGraphicsOpenGLv20 final : public PGraphicsOpenGL {
     public:
         explicit PGraphicsOpenGLv20(bool render_to_offscreen);
@@ -107,4 +107,4 @@ namespace umgebung {
         std::vector<Vertex> outline_vertices;
         GLint               previously_bound_FBO{0};
     };
-} // namespace umgebung
+} // namespace umfeld

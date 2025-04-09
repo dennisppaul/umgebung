@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -22,9 +22,9 @@
 #include <string>
 
 // ReSharper disable once CppUnusedIncludeDirective
-#include "UmgebungDefines.h"
+#include "UmfeldDefines.h"
 
-namespace umgebung {
+namespace umfeld {
     static constexpr int   DEFAULT                       = -1;
     static constexpr int   NOT_INITIALIZED               = -1;
     static constexpr int   DEFAULT_WINDOW_WIDTH          = 1024;
@@ -157,4 +157,4 @@ namespace umgebung {
     const std::string SHADER_UNIFORM_MODEL_MATRIX      = "uModelMatrix";
     const std::string SHADER_UNIFORM_VIEW_MATRIX       = "uViewMatrix";
     const std::string SHADER_UNIFORM_PROJECTION_MATRIX = "uProjection";
-} // namespace umgebung
+} // namespace umfeld

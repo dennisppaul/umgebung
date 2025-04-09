@@ -11,7 +11,7 @@
 
 #include <cstddef> // size_t
 
-namespace umgebung {
+namespace umfeld {
 
     /**
      * @brief A Perlin Simplex Noise C++ Implementation (1D, 2D, 3D, 4D).
@@ -60,4 +60,4 @@ namespace umgebung {
     };
 
     // from https://github.com/SRombauts/SimplexNoise
-} // namespace umgebung
+} // namespace umfeld

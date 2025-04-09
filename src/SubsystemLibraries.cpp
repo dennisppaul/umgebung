@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -19,11 +19,11 @@
 
 #include <SDL3/SDL.h>
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 
 // TODO add functionality to (un-)register libraries
 
-namespace umgebung {
+namespace umfeld {
 
     static std::vector<LibraryListener*> _listeners;
 
@@ -102,18 +102,18 @@ namespace umgebung {
     static const char* name() {
         return "Client Libraries";
     }
-} // namespace umgebung
+} // namespace umfeld
 
-umgebung::Subsystem* umgebung_create_subsystem_libraries() {
-    auto* libraries                 = new umgebung::Subsystem{};
-    libraries->shutdown             = umgebung::shutdown;
-    libraries->set_flags            = umgebung::set_flags;
-    libraries->setup_pre            = umgebung::setup_pre;
-    libraries->setup_post           = umgebung::setup_post;
-    libraries->draw_pre             = umgebung::draw_pre;
-    libraries->draw_post            = umgebung::draw_post;
-    libraries->event                = umgebung::event;
-    libraries->event_in_update_loop = umgebung::event_in_update_loop;
-    libraries->name                 = umgebung::name;
+umfeld::Subsystem* umfeld_create_subsystem_libraries() {
+    auto* libraries                 = new umfeld::Subsystem{};
+    libraries->shutdown             = umfeld::shutdown;
+    libraries->set_flags            = umfeld::set_flags;
+    libraries->setup_pre            = umfeld::setup_pre;
+    libraries->setup_post           = umfeld::setup_post;
+    libraries->draw_pre             = umfeld::draw_pre;
+    libraries->draw_post            = umfeld::draw_post;
+    libraries->event                = umfeld::event;
+    libraries->event_in_update_loop = umfeld::event_in_update_loop;
+    libraries->name                 = umfeld::name;
     return libraries;
 }

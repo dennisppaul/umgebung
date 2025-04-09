@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -24,8 +24,8 @@
 #include "PGraphicsOpenGL.h"
 #include "PGraphicsOpenGLv20.h"
 #include "PFont.h"
-#include "UmgebungFunctions.h"
-#include "UmgebungFunctionsAdditional.h"
+#include "UmfeldFunctions.h"
+#include "UmfeldFunctionsAdditional.h"
 
 // TODO not sure if this is the best way to handle this
 static_assert(std::is_same_v<GLuint, unsigned int>,
@@ -33,7 +33,7 @@ static_assert(std::is_same_v<GLuint, unsigned int>,
 static_assert(std::is_same_v<GLfloat, float>,
               "`GLfloat` is not a `float`. change float types e.g in `PShape.h` and remove this line.");
 
-using namespace umgebung;
+using namespace umfeld;
 
 PGraphicsOpenGLv20::PGraphicsOpenGLv20(const bool render_to_offscreen) : PImage(0, 0, 0) {
     this->render_to_offscreen = render_to_offscreen;

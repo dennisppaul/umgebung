@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -19,10 +19,10 @@
 
 #include <SDL3/SDL.h>
 
-#include "Umgebung.h"
-#include "UmgebungCallbacks.h"
+#include "Umfeld.h"
+#include "UmfeldCallbacks.h"
 
-namespace umgebung {
+namespace umfeld {
 
     static bool _handle_events_in_loop = true;
     static bool _mouse_is_pressed      = false;
@@ -36,32 +36,32 @@ namespace umgebung {
 
         switch (event.type) {
             case SDL_EVENT_KEY_DOWN:
-                umgebung::key = static_cast<int>(event.key.key);
+                umfeld::key = static_cast<int>(event.key.key);
                 keyPressed();
-                umgebung::isKeyPressed = true;
+                umfeld::isKeyPressed = true;
                 break;
             case SDL_EVENT_KEY_UP:
-                umgebung::key          = static_cast<int>(event.key.key);
-                umgebung::isKeyPressed = false;
+                umfeld::key          = static_cast<int>(event.key.key);
+                umfeld::isKeyPressed = false;
                 keyReleased();
                 break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                umgebung::mouseButton = event.button.button; // TODO not sure how consistent these are across platforms
+                umfeld::mouseButton = event.button.button; // TODO not sure how consistent these are across platforms
                 _mouse_is_pressed     = true;
                 mousePressed();
-                umgebung::isMousePressed = true;
+                umfeld::isMousePressed = true;
                 break;
             case SDL_EVENT_MOUSE_BUTTON_UP:
                 _mouse_is_pressed     = false;
-                umgebung::mouseButton = -1;
+                umfeld::mouseButton = -1;
                 mouseReleased();
-                umgebung::isMousePressed = false;
+                umfeld::isMousePressed = false;
                 break;
             case SDL_EVENT_MOUSE_MOTION:
-                umgebung::pmouseX = umgebung::mouseX;
-                umgebung::pmouseY = umgebung::mouseY;
-                umgebung::mouseX  = static_cast<float>(event.motion.x);
-                umgebung::mouseY  = static_cast<float>(event.motion.y);
+                umfeld::pmouseX = umfeld::mouseX;
+                umfeld::pmouseY = umfeld::mouseY;
+                umfeld::mouseX  = static_cast<float>(event.motion.x);
+                umfeld::mouseY  = static_cast<float>(event.motion.y);
 
                 if (_mouse_is_pressed) {
                     mouseDragged();
@@ -121,14 +121,14 @@ namespace umgebung {
     static const char* name() {
         return "HID Events ( mouse, keyboard, drag-n-drop, … )";
     }
-} // namespace umgebung
+} // namespace umfeld
 
-umgebung::Subsystem* umgebung_create_subsystem_hid_events() {
-    auto* libraries                 = new umgebung::Subsystem{};
-    libraries->shutdown             = umgebung::shutdown;
-    libraries->set_flags            = umgebung::set_flags;
-    libraries->event                = umgebung::event;
-    libraries->event_in_update_loop = umgebung::event_in_update_loop;
-    libraries->name                 = umgebung::name;
+umfeld::Subsystem* umfeld_create_subsystem_hid_events() {
+    auto* libraries                 = new umfeld::Subsystem{};
+    libraries->shutdown             = umfeld::shutdown;
+    libraries->set_flags            = umfeld::set_flags;
+    libraries->event                = umfeld::event;
+    libraries->event_in_update_loop = umfeld::event_in_update_loop;
+    libraries->name                 = umfeld::name;
     return libraries;
 }

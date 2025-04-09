@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -42,7 +42,7 @@
 #define KLANGWELLEN_WAVETABLE_INTERPOLATE_SAMPLES 1
 #endif
 
-namespace umgebung {
+namespace umfeld {
     enum Waveform {
         WAVEFORM_SINE,
         WAVEFORM_TRIANGLE,
@@ -645,4 +645,4 @@ namespace umgebung {
             ma_resampler_uninit(&resampler, nullptr);
         }
     };
-} // namespace umgebung
+} // namespace umfeld

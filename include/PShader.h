@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 
-namespace umgebung {
+namespace umfeld {
     class PShader {
     public:
         PShader();
@@ -54,4 +54,4 @@ namespace umgebung {
         static void   checkLinkErrors(GLuint program);
         GLint         getUniformLocation(const std::string& name);
     };
-} // namespace umgebung
+} // namespace umfeld

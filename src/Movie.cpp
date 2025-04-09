@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -19,17 +19,17 @@
 
 #include "Movie.h"
 
-#include <UmgebungFunctionsAdditional.h>
+#include <UmfeldFunctionsAdditional.h>
 
 // TODO look into audio processing
 // TODO look into camera access
 // TODO implement `MovieListener` including callback
 
-using namespace umgebung;
+using namespace umfeld;
 
 #if !defined(DISABLE_GRAPHICS) && !defined(DISABLE_VIDEO)
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 
 extern "C" {
 #include <libavformat/avformat.h>

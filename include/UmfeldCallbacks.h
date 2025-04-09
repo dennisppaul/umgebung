@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 #include <SDL3/SDL.h>
 #include <vector>
 
-#include "UmgebungDefines.h"
+#include "UmfeldDefines.h"
 #include "Subsystems.h"
 #include "PAudio.h"
 
@@ -44,7 +44,7 @@ WEAK void windowResized(int width, int height);
 /* --- additional callbacks --- */
 
 WEAK void audioEvent();
-WEAK void audioEvent(const umgebung::PAudio& device);
+WEAK void audioEvent(const umfeld::PAudio& device);
 
 WEAK void post();
 WEAK void shutdown();

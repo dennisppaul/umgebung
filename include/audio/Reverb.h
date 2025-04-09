@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@
 /**
  * applies reverb to a signal. {@link Reverb} uses an implementation of freeverb.
  */
-namespace umgebung {
+namespace umfeld {
     class GlideVar {
         /*
          * Simple interpolation where set and get can be called at any time. Furthermore, the difference between two
@@ -633,4 +633,4 @@ namespace umgebung {
         float                  fslider1;
         float                  fslider2;
     };
-} // namespace umgebung
+} // namespace umfeld

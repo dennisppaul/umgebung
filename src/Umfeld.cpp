@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -23,12 +23,12 @@
 #include <iostream>
 #include <string>
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 #include "PAudio.h"
 
 using namespace std::chrono;
 
-namespace umgebung {
+namespace umfeld {
     static high_resolution_clock::time_point lastFrameTime                       = {};
     static bool                              initialized                         = false;
     static double                            target_frame_duration               = 1.0 / frameRate;
@@ -40,7 +40,7 @@ namespace umgebung {
     static std::vector<SDL_Event>            event_cache;
 
     void exit() {
-        _app_is_running = false; // NOTE layzily implemented it here and not in `UmgebungFunctionsGraphics.cpp`
+        _app_is_running = false; // NOTE layzily implemented it here and not in `UmfeldFunctionsGraphics.cpp`
     }
 
     bool is_initialized() {
@@ -49,7 +49,7 @@ namespace umgebung {
 
     std::string get_window_title() {
         // TODO move this to subsystem and make it configurable
-        return UMGEBUNG_WINDOW_TITLE;
+        return UMFELD_WINDOW_TITLE;
     }
 
     void set_window_title(std::string title) {
@@ -97,7 +97,7 @@ namespace umgebung {
         flags |= always_on_top ? SDL_WINDOW_ALWAYS_ON_TOP : 0;
         return flags;
     }
-} // namespace umgebung
+} // namespace umfeld
 
 static void handle_arguments(const int argc, char* argv[]) {
     std::vector<std::string> args;
@@ -132,127 +132,127 @@ static uint32_t compile_subsystems_flag() {
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 
     /*
-     * 1. prepare umgebung application ( e.g args, settings )
+     * 1. prepare umfeld application ( e.g args, settings )
      * 2. initialize SDL
      * 3. initialize graphics
      * 4. initialize audio
      * 5. setup application
      */
 
-    /* 1. prepare umgebung application */
+    /* 1. prepare umfeld application */
 
     handle_arguments(argc, argv);
     settings();
 
     /* create/check graphics subsystem */
-    if (umgebung::enable_graphics) {
-        if (umgebung::renderer > umgebung::DEFAULT) {
-            umgebung::console("+++ setting renderer from paramter `size()`.");
-            switch (umgebung::renderer) {
-                case umgebung::OPENGL_2_0:
-                    umgebung::subsystem_graphics = umgebung_create_subsystem_graphics_openglv20();
+    if (umfeld::enable_graphics) {
+        if (umfeld::renderer > umfeld::DEFAULT) {
+            umfeld::console("+++ setting renderer from paramter `size()`.");
+            switch (umfeld::renderer) {
+                case umfeld::OPENGL_2_0:
+                    umfeld::subsystem_graphics = umfeld_create_subsystem_graphics_openglv20();
                     break;
-                case umgebung::OPENGL_ES_3_0:
-                    umgebung::warning("+++ OpenGL ES 3.0 not supported yet.");
+                case umfeld::OPENGL_ES_3_0:
+                    umfeld::warning("+++ OpenGL ES 3.0 not supported yet.");
                     break;
                 default:
-                case umgebung::OPENGL_3_3:
-                    umgebung::subsystem_graphics = umgebung_create_subsystem_graphics_openglv33();
+                case umfeld::OPENGL_3_3:
+                    umfeld::subsystem_graphics = umfeld_create_subsystem_graphics_openglv33();
             }
         }
-        if (umgebung::subsystem_graphics == nullptr) {
-            if (umgebung::create_subsystem_graphics != nullptr) {
-                umgebung::console("+++ creating graphics subsystem with callback.");
-                umgebung::subsystem_graphics                = umgebung::create_subsystem_graphics();
-                umgebung::handle_subsystem_graphics_cleanup = true;
+        if (umfeld::subsystem_graphics == nullptr) {
+            if (umfeld::create_subsystem_graphics != nullptr) {
+                umfeld::console("+++ creating graphics subsystem with callback.");
+                umfeld::subsystem_graphics                = umfeld::create_subsystem_graphics();
+                umfeld::handle_subsystem_graphics_cleanup = true;
             } else {
-                umgebung::console("+++ no graphics subsystem provided, using default.");
-                // umgebung::subsystem_graphics = umgebung_create_subsystem_graphics_sdl2d();
-                // umgebung::subsystem_graphics = umgebung_create_subsystem_graphics_openglv20();
-                umgebung::subsystem_graphics                = umgebung_create_subsystem_graphics_openglv33();
-                umgebung::handle_subsystem_graphics_cleanup = true;
+                umfeld::console("+++ no graphics subsystem provided, using default.");
+                // umfeld::subsystem_graphics = umfeld_create_subsystem_graphics_sdl2d();
+                // umfeld::subsystem_graphics = umfeld_create_subsystem_graphics_openglv20();
+                umfeld::subsystem_graphics                = umfeld_create_subsystem_graphics_openglv33();
+                umfeld::handle_subsystem_graphics_cleanup = true;
             }
-            if (umgebung::subsystem_graphics == nullptr) {
-                umgebung::console("+++ did not create graphics subsystem.");
+            if (umfeld::subsystem_graphics == nullptr) {
+                umfeld::console("+++ did not create graphics subsystem.");
             }
         } else {
-            umgebung::console("+++ client provided graphics subsystem ( including `size()` ).");
+            umfeld::console("+++ client provided graphics subsystem ( including `size()` ).");
         }
-        if (umgebung::subsystem_graphics != nullptr) {
-            umgebung::subsystems.push_back(umgebung::subsystem_graphics);
-            if (umgebung::subsystem_graphics->name != nullptr) {
-                umgebung::console("+++ created subsystem graphics  : ", umgebung::subsystem_graphics->name());
+        if (umfeld::subsystem_graphics != nullptr) {
+            umfeld::subsystems.push_back(umfeld::subsystem_graphics);
+            if (umfeld::subsystem_graphics->name != nullptr) {
+                umfeld::console("+++ created subsystem graphics  : ", umfeld::subsystem_graphics->name());
             } else {
-                umgebung::console("+++ created subsystem graphics  : ( no name specified )");
+                umfeld::console("+++ created subsystem graphics  : ( no name specified )");
             }
         }
     } else {
-        umgebung::console("+++ graphics disabled.");
+        umfeld::console("+++ graphics disabled.");
     }
 
     /* create/check audio subsystem */
-    if (umgebung::enable_audio) {
-        if (umgebung::subsystem_audio == nullptr) {
-            if (umgebung::create_subsystem_audio != nullptr) {
-                umgebung::console("+++ creating audio subsystem via callback.");
-                umgebung::subsystem_audio                = umgebung::create_subsystem_audio();
-                umgebung::handle_subsystem_audio_cleanup = true;
+    if (umfeld::enable_audio) {
+        if (umfeld::subsystem_audio == nullptr) {
+            if (umfeld::create_subsystem_audio != nullptr) {
+                umfeld::console("+++ creating audio subsystem via callback.");
+                umfeld::subsystem_audio                = umfeld::create_subsystem_audio();
+                umfeld::handle_subsystem_audio_cleanup = true;
             } else {
-                umgebung::console("+++ no audio subsystem provided, using default ( PortAudio ).");
-                // umgebung::subsystem_audio                = umgebung_create_subsystem_audio_sdl();
-                umgebung::subsystem_audio                = umgebung_create_subsystem_audio_portaudio();
-                umgebung::handle_subsystem_audio_cleanup = true;
+                umfeld::console("+++ no audio subsystem provided, using default ( PortAudio ).");
+                // umfeld::subsystem_audio                = umfeld_create_subsystem_audio_sdl();
+                umfeld::subsystem_audio                = umfeld_create_subsystem_audio_portaudio();
+                umfeld::handle_subsystem_audio_cleanup = true;
             }
-            if (umgebung::subsystem_audio == nullptr) {
-                umgebung::console("+++ did not create audio subsystem.");
+            if (umfeld::subsystem_audio == nullptr) {
+                umfeld::console("+++ did not create audio subsystem.");
             }
         } else {
-            umgebung::console("+++ client provided audio subsystem.");
+            umfeld::console("+++ client provided audio subsystem.");
         }
-        umgebung::console("+++ adding audio subsystem.");
-        umgebung::subsystems.push_back(umgebung::subsystem_audio);
-        if (umgebung::subsystem_audio->name != nullptr) {
-            umgebung::console("+++ created subsystem audio     : ", umgebung::subsystem_audio->name());
+        umfeld::console("+++ adding audio subsystem.");
+        umfeld::subsystems.push_back(umfeld::subsystem_audio);
+        if (umfeld::subsystem_audio->name != nullptr) {
+            umfeld::console("+++ created subsystem audio     : ", umfeld::subsystem_audio->name());
         } else {
-            umgebung::console("+++ created subsystem audio     : ( no name specified )");
+            umfeld::console("+++ created subsystem audio     : ( no name specified )");
         }
     } else {
-        umgebung::console("+++ audio disabled.");
+        umfeld::console("+++ audio disabled.");
     }
 
     /* create/check libraries subsystem */
-    if (umgebung::enable_libraries) {
-        if (umgebung::subsystem_libraries == nullptr) {
-            umgebung::subsystem_libraries                = umgebung_create_subsystem_libraries();
-            umgebung::handle_subsystem_libraries_cleanup = true;
+    if (umfeld::enable_libraries) {
+        if (umfeld::subsystem_libraries == nullptr) {
+            umfeld::subsystem_libraries                = umfeld_create_subsystem_libraries();
+            umfeld::handle_subsystem_libraries_cleanup = true;
         } else {
-            umgebung::console("+++ client provided library subsystem.");
+            umfeld::console("+++ client provided library subsystem.");
         }
-        umgebung::console("+++ created subsystem libraries : ", umgebung::subsystem_libraries->name());
-        umgebung::subsystems.push_back(umgebung::subsystem_libraries);
+        umfeld::console("+++ created subsystem libraries : ", umfeld::subsystem_libraries->name());
+        umfeld::subsystems.push_back(umfeld::subsystem_libraries);
     } else {
-        umgebung::console("+++ libraries disabled.");
+        umfeld::console("+++ libraries disabled.");
     }
 
     /* create/check events subsystem */
-    if (umgebung::enable_events) {
-        if (umgebung::subsystem_hid_events == nullptr) {
-            umgebung::subsystem_hid_events                = umgebung_create_subsystem_hid_events();
-            umgebung::handle_subsystem_hid_events_cleanup = true;
+    if (umfeld::enable_events) {
+        if (umfeld::subsystem_hid_events == nullptr) {
+            umfeld::subsystem_hid_events                = umfeld_create_subsystem_hid_events();
+            umfeld::handle_subsystem_hid_events_cleanup = true;
         } else {
-            umgebung::console("+++ client provided HID events subsystem.");
+            umfeld::console("+++ client provided HID events subsystem.");
         }
-        umgebung::console("+++ created subsystem HID events: ", umgebung::subsystem_hid_events->name());
-        umgebung::subsystems.push_back(umgebung::subsystem_hid_events);
+        umfeld::console("+++ created subsystem HID events: ", umfeld::subsystem_hid_events->name());
+        umfeld::subsystems.push_back(umfeld::subsystem_hid_events);
     } else {
-        umgebung::console("+++ HID events disabled.");
+        umfeld::console("+++ HID events disabled.");
     }
 
     /* 2. initialize SDL */
 
     uint32_t subsystem_flags = compile_subsystems_flag();
 
-    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+    for (const umfeld::Subsystem* subsystem: umfeld::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->set_flags != nullptr) {
                 subsystem->set_flags(subsystem_flags);
@@ -266,52 +266,52 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     }
 
     // TODO make this configurable
-    SDL_SetAppMetadata("Umgebung Application", "1.0", "de.dennisppaul.umgebung.application");
+    SDL_SetAppMetadata("Umfeld Application", "1.0", "de.dennisppaul.umfeld.application");
 
-    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+    for (const umfeld::Subsystem* subsystem: umfeld::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->init != nullptr) {
                 if (!subsystem->init()) {
-                    umgebung::warning("Couldn't initialize subsystem.");
+                    umfeld::warning("Couldn't initialize subsystem.");
                 }
             }
         }
     }
 
-    if (umgebung::enable_graphics) {
-        if (umgebung::subsystem_graphics != nullptr) {
-            if (umgebung::subsystem_graphics->create_native_graphics != nullptr) {
-                umgebung::g = umgebung::subsystem_graphics->create_native_graphics(umgebung::render_to_buffer);
+    if (umfeld::enable_graphics) {
+        if (umfeld::subsystem_graphics != nullptr) {
+            if (umfeld::subsystem_graphics->create_native_graphics != nullptr) {
+                umfeld::g = umfeld::subsystem_graphics->create_native_graphics(umfeld::render_to_buffer);
             }
         }
     }
 
-    if (umgebung::enable_audio) {
-        if (umgebung::subsystem_audio != nullptr) {
-            if (umgebung::subsystem_audio->create_audio != nullptr) {
-                // NOTE fill in the values from `Umgebung.h`
-                umgebung::AudioUnitInfo _audio_unit_info;
+    if (umfeld::enable_audio) {
+        if (umfeld::subsystem_audio != nullptr) {
+            if (umfeld::subsystem_audio->create_audio != nullptr) {
+                // NOTE fill in the values from `Umfeld.h`
+                umfeld::AudioUnitInfo _audio_unit_info;
                 // _audio_unit_info.unique_id       = 0; // NOTE set by subsystem
                 _audio_unit_info.input_buffer       = nullptr;
-                _audio_unit_info.input_channels     = umgebung::audio_input_channels;
+                _audio_unit_info.input_channels     = umfeld::audio_input_channels;
                 _audio_unit_info.output_buffer      = nullptr;
-                _audio_unit_info.output_channels    = umgebung::audio_output_channels;
-                _audio_unit_info.buffer_size        = umgebung::audio_buffer_size;
-                _audio_unit_info.sample_rate        = umgebung::audio_sample_rate;
-                _audio_unit_info.input_device_id    = umgebung::audio_input_device_id;
-                _audio_unit_info.input_device_name  = umgebung::audio_input_device_name;
-                _audio_unit_info.output_device_id   = umgebung::audio_output_device_id;
-                _audio_unit_info.output_device_name = umgebung::audio_output_device_name;
-                umgebung::a                         = umgebung::subsystem_audio->create_audio(&_audio_unit_info);
+                _audio_unit_info.output_channels    = umfeld::audio_output_channels;
+                _audio_unit_info.buffer_size        = umfeld::audio_buffer_size;
+                _audio_unit_info.sample_rate        = umfeld::audio_sample_rate;
+                _audio_unit_info.input_device_id    = umfeld::audio_input_device_id;
+                _audio_unit_info.input_device_name  = umfeld::audio_input_device_name;
+                _audio_unit_info.output_device_id   = umfeld::audio_output_device_id;
+                _audio_unit_info.output_device_name = umfeld::audio_output_device_name;
+                umfeld::a                         = umfeld::subsystem_audio->create_audio(&_audio_unit_info);
             }
         }
     }
 
-    umgebung::initialized = true;
+    umfeld::initialized = true;
 
     /* - setup_pre */
 
-    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+    for (const umfeld::Subsystem* subsystem: umfeld::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->setup_pre != nullptr) {
                 subsystem->setup_pre();
@@ -322,29 +322,29 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     // TODO feed back the values to the global variables
     //      NEED TO find a good place to do this … also for audio
     //      values should be updated before `setup()` is called:
-    if (umgebung::g != nullptr && umgebung::enable_graphics) {
-        umgebung::width  = umgebung::g->width;
-        umgebung::height = umgebung::g->height;
+    if (umfeld::g != nullptr && umfeld::enable_graphics) {
+        umfeld::width  = umfeld::g->width;
+        umfeld::height = umfeld::g->height;
     }
-    if (umgebung::a != nullptr && umgebung::enable_audio) {
+    if (umfeld::a != nullptr && umfeld::enable_audio) {
         // NOTE copy values back to global variables after initialization … a bit hackish but well.
-        umgebung::audio_input_buffer       = umgebung::a->input_buffer;
-        umgebung::audio_input_channels           = umgebung::a->input_channels;
-        umgebung::audio_output_buffer      = umgebung::a->output_buffer;
-        umgebung::audio_output_channels          = umgebung::a->output_channels;
-        umgebung::audio_buffer_size        = umgebung::a->buffer_size;
-        umgebung::audio_sample_rate              = umgebung::a->sample_rate;
-        umgebung::audio_input_device_id    = umgebung::a->input_device_id;
-        umgebung::audio_input_device_name  = umgebung::a->input_device_name;
-        umgebung::audio_output_device_id   = umgebung::a->output_device_id;
-        umgebung::audio_output_device_name = umgebung::a->output_device_name;
+        umfeld::audio_input_buffer       = umfeld::a->input_buffer;
+        umfeld::audio_input_channels           = umfeld::a->input_channels;
+        umfeld::audio_output_buffer      = umfeld::a->output_buffer;
+        umfeld::audio_output_channels          = umfeld::a->output_channels;
+        umfeld::audio_buffer_size        = umfeld::a->buffer_size;
+        umfeld::audio_sample_rate              = umfeld::a->sample_rate;
+        umfeld::audio_input_device_id    = umfeld::a->input_device_id;
+        umfeld::audio_input_device_name  = umfeld::a->input_device_name;
+        umfeld::audio_output_device_id   = umfeld::a->output_device_id;
+        umfeld::audio_output_device_name = umfeld::a->output_device_name;
     }
 
     setup();
 
     /* - setup_post */
 
-    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+    for (const umfeld::Subsystem* subsystem: umfeld::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->setup_post != nullptr) {
                 subsystem->setup_post();
@@ -352,7 +352,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         }
     }
 
-    umgebung::lastFrameTime = std::chrono::high_resolution_clock::now();
+    umfeld::lastFrameTime = std::chrono::high_resolution_clock::now();
 
     return SDL_APP_CONTINUE;
 }
@@ -361,7 +361,7 @@ static void handle_event(const SDL_Event& event, bool& app_is_running) {
     switch (event.type) {
         case SDL_EVENT_WINDOW_RESIZED:
             // // TODO implement window resize … how will the subsystems be updated?
-            umgebung::warning("TODO window resized. subsystem needs to be update …");
+            umfeld::warning("TODO window resized. subsystem needs to be update …");
             windowResized(-1, -1);
             break;
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
@@ -371,14 +371,14 @@ static void handle_event(const SDL_Event& event, bool& app_is_running) {
         case SDL_EVENT_WINDOW_HIDDEN:
         case SDL_EVENT_WINDOW_MINIMIZED:
         case SDL_EVENT_WINDOW_MAXIMIZED:
-            // umgebung::warning("TODO window status has changed ( e.g minimized, maximaized, shown, hidden )");
+            // umfeld::warning("TODO window status has changed ( e.g minimized, maximaized, shown, hidden )");
             break;
         case SDL_EVENT_QUIT:
             app_is_running = false;
             break;
         case SDL_EVENT_KEY_DOWN:
-            if (umgebung::use_esc_key_to_quit) {
-                umgebung::key = static_cast<int>(event.key.key);
+            if (umfeld::use_esc_key_to_quit) {
+                umfeld::key = static_cast<int>(event.key.key);
                 if (event.key.scancode == SDL_SCANCODE_ESCAPE) {
                     app_is_running = false;
                 }
@@ -389,7 +389,7 @@ static void handle_event(const SDL_Event& event, bool& app_is_running) {
 }
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
-    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+    for (const umfeld::Subsystem* subsystem: umfeld::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->event != nullptr) {
                 subsystem->event(event);
@@ -397,18 +397,18 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
         }
     }
 
-    umgebung::event_cache.push_back(*event);
+    umfeld::event_cache.push_back(*event);
 
     /* only quit events */
-    handle_event(*event, umgebung::_app_is_running);
-    if (!umgebung::_app_is_running) {
+    handle_event(*event, umfeld::_app_is_running);
+    if (!umfeld::_app_is_running) {
         return SDL_APP_SUCCESS;
     }
     return SDL_APP_CONTINUE;
 }
 
 static void handle_draw() {
-    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+    for (const umfeld::Subsystem* subsystem: umfeld::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->draw_pre != nullptr) {
                 subsystem->draw_pre();
@@ -418,7 +418,7 @@ static void handle_draw() {
 
     draw();
 
-    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+    for (const umfeld::Subsystem* subsystem: umfeld::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->draw_post != nullptr) {
                 subsystem->draw_post();
@@ -426,9 +426,9 @@ static void handle_draw() {
         }
     }
 
-    if (umgebung::subsystem_graphics != nullptr) {
-        if (umgebung::subsystem_graphics->post != nullptr) {
-            umgebung::subsystem_graphics->post();
+    if (umfeld::subsystem_graphics != nullptr) {
+        if (umfeld::subsystem_graphics->post != nullptr) {
+            umfeld::subsystem_graphics->post();
         }
     }
 
@@ -437,21 +437,21 @@ static void handle_draw() {
 
 SDL_AppResult SDL_AppIterate(void* appstate) {
     const high_resolution_clock::time_point currentFrameTime = high_resolution_clock::now();
-    const auto                              frameDuration    = duration_cast<duration<double>>(currentFrameTime - umgebung::lastFrameTime);
+    const auto                              frameDuration    = duration_cast<duration<double>>(currentFrameTime - umfeld::lastFrameTime);
     const double                            frame_duration   = frameDuration.count();
 
-    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+    for (const umfeld::Subsystem* subsystem: umfeld::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->event_in_update_loop != nullptr) {
-                for (auto e: umgebung::event_cache) {
+                for (auto e: umfeld::event_cache) {
                     subsystem->event_in_update_loop(&e);
                 }
             }
         }
     }
-    umgebung::event_cache.clear();
+    umfeld::event_cache.clear();
 
-    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+    for (const umfeld::Subsystem* subsystem: umfeld::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->update_loop != nullptr) {
                 subsystem->update_loop();
@@ -459,26 +459,26 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
         }
     }
 
-    if (frame_duration >= umgebung::target_frame_duration) {
+    if (frame_duration >= umfeld::target_frame_duration) {
         handle_draw();
 
         if (frame_duration == 0) {
-            umgebung::frameRate = 1;
+            umfeld::frameRate = 1;
         } else {
-            umgebung::frameRate = static_cast<float>(1.0 / frame_duration);
+            umfeld::frameRate = static_cast<float>(1.0 / frame_duration);
         }
 
-        umgebung::frameCount++;
-        umgebung::lastFrameTime = currentFrameTime;
+        umfeld::frameCount++;
+        umfeld::lastFrameTime = currentFrameTime;
     }
 
     return SDL_APP_CONTINUE;
 }
 
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
-    // NOTE 1. call `void umgebung::shutdown()`(?)
+    // NOTE 1. call `void umfeld::shutdown()`(?)
     //      2. clean up subsytems e.g audio, graphics, ...
-    for (const umgebung::Subsystem* subsystem: umgebung::subsystems) {
+    for (const umfeld::Subsystem* subsystem: umfeld::subsystems) {
         if (subsystem != nullptr) {
             if (subsystem->shutdown != nullptr) {
                 subsystem->shutdown();
@@ -488,32 +488,32 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result) {
     }
 
     // NOTE clean up graphics + audio subsystem if created internally
-    if (umgebung::subsystem_graphics != nullptr) {
-        if (umgebung::handle_subsystem_graphics_cleanup) {
-            delete umgebung::subsystem_graphics;
+    if (umfeld::subsystem_graphics != nullptr) {
+        if (umfeld::handle_subsystem_graphics_cleanup) {
+            delete umfeld::subsystem_graphics;
         }
-        umgebung::subsystem_graphics = nullptr;
+        umfeld::subsystem_graphics = nullptr;
     }
-    if (umgebung::subsystem_audio != nullptr) {
-        if (umgebung::handle_subsystem_audio_cleanup) {
-            delete umgebung::subsystem_audio;
+    if (umfeld::subsystem_audio != nullptr) {
+        if (umfeld::handle_subsystem_audio_cleanup) {
+            delete umfeld::subsystem_audio;
         }
-        umgebung::subsystem_audio = nullptr;
+        umfeld::subsystem_audio = nullptr;
     }
-    if (umgebung::subsystem_libraries != nullptr) {
-        if (umgebung::handle_subsystem_libraries_cleanup) {
-            delete umgebung::subsystem_libraries;
+    if (umfeld::subsystem_libraries != nullptr) {
+        if (umfeld::handle_subsystem_libraries_cleanup) {
+            delete umfeld::subsystem_libraries;
         }
-        umgebung::subsystem_libraries = nullptr;
+        umfeld::subsystem_libraries = nullptr;
     }
-    if (umgebung::subsystem_hid_events != nullptr) {
-        if (umgebung::handle_subsystem_hid_events_cleanup) {
-            delete umgebung::subsystem_hid_events;
+    if (umfeld::subsystem_hid_events != nullptr) {
+        if (umfeld::handle_subsystem_hid_events_cleanup) {
+            delete umfeld::subsystem_hid_events;
         }
-        umgebung::subsystem_hid_events = nullptr;
+        umfeld::subsystem_hid_events = nullptr;
     }
 
-    umgebung::subsystems.clear();
+    umfeld::subsystems.clear();
 
     shutdown();
     SDL_Quit();

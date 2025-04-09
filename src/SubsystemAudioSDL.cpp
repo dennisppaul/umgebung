@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -17,11 +17,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Umgebung.h"
+#include "Umfeld.h"
 #include "Subsystems.h"
 #include "PAudio.h"
 
-namespace umgebung {
+namespace umfeld {
     struct PAudioSDL {
         PAudio*          audio_device{nullptr};
         int              logical_input_device_id{0};
@@ -575,17 +575,17 @@ namespace umgebung {
         register_audio_devices(audio_device);
         return audio_device;
     }
-} // namespace umgebung
+} // namespace umfeld
 
-umgebung::SubsystemAudio* umgebung_create_subsystem_audio_sdl() {
-    auto* audio         = new umgebung::SubsystemAudio{};
-    audio->set_flags    = umgebung::set_flags;
-    audio->init         = umgebung::init;
-    audio->update_loop  = umgebung::update_loop;
-    audio->shutdown     = umgebung::shutdown;
-    audio->name         = umgebung::name;
-    audio->start        = umgebung::start;
-    audio->stop         = umgebung::stop;
-    audio->create_audio = umgebung::create_audio;
+umfeld::SubsystemAudio* umfeld_create_subsystem_audio_sdl() {
+    auto* audio         = new umfeld::SubsystemAudio{};
+    audio->set_flags    = umfeld::set_flags;
+    audio->init         = umfeld::init;
+    audio->update_loop  = umfeld::update_loop;
+    audio->shutdown     = umfeld::shutdown;
+    audio->name         = umfeld::name;
+    audio->start        = umfeld::start;
+    audio->stop         = umfeld::stop;
+    audio->create_audio = umfeld::create_audio;
     return audio;
 }

@@ -1,7 +1,7 @@
 /*
- * Umgebung
+ * Umfeld
  *
- * This file is part of the *Umgebung* library (https://github.com/dennisppaul/umgebung).
+ * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2025 Dennis P Paul.
  *
  * This library is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 
 #include <stdint.h>
 
-namespace umgebung {
+namespace umfeld {
     typedef struct UFontPixels {
         const uint16_t* data;
         const uint8_t   width;
@@ -225,4 +225,4 @@ namespace umgebung {
     };
     inline UFontPixels Font_7x10 = {Font7x10, 7, 10};
     inline UFontPixels Font_8x12 = {Font_8x12_data, 8, 12};
-} // namespace umgebung
+} // namespace umfeld
