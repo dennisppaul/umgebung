@@ -1,22 +1,22 @@
 ---
 layout: post
-title:  "Umgebung on Raspberry Pi"
+title:  "Umfeld on Raspberry Pi"
 date:   2025-04-03 10:00:00 +0100
 ---
 
-![2025-04-03-Umgebung-on-Raspberry-Pi.gif](/assets/2025-04-03-Umgebung-on-Raspberry-Pi.gif)
+![2025-04-03-Umfeld-on-Raspberry-Pi.gif](/assets/2025-04-03-Umfeld-on-Raspberry-Pi.gif)
 
-so this is exciting! Umgebung can run on a Raspberry Pi 4 Model B or Raspberry Pi 5.
+so this is exciting! Umfeld can run on a Raspberry Pi 4 Model B or Raspberry Pi 5.
 
 next stop: get *Kernel Mode Setting with Direct Rendering Manager* (KMSDRM) up and runnning! i have already compiled and ran a minimal demo with ImGui … nice!
 
-the following step-by-step guid is also published and will be updated in the repository at [Umgebung on Raspberry Pi](https://github.com/dennisppaul/umgebung/blob/main/documentation/Umgebung-on-RPI.md):
+the following step-by-step guid is also published and will be updated in the repository at [Umfeld on Raspberry Pi](https://github.com/dennisppaul/umfeld/blob/main/documentation/Umfeld-on-RPI.md):
 
-# Umgebung on Raspberry Pi
+# Umfeld on Raspberry Pi
 
 RPI currently uses X11 as the rendering system when in desktop environment. however, there is also an allegedly much faster KMS ( or KMSDRM ) rendering system which can start fullscreen windows without(!) a GUI i.e from the command-line ( and even from a remote machine via SSH ). i have tested this already, it does work but requires some extra development. stay tuned.
 
-*Umgebung* was tested on *Raspberry Pi 4 Model B* with Raspberry Pi OS (64-bit), *Debian Bookworm* ( Released: 2024-11-19 ).
+*Umfeld* was tested on *Raspberry Pi 4 Model B* with Raspberry Pi OS (64-bit), *Debian Bookworm* ( Released: 2024-11-19 ).
 
 however, it has not been tested carefully. there might be glitches …
 
@@ -32,15 +32,15 @@ this step by step guide has been tested on a *Raspberry Pi 4 Model B* with Raspb
 
 ## Quick Start
 
-for a quick start an image with *Umgebung* and all dependencies can be download from: http://dm-hb.de/umgebung-rpi
+for a quick start an image with *Umfeld* and all dependencies can be download from: http://dm-hb.de/umfeld-rpi
 
 the image has been tested on *Raspberry Pi 4 Model B* with Raspberry Pi OS (64-bit), *Debian Bookworm* ( Released: 2024-11-19 ).
 
 the credentials are:
 
-- name ....... : `umgebung.local` 
-- user ....... : `umgebung` 
-- password ... : `umgebung123`
+- name ....... : `umfeld.local` 
+- user ....... : `umfeld` 
+- password ... : `umfeld123`
 
 ## Preparing the Build Environment
 
@@ -77,19 +77,19 @@ sudo cmake --install build --prefix /usr/local
 
 now SDL3 is properly installed and can be used for build ( i.e `pkg-config --libs --cflags sdl3` provides all compile flags ).
 
-## Setting up Umgebung
+## Setting up Umfeld
 
-first clone [umgebung](https://github.com/dennisppaul/umgebung) and the [umgebung-examples](https://github.com/dennisppaul/umgebung-examples) repositories with submodules from GitHub:
+first clone [umfeld](https://github.com/dennisppaul/umfeld) and the [umfeld-examples](https://github.com/dennisppaul/umfeld-examples) repositories with submodules from GitHub:
 
 ```sh
-git clone --recurse-submodules https://github.com/dennisppaul/umgebung.git
-git clone --recurse-submodules https://github.com/dennisppaul/umgebung-examples.git
+git clone --recurse-submodules https://github.com/dennisppaul/umfeld.git
+git clone --recurse-submodules https://github.com/dennisppaul/umfeld-examples.git
 ```
 
 now enter the example directory, to build and run an example e.g a basic minimal example:
 
 ```sh
-cd umgebung-examples/Basics/minimal
+cd umfeld-examples/Basics/minimal
 cmake -B build
 cmake --build build # --parallel
 ./build/minimal
@@ -103,5 +103,5 @@ to run GUI applications from another machine via `ssh` the following steps must 
 
 - check that remote RPI has *X11 forwarding* enabled. in `/etc/ssh/sshd_config` confirm that `X11Forwarding yes`. if not change it an restart `ssh` with `sudo systemctl restart ssh`
 - make sure local machine has an *X server* running ( e.g for macOS install XQuartz with `brew install xquartz` )
-- start `ssh` session from local machine with `-Y` option e.g `ssh -Y umgebung@umgebung.local`
+- start `ssh` session from local machine with `-Y` option e.g `ssh -Y umfeld@umfeld.local`
 - run application with `DISPLAY` set to remote screen e.g `DISPLAY=:0 ./umgegbung-application`
