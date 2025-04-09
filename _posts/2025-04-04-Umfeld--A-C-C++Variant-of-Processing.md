@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Umfeld — A C/C++ Variant of Processing "
+title:  "Umfeld — A C/C++ Variant of Processing"
 date:   2025-04-04 22:00:00 +0100
 ---
 
@@ -40,7 +40,7 @@ the easiest way to control people and keep them in check and “normal” is by 
 
 **coding is caring!**
 
-this is why i set up a discord server where we can share and talk ( yet another debatable platform, but i wanted to open this up to non-HfK people … convenience > æthics ):
+this is why i set up a discord server where we can share and talk ( yet another debatable platform, but i wanted to open this up to non-HfK people … convenience > aesthetics ):
 
 https://d3-is.de/umfeld
 
