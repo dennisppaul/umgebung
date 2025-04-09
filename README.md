@@ -1,6 +1,6 @@
 # Umfeld
 
-![umfeld-logotype-256](umfeld-logotype-256.png)
+![umfeld-logotype-3D](umfeld-logotype-3D.png)
 
 *Umfeld* is a lightweight C++ environment for small audio and graphics based applications. it is inspired by [Processing.org](https://processing.org) and similar environments.
 
