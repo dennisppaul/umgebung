@@ -24,7 +24,7 @@ git clone --recurse-submodules https://github.com/dennisppaul/umfeld
 git clone --recurse-submodules https://github.com/dennisppaul/umfeld-examples
 cd umfeld
 ./install-macOS.sh # or ./install-linux-apt.sh
-cd ../umgebuncdg-examples/Basics/minimal
+cd ../umfeld-examples/Basics/minimal
 cmake -B build ; cmake --build build ; ./build/minimal
 ```
 
