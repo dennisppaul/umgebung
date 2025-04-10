@@ -12,8 +12,8 @@ this feels soooo strange! i searched and replaced the name in the entire project
 
 ![2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512.png](2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512.png)
 
-![2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-dot.png](2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-dot.png)
+![2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-dot](/assets/2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-dot.png)
 
-![2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-logo.png](2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-logo.png)
+![2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-logo](/assets/2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-logo.png)
 
-![2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-black.png](2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-black.png)
+![2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-black](/assets/2025-04-09-The-Ministry-of-Truth-at-Work--umfeld-logotype-512-black.png)
