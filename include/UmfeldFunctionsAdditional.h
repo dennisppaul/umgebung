@@ -102,7 +102,7 @@ namespace umfeld {
         ((os << to_printable(args)), ...);
         std::cerr
             << timestamp() << " "
-            << "UMG.ERROR   : "
+            << "UMFELD.ERROR   : "
             << os.str()
             << std::endl;
         std::flush(std::cerr);
@@ -116,7 +116,7 @@ namespace umfeld {
         ((os << to_printable(args)), ...);
         std::cerr
             << timestamp() << " "
-            << "UMG.WARNING : "
+            << "UMFELD.WARNING : "
             << os.str()
             << std::endl;
         std::flush(std::cerr);
@@ -130,7 +130,7 @@ namespace umfeld {
         ((os << to_printable(args)), ...);
         std::cout
             << timestamp() << " "
-            << "UMG.CONSOLE : "
+            << "UMFELD.CONSOLE : "
             << os.str()
             << std::endl;
         std::flush(std::cout);
