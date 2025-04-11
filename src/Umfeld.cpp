@@ -237,7 +237,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     /* create/check events subsystem */
     if (umfeld::enable_events) {
         if (umfeld::subsystem_hid_events == nullptr) {
-            umfeld::subsystem_hid_events                = umfeld_create_subsystem_hid_events();
+            umfeld::subsystem_hid_events                = umfeld_create_subsystem_hid();
             umfeld::handle_subsystem_hid_events_cleanup = true;
         } else {
             umfeld::console("+++ client provided HID events subsystem.");

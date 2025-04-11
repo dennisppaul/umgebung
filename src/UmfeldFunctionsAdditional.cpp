@@ -172,9 +172,9 @@ namespace umfeld {
             return;
         }
         umfeld::enable_audio           = true;
-        umfeld::audio_input_channels         = input_channels;
-        umfeld::audio_output_channels        = output_channels;
-        umfeld::audio_sample_rate            = sample_rate;
+        umfeld::audio_input_channels   = input_channels;
+        umfeld::audio_output_channels  = output_channels;
+        umfeld::audio_sample_rate      = sample_rate;
         umfeld::audio_buffer_size      = buffer_size;
         umfeld::audio_input_device_id  = input_device;
         umfeld::audio_output_device_id = output_device;
@@ -191,9 +191,9 @@ namespace umfeld {
             return;
         }
         umfeld::enable_audio             = true;
-        umfeld::audio_input_channels           = input_channels;
-        umfeld::audio_output_channels          = output_channels;
-        umfeld::audio_sample_rate              = sample_rate;
+        umfeld::audio_input_channels     = input_channels;
+        umfeld::audio_output_channels    = output_channels;
+        umfeld::audio_sample_rate        = sample_rate;
         umfeld::audio_buffer_size        = buffer_size;
         umfeld::audio_input_device_id    = AUDIO_DEVICE_FIND_BY_NAME;
         umfeld::audio_output_device_id   = AUDIO_DEVICE_FIND_BY_NAME;
@@ -208,12 +208,12 @@ namespace umfeld {
         umfeld::enable_audio             = true;
         umfeld::audio_input_device_id    = info.input_device_id;
         umfeld::audio_input_device_name  = info.input_device_name;
-        umfeld::audio_input_channels           = info.input_channels;
+        umfeld::audio_input_channels     = info.input_channels;
         umfeld::audio_output_device_id   = info.output_device_id;
         umfeld::audio_output_device_name = info.output_device_name;
-        umfeld::audio_output_channels          = info.output_channels;
+        umfeld::audio_output_channels    = info.output_channels;
         umfeld::audio_buffer_size        = info.buffer_size;
-        umfeld::audio_sample_rate              = info.sample_rate;
+        umfeld::audio_sample_rate        = info.sample_rate;
     }
 
     void audio_start(PAudio* device) {
@@ -232,8 +232,7 @@ namespace umfeld {
         }
     }
 
-
-    std::vector<Vertex> loadOBJ(const std::string& filename) {
+    std::vector<Vertex> loadOBJ_with_material(const std::string& filename) {
         tinyobj::ObjReader       reader;
         tinyobj::ObjReaderConfig config;
         config.triangulate = true;
@@ -307,7 +306,7 @@ namespace umfeld {
         return vertices;
     }
 
-    std::vector<Vertex> loadOBJ_NoMaterial(const std::string& filename) {
+    std::vector<Vertex> loadOBJ_no_material(const std::string& filename) {
         tinyobj::ObjReader       reader;
         tinyobj::ObjReaderConfig config;
         config.triangulate = true; // Ensure we only get triangles
@@ -354,6 +353,10 @@ namespace umfeld {
         return vertices;
     }
 
+    std::vector<Vertex> loadOBJ(const std::string& filename, const bool material) {
+        return material ? loadOBJ_with_material(filename) : loadOBJ_no_material(filename);
+    }
+
     Sampler* loadSample(const std::string& filename) {
         unsigned int channels;
         unsigned int sample_rate;
@@ -376,4 +379,5 @@ namespace umfeld {
         const auto sampler = new Sampler(sample_buffer, length, sample_rate);
         return sampler;
     }
+
 } // namespace umfeld

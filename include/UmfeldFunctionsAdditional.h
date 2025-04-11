@@ -26,7 +26,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <functional>
 
 #include "UmfeldDefines.h"
 #include "UmfeldConstants.h"
@@ -74,8 +73,9 @@ namespace umfeld {
     void                     register_library(LibraryListener* listener);         /* implemented in subsystems */
     void                     unregister_library(const LibraryListener* listener); /* implemented in subsystems */
     void                     handle_events_in_loop(bool events_in_loop);          /* implemented in subsystems */
-    std::vector<Vertex>      loadOBJ(const std::string& filename);
+    std::vector<Vertex>      loadOBJ(const std::string& filename, bool material = true);
     Sampler*                 loadSample(const std::string& filename);
+    PAudio*                  createAudio(const AudioUnitInfo* device_info);
 
     /* --- templated functions --- */
 

@@ -1,5 +1,5 @@
 /*
-* Umfeld
+ * Umfeld
  *
  * This file is part of the *Umfeld* library (https://github.com/dennisppaul/umfeld).
  * Copyright (c) 2023 Dennis P Paul.

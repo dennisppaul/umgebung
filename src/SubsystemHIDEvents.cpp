@@ -27,11 +27,11 @@ namespace umfeld {
     static bool _handle_events_in_loop = true;
     static bool _mouse_is_pressed      = false;
 
-    void handle_events_in_loop(const bool events_in_loop) {
+    void hid_handle_events_in_loop(const bool events_in_loop) {
         _handle_events_in_loop = events_in_loop;
     }
 
-    static void handle_hid_event(const SDL_Event& event) {
+    static void handle_gamepad_event(const SDL_Event& event) {
         sdl_event(event);
 
         switch (event.type) {
@@ -47,12 +47,12 @@ namespace umfeld {
                 break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 umfeld::mouseButton = event.button.button; // TODO not sure how consistent these are across platforms
-                _mouse_is_pressed     = true;
+                _mouse_is_pressed   = true;
                 mousePressed();
                 umfeld::isMousePressed = true;
                 break;
             case SDL_EVENT_MOUSE_BUTTON_UP:
-                _mouse_is_pressed     = false;
+                _mouse_is_pressed   = false;
                 umfeld::mouseButton = -1;
                 mouseReleased();
                 umfeld::isMousePressed = false;
@@ -104,7 +104,7 @@ namespace umfeld {
     static void event(SDL_Event* event) {
         if (is_hid_event(event)) {
             if (!_handle_events_in_loop) {
-                handle_hid_event(*event);
+                handle_gamepad_event(*event);
             }
         }
     }
@@ -113,7 +113,7 @@ namespace umfeld {
     static void event_in_update_loop(SDL_Event* event) {
         if (is_hid_event(event)) {
             if (_handle_events_in_loop) {
-                handle_hid_event(*event);
+                handle_gamepad_event(*event);
             }
         }
     }
@@ -123,7 +123,7 @@ namespace umfeld {
     }
 } // namespace umfeld
 
-umfeld::Subsystem* umfeld_create_subsystem_hid_events() {
+umfeld::Subsystem* umfeld_create_subsystem_hid() {
     auto* libraries                 = new umfeld::Subsystem{};
     libraries->shutdown             = umfeld::shutdown;
     libraries->set_flags            = umfeld::set_flags;

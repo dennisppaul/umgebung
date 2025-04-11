@@ -105,6 +105,8 @@ namespace umfeld {
     inline Subsystem*              subsystem_libraries  = nullptr;
     inline Subsystem*              subsystem_hid_events = nullptr;
 
+    // TODO move these functions to `UmfeldFunctions`
+
     inline SDL_Window* get_window() {
         if (subsystem_graphics != nullptr && subsystem_graphics->get_sdl_window != nullptr) {
             return subsystem_graphics->get_sdl_window();
@@ -124,5 +126,21 @@ namespace umfeld {
             return subsystem_graphics->get_renderer_type();
         }
         return DEFAULT;
+    }
+
+    inline void add_subsystem(Subsystem* subsystem) {
+        if (subsystem != nullptr) {
+            subsystems.push_back(subsystem);
+        }
+    }
+
+    inline bool remove_subsystem(const Subsystem* subsystem) {
+        for (auto it = subsystems.begin(); it != subsystems.end(); ++it) {
+            if (*it == subsystem) {
+                subsystems.erase(it);
+                return true;
+            }
+        }
+        return false;
     }
 } // namespace umfeld

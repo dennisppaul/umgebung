@@ -28,14 +28,10 @@
 #include <iomanip>
 
 #include "UmfeldFunctionsAdditional.h"
-#include "PAudio.h"
 
 namespace umfeld {
 
 #define FLUSH_PRINT
-
-    std::string sketchPath();
-    PAudio*     createAudio(const AudioUnitInfo* device_info);
 
     // ## Data
 
@@ -202,8 +198,8 @@ namespace umfeld {
 
     uint32_t color(float gray);
     uint32_t color(float gray, float alpha);
-    uint32_t color(float v1, float v2, float v3);              // TODO correct parameter name
-    uint32_t color(float v1, float v2, float v3, float alpha); // TODO correct parameter name
+    uint32_t color(float v1, float v2, float v3);
+    uint32_t color(float v1, float v2, float v3, float alpha);
 
     uint32_t color_i(uint32_t gray);
     uint32_t color_i(uint32_t gray, uint32_t alpha);
@@ -294,5 +290,9 @@ namespace umfeld {
     // ## Structure
 
     void exit();
+
+    // ( part of original processing but not in the Reference )
+
+    std::string sketchPath();
 
 } // namespace umfeld
